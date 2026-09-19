@@ -1,0 +1,6 @@
+[
+  {"city": "Paris", "lat": 48.8719, "lon": 2.3316, "half_km": 1.5},
+  {"city": "Toulouse", "lat": 43.6045, "lon": 1.4442, "half_km": 1.5},
+  {"city": "Strasbourg", "lat": 48.5834, "lon": 7.7456, "half_km": 1.0},
+  {"city": "Anglet", "lat": 43.4929, "lon": -1.5153, "half_km": 1.5}
+]
