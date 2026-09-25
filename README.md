@@ -28,10 +28,15 @@ none, this says so rather than guessing.
 - Vienna: City of Vienna open data (Schanigärten), CC BY 3.0 AT.
 - Copenhagen: City of Copenhagen open data (Udeservering), CC BY 4.0.
 - Madrid: Ayuntamiento de Madrid, censo de terrazas, CC BY 4.0.
+- Barcelona: Ajuntament de Barcelona, Open Data BCN, CC BY 4.0.
 - Seville: Gerencia de Urbanismo de Sevilla, veladores (licence not stated
   by the publisher).
 - Basel: Kanton Basel-Stadt open data (Allmendbewilligungen), CC BY 4.0.
 - Geneva: Ville de Genève, « Données SITG » (accès libre).
+- Vilnius: © 2014 Vilniaus miesto savivaldybė; © 2014 SĮ 'Vilniaus Planas'
+  (licence not stated by the publisher).
+- Oslo: outdoor serving licences, Copyright Plan- og bygningsetaten i Oslo
+  kommune (licence not stated by the publisher).
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal. "The City of Chicago makes no
   claims as to the content, accuracy, timeliness, or completeness of any
@@ -55,12 +60,19 @@ none, this says so rather than guessing.
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal (disclaimer above).
 - San Francisco: DataSF, PDDL.
-- Denver, Cape Town, São Paulo: city sources used by the generator, not
-  in the current district list (none of their districts was offered).
+- Tel Aviv: Tel Aviv-Yafo Municipality GIS (the municipality's terms of
+  use; licence not stated by the publisher).
+- Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
+  Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
+  outlines and heights derived from the Dirección General del Catastro's
+  INSPIRE Buildings service (INSPIRE access and use licence). A derived
+  dataset, not cadastral information; the cadastre's own files are not
+  redistributed.
 
 **Communes (France)**
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
 
-No personal data: every key is the rounded coordinate of a public area,
-and every district is named by a public street or square.
+Every key is the rounded coordinate of a public area, and every district
+is named by a public street or square. Venue names are the trading names
+the city registers publish; nothing about a person beyond that.
