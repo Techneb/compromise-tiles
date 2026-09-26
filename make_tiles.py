@@ -233,14 +233,21 @@ GRID = 100  # the in-memory index's buckets: 1/100°, ~1 km
 _regions = None
 
 def geofabrik_pbf(lat, lon):
-    """The smallest Geofabrik region holding the point — the deepest in its chain of parents."""
     global _regions
     if _regions is None: _regions = get_json(GEOFABRIK)["features"]
-    parents = {f["properties"]["id"]: f["properties"].get("parent") for f in _regions}
+    return smallest_region(_regions, lat, lon)["properties"]["urls"]["pbf"]
+
+def smallest_region(regions, lat, lon):
+    """The smallest region holding the point: the deepest in its chain of parents, and among
+    equally deep ones (us and illinois, dach and switzerland) the one with the smallest box."""
+    parents = {f["properties"]["id"]: f["properties"].get("parent") for f in regions}
     depth = lambda i: 0 if i is None else 1 + depth(parents.get(i))
-    holding = [f for f in _regions if "pbf" in f["properties"].get("urls", {}) and contains(f["geometry"], lat, lon)]
+    def size(f):
+        s, w, n, e = bounds(f["geometry"])
+        return (n - s) * (e - w)
+    holding = [f for f in regions if "pbf" in f["properties"].get("urls", {}) and contains(f["geometry"], lat, lon)]
     if not holding: raise SourceError(f"no Geofabrik extract holds {lat},{lon}")
-    return max(holding, key=lambda f: depth(f["properties"]["id"]))["properties"]["urls"]["pbf"]
+    return max(holding, key=lambda f: (depth(f["properties"]["id"]), -size(f)))
 
 def download(url, folder, max_days=6):
     """A whole file, kept in `folder` and fetched again once older than `max_days` (Geofabrik updates daily)."""
@@ -989,10 +996,18 @@ def area(entry, half_km):
     dlat, dlon = half_km / 111.32, half_km / (111.32 * math.cos(math.radians(lat)))
     return lat - dlat, lon - dlon, lat + dlat, lon + dlon
 
-def run(label, rect, out, block, layers, extracts, departements=None):
+def clip(cells, boundary):
+    """The cells whose centre falls inside a GeoJSON (Multi)Polygon."""
+    return [c for c in cells if contains(boundary, c.lat, c.lon)]
+
+def run(label, rect, out, block, layers, extracts, departements=None, boundary=None):
     global _osm
     started = time.monotonic()
     cells, coarse = cells_in(*rect), cells_in(*rect, scale=COARSE)
+    if boundary:  # a box around a municipality keeps only the cells inside its boundary, and the venue cells over them
+        cells = clip(cells, boundary)
+        kept = {f"{index(c.lat, COARSE)},{index(c.lon, COARSE)}" for c in cells}
+        coarse = [c for c in coarse if c.key in kept]
     failures, skipped, outside = [], 0, set()
     log(f"{label}: {len(cells)} cells, {len(coarse)} venue cells, blocks of {block}×{block}")
     lat, lon = (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2
@@ -1038,7 +1053,8 @@ def run(label, rect, out, block, layers, extracts, departements=None):
 
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    a.add_argument("--cities", help="a cities.json: [{city, district?, lat, lon, half_km}] or [{city, district?, box: [s, w, n, e], departements?}]")
+    a.add_argument("--cities", help="a cities.json: [{city, district?, lat, lon, half_km}] or [{city, district?, box: [s, w, n, e], departements?, boundary?}]"
+                   " (boundary: a GeoJSON Polygon or MultiPolygon file, relative to the cities.json, whose cells alone are built)")
     a.add_argument("--city", help="a label: feeds are picked per cell, by commune or box"); a.add_argument("--lat", type=float); a.add_argument("--lon", type=float)
     a.add_argument("--half-km", type=float, default=0.5)
     a.add_argument("--block", type=int, default=3, help="cells per side asked of a source at once (default 3)")
@@ -1055,7 +1071,12 @@ def main():
     total, failures = 0, []
     for entry in entries:
         label = entry["city"] + (f" ({entry['district']})" if entry.get("district") else "")
-        n, f = run(label, area(entry, args.half_km), args.out, args.block, args.layers.split(","), args.extracts, entry.get("departements"))
+        boundary = None
+        if entry.get("boundary"):
+            with open(os.path.join(os.path.dirname(os.path.abspath(args.cities)), entry["boundary"])) as f: boundary = json.load(f)
+            boundary = boundary.get("geometry", boundary)
+        n, f = run(label, area(entry, args.half_km), args.out, args.block, args.layers.split(","), args.extracts,
+                   entry.get("departements"), boundary)
         total += n
         failures += [(label,) + x for x in f]
     failed = {(x[0], x[1]) for x in failures}
