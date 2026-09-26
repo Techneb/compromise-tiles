@@ -1,33 +1,5 @@
 [
   {
-    "city": "Paris",
-    "district": "Oberkampf, Rue Oberkampf",
-    "lat": 48.865,
-    "lon": 2.377,
-    "half_km": 0.5
-  },
-  {
-    "city": "Paris",
-    "district": "Canal Saint-Martin, Quai de Valmy",
-    "lat": 48.871,
-    "lon": 2.365,
-    "half_km": 0.5
-  },
-  {
-    "city": "Paris",
-    "district": "Le Marais, Rue Vieille-du-Temple",
-    "lat": 48.859,
-    "lon": 2.36,
-    "half_km": 0.5
-  },
-  {
-    "city": "Paris",
-    "district": "Saint-Germain, Rue de Buci",
-    "lat": 48.8535,
-    "lon": 2.3365,
-    "half_km": 0.5
-  },
-  {
     "city": "Tel Aviv",
     "district": "Rothschild Blvd",
     "lat": 32.0636,
