@@ -24,7 +24,8 @@ Output (compact JSON):
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
 
-FLOOR = 20        # buildings a cell needs for the filter, and terraces for the terrace test
+FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
+TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # the app's terracesKnown (CityData.swift): terraces vs going-out venues nearby
 GOING_OUT = 10    # bars, cafés and restaurants within about 400 m
 FALLBACK_HEIGHT = re.compile(rb'"height":\s*15(?:\.0+)?[,}]')  # written when a footprint has no height
 
@@ -110,8 +111,20 @@ def main():
         v = venues.get(f"{int(ky / 10)},{int(kx / 10)}")
         return v[0] / 100 if v else 0
 
+    def venues_near(ky, kx):
+        """Venues around a cell (the 600 m square), None where no venue tile covers it."""
+        near = [venues.get(f"{int((ky + i) / 10)},{int((kx + j) / 10)}") for i in (-1, 0, 1) for j in (-1, 0, 1)]
+        return sum(v[0] / 100 for v in near if v) if any(near) else None
+
     def going_out(ky, kx):
-        return sum(density(ky + i, kx + j) for i in (-1, 0, 1) for j in (-1, 0, 1)) >= GOING_OUT
+        return (venues_near(ky, kx) or 0) >= GOING_OUT
+
+    # ponytail: the app counts venues in the venue tiles' points within 400 m; here the same 600 m
+    # square estimate as going_out stands in — parse the points if the two disagree on a city.
+    def terraces_known(ky, kx, c):
+        v = venues_near(ky, kx)
+        if v is None: return c[0] >= FLOOR
+        return c[0] >= TERRACE_MINIMUM and c[0] >= TERRACE_RATIO * v
 
     passes = lambda c: c[1] >= FLOOR
     areas = []
@@ -137,9 +150,10 @@ def main():
         areas.append({
             "name": e.get("district") or e["city"], "city": e["city"],
             "box": [round(x, 5) for x in box], "tiled": len(keys), "passing": len(ok),
-            "terracesKnown": sum(c[0] >= FLOOR for *_, c in keys),
+            "terracesKnown": sum(terraces_known(ky, kx, c) for ky, kx, c in keys),
             "km2": round(sum(cell_km2(ky) for ky, _ in ok), 2),
-            "goingOutShare": round(sum(c[0] >= FLOOR and passes(c) for *_, c in out_cells) / len(out_cells), 3) if out_cells else None,
+            "goingOutShare": round(sum(terraces_known(ky, kx, c) and passes(c) for ky, kx, c in out_cells) / len(out_cells), 3)
+            if out_cells else None,
             "lastBuilt": max(dates) if dates else None,
         })
 

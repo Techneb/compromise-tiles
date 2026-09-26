@@ -47,8 +47,10 @@ def row(name, insee, host, dataset, name_field, kinds, lat, lon, **extra):
     return dict(city=name, insee=insee, host=host, dataset=dataset, name=name_field, kinds=kinds, lat=lat, lon=lon, **extra)
 
 PERMIT_CITIES = [
+    # Terrace kinds only (TERRASSE, TERRASSES, CONTRE-TERRASSE…): the feed also lists stalls (ETALAGE),
+    # planchers and accessory shopfronts, ~12 % of its rows, which inflated every terrace count (2026-09-26).
     row("Paris", "75056", "parisdata.opendatasoft.com", "terrasses-autorisations", "nom_enseigne", ["typologie"],
-        (48.79, 48.95), (2.17, 2.53)),
+        (48.79, 48.95), (2.17, 2.53), filter='search(typologie, "TERRASSE")'),
     row("Toulouse", "31555", "data.toulouse-metropole.fr", "terrasses-autorisees-ville-de-toulouse", "etablissement",
         ["terrasse_ouverte", "extension_terrasse", "terrasse_fermee"], (43.55, 43.65), (1.37, 1.50)),
     row("Strasbourg", "67482", "data.strasbourg.eu", "terrasses-autorisees-en-{year}", "nom_enseigne", [],
