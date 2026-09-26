@@ -17,6 +17,9 @@ on:
         description: "Skip the build and upload the tiles committed in this repository (built on the Mac: districts, Tel Aviv, whose heights feed answers only from Israel)"
         type: boolean
         default: false
+      only:
+        description: "Build only these cities (comma-separated city names as in cities.json); empty = all"
+        default: ""
 
 concurrency:
   group: tiles
@@ -38,7 +41,11 @@ jobs:
         if: ${{ !inputs.repo_tiles }}
         env:
           LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
-        run: timeout 330m python3 make_tiles.py --cities cities.json --out out --layers "$LAYERS" --block 5 || true
+          ONLY: ${{ inputs.only }}
+        run: |
+          # An `only` list narrows cities.json to those cities, so a new entry builds alone.
+          python3 -c 'import json,sys,os; only=[c.strip() for c in os.environ.get("ONLY","").split(",") if c.strip()]; cities=json.load(open("cities.json")); json.dump([c for c in cities if not only or c["city"] in only], open("cities-run.json","w"))'
+          timeout 330m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 || true
       # The coverage feed the site's map reads: this run's cells merged into the published feed.
       - name: Coverage
         if: ${{ !cancelled() }}
