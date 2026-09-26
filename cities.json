@@ -798,6 +798,16 @@
     ]
   },
   {
+    "city": "Jerusalem",
+    "district": "Jerusalem (whole municipality)",
+    "box": [
+      31.7,
+      35.1,
+      31.89,
+      35.27
+    ]
+  },
+  {
     "city": "Chicago",
     "district": "Wicker Park",
     "lat": 41.91,
