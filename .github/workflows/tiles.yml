@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write   # the run commits coverage.json back (GitHub's raw host serves it with CORS; the r2.dev host answers browsers 503)
 
 jobs:
   build:
@@ -94,3 +94,16 @@ jobs:
           aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
             --content-type application/json --cache-control "public, max-age=300"
+      # The feed also lives in this repository: raw.githubusercontent.com serves it to browsers
+      # with CORS, which the r2.dev development host does not (2026-09-26). Small file, weekly.
+      - name: Commit coverage.json
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: |
+          [ -f out-coverage.json ] || exit 0
+          cp out-coverage.json coverage.json
+          git config user.name "compromise-tiles bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add coverage.json
+          git commit -m "coverage.json $(date -u +%F) [skip ci]" || exit 0
+          git pull --rebase origin master && git push
