@@ -1,0 +1,51 @@
+# Builds the tiles and uploads them to R2.
+# Weekly: venues and terraces. Yearly: buildings and communes (run it by hand too when
+# cities.json gains an area). Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
+# R2_BUCKET. Public repo, standard runner: no minutes are billed.
+name: Tiles
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"   # Mondays 03:17 UTC
+    - cron: "41 4 2 1 *"   # 2 January 04:41 UTC
+  workflow_dispatch:
+    inputs:
+      layers:
+        description: "Layers to build (comma-separated)"
+        default: "terraces-v2,venues"
+
+concurrency:
+  group: tiles
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      - name: Build
+        env:
+          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
+        run: python3 make_tiles.py --cities cities.json --out out --layers "$LAYERS" --block 5
+      # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
+      # there is complete, and R2 keeps last week's tile for the rest.
+      - name: Upload to R2
+        if: ${{ !cancelled() }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
+          find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
+          find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
+          aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/" --recursive --only-show-errors \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+            --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
