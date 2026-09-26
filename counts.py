@@ -7,12 +7,15 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
   goingOutCells  200 m cells, keyed int(lat*500), int(lon*500), whose 400 m disk (around the
                  cell's centre) holds at least GOING_OUT named bars, pubs, beer gardens, cafés
                  and restaurants
-  terraceShare   the share of those cells whose 400 m disk holds at least TERRACES of them
-                 tagged outdoor_seating=yes, named or not (a flat floor until a ratio is set)
-  venues, terraces  the named venues and the outdoor-seating ones inside the city's box
+  terraceShare   the share of those cells whose 400 m disk holds outdoor_seating=yes venues,
+                 named or not, at least TERRACE_RATIO of its named ones and TERRACE_MINIMUM (the
+                 app's rule for a cell whose terraces are known)
+  venues, terraces  the named venues and the outdoor-seating ones inside the city's extent
+  extent         "municipality" where --boxes (cities.json) holds a box for the city, with its
+                 boundary polygon when it has one; else the 2 × HALF_KM square around the point
 
-A city given as a point is taken as a box of HALF_KM a side around it — a rough stand-in for
-the municipality's extent in this first version. A city without a point is listed under
+A city given as a point is taken as a box of HALF_KM a side around it unless cities.json tiles
+it as a municipality. A city without a point is listed under
 "noPoint" and skipped (nothing is geocoded). OpenStreetMap comes from the smallest Geofabrik
 extract holding the point, filtered with osmium-tool, never from Overpass.
 
@@ -23,11 +26,11 @@ Also writes the same rows as CSV beside --write, sorted by going-out cells, most
 Needs Python 3 (standard library only) and osmium-tool on the PATH.
 """
 import argparse, csv, datetime, json, math, os, sys, time
-from make_tiles import (AMENITIES, Cell, SourceError, download, features, geofabrik_pbf, index,
+from make_tiles import (AMENITIES, Cell, SourceError, contains, download, features, geofabrik_pbf, index,
                         metres, osmium, outer_rings, padded)
 
 GOING_OUT = 10   # named venues in the disk for a going-out cell
-TERRACES = 20    # outdoor-seating venues in the disk for a terrace cell
+TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: outdoor-seating venues vs named ones in the disk (the app's ratio)
 RADIUS = 400     # metres
 HALF_KM = 12     # half-side of the box around a city's point
 
@@ -57,10 +60,25 @@ def city_box(e):
     return padded((e["lat"], e["lon"], e["lat"], e["lon"]), HALF_KM * 1000)
 
 
-def count(points, box):
-    """Going-out cells, terrace cells among them, named venues and terraces in the box."""
+def municipal(cities_json):
+    """city name -> (box, boundary or None) from a cities.json: its first plain box entry per city (not a
+    departements one), with its boundary polygon when it has one — the municipality where it is tiled that way."""
+    if not cities_json or not os.path.exists(cities_json): return {}
+    out = {}
+    for e in json.load(open(cities_json)):
+        if not e.get("box") or e.get("departements") or e["city"] in out: continue
+        boundary = None
+        if e.get("boundary"):
+            with open(os.path.join(os.path.dirname(os.path.abspath(cities_json)), e["boundary"])) as f: boundary = json.load(f)
+            boundary = boundary.get("geometry", boundary)
+        out[e["city"]] = (tuple(e["box"]), boundary)
+    return out
+
+
+def count(points, box, boundary=None):
+    """Going-out cells, terrace cells among them, named venues and terraces in the box (inside the boundary when given)."""
     within = lambda r, lat, lon: r[0] <= lat <= r[2] and r[1] <= lon <= r[3]
-    inside = lambda lat, lon: within(box, lat, lon)
+    inside = lambda lat, lon: within(box, lat, lon) and (boundary is None or contains(boundary, lat, lon))
     reach = padded(box, RADIUS)
     near = {}  # cell key -> [named, outdoor] within RADIUS of its centre
     dlat = RADIUS / 111_320
@@ -76,7 +94,8 @@ def count(points, box):
                 v[1] += outdoor
     going = [v for v in near.values() if v[0] >= GOING_OUT]
     in_box = [p for p in points if inside(p[0], p[1])]
-    return len(going), sum(v[1] >= TERRACES for v in going), sum(p[2] for p in in_box), sum(p[3] for p in in_box)
+    terrace = lambda v: v[1] >= max(TERRACE_MINIMUM, TERRACE_RATIO * v[0])
+    return len(going), sum(terrace(v) for v in going), sum(p[2] for p in in_box), sum(p[3] for p in in_box)
 
 
 def main():
@@ -85,16 +104,20 @@ def main():
     a.add_argument("--extracts", required=True, help="folder the Geofabrik extracts are kept in")
     a.add_argument("--write", default="counts.json")
     a.add_argument("--only", default="", help="comma-separated city names")
+    a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 12 km square")
     a.add_argument("--drop", action="store_true", help="delete each extract once its cities are counted (small disks)")
     args = a.parse_args()
     only = {x.strip() for x in args.only.split(",") if x.strip()}
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]
     no_point = [f"{e['city']}, {e['country']}" for e in cities if "lat" not in e and not e.get("box")]
 
+    # A city tiled as a municipality is counted over that box and boundary; the others over the 12 km square.
+    munis = municipal(args.boxes)
+    extent = lambda e: munis.get(e["city"], (city_box(e), None))
     groups, failed = {}, []  # extract URL -> cities, so each extract is read once
     for e in cities:
         if "lat" not in e and not e.get("box"): continue
-        s, w, n, east = city_box(e)
+        s, w, n, east = extent(e)[0]
         try: groups.setdefault(geofabrik_pbf((s + n) / 2, (w + east) / 2), []).append(e)
         except SourceError as x: failed.append(f"{e['city']}: {x}")
 
@@ -110,10 +133,11 @@ def main():
         print(f"{url.rsplit('/', 1)[1]}: {len(points)} venues read in {time.monotonic() - t:.0f} s", file=sys.stderr)
         for e in members:
             t = time.monotonic()
-            box = city_box(e)
-            going, terrace, named, outdoor = count(points, box)
+            box, boundary = extent(e)
+            going, terrace, named, outdoor = count(points, box, boundary)
             rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
-                         "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor})
+                         "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
+                         "extent": "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square"})
             print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
@@ -122,7 +146,7 @@ def main():
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
                   f, ensure_ascii=False, indent=1)
     with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces"])
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent"])
         w.writeheader()
         w.writerows(rows)
     print(f"{len(rows)} cities, {len(no_point)} without a point, {len(failed)} failed -> {args.write}", file=sys.stderr)
