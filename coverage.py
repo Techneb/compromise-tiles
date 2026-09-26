@@ -6,7 +6,8 @@
 Reads the tiles a build just wrote (one JSON array per cell), replaces the records of the
 cells it finds, keeps every other record (per layer, so a run that builds only terraces and
 venues keeps the building counts), then totals each area of cities.json. The sunny filter
-is available where a 200 m cell holds enough terraces and buildings.
+is available where a 200 m cell holds enough buildings (`passing`); where it also holds enough
+terraces (`terracesKnown`) the filter judges terraces, elsewhere the side of the street.
 
 Output (compact JSON):
   updated     ISO date of this run
@@ -16,11 +17,14 @@ Output (compact JSON):
               (-1: layer never built); communes: space-separated INSEE codes, "" outside France
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
-  areas       [{name, city, box: [s, w, n, e], tiled, passing, km2, goingOutShare, lastBuilt}]
+  areas       [{name, city, box: [s, w, n, e], tiled, passing, terracesKnown, km2, goingOutShare, lastBuilt}]
+              passing: cells with enough buildings; terracesKnown: cells with enough terraces;
+              km2: area of the passing cells; goingOutShare: share of the going-out cells
+              holding enough terraces and buildings both
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
 
-FLOOR = 20        # terraces and buildings a cell needs for the filter
+FLOOR = 20        # buildings a cell needs for the filter, and terraces for the terrace test
 GOING_OUT = 10    # bars, cafés and restaurants within about 400 m
 FALLBACK_HEIGHT = re.compile(rb'"height":\s*15(?:\.0+)?[,}]')  # written when a footprint has no height
 
@@ -109,7 +113,7 @@ def main():
     def going_out(ky, kx):
         return sum(density(ky + i, kx + j) for i in (-1, 0, 1) for j in (-1, 0, 1)) >= GOING_OUT
 
-    passes = lambda c: c[0] >= FLOOR and c[1] >= FLOOR
+    passes = lambda c: c[1] >= FLOOR
     areas = []
     for e in json.load(open(args.cities)):
         s, w, n, east = box = area_box(e)
@@ -133,8 +137,9 @@ def main():
         areas.append({
             "name": e.get("district") or e["city"], "city": e["city"],
             "box": [round(x, 5) for x in box], "tiled": len(keys), "passing": len(ok),
+            "terracesKnown": sum(c[0] >= FLOOR for *_, c in keys),
             "km2": round(sum(cell_km2(ky) for ky, _ in ok), 2),
-            "goingOutShare": round(sum(passes(c) for *_, c in out_cells) / len(out_cells), 3) if out_cells else None,
+            "goingOutShare": round(sum(c[0] >= FLOOR and passes(c) for *_, c in out_cells) / len(out_cells), 3) if out_cells else None,
             "lastBuilt": max(dates) if dates else None,
         })
 
