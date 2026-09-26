@@ -43,7 +43,7 @@
   },
   {
     "city": "Paris",
-    "district": "Intra-muros (périphérique)",
+    "district": "Intra-muros (inside the périphérique)",
     "box": [
       48.815,
       2.224,
@@ -52,8 +52,8 @@
     ]
   },
   {
-    "city": "Petite couronne",
-    "district": "Hauts-de-Seine, Seine-Saint-Denis, Val-de-Marne",
+    "city": "Paris",
+    "district": "Petite couronne (Hauts-de-Seine, Seine-Saint-Denis, Val-de-Marne)",
     "box": [
       48.688,
       2.146,
