@@ -13,6 +13,10 @@ on:
       layers:
         description: "Layers to build (comma-separated)"
         default: "terraces-v2,venues"
+      repo_tiles:
+        description: "Skip the build and upload the tiles committed in this repository (built on the Mac: districts, Tel Aviv, whose heights feed answers only from Israel)"
+        type: boolean
+        default: false
 
 concurrency:
   group: tiles
@@ -31,6 +35,7 @@ jobs:
       # Capped below the job's limit so a long build (Spain's cadastre answers slowly) still
       # reaches the upload with every cell it finished; a cell not finished keeps its last tile.
       - name: Build
+        if: ${{ !inputs.repo_tiles }}
         env:
           LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
         run: timeout 330m python3 make_tiles.py --cities cities.json --out out --layers "$LAYERS" --block 5 || true
@@ -46,6 +51,7 @@ jobs:
           AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
         run: |
           # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
+          if [ "${{ inputs.repo_tiles }}" = "true" ]; then rm -rf out && cp -R tiles out; fi
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors \
