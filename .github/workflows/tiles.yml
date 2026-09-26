@@ -42,10 +42,12 @@ jobs:
       # The coverage feed the site's map reads: this run's cells merged into the published feed.
       - name: Coverage
         if: ${{ !cancelled() }}
+        continue-on-error: true   # a failed merge must never stop the tiles from reaching R2
         run: python3 coverage.py --out ${{ inputs.repo_tiles && 'tiles' || 'out' }} --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --write out-coverage.json
       # Lets the site read coverage.json and cities.json from a browser. Idempotent.
       - name: Bucket CORS
         if: ${{ !cancelled() }}
+        continue-on-error: true   # a token without bucket-admin rights fails here; the upload still runs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -79,7 +81,7 @@ jobs:
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
             --content-type application/json --cache-control "public, max-age=3600"
           # The coverage feed and the areas behind it, plain JSON for the site's map.
-          aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors \
+          [ -f out-coverage.json ] && aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
             --content-type application/json --cache-control "public, max-age=300"
           aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors \
