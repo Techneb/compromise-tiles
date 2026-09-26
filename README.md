@@ -21,6 +21,10 @@ none, this says so rather than guessing.
 - Anglet: Ville d'Anglet, Licence Ouverte 2.0.
 - Rouen: Ville de Rouen, 2021 edition, Licence Ouverte 2.0.
 - Lorient: Ville de Lorient, 2020 edition, Licence Ouverte 2.0.
+- Issy-les-Moulineaux: Ville d'Issy-les-Moulineaux, 2020 list (licence not
+  stated by the publisher).
+- Boulogne-Billancourt: Ville de Boulogne-Billancourt, 2020 list (licence
+  not stated by the publisher).
 - Melbourne: City of Melbourne CLUE census, CC BY.
 - Camden (London): Camden Council pavement licences, UK Open Government
   Licence v3. © Crown copyright and database rights 2026 OS AC0000849991.
