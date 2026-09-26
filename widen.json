@@ -14,7 +14,7 @@
   "osm_relation": 47811,
   "admin_level": 8,
   "km2_osm_polygon": 241.5,
-  "cells": 571,
+  "cells": 832,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -32,7 +32,9 @@
   "osm_relation": 1370736,
   "admin_level": 7,
   "km2_osm_polygon": 37.9,
-  "cells": 2107
+  "cells": 2279,
+  "boundary": "boundaries/athens.geojson",
+  "cells_clipped": 977
  },
  {
   "city": "Basel",
@@ -49,7 +51,9 @@
   "osm_relation": 1683619,
   "admin_level": 8,
   "km2_osm_polygon": 23.7,
-  "cells": 1165
+  "cells": 1476,
+  "boundary": "boundaries/basel.geojson",
+  "cells_clipped": 707
  },
  {
   "city": "Berlin",
@@ -66,7 +70,7 @@
   "osm_relation": 62422,
   "admin_level": 4,
   "km2_osm_polygon": 883.3,
-  "cells": 1173,
+  "cells": 1664,
   "note": "Berlin is a Land (level 4) and a municipality at once"
  },
  {
@@ -84,7 +88,9 @@
   "osm_relation": 43172,
   "admin_level": 8,
   "km2_osm_polygon": 139.7,
-  "cells": 6040
+  "cells": 7107,
+  "boundary": "boundaries/bologna.geojson",
+  "cells_clipped": 3975
  },
  {
   "city": "Budapest",
@@ -101,7 +107,7 @@
   "osm_relation": 1244004,
   "admin_level": 8,
   "km2_osm_polygon": 522.3,
-  "cells": 568,
+  "cells": 702,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -119,7 +125,7 @@
   "osm_relation": 122604,
   "admin_level": 8,
   "km2_osm_polygon": 603.2,
-  "cells": 1710,
+  "cells": 1932,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -137,9 +143,11 @@
   "osm_relation": 2192363,
   "admin_level": 7,
   "km2_osm_polygon": 93.5,
-  "cells": 5846,
+  "cells": 8662,
   "flag": "box/city 2.7",
-  "note": "the municipality's own two parts (city + Amager) span sea and the airport side; Frederiksberg (own municipality) sits inside the box"
+  "note": "the municipality's own two parts (city + Amager) span sea and the airport side; Frederiksberg (own municipality) sits inside the box",
+  "boundary": "boundaries/copenhagen.geojson",
+  "cells_clipped": 3675
  },
  {
   "city": "Geneva",
@@ -156,7 +164,9 @@
   "osm_relation": 1685488,
   "admin_level": 8,
   "km2_osm_polygon": 18.2,
-  "cells": 756
+  "cells": 924,
+  "boundary": "boundaries/geneva.geojson",
+  "cells_clipped": 533
  },
  {
   "city": "London",
@@ -173,7 +183,7 @@
   "osm_relation": 175342,
   "admin_level": 5,
   "km2_osm_polygon": 1583.1,
-  "cells": 1127,
+  "cells": 1540,
   "note": "Greater London (level 5); boroughs are level 8"
  },
  {
@@ -191,7 +201,7 @@
   "osm_relation": 5326784,
   "admin_level": 8,
   "km2_osm_polygon": 600.8,
-  "cells": 485,
+  "cells": 575,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -209,7 +219,9 @@
   "osm_relation": 2404870,
   "admin_level": 6,
   "km2_osm_polygon": 37.5,
-  "cells": 1724
+  "cells": 1872,
+  "boundary": "boundaries/melbourne.geojson",
+  "cells_clipped": 967
  },
  {
   "city": "New York",
@@ -226,7 +238,7 @@
   "osm_relation": 175905,
   "admin_level": 5,
   "km2_osm_polygon": 1210.6,
-  "cells": 823,
+  "cells": 966,
   "note": "New York City (level 5, 1,211 km² with water)"
  },
  {
@@ -244,7 +256,7 @@
   "osm_relation": 324431,
   "admin_level": 8,
   "km2_osm_polygon": 321.6,
-  "cells": 318,
+  "cells": 468,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -262,8 +274,10 @@
   "osm_relation": 111968,
   "admin_level": 6,
   "km2_osm_polygon": 598.1,
-  "cells": 6540,
-  "note": "trimmed: buildings inside the city-county boundary's mainland part; the raw boundary box is [37.6403, -123.1738, 37.9297, -122.2815], 2,512 km² (Farallones, bay water)"
+  "cells": 6873,
+  "note": "trimmed: buildings inside the city-county boundary's mainland part; the raw boundary box is [37.6403, -123.1738, 37.9297, -122.2815], 2,512 km² (Farallones, bay water)",
+  "boundary": "boundaries/san-francisco.geojson",
+  "cells_clipped": 5897
  },
  {
   "city": "Seville",
@@ -280,7 +294,9 @@
   "osm_relation": 342563,
   "admin_level": 8,
   "km2_osm_polygon": 140.7,
-  "cells": 7985
+  "cells": 8316,
+  "boundary": "boundaries/seville.geojson",
+  "cells_clipped": 3588
  },
  {
   "city": "Strasbourg",
@@ -297,7 +313,9 @@
   "osm_relation": 71033,
   "admin_level": 8,
   "km2_osm_polygon": 77.7,
-  "cells": 4650
+  "cells": 5925,
+  "boundary": "boundaries/strasbourg.geojson",
+  "cells_clipped": 2379
  },
  {
   "city": "The Hague",
@@ -314,7 +332,9 @@
   "osm_relation": 192736,
   "admin_level": 8,
   "km2_osm_polygon": 97.3,
-  "cells": 5400
+  "cells": 7320,
+  "boundary": "boundaries/the-hague.geojson",
+  "cells_clipped": 3206
  },
  {
   "city": "Toulouse",
@@ -331,7 +351,9 @@
   "osm_relation": 35738,
   "admin_level": 8,
   "km2_osm_polygon": 117.4,
-  "cells": 5001
+  "cells": 5727,
+  "boundary": "boundaries/toulouse.geojson",
+  "cells_clipped": 3277
  },
  {
   "city": "Turin",
@@ -348,7 +370,9 @@
   "osm_relation": 43992,
   "admin_level": 8,
   "km2_osm_polygon": 129.2,
-  "cells": 5668
+  "cells": 6732,
+  "boundary": "boundaries/turin.geojson",
+  "cells_clipped": 3720
  },
  {
   "city": "Utrecht",
@@ -365,7 +389,9 @@
   "osm_relation": 419203,
   "admin_level": 8,
   "km2_osm_polygon": 98.4,
-  "cells": 4929
+  "cells": 6667,
+  "boundary": "boundaries/utrecht.geojson",
+  "cells_clipped": 3256
  },
  {
   "city": "Vienna",
@@ -382,7 +408,7 @@
   "osm_relation": null,
   "admin_level": 4,
   "km2_osm_polygon": null,
-  "cells": 597,
+  "cells": 816,
   "note": "the Wien relation (level 4) is incomplete in the alps extract; 414.8 km² (cities.csv) decides core anyway"
  },
  {
@@ -400,7 +426,7 @@
   "osm_relation": 336074,
   "admin_level": 8,
   "km2_osm_polygon": 512.9,
-  "cells": 566,
+  "cells": 810,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -418,7 +444,7 @@
   "osm_relation": 2805690,
   "admin_level": 8,
   "km2_osm_polygon": 290.4,
-  "cells": 289,
+  "cells": 405,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -436,7 +462,9 @@
   "osm_relation": 347950,
   "admin_level": 8,
   "km2_osm_polygon": 100.8,
-  "cells": 6128
+  "cells": 6764,
+  "boundary": "boundaries/barcelona.geojson",
+  "cells_clipped": 2741
  },
  {
   "city": "Valencia",
@@ -453,9 +481,11 @@
   "osm_relation": 344953,
   "admin_level": 8,
   "km2_osm_polygon": 138.7,
-  "cells": 10968,
+  "cells": 11745,
   "flag": "box/city 3.2",
-  "note": "the municipality runs south to the Albufera pedanías (El Palmar, El Saler), 30 km of coast"
+  "note": "the municipality runs south to the Albufera pedanías (El Palmar, El Saler), 30 km of coast",
+  "boundary": "boundaries/valencia.geojson",
+  "cells_clipped": 3629
  },
  {
   "city": "Zaragoza",
@@ -472,7 +502,7 @@
   "osm_relation": 345740,
   "admin_level": 8,
   "km2_osm_polygon": 968.9,
-  "cells": 226,
+  "cells": 285,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -490,7 +520,7 @@
   "osm_relation": 340746,
   "admin_level": 8,
   "km2_osm_polygon": 393.6,
-  "cells": 334,
+  "cells": 360,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -508,7 +538,7 @@
   "osm_relation": 341321,
   "admin_level": 8,
   "km2_osm_polygon": 207.6,
-  "cells": 292,
+  "cells": 336,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -526,7 +556,9 @@
   "osm_relation": 340783,
   "admin_level": 8,
   "km2_osm_polygon": 103.5,
-  "cells": 5639
+  "cells": 5293,
+  "boundary": "boundaries/las-palmas.geojson",
+  "cells_clipped": 2395
  },
  {
   "city": "Murcia",
@@ -543,7 +575,7 @@
   "osm_relation": 340611,
   "admin_level": 8,
   "km2_osm_polygon": 881.2,
-  "cells": 226,
+  "cells": 270,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -561,7 +593,7 @@
   "osm_relation": 342792,
   "admin_level": 8,
   "km2_osm_polygon": 201.7,
-  "cells": 226,
+  "cells": 270,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -579,7 +611,7 @@
   "osm_relation": 343207,
   "admin_level": 8,
   "km2_osm_polygon": 1248.9,
-  "cells": 226,
+  "cells": 270,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -597,7 +629,7 @@
   "osm_relation": 348849,
   "admin_level": 8,
   "km2_osm_polygon": 196.1,
-  "cells": 226,
+  "cells": 266,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -615,9 +647,11 @@
   "osm_relation": 341381,
   "admin_level": 8,
   "km2_osm_polygon": 109.0,
-  "cells": 8786,
+  "cells": 9849,
   "flag": "box/city 3.2",
-  "note": "the Cíes islands belong to the municipality and widen the box 20 km west"
+  "note": "the Cíes islands belong to the municipality and widen the box 20 km west",
+  "boundary": "boundaries/vigo.geojson",
+  "cells_clipped": 2988
  },
  {
   "city": "Gijón",
@@ -634,7 +668,7 @@
   "osm_relation": 345576,
   "admin_level": 8,
   "km2_osm_polygon": 182.8,
-  "cells": 226,
+  "cells": 285,
   "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
  },
  {
@@ -652,7 +686,9 @@
   "osm_relation": 339549,
   "admin_level": 8,
   "km2_osm_polygon": 40.4,
-  "cells": 1810
+  "cells": 2160,
+  "boundary": "boundaries/bilbao.geojson",
+  "cells_clipped": 1122
  },
  {
   "city": "San Sebastián",
@@ -669,8 +705,10 @@
   "osm_relation": 346465,
   "admin_level": 8,
   "km2_osm_polygon": 60.4,
-  "cells": 5365,
+  "cells": 6262,
   "flag": "box/city 3.6",
-  "note": "the municipality stretches west over Igeldo and inland; the city itself is its east quarter"
+  "note": "the municipality stretches west over Igeldo and inland; the city itself is its east quarter",
+  "boundary": "boundaries/san-sebastian.geojson",
+  "cells_clipped": 1697
  }
 ]
