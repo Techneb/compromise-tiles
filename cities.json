@@ -1,327 +1,5 @@
 [
   {
-    "city": "Amsterdam",
-    "district": "Jordaan, Westerstraat",
-    "lat": 52.377,
-    "lon": 4.883,
-    "half_km": 0.5
-  },
-  {
-    "city": "Amsterdam",
-    "district": "De Pijp, Gerard Douplein",
-    "lat": 52.355,
-    "lon": 4.893,
-    "half_km": 0.5
-  },
-  {
-    "city": "Amsterdam",
-    "district": "Leidseplein",
-    "lat": 52.364,
-    "lon": 4.883,
-    "half_km": 0.5
-  },
-  {
-    "city": "Amsterdam",
-    "district": "Nieuwmarkt",
-    "lat": 52.3725,
-    "lon": 4.9005,
-    "half_km": 0.5
-  },
-  {
-    "city": "Athens",
-    "district": "Psyrri",
-    "lat": 37.978,
-    "lon": 23.724,
-    "half_km": 0.5
-  },
-  {
-    "city": "Athens",
-    "district": "Exarchia square",
-    "lat": 37.9865,
-    "lon": 23.734,
-    "half_km": 0.5
-  },
-  {
-    "city": "Athens",
-    "district": "Koukaki",
-    "lat": 37.966,
-    "lon": 23.724,
-    "half_km": 0.5
-  },
-  {
-    "city": "Basel",
-    "district": "Barfüsserplatz",
-    "lat": 47.5545,
-    "lon": 7.589,
-    "half_km": 0.5
-  },
-  {
-    "city": "Basel",
-    "district": "Kleinbasel (Rheingasse)",
-    "lat": 47.5605,
-    "lon": 7.5925,
-    "half_km": 0.5
-  },
-  {
-    "city": "Basel",
-    "district": "St. Johann (Elsässerstrasse)",
-    "lat": 47.5665,
-    "lon": 7.579,
-    "half_km": 0.5
-  },
-  {
-    "city": "Basel",
-    "district": "Gundeldingen (Güterstrasse)",
-    "lat": 47.5445,
-    "lon": 7.593,
-    "half_km": 0.5
-  },
-  {
-    "city": "Berlin",
-    "district": "Kreuzberg, Oranienstraße",
-    "lat": 52.501,
-    "lon": 13.419,
-    "half_km": 0.5
-  },
-  {
-    "city": "Berlin",
-    "district": "Prenzlauer Berg, Kollwitzplatz",
-    "lat": 52.536,
-    "lon": 13.4175,
-    "half_km": 0.5
-  },
-  {
-    "city": "Berlin",
-    "district": "Friedrichshain, Simon-Dach-Straße",
-    "lat": 52.51,
-    "lon": 13.458,
-    "half_km": 0.5
-  },
-  {
-    "city": "Berlin",
-    "district": "Mitte, Rosenthaler Platz",
-    "lat": 52.5295,
-    "lon": 13.4015,
-    "half_km": 0.5
-  },
-  {
-    "city": "Bologna",
-    "district": "Piazza Maggiore",
-    "lat": 44.4938,
-    "lon": 11.343,
-    "half_km": 0.5
-  },
-  {
-    "city": "Bologna",
-    "district": "Via del Pratello",
-    "lat": 44.4945,
-    "lon": 11.331,
-    "half_km": 0.5
-  },
-  {
-    "city": "Bologna",
-    "district": "Piazza Verdi",
-    "lat": 44.4965,
-    "lon": 11.3495,
-    "half_km": 0.5
-  },
-  {
-    "city": "Bologna",
-    "district": "Via Santo Stefano",
-    "lat": 44.491,
-    "lon": 11.349,
-    "half_km": 0.5
-  },
-  {
-    "city": "Budapest",
-    "district": "Gozsdu udvar / Kazinczy u.",
-    "lat": 47.498,
-    "lon": 19.0605,
-    "half_km": 0.5
-  },
-  {
-    "city": "Budapest",
-    "district": "Liszt Ferenc tér",
-    "lat": 47.504,
-    "lon": 19.0635,
-    "half_km": 0.5
-  },
-  {
-    "city": "Budapest",
-    "district": "Ráday utca",
-    "lat": 47.487,
-    "lon": 19.062,
-    "half_km": 0.5
-  },
-  {
-    "city": "Budapest",
-    "district": "Bartók Béla út",
-    "lat": 47.48,
-    "lon": 19.05,
-    "half_km": 0.5
-  },
-  {
-    "city": "Chicago",
-    "district": "River North (Hubbard & Clark)",
-    "lat": 41.89,
-    "lon": -87.6313,
-    "half_km": 0.5
-  },
-  {
-    "city": "Chicago",
-    "district": "West Loop (Randolph St)",
-    "lat": 41.8841,
-    "lon": -87.648,
-    "half_km": 0.5
-  },
-  {
-    "city": "Copenhagen",
-    "district": "Nyhavn",
-    "lat": 55.68,
-    "lon": 12.59,
-    "half_km": 0.5
-  },
-  {
-    "city": "Copenhagen",
-    "district": "Nørrebro, Jægersborggade",
-    "lat": 55.692,
-    "lon": 12.544,
-    "half_km": 0.5
-  },
-  {
-    "city": "Copenhagen",
-    "district": "Vesterbro, Kødbyen",
-    "lat": 55.668,
-    "lon": 12.561,
-    "half_km": 0.5
-  },
-  {
-    "city": "Copenhagen",
-    "district": "Strøget, Gråbrødretorv",
-    "lat": 55.679,
-    "lon": 12.577,
-    "half_km": 0.5
-  },
-  {
-    "city": "Geneva",
-    "district": "Place du Molard",
-    "lat": 46.2035,
-    "lon": 6.1455,
-    "half_km": 0.5
-  },
-  {
-    "city": "Geneva",
-    "district": "Plainpalais (Place du Cirque)",
-    "lat": 46.1985,
-    "lon": 6.14,
-    "half_km": 0.5
-  },
-  {
-    "city": "Geneva",
-    "district": "Pâquis (Rue de Berne)",
-    "lat": 46.211,
-    "lon": 6.147,
-    "half_km": 0.5
-  },
-  {
-    "city": "London",
-    "district": "Camden Town, Camden High St",
-    "lat": 51.539,
-    "lon": -0.1426,
-    "half_km": 0.5
-  },
-  {
-    "city": "London",
-    "district": "Soho, Old Compton St (Westminster)",
-    "lat": 51.513,
-    "lon": -0.131,
-    "half_km": 0.5
-  },
-  {
-    "city": "London",
-    "district": "Covent Garden (Westminster/Camden)",
-    "lat": 51.5117,
-    "lon": -0.124,
-    "half_km": 0.5
-  },
-  {
-    "city": "London",
-    "district": "Shoreditch, Shoreditch High St",
-    "lat": 51.5245,
-    "lon": -0.078,
-    "half_km": 0.5
-  },
-  {
-    "city": "Madrid",
-    "district": "Malasaña, Plaza del Dos de Mayo",
-    "lat": 40.427,
-    "lon": -3.704,
-    "half_km": 0.5
-  },
-  {
-    "city": "Madrid",
-    "district": "La Latina, Plaza de la Cebada",
-    "lat": 40.411,
-    "lon": -3.71,
-    "half_km": 0.5
-  },
-  {
-    "city": "Madrid",
-    "district": "Huertas, Plaza de Santa Ana",
-    "lat": 40.4145,
-    "lon": -3.701,
-    "half_km": 0.5
-  },
-  {
-    "city": "Madrid",
-    "district": "Chueca, Plaza de Chueca",
-    "lat": 40.4225,
-    "lon": -3.6975,
-    "half_km": 0.5
-  },
-  {
-    "city": "Melbourne",
-    "district": "CBD (Degraves St)",
-    "lat": -37.8168,
-    "lon": 144.9656,
-    "half_km": 0.5
-  },
-  {
-    "city": "Melbourne",
-    "district": "Carlton (Lygon St)",
-    "lat": -37.799,
-    "lon": 144.967,
-    "half_km": 0.5
-  },
-  {
-    "city": "New York",
-    "district": "West Village (Christopher St)",
-    "lat": 40.7336,
-    "lon": -74.0027,
-    "half_km": 0.5
-  },
-  {
-    "city": "New York",
-    "district": "SoHo (Prince St)",
-    "lat": 40.7243,
-    "lon": -73.9977,
-    "half_km": 0.5
-  },
-  {
-    "city": "New York",
-    "district": "East Village (St Marks Pl)",
-    "lat": 40.7281,
-    "lon": -73.9865,
-    "half_km": 0.5
-  },
-  {
-    "city": "New York",
-    "district": "Williamsburg (Bedford Ave)",
-    "lat": 40.7174,
-    "lon": -73.957,
-    "half_km": 0.5
-  },
-  {
     "city": "Paris",
     "district": "Oberkampf, Rue Oberkampf",
     "lat": 48.865,
@@ -350,104 +28,6 @@
     "half_km": 0.5
   },
   {
-    "city": "Rotterdam",
-    "district": "Witte de Withstraat",
-    "lat": 51.916,
-    "lon": 4.4775,
-    "half_km": 0.5
-  },
-  {
-    "city": "Rotterdam",
-    "district": "Meent",
-    "lat": 51.9225,
-    "lon": 4.4835,
-    "half_km": 0.5
-  },
-  {
-    "city": "San Francisco",
-    "district": "Mission (Valencia & 18th)",
-    "lat": 37.7614,
-    "lon": -122.4216,
-    "half_km": 0.5
-  },
-  {
-    "city": "San Francisco",
-    "district": "North Beach (Columbus Ave)",
-    "lat": 37.7985,
-    "lon": -122.4075,
-    "half_km": 0.5
-  },
-  {
-    "city": "San Francisco",
-    "district": "Castro (Castro & 18th)",
-    "lat": 37.7609,
-    "lon": -122.435,
-    "half_km": 0.5
-  },
-  {
-    "city": "San Francisco",
-    "district": "Hayes Valley (Hayes & Octavia)",
-    "lat": 37.7765,
-    "lon": -122.4241,
-    "half_km": 0.5
-  },
-  {
-    "city": "Seville",
-    "district": "Alameda de Hércules",
-    "lat": 37.399,
-    "lon": -5.9945,
-    "half_km": 0.5
-  },
-  {
-    "city": "Seville",
-    "district": "Plaza de la Alfalfa",
-    "lat": 37.3905,
-    "lon": -5.9895,
-    "half_km": 0.5
-  },
-  {
-    "city": "Seville",
-    "district": "Triana (Calle Betis)",
-    "lat": 37.3845,
-    "lon": -6.0015,
-    "half_km": 0.5
-  },
-  {
-    "city": "Seville",
-    "district": "Santa Cruz (Plaza Santa Cruz)",
-    "lat": 37.385,
-    "lon": -5.989,
-    "half_km": 0.5
-  },
-  {
-    "city": "Strasbourg",
-    "district": "Place Kléber",
-    "lat": 48.5835,
-    "lon": 7.7458,
-    "half_km": 0.5
-  },
-  {
-    "city": "Strasbourg",
-    "district": "Petite France",
-    "lat": 48.581,
-    "lon": 7.74,
-    "half_km": 0.5
-  },
-  {
-    "city": "Strasbourg",
-    "district": "Krutenau (Place de Zurich)",
-    "lat": 48.579,
-    "lon": 7.7575,
-    "half_km": 0.5
-  },
-  {
-    "city": "Strasbourg",
-    "district": "Place d'Austerlitz",
-    "lat": 48.578,
-    "lon": 7.751,
-    "half_km": 0.5
-  },
-  {
     "city": "Tel Aviv",
     "district": "Rothschild Blvd",
     "lat": 32.0636,
@@ -459,307 +39,6 @@
     "district": "Florentin",
     "lat": 32.0565,
     "lon": 34.7695,
-    "half_km": 0.5
-  },
-  {
-    "city": "The Hague",
-    "district": "Plein",
-    "lat": 52.0795,
-    "lon": 4.3135,
-    "half_km": 0.5
-  },
-  {
-    "city": "Toulouse",
-    "district": "Place du Capitole",
-    "lat": 43.6045,
-    "lon": 1.444,
-    "half_km": 0.5
-  },
-  {
-    "city": "Toulouse",
-    "district": "Place Saint-Pierre",
-    "lat": 43.6035,
-    "lon": 1.4365,
-    "half_km": 0.5
-  },
-  {
-    "city": "Toulouse",
-    "district": "Place des Carmes",
-    "lat": 43.5975,
-    "lon": 1.4455,
-    "half_km": 0.5
-  },
-  {
-    "city": "Toulouse",
-    "district": "Saint-Cyprien (Place Intérieure)",
-    "lat": 43.5985,
-    "lon": 1.432,
-    "half_km": 0.5
-  },
-  {
-    "city": "Turin",
-    "district": "Piazza Castello",
-    "lat": 45.071,
-    "lon": 7.6855,
-    "half_km": 0.5
-  },
-  {
-    "city": "Turin",
-    "district": "Piazza Vittorio Veneto",
-    "lat": 45.065,
-    "lon": 7.6955,
-    "half_km": 0.5
-  },
-  {
-    "city": "Turin",
-    "district": "Quadrilatero Romano",
-    "lat": 45.076,
-    "lon": 7.68,
-    "half_km": 0.5
-  },
-  {
-    "city": "Turin",
-    "district": "San Salvario (Largo Saluzzo)",
-    "lat": 45.057,
-    "lon": 7.6815,
-    "half_km": 0.5
-  },
-  {
-    "city": "Utrecht",
-    "district": "Mariaplaats",
-    "lat": 52.089,
-    "lon": 5.1165,
-    "half_km": 0.5
-  },
-  {
-    "city": "Utrecht",
-    "district": "Voorstraat",
-    "lat": 52.0955,
-    "lon": 5.1215,
-    "half_km": 0.5
-  },
-  {
-    "city": "Utrecht",
-    "district": "Neude",
-    "lat": 52.0925,
-    "lon": 5.118,
-    "half_km": 0.5
-  },
-  {
-    "city": "Vienna",
-    "district": "Spittelberg",
-    "lat": 48.203,
-    "lon": 16.354,
-    "half_km": 0.5
-  },
-  {
-    "city": "Vienna",
-    "district": "Naschmarkt",
-    "lat": 48.1985,
-    "lon": 16.3625,
-    "half_km": 0.5
-  },
-  {
-    "city": "Vienna",
-    "district": "Bermudadreieck, Ruprechtsplatz",
-    "lat": 48.2115,
-    "lon": 16.3745,
-    "half_km": 0.5
-  },
-  {
-    "city": "Vienna",
-    "district": "Karmelitermarkt, Leopoldstadt",
-    "lat": 48.2165,
-    "lon": 16.378,
-    "half_km": 0.5
-  },
-  {
-    "city": "Warsaw",
-    "district": "Nowy Świat / Foksal",
-    "lat": 52.234,
-    "lon": 21.0205,
-    "half_km": 0.5
-  },
-  {
-    "city": "Warsaw",
-    "district": "Plac Zbawiciela",
-    "lat": 52.2195,
-    "lon": 21.015,
-    "half_km": 0.5
-  },
-  {
-    "city": "Warsaw",
-    "district": "Old Town Market Sq",
-    "lat": 52.2497,
-    "lon": 21.0122,
-    "half_km": 0.5
-  },
-  {
-    "city": "Wrocław",
-    "district": "Rynek",
-    "lat": 51.11,
-    "lon": 17.032,
-    "half_km": 0.5
-  },
-  {
-    "city": "Wrocław",
-    "district": "Pasaż Niepolda (Ruska)",
-    "lat": 51.1085,
-    "lon": 17.023,
-    "half_km": 0.5
-  },
-  {
-    "city": "Barcelona",
-    "district": "Gràcia, Plaça del Sol",
-    "lat": 41.4016,
-    "lon": 2.1567,
-    "half_km": 0.5
-  },
-  {
-    "city": "Barcelona",
-    "district": "El Born, Passeig del Born",
-    "lat": 41.3848,
-    "lon": 2.1828,
-    "half_km": 0.5
-  },
-  {
-    "city": "Barcelona",
-    "district": "El Raval, Rambla del Raval",
-    "lat": 41.3789,
-    "lon": 2.1694,
-    "half_km": 0.5
-  },
-  {
-    "city": "Barcelona",
-    "district": "Poble-sec, Carrer de Blai",
-    "lat": 41.3744,
-    "lon": 2.1626,
-    "half_km": 0.5
-  },
-  {
-    "city": "Valencia",
-    "district": "Ruzafa, Mercado de Ruzafa",
-    "lat": 39.462,
-    "lon": -0.3714,
-    "half_km": 0.5
-  },
-  {
-    "city": "Valencia",
-    "district": "El Carmen, Plaza del Tossal",
-    "lat": 39.4762,
-    "lon": -0.3802,
-    "half_km": 0.5
-  },
-  {
-    "city": "Valencia",
-    "district": "Benimaclet, Plaza de Benimaclet",
-    "lat": 39.4863,
-    "lon": -0.3592,
-    "half_km": 0.5
-  },
-  {
-    "city": "Zaragoza",
-    "district": "El Tubo, Plaza de San Felipe",
-    "lat": 41.6547,
-    "lon": -0.882,
-    "half_km": 0.5
-  },
-  {
-    "city": "Málaga",
-    "district": "Plaza de la Merced",
-    "lat": 36.7234,
-    "lon": -4.4175,
-    "half_km": 0.5
-  },
-  {
-    "city": "Málaga",
-    "district": "Soho, Calle Tomás Heredia",
-    "lat": 36.716,
-    "lon": -4.423,
-    "half_km": 0.5
-  },
-  {
-    "city": "Palma",
-    "district": "Santa Catalina market",
-    "lat": 39.5712,
-    "lon": 2.6383,
-    "half_km": 0.5
-  },
-  {
-    "city": "Palma",
-    "district": "La Lonja",
-    "lat": 39.5684,
-    "lon": 2.6443,
-    "half_km": 0.5
-  },
-  {
-    "city": "Las Palmas",
-    "district": "Vegueta, Plaza de Santa Ana",
-    "lat": 28.1005,
-    "lon": -15.4156,
-    "half_km": 0.5
-  },
-  {
-    "city": "Las Palmas",
-    "district": "Las Canteras promenade",
-    "lat": 28.1421,
-    "lon": -15.4339,
-    "half_km": 0.5
-  },
-  {
-    "city": "Murcia",
-    "district": "Plaza de las Flores",
-    "lat": 37.9846,
-    "lon": -1.1331,
-    "half_km": 0.5
-  },
-  {
-    "city": "Alicante",
-    "district": "El Barrio, Plaza de Santa María",
-    "lat": 38.3455,
-    "lon": -0.4805,
-    "half_km": 0.5
-  },
-  {
-    "city": "Córdoba",
-    "district": "Plaza de las Tendillas",
-    "lat": 37.8845,
-    "lon": -4.7796,
-    "half_km": 0.5
-  },
-  {
-    "city": "Valladolid",
-    "district": "Plaza Mayor",
-    "lat": 41.6521,
-    "lon": -4.7285,
-    "half_km": 0.5
-  },
-  {
-    "city": "Vigo",
-    "district": "Casco Vello, Praza da Constitución",
-    "lat": 42.2386,
-    "lon": -8.726,
-    "half_km": 0.5
-  },
-  {
-    "city": "Gijón",
-    "district": "Cimavilla, Plaza Mayor",
-    "lat": 43.545,
-    "lon": -5.6626,
-    "half_km": 0.5
-  },
-  {
-    "city": "Bilbao",
-    "district": "Casco Viejo, Plaza Nueva",
-    "lat": 43.259,
-    "lon": -2.9227,
-    "half_km": 0.5
-  },
-  {
-    "city": "San Sebastián",
-    "district": "Parte Vieja, Plaza de la Constitución",
-    "lat": 43.3236,
-    "lon": -1.9849,
     "half_km": 0.5
   },
   {
@@ -808,31 +87,402 @@
     ]
   },
   {
-    "city": "Chicago",
-    "district": "Wicker Park",
-    "lat": 41.91,
-    "lon": -87.6776,
-    "half_km": 0.5
+    "city": "Amsterdam",
+    "district": "Amsterdam (going-out core + 1 km)",
+    "box": [
+      52.3414,
+      4.8609,
+      52.3906,
+      4.9226
+    ]
+  },
+  {
+    "city": "Athens",
+    "district": "Athens (whole municipality)",
+    "box": [
+      37.9488,
+      23.687,
+      38.0328,
+      23.7904
+    ],
+    "boundary": "boundaries/athens.geojson"
+  },
+  {
+    "city": "Basel",
+    "district": "Basel (whole municipality)",
+    "box": [
+      47.5193,
+      7.5547,
+      47.5899,
+      7.6341
+    ],
+    "boundary": "boundaries/basel.geojson"
+  },
+  {
+    "city": "Berlin",
+    "district": "Berlin (going-out core + 1 km)",
+    "box": [
+      52.4874,
+      13.3794,
+      52.5496,
+      13.4801
+    ]
+  },
+  {
+    "city": "Bologna",
+    "district": "Bologna (whole municipality)",
+    "box": [
+      44.4211,
+      11.2296,
+      44.5561,
+      11.4334
+    ],
+    "boundary": "boundaries/bologna.geojson"
+  },
+  {
+    "city": "Budapest",
+    "district": "Budapest (going-out core + 1 km)",
+    "box": [
+      47.4664,
+      19.0301,
+      47.5176,
+      19.0834
+    ]
   },
   {
     "city": "Chicago",
-    "district": "Wrigleyville",
-    "lat": 41.9474,
-    "lon": -87.6557,
-    "half_km": 0.5
+    "district": "Chicago (going-out core + 1 km)",
+    "box": [
+      41.8705,
+      -87.6957,
+      41.961,
+      -87.6132
+    ]
+  },
+  {
+    "city": "Copenhagen",
+    "district": "Copenhagen (whole municipality)",
+    "box": [
+      55.6129,
+      12.453,
+      55.7327,
+      12.7342
+    ],
+    "boundary": "boundaries/copenhagen.geojson"
+  },
+  {
+    "city": "Geneva",
+    "district": "Geneva (whole municipality)",
+    "box": [
+      46.1778,
+      6.1102,
+      46.2319,
+      6.1758
+    ],
+    "boundary": "boundaries/geneva.geojson"
+  },
+  {
+    "city": "London",
+    "district": "London (going-out core + 1 km)",
+    "box": [
+      51.4981,
+      -0.1643,
+      51.5526,
+      -0.0563
+    ]
+  },
+  {
+    "city": "Madrid",
+    "district": "Madrid (going-out core + 1 km)",
+    "box": [
+      40.3974,
+      -3.7277,
+      40.4406,
+      -3.6798
+    ]
   },
   {
     "city": "Melbourne",
-    "district": "Fitzroy",
-    "lat": -37.7985,
-    "lon": 144.9785,
-    "half_km": 0.5
+    "district": "Melbourne (whole municipality)",
+    "box": [
+      -37.8507,
+      144.897,
+      -37.7755,
+      144.9913
+    ],
+    "boundary": "boundaries/melbourne.geojson"
   },
   {
-    "city": "Melbourne",
-    "district": "South Yarra",
-    "lat": -37.839,
-    "lon": 144.993,
-    "half_km": 0.5
+    "city": "New York",
+    "district": "New York (going-out core + 1 km)",
+    "box": [
+      40.7038,
+      -74.0205,
+      40.7472,
+      -73.9392
+    ]
+  },
+  {
+    "city": "Rotterdam",
+    "district": "Rotterdam (going-out core + 1 km)",
+    "box": [
+      51.9024,
+      4.4557,
+      51.9361,
+      4.5053
+    ]
+  },
+  {
+    "city": "San Francisco",
+    "district": "San Francisco (whole municipality)",
+    "box": [
+      37.7065,
+      -122.5293,
+      37.8631,
+      -122.3576
+    ],
+    "boundary": "boundaries/san-francisco.geojson"
+  },
+  {
+    "city": "Seville",
+    "district": "Seville (whole municipality)",
+    "box": [
+      37.3002,
+      -6.0329,
+      37.453,
+      -5.8192
+    ],
+    "boundary": "boundaries/seville.geojson"
+  },
+  {
+    "city": "Strasbourg",
+    "district": "Strasbourg (whole municipality)",
+    "box": [
+      48.4919,
+      7.6881,
+      48.6462,
+      7.8361
+    ],
+    "boundary": "boundaries/strasbourg.geojson"
+  },
+  {
+    "city": "The Hague",
+    "district": "The Hague (whole municipality)",
+    "box": [
+      52.0148,
+      4.185,
+      52.135,
+      4.4225
+    ],
+    "boundary": "boundaries/the-hague.geojson"
+  },
+  {
+    "city": "Toulouse",
+    "district": "Toulouse (whole municipality)",
+    "box": [
+      43.5327,
+      1.3503,
+      43.6687,
+      1.5153
+    ],
+    "boundary": "boundaries/toulouse.geojson"
+  },
+  {
+    "city": "Turin",
+    "district": "Turin (whole municipality)",
+    "box": [
+      45.0068,
+      7.5778,
+      45.1402,
+      7.7733
+    ],
+    "boundary": "boundaries/turin.geojson"
+  },
+  {
+    "city": "Utrecht",
+    "district": "Utrecht (whole municipality)",
+    "box": [
+      52.0263,
+      4.9701,
+      52.1421,
+      5.1952
+    ],
+    "boundary": "boundaries/utrecht.geojson"
+  },
+  {
+    "city": "Vienna",
+    "district": "Vienna (going-out core + 1 km)",
+    "box": [
+      48.1849,
+      16.3338,
+      48.2301,
+      16.3982
+    ]
+  },
+  {
+    "city": "Warsaw",
+    "district": "Warsaw (going-out core + 1 km)",
+    "box": [
+      52.2059,
+      20.9902,
+      52.2633,
+      21.0425
+    ]
+  },
+  {
+    "city": "Wrocław",
+    "district": "Wrocław (going-out core + 1 km)",
+    "box": [
+      51.0949,
+      17.0015,
+      51.1236,
+      17.0535
+    ]
+  },
+  {
+    "city": "Barcelona",
+    "district": "Barcelona (whole municipality)",
+    "box": [
+      41.317,
+      2.0525,
+      41.4679,
+      2.2284
+    ],
+    "boundary": "boundaries/barcelona.geojson"
+  },
+  {
+    "city": "Valencia",
+    "district": "Valencia (whole municipality)",
+    "box": [
+      39.2784,
+      -0.4326,
+      39.5666,
+      -0.2725
+    ],
+    "boundary": "boundaries/valencia.geojson"
+  },
+  {
+    "city": "Zaragoza",
+    "district": "Zaragoza (going-out core + 1 km)",
+    "box": [
+      41.6411,
+      -0.9,
+      41.6683,
+      -0.864
+    ]
+  },
+  {
+    "city": "Málaga",
+    "district": "Málaga (going-out core + 1 km)",
+    "box": [
+      36.7024,
+      -4.4398,
+      36.737,
+      -4.4007
+    ]
+  },
+  {
+    "city": "Palma",
+    "district": "Palma (going-out core + 1 km)",
+    "box": [
+      39.5548,
+      2.6208,
+      39.5848,
+      2.6618
+    ]
+  },
+  {
+    "city": "Las Palmas",
+    "district": "Las Palmas (whole municipality)",
+    "box": [
+      28.0244,
+      -15.5272,
+      28.1814,
+      -15.3949
+    ],
+    "boundary": "boundaries/las-palmas.geojson"
+  },
+  {
+    "city": "Murcia",
+    "district": "Murcia (going-out core + 1 km)",
+    "box": [
+      37.971,
+      -1.1502,
+      37.9982,
+      -1.116
+    ]
+  },
+  {
+    "city": "Alicante",
+    "district": "Alicante (going-out core + 1 km)",
+    "box": [
+      38.3319,
+      -0.4977,
+      38.3591,
+      -0.4633
+    ]
+  },
+  {
+    "city": "Córdoba",
+    "district": "Córdoba (going-out core + 1 km)",
+    "box": [
+      37.8709,
+      -4.7967,
+      37.8981,
+      -4.7625
+    ]
+  },
+  {
+    "city": "Valladolid",
+    "district": "Valladolid (going-out core + 1 km)",
+    "box": [
+      41.6385,
+      -4.7465,
+      41.6657,
+      -4.7105
+    ]
+  },
+  {
+    "city": "Vigo",
+    "district": "Vigo (whole municipality)",
+    "box": [
+      42.1324,
+      -8.9183,
+      42.2647,
+      -8.627
+    ],
+    "boundary": "boundaries/vigo.geojson"
+  },
+  {
+    "city": "Gijón",
+    "district": "Gijón (going-out core + 1 km)",
+    "box": [
+      43.5314,
+      -5.6812,
+      43.5586,
+      -5.644
+    ]
+  },
+  {
+    "city": "Bilbao",
+    "district": "Bilbao (whole municipality)",
+    "box": [
+      43.2137,
+      -2.986,
+      43.2901,
+      -2.8803
+    ],
+    "boundary": "boundaries/bilbao.geojson"
+  },
+  {
+    "city": "San Sebastián",
+    "district": "San Sebastián (whole municipality)",
+    "box": [
+      43.2178,
+      -2.0868,
+      43.3382,
+      -1.8879
+    ],
+    "boundary": "boundaries/san-sebastian.geojson"
   }
 ]
