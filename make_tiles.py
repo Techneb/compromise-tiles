@@ -60,6 +60,14 @@ PERMIT_CITIES = [
         (49.40, 49.48), (1.03, 1.17), point="geolocalisation"),
     row("Lorient", "56121", "www.opendata56.fr", "liste-des-terrasses-autorisees-ville-de-lorient", "", ["terrasse_type"],
         (47.71, 47.78), (-3.40, -3.32)),
+    # Petite couronne (survey 2026-09-26): two 2020 lists, never refreshed, no licence stated by either publisher.
+    # Issy's `terrasses` names the kind ("terrasse fermée" is dropped on the phone, as Paris's).
+    row("Issy-les-Moulineaux", "92040", "data.issy.com", "terrasses-issy-les-moulineaux", "nom", ["terrasses"],
+        (48.81, 48.84), (2.23, 2.29), point="geolocalisation"),
+    # ArcGIS Online, the city's terrace-fee roll (RODP): every row is a terrace; the OID field is FID.
+    row("Boulogne-Billancourt", "92012", "services.arcgis.com/jVVADh16Qba3NtWq/arcgis/rest/services",
+        "Commerces_avec_terasses_VBB/FeatureServer/0", "Nom_du_dos", [], (48.82, 48.86), (2.22, 2.27),
+        shape="arcgis", oid="FID"),
     row("Melbourne", "", "data.melbourne.vic.gov.au", "cafes-and-restaurants-with-seating-capacity", "trading_name", [],
         (-37.90, -37.75), (144.90, 145.02), point="location",
         filter="seating_type=\"Seats - Outdoor\" and census_year>=date'2023-01-01'"),
@@ -824,7 +832,8 @@ def permits(c, rect):
         return permit_items(features, c)   # polygons land on their mean vertex, as parseTerraces
     if c.get("shape") == "arcgis":
         fields = [f for f in [c["name"]] + c["kinds"] if f]
-        return permit_items(arcgis(f"https://{c['host']}/{c['dataset']}", rect, fields, c.get("filter") or "1=1"), c)
+        return permit_items(arcgis(f"https://{c['host']}/{c['dataset']}", rect, fields, c.get("filter") or "1=1",
+                                   c.get("oid", "OBJECTID")), c)
     point = c.get("point", "geo_point_2d")
     where = in_bbox(point, rect) + (f" and {c['filter']}" if c.get("filter") else "")
     # Empty name (Lorient) must not leave a leading comma in `select`: an ODSQLSyntaxError.
