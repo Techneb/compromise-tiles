@@ -39,6 +39,23 @@ jobs:
         env:
           LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
         run: timeout 330m python3 make_tiles.py --cities cities.json --out out --layers "$LAYERS" --block 5 || true
+      # The coverage feed the site's map reads: this run's cells merged into the published feed.
+      - name: Coverage
+        if: ${{ !cancelled() }}
+        run: python3 coverage.py --out ${{ inputs.repo_tiles && 'tiles' || 'out' }} --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --write out-coverage.json
+      # Lets the site read coverage.json and cities.json from a browser. Idempotent.
+      - name: Bucket CORS
+        if: ${{ !cancelled() }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          aws s3api put-bucket-cors --bucket "${{ secrets.R2_BUCKET }}" \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+            --cors-configuration '{"CORSRules":[{"AllowedOrigins":["https://techneb.github.io","https://claude.ai"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["*"],"MaxAgeSeconds":86400}]}'
       # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
       # there is complete, and R2 keeps last week's tile for the rest.
       - name: Upload to R2
@@ -61,3 +78,10 @@ jobs:
           aws s3 cp config.json "s3://${{ secrets.R2_BUCKET }}/config.json" --only-show-errors \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
             --content-type application/json --cache-control "public, max-age=3600"
+          # The coverage feed and the areas behind it, plain JSON for the site's map.
+          aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+            --content-type application/json --cache-control "public, max-age=300"
+          aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+            --content-type application/json --cache-control "public, max-age=300"
