@@ -548,7 +548,7 @@ CITY_BUILDINGS = [
         "https://gis.um.wroc.pl/portal_srv/rest/services/SMH_2022_Budynki/MapServer/0", r, ["HA"]), lambda p: p.get("HA"))),
     # Metres, else floors × 3 m. Answers only from Israel (HTTP 571 elsewhere): from the cloud every
     # Tel Aviv cell fails and no tile is written — never an OSM tile in its place.
-    building_row("Tel Aviv", (32.04, 32.13), (34.74, 34.80), lambda r: footprints(arcgis(
+    building_row("Tel Aviv", (32.02, 32.16), (34.73, 34.86), lambda r: footprints(arcgis(
         "https://gisn.tel-aviv.gov.il/arcgis/rest/services/IView2/MapServer/513", r, ["gova_simplex_2019", "ms_komot"],
         oid="oid_mivne"), lambda p: p.get("gova_simplex_2019") or (p["ms_komot"] * 3 if p.get("ms_komot") else None))),
     # Spain's cadastre (owner's decision, 2026-09-25): tiles hold derived footprints and heights, never
