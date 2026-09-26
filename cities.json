@@ -1,19 +1,5 @@
 [
   {
-    "city": "Tel Aviv",
-    "district": "Rothschild Blvd",
-    "lat": 32.0636,
-    "lon": 34.774,
-    "half_km": 0.5
-  },
-  {
-    "city": "Tel Aviv",
-    "district": "Florentin",
-    "lat": 32.0565,
-    "lon": 34.7695,
-    "half_km": 0.5
-  },
-  {
     "city": "Paris",
     "district": "Intra-muros (inside the périphérique)",
     "box": [

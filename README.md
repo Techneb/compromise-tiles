@@ -2,6 +2,23 @@
 
 Open city data used by the Compromise iOS app, one JSON file per map cell.
 
+## Where the tiles are
+
+The tiles are served from Cloudflare R2 at
+`https://pub-c7dde6811086418585889c3e30cf9880.r2.dev`, under
+`tiles/<layer>/<key>.json` (gzipped at rest), with `config.json` at the
+root. Layers: `buildings/`, `terraces-v2/` and `communes/` per ~200 m
+cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
+point, amenity, outdoor seating, source).
+
+This repository holds the generator (`make_tiles.py`), the areas it
+builds (`cities.json`, with municipal boundaries in `boundaries/`), the
+coverage feed (`coverage.json`, also published on R2) and the tiles built
+off GitHub under `tiles/`. GitHub Actions (`.github/workflows/tiles.yml`)
+builds the rest on a schedule and uploads it to R2; those tiles are not
+kept here. OpenStreetMap is read from Geofabrik extracts with
+osmium-tool; city and national feeds are downloaded in bulk.
+
 ## Licences and credits
 
 Each tile holds data from the sources below, depending on where it lies.
@@ -9,7 +26,7 @@ Licences are given as each publisher states them; where a publisher states
 none, this says so rather than guessing.
 
 **Everywhere**
-- OpenStreetMap (outdoor-seating venues; building footprints where no
+- OpenStreetMap (venues and their outdoor seating; building footprints where no
   city or national source is used): © OpenStreetMap contributors, ODbL.
   Because these tiles include OpenStreetMap data, the tile set is
   published under the ODbL (share-alike).
@@ -64,8 +81,16 @@ none, this says so rather than guessing.
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal (disclaimer above).
 - San Francisco: DataSF, PDDL.
-- Tel Aviv: Tel Aviv-Yafo Municipality GIS (the municipality's terms of
-  use; licence not stated by the publisher).
+- Tel Aviv: Tel Aviv-Yafo Municipality open data, "Structures" (free to
+  share and adapt with credit).
+- Jerusalem: Jerusalem Municipality, bldg2020 ("for reference and general
+  use only", as stated by the publisher).
+- Denver: City and County of Denver, Building Outlines 2022 (licence not
+  stated by the publisher).
+- Cape Town: City of Cape Town, 2D Building Footprints (licence not stated
+  by the publisher).
+- São Paulo: Prefeitura de São Paulo, GeoSampa Edificações (licence not
+  stated by the publisher).
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
@@ -77,6 +102,6 @@ none, this says so rather than guessing.
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
 
-Every key is the rounded coordinate of a public area, and every district
-is named by a public street or square. Venue names are the trading names
+Every key is the rounded coordinate of a public area, and every area is
+named by its city, a district or a public street or square. Venue names are the trading names
 the city registers publish; nothing about a person beyond that.

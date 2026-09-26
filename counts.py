@@ -2,6 +2,7 @@
 """Counts per city from OpenStreetMap extracts; writes no tiles.
 
   python3 counts.py --cities counts-cities.json --extracts ./extracts --write counts.json [--only Paris,Budapest] [--drop]
+      [--boxes cities.json] [--previous <url or path>]
 
 For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [s, w, n, e]}):
   goingOutCells  200 m cells, keyed int(lat*500), int(lon*500), whose 400 m disk (around the
@@ -9,18 +10,18 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
                  and restaurants
   terraceShare   the share of those cells whose 400 m disk holds outdoor_seating=yes venues,
                  named or not, at least TERRACE_RATIO of its named ones and TERRACE_MINIMUM (the
-                 app's rule for a cell whose terraces are known)
+                 same rule the tiles' reader applies)
   venues, terraces  the named venues and the outdoor-seating ones inside the city's extent
   extent         "municipality" where --boxes (cities.json) holds a box for the city, with its
                  boundary polygon when it has one; else the 2 × HALF_KM square around the point
 
-A city given as a point is taken as a box of HALF_KM a side around it unless cities.json tiles
+A city given as a point is taken as a square of 2 × HALF_KM a side around it unless cities.json tiles
 it as a municipality. A city without a point is listed under
 "noPoint" and skipped (nothing is geocoded). OpenStreetMap comes from the smallest Geofabrik
 extract holding the point, filtered with osmium-tool, never from Overpass.
 
-Scope: every city of the survey list. Next: every city over 300,000 people in Europe, North
-America and Oceania, added as rows of counts-cities.json.
+Scope: every city of counts-cities.json. With --previous (the published counts.json), a run
+given --only keeps the published rows of the cities it did not count.
 
 Also writes the same rows as CSV beside --write, sorted by going-out cells, most first.
 Needs Python 3 (standard library only) and osmium-tool on the PATH.
@@ -30,7 +31,7 @@ from make_tiles import (AMENITIES, Cell, SourceError, contains, download, featur
                         metres, osmium, outer_rings, padded)
 
 GOING_OUT = 10   # named venues in the disk for a going-out cell
-TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: outdoor-seating venues vs named ones in the disk (the app's ratio)
+TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: outdoor-seating venues vs named ones in the disk
 RADIUS = 400     # metres
 HALF_KM = 12     # half-side of the box around a city's point
 
@@ -104,7 +105,7 @@ def main():
     a.add_argument("--extracts", required=True, help="folder the Geofabrik extracts are kept in")
     a.add_argument("--write", default="counts.json")
     a.add_argument("--only", default="", help="comma-separated city names")
-    a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 12 km square")
+    a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 24 km square")
     a.add_argument("--drop", action="store_true", help="delete each extract once its cities are counted (small disks)")
     a.add_argument("--previous", default="", help="the published counts.json (URL or path): its rows for cities not counted this run are kept")
     args = a.parse_args()

@@ -63,7 +63,7 @@ PERMIT_CITIES = [
     row("Lorient", "56121", "www.opendata56.fr", "liste-des-terrasses-autorisees-ville-de-lorient", "", ["terrasse_type"],
         (47.71, 47.78), (-3.40, -3.32)),
     # Petite couronne (survey 2026-09-26): two 2020 lists, never refreshed, no licence stated by either publisher.
-    # Issy's `terrasses` names the kind ("terrasse fermée" is dropped on the phone, as Paris's).
+    # Issy's `terrasses` names the kind ("terrasse fermée" is kept as a kind, like Paris's).
     row("Issy-les-Moulineaux", "92040", "data.issy.com", "terrasses-issy-les-moulineaux", "nom", ["terrasses"],
         (48.81, 48.84), (2.23, 2.29), point="geolocalisation"),
     # ArcGIS Online, the city's terrace-fee roll (RODP): every row is a terrace; the OID field is FID.
@@ -73,8 +73,8 @@ PERMIT_CITIES = [
     row("Melbourne", "", "data.melbourne.vic.gov.au", "cafes-and-restaurants-with-seating-capacity", "trading_name", [],
         (-37.90, -37.75), (144.90, 145.02), point="location",
         filter="seating_type=\"Seats - Outdoor\" and census_year>=date'2023-01-01'"),
-    # Socrata: `{twoYearsAgo}` and `{today}` are resolved at run time, as resolvedSocrataFilter does.
-    # Camden's name is a full address, cut before its first digit (cutBeforeFirstDigit).
+    # Socrata: `{twoYearsAgo}` and `{today}` are resolved at run time.
+    # Camden's name is a full address, cut before its first digit.
     row("Camden", "", "opendata.camden.gov.uk", "8ixc-jf73", "development_address", [], (51.52, 51.58), (-0.22, -0.10),
         shape="socrata", point="location", filter="decision_type = 'Granted' AND registered_date >= '{twoYearsAgo}'",
         clean="digit"),
@@ -178,7 +178,7 @@ M = 111_320  # metres per degree of latitude
 
 FINE, COARSE = 500, 50  # cells per degree: ~200 m (buildings, terraces, communes) and ~2 km (venues)
 
-def index(x, scale=FINE): return int(x * scale)  # Swift's Int() truncates toward zero, as Python's int() does
+def index(x, scale=FINE): return int(x * scale)  # truncation toward zero, the same key rule as the reader's
 
 def span(k, scale=FINE):
     """The coordinates a key covers: truncation makes 0 twice as wide and a negative key reach down."""
@@ -275,7 +275,7 @@ def download(url, folder, max_days=6):
     return file
 
 def osm_height(tags):
-    """`height`, else `building:levels` × 3 m, else 15 m — parseOSMBuildings on the Swift side."""
+    """`height`, else `building:levels` × 3 m, else 15 m."""
     for key, scale in (("height", 1), ("building:levels", 3)):
         try: return float(str(tags[key]).replace(" m", "").strip()) * scale
         except (KeyError, ValueError): pass
@@ -430,7 +430,7 @@ def opendatasoft(host, dataset, where, select):
 # ---------------------------------------------------------------- buildings
 
 def ign_buildings(rect):
-    """IGN BD TOPO: hauteur, else floors × 3 m, else 15 m — parseBuildings on the Swift side."""
+    """IGN BD TOPO: hauteur, else floors × 3 m, else 15 m."""
     # Only the three fields read: half the bytes of the full record, and far quicker to answer (measured 2026-09-24).
     features = wfs("https://data.geopf.fr/wfs/ows", {"TYPENAMES": "BDTOPO_V3:batiment", "OUTPUTFORMAT": "application/json",
                                                     "PROPERTYNAME": "geometrie,hauteur,nombre_d_etages"}, rect)
@@ -500,8 +500,7 @@ def socrata_buildings(host, dataset, geometry, field, height):
 
 def catastro(rect, step=0.0018):
     """Spain's cadastre, INSPIRE Buildings (bu:BuildingPart, GML, EPSG:4326 posList latitude first):
-    floors above ground × 3 m, a 0-floor part (a basement) skipped, 15 m when the count is missing —
-    parseCatastroParts on the Swift side. The server takes ~4 s for a 200 m box but 68 s and 19 MB for
+    floors above ground × 3 m, a 0-floor part (a basement) skipped, 15 m when the count is missing. The server takes ~4 s for a 200 m box but 68 s and 19 MB for
     800 m (2026-09-25), and resets a third concurrent request, so the rect is asked ~200 m at a time,
     one after another; a part straddling two boxes comes back twice and `unique` drops the copy."""
     s, w, n, e = rect
@@ -615,7 +614,7 @@ def permit_items(features, c, point="geo_point_2d"):
         if g.get("type") == "Point": lon, lat = g["coordinates"][:2]
         elif isinstance(p.get(point), dict): lat, lon = p[point]["lat"], p[point]["lon"]
         elif isinstance(p.get("geo_point_2d"), dict): lat, lon = p["geo_point_2d"]["lat"], p["geo_point_2d"]["lon"]
-        elif g.get("type") in ("Polygon", "MultiPolygon"):  # Vilnius: the mean vertex, as parseTerraces
+        elif g.get("type") in ("Polygon", "MultiPolygon"):  # Vilnius: the mean vertex
             rings = g["coordinates"] if g["type"] == "Polygon" else [r for poly in g["coordinates"] for r in poly]
             points = [v for r in rings for v in r if len(v) >= 2]
             if not points: continue
@@ -635,7 +634,7 @@ def permit_items(features, c, point="geo_point_2d"):
     return out
 
 def cut_before_first_digit(text):
-    """Camden's name is the full address: "Goodfare Italian Restaurant  26 - 28 Parkway…" (cutBeforeFirstDigit)."""
+    """Camden's name is the full address: "Goodfare Italian Restaurant  26 - 28 Parkway…" ."""
     m = re.search(r"\d", text)
     if not m: return text
     return text[:m.start()].strip() or None
@@ -657,7 +656,7 @@ def vilnius_venue_name(text):
 CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name}
 
 def socrata_filter(text):
-    """resolvedSocrataFilter: a floating timestamp, no zone."""
+    """Socrata dates: a floating timestamp, no zone."""
     now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0, tzinfo=None)
     try: ago = now.replace(year=now.year - 2)
     except ValueError: ago = now.replace(year=now.year - 2, day=28)  # 29 February
@@ -717,7 +716,7 @@ def utm_to_wgs84(easting, northing, zone=30):
 _whole = {}  # whole-file feeds, fetched once per run
 
 def madrid_all(c):
-    """parseMadridCSV: ';', quoted, a BOM; "Abierta" only; any of four light-structure flags means enclosed."""
+    """Madrid CSV: ';', quoted, a BOM; "Abierta" only; any of four light-structure flags means enclosed."""
     rows = [[cell.strip('"\ufeff') for cell in line.split(";")]
             for line in get(f"https://{c['host']}/{c['dataset']}").decode("utf-8").splitlines() if line]
     header, out = rows[0], []
@@ -745,7 +744,7 @@ def fnmt_context():
     return context
 
 def seville_all(c):
-    """parseSevilleGeoJSON: a frontage line at its mean vertex; a permit past its end date dropped."""
+    """Seville GeoJSON: a frontage line at its mean vertex; a permit past its end date dropped."""
     root = get(f"https://{c['host']}/{c['dataset']}", parse=json.loads, context=fnmt_context())
     today = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Madrid")).date()
     out = []
@@ -768,7 +767,7 @@ def seville_all(c):
     return out
 
 def barcelona_all(c):
-    """fetchBarcelonaTerraces + parseBarcelonaCSV: CKAN's newest CSV resource, WGS84 LATITUD/LONGITUD, no name."""
+    """Barcelona: CKAN's newest CSV resource, WGS84 LATITUD/LONGITUD, no name."""
     package = get_json(f"https://{c['host']}/data/api/3/action/package_show?id={c['dataset']}")
     url = next(r["url"] for r in package["result"]["resources"] if (r.get("format") or "").upper() == "CSV")
     rows = [[cell.strip('"\ufeff') for cell in line.split(";")] for line in get(url).decode("utf-8").splitlines() if line]
@@ -794,7 +793,7 @@ def whole_file(c, rect, load):
     return [t for t in _whole[c["city"]] if s <= t["coordinate"]["latitude"] <= n and w <= t["coordinate"]["longitude"] <= e]
 
 def oslo(c, rect):
-    """osloURL + parseOsloTerraces: latitude-first bbox, UTM 32N answers, outdoor hours only; the holder never asked."""
+    """Oslo: latitude-first bbox, UTM 32N answers, outdoor hours only; the holder never asked."""
     s, w, n, e = rect
     q = urllib.parse.urlencode({"map": "AAPNING", "service": "WFS", "version": "1.1.0", "request": "GetFeature",
                                 "typename": c["dataset"], "propertyName": "OBJEKTNAVN,UTE_TID",
@@ -831,7 +830,7 @@ def permits(c, rect):
         else:
             params["bbox"] = f"{w},{s},{e},{n},EPSG:4326"
         features = get_json(f"https://{c['host']}?" + urllib.parse.urlencode(params)).get("features") or []
-        return permit_items(features, c)   # polygons land on their mean vertex, as parseTerraces
+        return permit_items(features, c)   # polygons land on their mean vertex
     if c.get("shape") == "arcgis":
         fields = [f for f in [c["name"]] + c["kinds"] if f]
         return permit_items(arcgis(f"https://{c['host']}/{c['dataset']}", rect, fields, c.get("filter") or "1=1",

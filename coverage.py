@@ -25,7 +25,7 @@ Output (compact JSON):
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
 
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
-TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # the app's terracesKnown (CityData.swift): terraces vs going-out venues nearby
+TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: terraces vs going-out venues nearby, the reader's rule
 GOING_OUT = 10    # bars, cafés and restaurants within about 400 m
 FALLBACK_HEIGHT = re.compile(rb'"height":\s*15(?:\.0+)?[,}]')  # written when a footprint has no height
 
@@ -119,7 +119,7 @@ def main():
     def going_out(ky, kx):
         return (venues_near(ky, kx) or 0) >= GOING_OUT
 
-    # ponytail: the app counts venues in the venue tiles' points within 400 m; here the same 600 m
+    # ponytail: the reader counts the venue tiles' points within 400 m; here the same 600 m
     # square estimate as going_out stands in — parse the points if the two disagree on a city.
     def terraces_known(ky, kx, c):
         v = venues_near(ky, kx)
