@@ -18,6 +18,7 @@ Output (compact JSON):
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
   areas       [{name, city, box: [s, w, n, e], tiled, passing, terracesKnown, km2, goingOutShare, lastBuilt}]
+              (a départements entry gives one area per commune, never an aggregate)
               passing: cells with enough buildings; terracesKnown: cells with enough terraces;
               km2: area of the passing cells; goingOutShare: share of the going-out cells
               holding enough terraces and buildings both
@@ -144,18 +145,32 @@ def main():
                     elif not any(names.get(x) == e["city"] for x in codes):
                         continue
                 keys.append((ky, kx, c))
-        ok = [(ky, kx) for ky, kx, c in keys if passes(c)]
-        out_cells = [(ky, kx, c) for ky, kx, c in keys if going_out(ky, kx)]
-        dates = [d for _, _, c in keys for d in c[3:5] if d]
-        areas.append({
-            "name": e.get("district") or e["city"], "city": e["city"],
-            "box": [round(x, 5) for x in box], "tiled": len(keys), "passing": len(ok),
-            "terracesKnown": sum(terraces_known(ky, kx, c) for ky, kx, c in keys),
-            "km2": round(sum(cell_km2(ky) for ky, _ in ok), 2),
-            "goingOutShare": round(sum(terraces_known(ky, kx, c) and passes(c) for ky, kx, c in out_cells) / len(out_cells), 3)
-            if out_cells else None,
-            "lastBuilt": max(dates) if dates else None,
-        })
+        def summary(keys, name, city, box):
+            ok = [(ky, kx) for ky, kx, c in keys if passes(c)]
+            out_cells = [(ky, kx, c) for ky, kx, c in keys if going_out(ky, kx)]
+            dates = [d for _, _, c in keys for d in c[3:5] if d]
+            return {
+                "name": name, "city": city,
+                "box": [round(x, 5) for x in box], "tiled": len(keys), "passing": len(ok),
+                "terracesKnown": sum(terraces_known(ky, kx, c) for ky, kx, c in keys),
+                "km2": round(sum(cell_km2(ky) for ky, _ in ok), 2),
+                "goingOutShare": round(sum(terraces_known(ky, kx, c) and passes(c) for ky, kx, c in out_cells) / len(out_cells), 3)
+                if out_cells else None,
+                "lastBuilt": max(dates) if dates else None,
+            }
+        if e.get("departements"):
+            # No aggregate for a départements entry (owner, 2026-09-27): each commune is its own
+            # area, named from the commune tiles, boxed by its own cells.
+            by_commune = {}
+            for ky, kx, c in keys:
+                code = next(x for x in c[5].split() if x[:2] in e["departements"])
+                by_commune.setdefault(code, []).append((ky, kx, c))
+            for code, group in sorted(by_commune.items()):
+                lats = [ky / 500 for ky, _, _ in group]; lons = [kx / 500 for _, kx, _ in group]
+                cbox = (min(lats), min(lons), max(lats) + 1 / 500, max(lons) + 1 / 500)
+                areas.append(summary(group, names.get(code, code), names.get(code, code), cbox))
+            continue
+        areas.append(summary(keys, e.get("district") or e["city"], e["city"], box))
 
     dl = sorted({d for c in cells.values() for d in c[3:5] if d} | {v[2] for v in venues.values() if v[2]})
     ix = {d: i for i, d in enumerate(dl)}
