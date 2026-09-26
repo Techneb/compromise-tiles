@@ -106,6 +106,7 @@ def main():
     a.add_argument("--only", default="", help="comma-separated city names")
     a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 12 km square")
     a.add_argument("--drop", action="store_true", help="delete each extract once its cities are counted (small disks)")
+    a.add_argument("--previous", default="", help="the published counts.json (URL or path): its rows for cities not counted this run are kept")
     args = a.parse_args()
     only = {x.strip() for x in args.only.split(",") if x.strip()}
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]
@@ -141,6 +142,16 @@ def main():
             print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
+    # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
+    if args.previous:
+        try:
+            import urllib.request
+            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
+                if "://" in args.previous else open(args.previous, "rb").read()
+            counted = {r["city"] for r in rows}
+            rows += [r for r in json.loads(raw).get("cities", []) if r["city"] not in counted]
+        except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
+            print(f"previous counts not merged: {x}", file=sys.stderr)
     rows.sort(key=lambda r: -r["goingOutCells"])
     with open(args.write, "w") as f:
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
