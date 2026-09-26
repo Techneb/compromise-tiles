@@ -1,0 +1,676 @@
+[
+ {
+  "city": "Amsterdam",
+  "district": "Amsterdam (going-out core + 1 km)",
+  "box": [
+   52.3414,
+   4.8609,
+   52.3906,
+   4.9226
+  ],
+  "km2_box": 22.8,
+  "km2_city": 219.3,
+  "rule": "core",
+  "osm_relation": 47811,
+  "admin_level": 8,
+  "km2_osm_polygon": 241.5,
+  "cells": 571,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Athens",
+  "district": "Athens (whole municipality)",
+  "box": [
+   37.9488,
+   23.687,
+   38.0328,
+   23.7904
+  ],
+  "km2_box": 84.3,
+  "km2_city": 39.0,
+  "rule": "municipality",
+  "osm_relation": 1370736,
+  "admin_level": 7,
+  "km2_osm_polygon": 37.9,
+  "cells": 2107
+ },
+ {
+  "city": "Basel",
+  "district": "Basel (whole municipality)",
+  "box": [
+   47.5193,
+   7.5547,
+   47.5899,
+   7.6341
+  ],
+  "km2_box": 46.6,
+  "km2_city": 23.9,
+  "rule": "municipality",
+  "osm_relation": 1683619,
+  "admin_level": 8,
+  "km2_osm_polygon": 23.7,
+  "cells": 1165
+ },
+ {
+  "city": "Berlin",
+  "district": "Berlin (going-out core + 1 km)",
+  "box": [
+   52.4874,
+   13.3794,
+   52.5496,
+   13.4801
+  ],
+  "km2_box": 46.9,
+  "km2_city": 891.3,
+  "rule": "core",
+  "osm_relation": 62422,
+  "admin_level": 4,
+  "km2_osm_polygon": 883.3,
+  "cells": 1173,
+  "note": "Berlin is a Land (level 4) and a municipality at once"
+ },
+ {
+  "city": "Bologna",
+  "district": "Bologna (whole municipality)",
+  "box": [
+   44.4211,
+   11.2296,
+   44.5561,
+   11.4334
+  ],
+  "km2_box": 241.6,
+  "km2_city": 140.9,
+  "rule": "municipality",
+  "osm_relation": 43172,
+  "admin_level": 8,
+  "km2_osm_polygon": 139.7,
+  "cells": 6040
+ },
+ {
+  "city": "Budapest",
+  "district": "Budapest (going-out core + 1 km)",
+  "box": [
+   47.4664,
+   19.0301,
+   47.5176,
+   19.0834
+  ],
+  "km2_box": 22.7,
+  "km2_city": 525.2,
+  "rule": "core",
+  "osm_relation": 1244004,
+  "admin_level": 8,
+  "km2_osm_polygon": 522.3,
+  "cells": 568,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Chicago",
+  "district": "Chicago (going-out core + 1 km)",
+  "box": [
+   41.8705,
+   -87.6957,
+   41.961,
+   -87.6132
+  ],
+  "km2_box": 68.4,
+  "km2_city": 606.1,
+  "rule": "core",
+  "osm_relation": 122604,
+  "admin_level": 8,
+  "km2_osm_polygon": 603.2,
+  "cells": 1710,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Copenhagen",
+  "district": "Copenhagen (whole municipality)",
+  "box": [
+   55.6129,
+   12.453,
+   55.7327,
+   12.7342
+  ],
+  "km2_box": 233.8,
+  "km2_city": 86.4,
+  "rule": "municipality",
+  "osm_relation": 2192363,
+  "admin_level": 7,
+  "km2_osm_polygon": 93.5,
+  "cells": 5846,
+  "flag": "box/city 2.7",
+  "note": "the municipality's own two parts (city + Amager) span sea and the airport side; Frederiksberg (own municipality) sits inside the box"
+ },
+ {
+  "city": "Geneva",
+  "district": "Geneva (whole municipality)",
+  "box": [
+   46.1778,
+   6.1102,
+   46.2319,
+   6.1758
+  ],
+  "km2_box": 30.2,
+  "km2_city": 15.9,
+  "rule": "municipality",
+  "osm_relation": 1685488,
+  "admin_level": 8,
+  "km2_osm_polygon": 18.2,
+  "cells": 756
+ },
+ {
+  "city": "London",
+  "district": "London (going-out core + 1 km)",
+  "box": [
+   51.4981,
+   -0.1643,
+   51.5526,
+   -0.0563
+  ],
+  "km2_box": 45.1,
+  "km2_city": 1572.0,
+  "rule": "core",
+  "osm_relation": 175342,
+  "admin_level": 5,
+  "km2_osm_polygon": 1583.1,
+  "cells": 1127,
+  "note": "Greater London (level 5); boroughs are level 8"
+ },
+ {
+  "city": "Madrid",
+  "district": "Madrid (going-out core + 1 km)",
+  "box": [
+   40.3974,
+   -3.7277,
+   40.4406,
+   -3.6798
+  ],
+  "km2_box": 19.4,
+  "km2_city": 604.3,
+  "rule": "core",
+  "osm_relation": 5326784,
+  "admin_level": 8,
+  "km2_osm_polygon": 600.8,
+  "cells": 485,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Melbourne",
+  "district": "Melbourne (whole municipality)",
+  "box": [
+   -37.8507,
+   144.897,
+   -37.7755,
+   144.9913
+  ],
+  "km2_box": 69.0,
+  "km2_city": 37.7,
+  "rule": "municipality",
+  "osm_relation": 2404870,
+  "admin_level": 6,
+  "km2_osm_polygon": 37.5,
+  "cells": 1724
+ },
+ {
+  "city": "New York",
+  "district": "New York (going-out core + 1 km)",
+  "box": [
+   40.7038,
+   -74.0205,
+   40.7472,
+   -73.9392
+  ],
+  "km2_box": 32.9,
+  "km2_city": 783.8,
+  "rule": "core",
+  "osm_relation": 175905,
+  "admin_level": 5,
+  "km2_osm_polygon": 1210.6,
+  "cells": 823,
+  "note": "New York City (level 5, 1,211 km² with water)"
+ },
+ {
+  "city": "Rotterdam",
+  "district": "Rotterdam (going-out core + 1 km)",
+  "box": [
+   51.9024,
+   4.4557,
+   51.9361,
+   4.5053
+  ],
+  "km2_box": 12.7,
+  "km2_city": 324.1,
+  "rule": "core",
+  "osm_relation": 324431,
+  "admin_level": 8,
+  "km2_osm_polygon": 321.6,
+  "cells": 318,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "San Francisco",
+  "district": "San Francisco (whole municipality)",
+  "box": [
+   37.7065,
+   -122.5293,
+   37.8631,
+   -122.3576
+  ],
+  "km2_box": 261.6,
+  "km2_city": 121.4,
+  "rule": "municipality",
+  "osm_relation": 111968,
+  "admin_level": 6,
+  "km2_osm_polygon": 598.1,
+  "cells": 6540,
+  "note": "trimmed: buildings inside the city-county boundary's mainland part; the raw boundary box is [37.6403, -123.1738, 37.9297, -122.2815], 2,512 km² (Farallones, bay water)"
+ },
+ {
+  "city": "Seville",
+  "district": "Seville (whole municipality)",
+  "box": [
+   37.3002,
+   -6.0329,
+   37.453,
+   -5.8192
+  ],
+  "km2_box": 319.4,
+  "km2_city": 140.8,
+  "rule": "municipality",
+  "osm_relation": 342563,
+  "admin_level": 8,
+  "km2_osm_polygon": 140.7,
+  "cells": 7985
+ },
+ {
+  "city": "Strasbourg",
+  "district": "Strasbourg (whole municipality)",
+  "box": [
+   48.4919,
+   7.6881,
+   48.6462,
+   7.8361
+  ],
+  "km2_box": 186.0,
+  "km2_city": 78.3,
+  "rule": "municipality",
+  "osm_relation": 71033,
+  "admin_level": 8,
+  "km2_osm_polygon": 77.7,
+  "cells": 4650
+ },
+ {
+  "city": "The Hague",
+  "district": "The Hague (whole municipality)",
+  "box": [
+   52.0148,
+   4.185,
+   52.135,
+   4.4225
+  ],
+  "km2_box": 216.0,
+  "km2_city": 98.1,
+  "rule": "municipality",
+  "osm_relation": 192736,
+  "admin_level": 8,
+  "km2_osm_polygon": 97.3,
+  "cells": 5400
+ },
+ {
+  "city": "Toulouse",
+  "district": "Toulouse (whole municipality)",
+  "box": [
+   43.5327,
+   1.3503,
+   43.6687,
+   1.5153
+  ],
+  "km2_box": 200.0,
+  "km2_city": 118.3,
+  "rule": "municipality",
+  "osm_relation": 35738,
+  "admin_level": 8,
+  "km2_osm_polygon": 117.4,
+  "cells": 5001
+ },
+ {
+  "city": "Turin",
+  "district": "Turin (whole municipality)",
+  "box": [
+   45.0068,
+   7.5778,
+   45.1402,
+   7.7733
+  ],
+  "km2_box": 226.7,
+  "km2_city": 130.0,
+  "rule": "municipality",
+  "osm_relation": 43992,
+  "admin_level": 8,
+  "km2_osm_polygon": 129.2,
+  "cells": 5668
+ },
+ {
+  "city": "Utrecht",
+  "district": "Utrecht (whole municipality)",
+  "box": [
+   52.0263,
+   4.9701,
+   52.1421,
+   5.1952
+  ],
+  "km2_box": 197.2,
+  "km2_city": 99.2,
+  "rule": "municipality",
+  "osm_relation": 419203,
+  "admin_level": 8,
+  "km2_osm_polygon": 98.4,
+  "cells": 4929
+ },
+ {
+  "city": "Vienna",
+  "district": "Vienna (going-out core + 1 km)",
+  "box": [
+   48.1849,
+   16.3338,
+   48.2301,
+   16.3982
+  ],
+  "km2_box": 23.9,
+  "km2_city": 414.8,
+  "rule": "core",
+  "osm_relation": null,
+  "admin_level": 4,
+  "km2_osm_polygon": null,
+  "cells": 597,
+  "note": "the Wien relation (level 4) is incomplete in the alps extract; 414.8 km² (cities.csv) decides core anyway"
+ },
+ {
+  "city": "Warsaw",
+  "district": "Warsaw (going-out core + 1 km)",
+  "box": [
+   52.2059,
+   20.9902,
+   52.2633,
+   21.0425
+  ],
+  "km2_box": 22.6,
+  "km2_city": 517.2,
+  "rule": "core",
+  "osm_relation": 336074,
+  "admin_level": 8,
+  "km2_osm_polygon": 512.9,
+  "cells": 566,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Wrocław",
+  "district": "Wrocław (going-out core + 1 km)",
+  "box": [
+   51.0949,
+   17.0015,
+   51.1236,
+   17.0535
+  ],
+  "km2_box": 11.5,
+  "km2_city": 292.8,
+  "rule": "core",
+  "osm_relation": 2805690,
+  "admin_level": 8,
+  "km2_osm_polygon": 290.4,
+  "cells": 289,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Barcelona",
+  "district": "Barcelona (whole municipality)",
+  "box": [
+   41.317,
+   2.0525,
+   41.4679,
+   2.2284
+  ],
+  "km2_box": 245.1,
+  "km2_city": 101.4,
+  "rule": "municipality",
+  "osm_relation": 347950,
+  "admin_level": 8,
+  "km2_osm_polygon": 100.8,
+  "cells": 6128
+ },
+ {
+  "city": "Valencia",
+  "district": "Valencia (whole municipality)",
+  "box": [
+   39.2784,
+   -0.4326,
+   39.5666,
+   -0.2725
+  ],
+  "km2_box": 438.7,
+  "km2_city": 138.7,
+  "rule": "municipality",
+  "osm_relation": 344953,
+  "admin_level": 8,
+  "km2_osm_polygon": 138.7,
+  "cells": 10968,
+  "flag": "box/city 3.2",
+  "note": "the municipality runs south to the Albufera pedanías (El Palmar, El Saler), 30 km of coast"
+ },
+ {
+  "city": "Zaragoza",
+  "district": "Zaragoza (going-out core + 1 km)",
+  "box": [
+   41.6411,
+   -0.9,
+   41.6683,
+   -0.864
+  ],
+  "km2_box": 9.0,
+  "km2_city": 968.9,
+  "rule": "core",
+  "osm_relation": 345740,
+  "admin_level": 8,
+  "km2_osm_polygon": 968.9,
+  "cells": 226,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Málaga",
+  "district": "Málaga (going-out core + 1 km)",
+  "box": [
+   36.7024,
+   -4.4398,
+   36.737,
+   -4.4007
+  ],
+  "km2_box": 13.3,
+  "km2_city": 393.6,
+  "rule": "core",
+  "osm_relation": 340746,
+  "admin_level": 8,
+  "km2_osm_polygon": 393.6,
+  "cells": 334,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Palma",
+  "district": "Palma (going-out core + 1 km)",
+  "box": [
+   39.5548,
+   2.6208,
+   39.5848,
+   2.6618
+  ],
+  "km2_box": 11.7,
+  "km2_city": 207.6,
+  "rule": "core",
+  "osm_relation": 341321,
+  "admin_level": 8,
+  "km2_osm_polygon": 207.6,
+  "cells": 292,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Las Palmas",
+  "district": "Las Palmas (whole municipality)",
+  "box": [
+   28.0244,
+   -15.5272,
+   28.1814,
+   -15.3949
+  ],
+  "km2_box": 225.5,
+  "km2_city": 103.5,
+  "rule": "municipality",
+  "osm_relation": 340783,
+  "admin_level": 8,
+  "km2_osm_polygon": 103.5,
+  "cells": 5639
+ },
+ {
+  "city": "Murcia",
+  "district": "Murcia (going-out core + 1 km)",
+  "box": [
+   37.971,
+   -1.1502,
+   37.9982,
+   -1.116
+  ],
+  "km2_box": 9.0,
+  "km2_city": 881.2,
+  "rule": "core",
+  "osm_relation": 340611,
+  "admin_level": 8,
+  "km2_osm_polygon": 881.2,
+  "cells": 226,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Alicante",
+  "district": "Alicante (going-out core + 1 km)",
+  "box": [
+   38.3319,
+   -0.4977,
+   38.3591,
+   -0.4633
+  ],
+  "km2_box": 9.0,
+  "km2_city": 201.7,
+  "rule": "core",
+  "osm_relation": 342792,
+  "admin_level": 8,
+  "km2_osm_polygon": 201.7,
+  "cells": 226,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Córdoba",
+  "district": "Córdoba (going-out core + 1 km)",
+  "box": [
+   37.8709,
+   -4.7967,
+   37.8981,
+   -4.7625
+  ],
+  "km2_box": 9.0,
+  "km2_city": 1248.9,
+  "rule": "core",
+  "osm_relation": 343207,
+  "admin_level": 8,
+  "km2_osm_polygon": 1248.9,
+  "cells": 226,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Valladolid",
+  "district": "Valladolid (going-out core + 1 km)",
+  "box": [
+   41.6385,
+   -4.7465,
+   41.6657,
+   -4.7105
+  ],
+  "km2_box": 9.0,
+  "km2_city": 196.1,
+  "rule": "core",
+  "osm_relation": 348849,
+  "admin_level": 8,
+  "km2_osm_polygon": 196.1,
+  "cells": 226,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Vigo",
+  "district": "Vigo (whole municipality)",
+  "box": [
+   42.1324,
+   -8.9183,
+   42.2647,
+   -8.627
+  ],
+  "km2_box": 351.4,
+  "km2_city": 109.0,
+  "rule": "municipality",
+  "osm_relation": 341381,
+  "admin_level": 8,
+  "km2_osm_polygon": 109.0,
+  "cells": 8786,
+  "flag": "box/city 3.2",
+  "note": "the Cíes islands belong to the municipality and widen the box 20 km west"
+ },
+ {
+  "city": "Gijón",
+  "district": "Gijón (going-out core + 1 km)",
+  "box": [
+   43.5314,
+   -5.6812,
+   43.5586,
+   -5.644
+  ],
+  "km2_box": 9.0,
+  "km2_city": 182.8,
+  "rule": "core",
+  "osm_relation": 345576,
+  "admin_level": 8,
+  "km2_osm_polygon": 182.8,
+  "cells": 226,
+  "note": "districts' own squares + 1 km (first version, to be replaced by going-out cells + 1 km)"
+ },
+ {
+  "city": "Bilbao",
+  "district": "Bilbao (whole municipality)",
+  "box": [
+   43.2137,
+   -2.986,
+   43.2901,
+   -2.8803
+  ],
+  "km2_box": 72.4,
+  "km2_city": 40.4,
+  "rule": "municipality",
+  "osm_relation": 339549,
+  "admin_level": 8,
+  "km2_osm_polygon": 40.4,
+  "cells": 1810
+ },
+ {
+  "city": "San Sebastián",
+  "district": "San Sebastián (whole municipality)",
+  "box": [
+   43.2178,
+   -2.0868,
+   43.3382,
+   -1.8879
+  ],
+  "km2_box": 214.6,
+  "km2_city": 60.4,
+  "rule": "municipality",
+  "osm_relation": 346465,
+  "admin_level": 8,
+  "km2_osm_polygon": 60.4,
+  "cells": 5365,
+  "flag": "box/city 3.6",
+  "note": "the municipality stretches west over Igeldo and inland; the city itself is its east quarter"
+ }
+]
