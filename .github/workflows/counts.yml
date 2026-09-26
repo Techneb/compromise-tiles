@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # --drop: each extract is deleted once its cities are counted, the runner's disk is small.
-      - run: python3 counts.py --cities counts-cities.json --extracts extracts --write counts.json --drop --only "${{ inputs.only }}"
+      - run: python3 counts.py --cities counts-cities.json --extracts extracts --write counts.json --drop --only "${{ inputs.only }}" --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/counts.json"
       - name: Upload to R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
