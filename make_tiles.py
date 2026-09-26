@@ -551,6 +551,10 @@ CITY_BUILDINGS = [
     building_row("Tel Aviv", (32.02, 32.16), (34.73, 34.86), lambda r: footprints(arcgis(
         "https://gisn.tel-aviv.gov.il/arcgis/rest/services/IView2/MapServer/513", r, ["gova_simplex_2019", "ms_komot"],
         oid="oid_mivne"), lambda p: p.get("gova_simplex_2019") or (p["ms_komot"] * 3 if p.get("ms_komot") else None))),
+    # Jerusalem Municipality, bldg2020 (metres; "for reference and general use only").
+    building_row("Jerusalem", (31.70, 31.89), (35.10, 35.27), lambda r: footprints(arcgis(
+        "https://services3.arcgis.com/jeqc1A7OfE9m4EPO/arcgis/rest/services/bldg2020/FeatureServer/0", r,
+        ["realHeight", "height"]), lambda p: p["realHeight"] if (p.get("realHeight") or 0) > 0 else p.get("height"))),
     # Spain's cadastre (owner's decision, 2026-09-25): tiles hold derived footprints and heights, never
     # Catastro's GML, which its licence forbids spreading untransformed. A cell Catastro fails gets no tile
     # (the next run retries), never an OSM tile.
