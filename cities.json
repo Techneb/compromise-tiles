@@ -786,5 +786,43 @@
       "93",
       "94"
     ]
+  },
+  {
+    "city": "Tel Aviv",
+    "district": "Tel Aviv-Yafo (whole city)",
+    "box": [
+      32.025,
+      34.735,
+      32.15,
+      34.855
+    ]
+  },
+  {
+    "city": "Chicago",
+    "district": "Wicker Park",
+    "lat": 41.91,
+    "lon": -87.6776,
+    "half_km": 0.5
+  },
+  {
+    "city": "Chicago",
+    "district": "Wrigleyville",
+    "lat": 41.9474,
+    "lon": -87.6557,
+    "half_km": 0.5
+  },
+  {
+    "city": "Melbourne",
+    "district": "Fitzroy",
+    "lat": -37.7985,
+    "lon": 144.9785,
+    "half_km": 0.5
+  },
+  {
+    "city": "Melbourne",
+    "district": "South Yarra",
+    "lat": -37.839,
+    "lon": 144.993,
+    "half_km": 0.5
   }
 ]
