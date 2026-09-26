@@ -1,0 +1,45 @@
+# Per-city counts from OpenStreetMap extracts (going-out cells, terrace share); writes no tiles.
+# Uploads counts.json to the store's root. Secrets as tiles.yml. Public repo, standard runner:
+# no minutes are billed.
+name: Counts
+
+on:
+  schedule:
+    - cron: "11 5 3 * *"   # the 3rd of each month, 05:11 UTC
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Cities to count (comma-separated names; empty: all)"
+        default: ""
+
+concurrency:
+  group: counts
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  counts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      # --drop: each extract is deleted once its cities are counted, the runner's disk is small.
+      - run: python3 counts.py --cities counts-cities.json --extracts extracts --write counts.json --drop --only "${{ inputs.only }}"
+      - name: Upload to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          aws s3 cp counts.json "s3://${{ secrets.R2_BUCKET }}/counts.json" --only-show-errors \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+            --content-type application/json --cache-control "public, max-age=300"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: counts
+          path: counts.csv
