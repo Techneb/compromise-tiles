@@ -12,12 +12,12 @@ terraces (`terracesKnown`) the filter judges terraces, elsewhere the side of the
 Output (compact JSON):
   updated     ISO date of this run
   dates       build dates referenced by index below
-  cells       [latKey, lonKey, terraces, buildings, withHeight, terracesDate, buildingsDate, communes]
+  cells       [latKey, lonKey, terraces, buildings, withHeight, terracesDate, buildingsDate, communes, venues, withSeating]
               200 m cells keyed int(lat*500), int(lon*500); a date is an index into `dates`
               (-1: layer never built); communes: space-separated INSEE codes, "" outside France
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
-  areas       [{name, city, box: [s, w, n, e], tiled, passing, terracesKnown, km2, goingOutShare, lastBuilt}]
+  areas       [{name, city, box: [s, w, n, e], tiled, passing, places, seats, terracesKnown, km2, goingOutShare, lastBuilt}]
               (a départements entry gives one area per commune, never an aggregate)
               passing: cells with enough buildings; terracesKnown: cells with enough terraces;
               km2: area of the passing cells; goingOutShare: share of the going-out cells
@@ -83,8 +83,9 @@ def main():
     prev = load_previous(args.previous) if args.previous else {}
     pd = prev.get("dates", [])
     day = lambda i: pd[i] if 0 <= i < len(pd) else None
-    # key -> [terraces, buildings, withHeight, terracesDate, buildingsDate, communes]
-    cells = {f"{r[0]},{r[1]}": [r[2], r[3], r[4], day(r[5]), day(r[6]), r[7]] for r in prev.get("cells", [])}
+    # key -> [terraces, buildings, withHeight, terracesDate, buildingsDate, communes, venues, withSeating]
+    cells = {f"{r[0]},{r[1]}": [r[2], r[3], r[4], day(r[5]), day(r[6]), r[7], *(r[8:10] if len(r) > 9 else (0, 0))]
+             for r in prev.get("cells", [])}
     venues = {f"{r[0]},{r[1]}": [r[2], r[3], day(r[4])] for r in prev.get("venueCells", [])}
     names = dict(prev.get("communes", {}))
 
@@ -103,6 +104,19 @@ def main():
             cells[k][5] = " ".join(x["code"] for x in found)
     for k, raw in tiles(args.out, "venues"):
         venues[k] = [raw.count(b'"name"'), len(re.findall(rb'"outdoor_seating":\s*true', raw)), today]
+        # Places per 200 m block, for the blocks that hold data: c[6] venues, c[7] with outdoor seating.
+        # A rebuilt venue tile recounts its blocks from zero first.
+        # ponytail: a scan of every cell per venue tile (~10 M steps for 400 tiles); index cells by tile if it drags.
+        ty, tx = map(int, k.split(","))
+        for ck, c in cells.items():
+            cy, cx = map(int, ck.split(","))
+            if int(cy / 10) == ty and int(cx / 10) == tx and len(c) > 7: c[6] = c[7] = 0
+        for p in json.loads(raw):
+            c = cells.get(f"{int(p['coordinate']['latitude'] * 500)},{int(p['coordinate']['longitude'] * 500)}")
+            if c is None: continue
+            while len(c) < 8: c.append(0)
+            c[6] += 1
+            c[7] += 1 if p.get("outdoor_seating") else 0
 
     # Going-out cells. The owner's rule: at least GOING_OUT bars, cafés and restaurants in
     # the 400 m around a cell. Approximated from the 2 km venue cells: each spreads its
@@ -152,6 +166,7 @@ def main():
             return {
                 "name": name, "city": city,
                 "box": [round(x, 5) for x in box], "tiled": len(keys), "passing": len(ok),
+                "places": sum(c[6] for _, _, c in keys if len(c) > 7), "seats": sum(c[7] for _, _, c in keys if len(c) > 7),
                 "terracesKnown": sum(terraces_known(ky, kx, c) for ky, kx, c in keys),
                 "km2": round(sum(cell_km2(ky) for ky, _ in ok), 2),
                 "goingOutShare": round(sum(terraces_known(ky, kx, c) and passes(c) for ky, kx, c in out_cells) / len(out_cells), 3)
@@ -178,7 +193,8 @@ def main():
     split = lambda k: list(map(int, k.split(",")))
     feed = {
         "updated": today, "dates": dl,
-        "cells": [[*split(k), c[0], c[1], c[2], idx(c[3]), idx(c[4]), c[5]] for k, c in sorted(cells.items())],
+        "cells": [[*split(k), c[0], c[1], c[2], idx(c[3]), idx(c[4]), c[5], *((c[6], c[7]) if len(c) > 7 else (0, 0))]
+                  for k, c in sorted(cells.items())],
         "communes": {k: names[k] for k in sorted({x for c in cells.values() for x in c[5].split()}) if k in names},
         "venueCells": [[*split(k), v[0], v[1], idx(v[2])] for k, v in sorted(venues.items())],
         "areas": areas,
