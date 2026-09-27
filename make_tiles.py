@@ -117,6 +117,15 @@ PERMIT_CITIES = [
     # Open Data BCN (CKAN): the newest CSV of the dataset's resources, fetched whole once per run; no names.
     row("Barcelona", "", "opendata-ajuntament.barcelona.cat", "terrasses-comercos-vigents", "", [],
         (41.32, 41.47), (2.05, 2.23), shape="barcelona"),
+    # Hand-refreshed snapshots in this repository (`permits/`): the feeds carry street addresses only,
+    # geocoded once on the Mac (2026-09-28); a build reads the static file and never calls a geocoder.
+    # Buenos Aires: granted sidewalk-dining permits (CC BY 2.5 AR), USIG's normaliser; no name, the
+    # feed names only the holder (a company or a person), never kept.
+    row("Buenos Aires", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/buenos-aires.geojson",
+        "", [], (-34.71, -34.52), (-58.54, -58.33), shape="geojson"),
+    # Adelaide: City of Adelaide outdoor dining permits (CC BY), matched on the city's own property parcels.
+    row("Adelaide", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/adelaide.geojson",
+        "name", [], (-34.96, -34.89), (138.57, 138.63), shape="geojson"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -913,6 +922,8 @@ def permits(c, rect):
     if c.get("shape") == "madrid": return whole_file(c, rect, madrid_all)
     if c.get("shape") == "seville": return whole_file(c, rect, seville_all)
     if c.get("shape") == "barcelona": return whole_file(c, rect, barcelona_all)
+    if c.get("shape") == "geojson":  # a static GeoJSON of points, fetched whole once per run (Toronto)
+        return whole_file(c, rect, lambda c: permit_items(get_json(f"https://{c['host']}/{c['dataset']}").get("features") or [], c))
     if c.get("shape") == "socrata":
         where = f"within_box({c['point']}, {n}, {w}, {s}, {e})" + (f" AND {socrata_filter(c['filter'])}" if c.get("filter") else "")
         return permit_items(socrata(c["host"], c["dataset"], where, ",".join(f for f in [c["name"], c["point"]] if f)), c)
