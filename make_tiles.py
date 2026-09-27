@@ -265,12 +265,18 @@ def download(url, folder, max_days=6):
     if os.path.exists(file) and time.time() - os.path.getmtime(file) < max_days * 86_400: return file
     os.makedirs(folder, exist_ok=True)
     log(f"  downloading {url}")
-    try:
-        request = urllib.request.Request(url, headers={"User-Agent": UA})
-        with urllib.request.urlopen(request, timeout=TIMEOUT) as response, open(file + ".tmp", "wb") as f:
-            shutil.copyfileobj(response, f, 1 << 20)
-    except Exception as e:  # noqa: BLE001 — the area's OSM layers fail, not the run
-        raise SourceError(f"{url}: {type(e).__name__}: {e}") from e
+    # Retried: parallel build jobs pull extracts at the same moment and Geofabrik answers some of
+    # them 504 or hangs (2026-09-27, three of three jobs, two lost); a minute later it serves them.
+    for attempt, wait in enumerate((60, 120, 240, None)):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response, open(file + ".tmp", "wb") as f:
+                shutil.copyfileobj(response, f, 1 << 20)
+            break
+        except Exception as e:  # noqa: BLE001 — the area's OSM layers fail, not the run
+            if wait is None: raise SourceError(f"{url}: {type(e).__name__}: {e}") from e
+            log(f"  {url.rsplit('/', 1)[1]}: {type(e).__name__}: {e}; retry in {wait} s")
+            time.sleep(wait)
     os.replace(file + ".tmp", file)
     return file
 
@@ -498,37 +504,82 @@ def socrata_buildings(host, dataset, geometry, field, height):
                           lambda p: height(number(p.get(field))))
     return fetch
 
-def catastro(rect, step=0.0018):
-    """Spain's cadastre, INSPIRE Buildings (bu:BuildingPart, GML, EPSG:4326 posList latitude first):
-    floors above ground × 3 m, a 0-floor part (a basement) skipped, 15 m when the count is missing. The server takes ~4 s for a 200 m box but 68 s and 19 MB for
-    800 m (2026-09-25), and resets a third concurrent request, so the rect is asked ~200 m at a time,
-    one after another; a part straddling two boxes comes back twice and `unique` drops the copy."""
-    s, w, n, e = rect
-    ns = {"gml": "http://www.opengis.net/gml/3.2", "bu": "http://inspire.jrc.ec.europa.eu/schemas/bu-ext2d/2.0"}
-    def parse(raw):
-        root = ET.fromstring(raw)
-        if not root.tag.endswith("FeatureCollection"):
-            text = " ".join(root.itertext())
-            if "No records" in text: return []  # an empty box is an answer, not a failure
-            raise ValueError(text.strip()[:200])
-        return root.iter("{%s}BuildingPart" % ns["bu"])
-    out, lat = [], s
-    while lat < n:
-        lon = w
-        while lon < e:
-            q = urllib.parse.urlencode({"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature", "TYPENAMES": "bu:BuildingPart",
-                                        "SRSNAME": "urn:ogc:def:crs:EPSG::4326",
-                                        "BBOX": f"{lat},{lon},{min(lat + step, n)},{min(lon + step, e)},urn:ogc:def:crs:EPSG::4326"})
-            for part in get("https://ovc.catastro.meh.es/INSPIRE/wfsBU.aspx?" + q, parse=lambda raw: list(parse(raw))):
-                floors = number((part.findtext("bu:numberOfFloorsAboveGround", namespaces=ns) or "").strip())
-                if floors == 0: continue
-                for ring in part.iterfind(".//gml:exterior//gml:posList", ns):
-                    v = [float(x) for x in ring.text.split()]
-                    outline = [vertex(v[i], v[i + 1]) for i in range(0, len(v) - 1, 2)]
-                    if len(outline) >= 3: out.append(building(outline, floors * 3 if floors and floors > 0 else 15.0))
-            lon += step
-        lat += step
+CATASTRO_FEED = "https://www.catastro.hacienda.gob.es/INSPIRE/buildings/ES.SDGC.bu.atom.xml"
+_catastro = {"provinces": None, "feeds": {}, "loaded": set(), "grid": {}}
+
+def _atom_entries(url):
+    """(title, href, [s, w, n, e], crs) per entry of a cadastre ATOM feed (regex: the feeds are not always well-formed XML)."""
+    raw = get(url)
+    declared = re.match(rb'<\?xml[^>]*encoding="([^"]+)"', raw)   # the province feeds are ISO-8859-1 (Carreño, Logroño)
+    text = raw.decode(declared.group(1).decode() if declared else "utf-8", "replace")
+    out = []
+    for entry in re.findall(r"<entry>(.*?)</entry>", text, re.S):
+        title = re.search(r"<title>([^<]*)", entry); href = re.search(r'href="([^"]+)"', entry)
+        poly = re.search(r"<georss:polygon>([^<]*)", entry); crs = re.search(r'term="[^"]*EPSG/0/(\d+)"', entry)
+        if not (title and href and poly): continue
+        v = [float(x) for x in poly.group(1).split()]
+        lats, lons = v[0::2], v[1::2]
+        out.append((title.group(1).strip(), href.group(1).strip(), (min(lats), min(lons), max(lats), max(lons)), crs.group(1) if crs else "25830"))
     return out
+
+def _overlaps(a, b): return a[0] <= b[2] and a[2] >= b[0] and a[1] <= b[3] and a[3] >= b[1]
+
+def catastro(rect):
+    """Spain's cadastre, INSPIRE Buildings as one download per municipality (the ATOM feeds, since
+    2026-09-27; the block-by-block WFS took 4 s a block and ran whole cities into the 5.5 h cap):
+    floors above ground × 3 m, a 0-floor part (a basement) skipped, 15 m when the count is missing.
+    A municipality is downloaded once (kept a year), its parts inside the city's box indexed by
+    200 m cell; a rect is then served from memory. Coordinates come in the province's UTM zone."""
+    focus = next((padded((b["lat"][0], b["lon"][0], b["lat"][1], b["lon"][1]), 300) for b in CITY_BUILDINGS
+                  if b["fetch"] is catastro and in_box(b, (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2)), rect)
+    if _catastro["provinces"] is None: _catastro["provinces"] = _atom_entries(CATASTRO_FEED)
+    for _, feed, box, _ in _catastro["provinces"]:
+        if not _overlaps(box, focus): continue
+        if feed not in _catastro["feeds"]: _catastro["feeds"][feed] = _atom_entries(feed)
+        for title, href, mbox, crs in _catastro["feeds"][feed]:
+            if not _overlaps(mbox, focus) or href in _catastro["loaded"]: continue
+            _catastro["loaded"].add(href)
+            _load_catastro(href, crs, focus, title)
+    s, w, n, e = rect
+    out, seen = [], set()
+    for ky in range(index(s) - 1, index(n) + 2):
+        for kx in range(index(w) - 1, index(e) + 2):
+            for b in _catastro["grid"].get((ky, kx), ()):
+                if id(b) in seen: continue
+                seen.add(id(b))
+                if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"]): out.append(b)
+    return out
+
+def _load_catastro(href, crs, focus, title):
+    """One municipality's building parts into the grid: streamed from its zip, UTM → WGS84, focus only."""
+    import zipfile
+    zone = int(crs[-2:])
+    folder = os.path.join(_catastro.get("extracts", "extracts"), "catastro")
+    file = None
+    for encoding in ("utf-8", "latin-1"):  # the server takes the name percent-encoded either way, one of the two
+        candidate = download(urllib.parse.quote(href, safe=":/", encoding=encoding), folder, max_days=365)
+        if zipfile.is_zipfile(candidate): file = candidate; break
+        os.remove(candidate)   # an HTML error page, not the package
+    if file is None: raise SourceError(f"{title}: no package at {href}")
+    ns = {"gml": "http://www.opengis.net/gml/3.2", "bu": "http://inspire.jrc.ec.europa.eu/schemas/bu-ext2d/2.0"}
+    started, kept = time.monotonic(), 0
+    with zipfile.ZipFile(file) as z:
+        member = next(m for m in z.namelist() if m.lower().endswith("buildingpart.gml"))
+        with z.open(member) as f:
+            for _, elem in ET.iterparse(f, events=("end",)):
+                if elem.tag != "{%s}BuildingPart" % ns["bu"]: continue
+                floors = number((elem.findtext("bu:numberOfFloorsAboveGround", namespaces=ns) or "").strip())
+                if floors != 0:
+                    for ring in elem.iterfind(".//gml:exterior//gml:posList", ns):
+                        v = [float(x) for x in ring.text.split()]
+                        pts = [utm_to_wgs84(v[i], v[i + 1], zone) for i in range(0, len(v) - 1, 2)]
+                        if len(pts) < 3 or not any(focus[0] <= la <= focus[2] and focus[1] <= lo <= focus[3] for la, lo in pts): continue
+                        b = building([vertex(la, lo) for la, lo in pts], floors * 3 if floors and floors > 0 else 15.0)
+                        for k in {(index(la), index(lo)) for la, lo in pts}:  # every cell a part touches
+                            _catastro["grid"].setdefault(k, []).append(b)
+                        kept += 1
+                elem.clear()
+    log(f"    catastro: {title}: {kept} parts inside the box in {time.monotonic() - started:.0f} s")
 
 def building_row(name, lat, lon, fetch, osm_on_error=False):
     return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error)
