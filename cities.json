@@ -645,12 +645,12 @@
   },
   {
     "city": "Buenos Aires",
-    "district": "Buenos Aires (going-out core + 1 km)",
+    "district": "Buenos Aires (going-out core: Palermo, 5 km)",
     "box": [
-      -34.632,
-      -58.416,
-      -34.587,
-      -58.361
+      -34.61,
+      -58.445,
+      -34.565,
+      -58.395
     ]
   },
   {
