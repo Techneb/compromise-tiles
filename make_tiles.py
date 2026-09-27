@@ -322,7 +322,7 @@ class OSM:
                     if not ring: continue
                     lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
                 venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
-                         "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating")), "source": "osm"}
+                         "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
                 self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
             for f in (box, kept):
@@ -359,9 +359,19 @@ def osm_terraces(rect):
         out.append(item)
     return out
 
-def seating(tag):
+def listed(value, *words):
+    """Whether an OSM value, or one entry of a ;-list, is one of the words (so "roof" but not "roofed")."""
+    return any(v.strip() in words for v in str(value or "").split(";"))
+
+def rooftop(tags):
+    """Tagged as on a roof by location=roof, roof_terrace=yes or terrace=roof; rooftop=yes tags helipads."""
+    return listed(tags.get("location"), "roof") or tags.get("roof_terrace") == "yes" or listed(tags.get("terrace"), "roof")
+
+def seating(tag, on_roof=False):
     """OpenStreetMap's outdoor_seating as the tile carries it: true/false for yes/no, and the value
-    itself when it names where the seats are (roof, terrace, patio…), so a reader can tell a rooftop."""
+    itself when it names where the seats are (roof, terrace, patio…), so a reader can tell a rooftop;
+    "roof" when another tag puts the venue on a roof and the value does not already say so."""
+    if on_roof: return tag if listed(tag, "roof", "rooftop") else "roof"
     if tag in (None, "", "no"): return False
     if tag == "yes": return True
     return str(tag)
