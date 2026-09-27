@@ -642,5 +642,25 @@
       4.7067,
       -74.0366
     ]
+  },
+  {
+    "city": "Buenos Aires",
+    "district": "Buenos Aires (going-out core + 1 km)",
+    "box": [
+      -34.632,
+      -58.416,
+      -34.587,
+      -58.361
+    ]
+  },
+  {
+    "city": "Adelaide",
+    "district": "Adelaide (going-out core + 1 km)",
+    "box": [
+      -34.951,
+      138.572,
+      -34.906,
+      138.627
+    ]
   }
 ]
