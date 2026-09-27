@@ -58,6 +58,12 @@ none, this says so rather than guessing.
   (licence not stated by the publisher).
 - Oslo: outdoor serving licences, Copyright Plan- og bygningsetaten i Oslo
   kommune (licence not stated by the publisher).
+- Buenos Aires: Gobierno de la Ciudad de Buenos Aires, permisos de uso del
+  espacio público, área gastronómica, CC BY 2.5 AR (2026-09-28 snapshot,
+  geocoded with the city's USIG service).
+- Adelaide: City of Adelaide, outdoor dining permits and property
+  boundaries, CC BY (2026-09-28 snapshot; a few points from OpenStreetMap
+  Nominatim, ODbL).
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal. "The City of Chicago makes no
   claims as to the content, accuracy, timeliness, or completeness of any
