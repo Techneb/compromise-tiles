@@ -18,6 +18,7 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
                  least LANDMARK_VENUES named venues
   coreBox, coreKm2  the box [s, w, n, e] of the going-out and landmark cells' centres padded by CORE_PAD,
                  and its area
+  goingOutCellsWide, landmarkCellsWide  the going-out and landmark cells over the wide square below
   landmarksAdded the landmarks (at most 15, with their cell key) whose cell lies outside the box the
                  going-out cells alone would give
   denseBox       only when coreKm2 exceeds DENSE_KM2: the square of DENSE_KM2 holding the city's point
@@ -254,7 +255,8 @@ def main():
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
                          "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square",
                          "coreBox": [round(x, 4) for x in core_box] if core_box else None, "coreKm2": round(core_km2, 1),
-                         "landmarkCells": len(marked), "landmarksAdded": added})
+                         "landmarkCells": len(marked), "landmarksAdded": added,
+                         "goingOutCellsWide": len(wide_going), "landmarkCellsWide": len(marked)})
             if core_km2 > DENSE_KM2 and "lat" in e:
                 rows[-1]["denseBox"] = [round(x, 4) for x in dense(centres, e["lat"], e["lon"])]
             print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
@@ -275,7 +277,7 @@ def main():
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
                   f, ensure_ascii=False, indent=1)
     with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "landmarkCells", "denseBox"],
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "landmarkCells", "denseBox", "goingOutCellsWide", "landmarkCellsWide"],
                            extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
