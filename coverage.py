@@ -114,7 +114,7 @@ def main():
             names.update((x["code"], x["nom"]) for x in found); new_names.update((x["code"], x["nom"]) for x in found)
             cells[k][5] = " ".join(x["code"] for x in found); touched.add(k)
     for k, raw in tiles(args.out, "venues") if args.out else []:
-        venues[k] = [raw.count(b'"name"'), len(re.findall(rb'"outdoor_seating":\s*true', raw)), today]; touched_venues.add(k)
+        venues[k] = [raw.count(b'"name"'), len(re.findall(rb'"outdoor_seating":\s*(?:true|"[^"]+")', raw)), today]; touched_venues.add(k)
         # Places per 200 m block, for the blocks that hold data: c[6] venues, c[7] with outdoor seating.
         # A rebuilt venue tile recounts its blocks from zero first.
         # ponytail: a scan of every cell per venue tile (~10 M steps for 400 tiles); index cells by tile if it drags.
