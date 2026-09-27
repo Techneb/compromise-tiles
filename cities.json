@@ -462,5 +462,35 @@
       59.935,
       10.8
     ]
+  },
+  {
+    "city": "Anglet",
+    "district": "Anglet (whole commune)",
+    "box": [
+      43.47,
+      -1.56,
+      43.54,
+      -1.49
+    ]
+  },
+  {
+    "city": "Rouen",
+    "district": "Rouen (whole commune)",
+    "box": [
+      49.4,
+      1.03,
+      49.48,
+      1.17
+    ]
+  },
+  {
+    "city": "Lorient",
+    "district": "Lorient (whole commune)",
+    "box": [
+      47.71,
+      -3.4,
+      47.78,
+      -3.32
+    ]
   }
 ]
