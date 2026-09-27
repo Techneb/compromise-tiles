@@ -1,7 +1,7 @@
-# Builds the tiles and uploads them to R2.
-# Weekly: venues and terraces. Yearly: buildings and communes (run it by hand too when
+# Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
+# coverage feed. Weekly: venues and terraces. Yearly: buildings and communes (run it by hand too when
 # cities.json gains an area). Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
-# R2_BUCKET. Public repo, standard runner: no minutes are billed.
+# R2_BUCKET. Public repo, standard runners: no minutes are billed.
 name: Tiles
 
 on:
@@ -21,73 +21,142 @@ on:
         description: "Build only these cities (comma-separated city names as in cities.json); empty = all"
         default: ""
 
+# One run at a time: the feed job merges into the published coverage.json and must not race another run.
 concurrency:
-  group: tiles
+  group: ${{ github.ref_name == 'master' && 'tiles' || format('tiles-{0}', github.ref_name) }}
   cancel-in-progress: false
 
 permissions:
-  contents: write   # the run commits coverage.json back, a fallback copy of the feed for the site
+  contents: write   # the feed job commits coverage.json back, a fallback copy of the feed for the site
+
+env:
+  AWS_DEFAULT_REGION: auto
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+  ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
 
 jobs:
+  # Which cities, one matrix entry per city name (a city with several entries, like Paris, is one job).
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      cities: ${{ steps.plan.outputs.cities }}
+      layers: ${{ steps.plan.outputs.layers }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        env:
+          ONLY: ${{ inputs.only }}
+          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
+          names = []
+          for e in json.load(open("cities.json")):
+              if (not only or e["city"] in only) and e["city"] not in names: names.append(e["city"])
+          print("cities=" + json.dumps(names))
+          print("layers=" + os.environ["LAYERS"])
+          PY
+
   build:
+    needs: plan
+    if: ${{ !inputs.repo_tiles && needs.plan.outputs.cities != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        city: ${{ fromJson(needs.plan.outputs.cities) }}
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # Capped below the job's limit so a long build (Spain's cadastre answers slowly) still
       # reaches the upload with every cell it finished; a cell not finished keeps its last tile.
-      - name: Build
-        if: ${{ !inputs.repo_tiles }}
+      - name: Build ${{ matrix.city }}
         env:
-          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
-          ONLY: ${{ inputs.only }}
+          CITY: ${{ matrix.city }}
+          LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
-          # An `only` list narrows cities.json to those cities, so a new entry builds alone.
-          python3 -c 'import json,sys,os; only=[c.strip() for c in os.environ.get("ONLY","").split(",") if c.strip()]; cities=json.load(open("cities.json")); json.dump([c for c in cities if not only or c["city"] in only], open("cities-run.json","w"))'
+          python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
           timeout 330m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 || true
-      # The coverage feed the site's map reads: this run's cells merged into the published feed.
-      - name: Coverage
+      # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
+      - name: Coverage fragment
         if: ${{ !cancelled() }}
-        continue-on-error: true   # a failed merge must never stop the tiles from reaching R2
-        run: python3 coverage.py --out ${{ inputs.repo_tiles && 'tiles' || 'out' }} --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --write out-coverage.json
+        continue-on-error: true
+        run: python3 coverage.py --out out --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --fragment fragment.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() && hashFiles('fragment.json') != '' }}
+        with:
+          name: fragment-${{ strategy.job-index }}
+          path: fragment.json
+          retention-days: 3
       # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
       # there is complete, and R2 keeps last week's tile for the rest.
-      - name: Upload to R2
+      - name: Upload tiles to R2
         if: ${{ !cancelled() }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
-          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
-          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
         run: |
+          [ -d out ] || exit 0
           # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
-          if [ "${{ inputs.repo_tiles }}" = "true" ]; then rm -rf out && cp -R tiles out; fi
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
-          aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+          aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
-          # config.json at the store's root, read by the app.
-          aws s3 cp config.json "s3://${{ secrets.R2_BUCKET }}/config.json" --only-show-errors \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+
+  # The tiles committed in this repository (built off GitHub), uploaded as they are, with their feed fragment.
+  repo_upload:
+    needs: plan
+    if: ${{ inputs.repo_tiles }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 coverage.py --out tiles --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --fragment fragment.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fragment-repo
+          path: fragment.json
+          retention-days: 3
+      - env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          cp -R tiles out
+          find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
+          find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
+          aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
+
+  # The coverage feed the site's map reads: every job's fragment merged into the published feed, once.
+  feed:
+    needs: [plan, build, repo_upload]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fragment-*
+          path: fragments
+      - run: python3 coverage.py --fragments fragments --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --write out-coverage.json
+      - env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          # config.json at the store's root, read by the app; the feed and the areas behind it, plain JSON for the site's map.
+          aws s3 cp config.json "s3://${{ secrets.R2_BUCKET }}/config.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=3600"
-          # The coverage feed and the areas behind it, plain JSON for the site's map.
-          [ -f out-coverage.json ] && aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+          aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
-          aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors \
-            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
+          aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
-      # The feed also lives in this repository, a fallback for the site's page (the bucket's CORS
-      # policy, set by hand in the Cloudflare dashboard on 2026-09-27, lets browsers read the store;
-      # this token may not set it). Small file.
+      # The feed also lives in this repository, a fallback for the site's page. Small file.
       - name: Commit coverage.json
-        if: ${{ !cancelled() }}
         continue-on-error: true
         run: |
-          [ -f out-coverage.json ] || exit 0
           cp out-coverage.json coverage.json
           git config user.name "compromise-tiles bot"
           git config user.email "actions@users.noreply.github.com"
