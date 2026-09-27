@@ -400,8 +400,9 @@ def unique(items):
 def wfs(url, params, rect, cap=5000, depth=0):
     """A WFS 2.0 GetFeature over a box (latitude first, EPSG:4326 URN); a box that hits the cap is split in four."""
     s, w, n, e = rect
-    q = dict(params, SERVICE="WFS", VERSION="2.0.0", REQUEST="GetFeature", COUNT=str(cap),
-             BBOX=f"{s},{w},{n},{e},urn:ogc:def:crs:EPSG::4326")
+    # params may override VERSION (Zurich's QGIS server answers only 1.1.0).
+    q = {"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature", "COUNT": str(cap), **params,
+         "BBOX": f"{s},{w},{n},{e},urn:ogc:def:crs:EPSG::4326"}
     features = get_json(url + "?" + urllib.parse.urlencode(q)).get("features", [])
     if len(features) < cap or depth >= 3: return features
     ms, me = (s + n) / 2, (w + e) / 2
@@ -482,6 +483,10 @@ def in_bbox(point, rect):
     s, w, n, e = rect
     return f"in_bbox({point}, {s}, {w}, {n}, {e})"
 
+def intersects(geometry, rect):
+    s, w, n, e = rect
+    return f"intersects({geometry}, 'POLYGON(({w} {s}, {e} {s}, {e} {n}, {w} {n}, {w} {s}))')"
+
 def socrata(host, dataset, where, select):
     """A Socrata dataset as GeoJSON, paged: SoQL numbers come back as strings."""
     out, offset = [], 0
@@ -498,9 +503,7 @@ def number(v):
 
 def socrata_buildings(host, dataset, geometry, field, height):
     def fetch(rect):
-        s, w, n, e = rect
-        box = f"'POLYGON(({w} {s}, {e} {s}, {e} {n}, {w} {n}, {w} {s}))'"
-        return footprints(socrata(host, dataset, f"intersects({geometry}, {box})", f"{field},{geometry}"),
+        return footprints(socrata(host, dataset, intersects(geometry, rect), f"{field},{geometry}"),
                           lambda p: height(number(p.get(field))))
     return fetch
 
@@ -651,6 +654,32 @@ CITY_BUILDINGS = [
         "data.cityofchicago.org", "syp8-uezg", "the_geom", "stories", lambda h: h * 3 if h and h > 0 else None)),
     building_row("San Francisco", (37.70, 37.83), (-122.52, -122.35), socrata_buildings(
         "data.sf.gov", "ynuv-fyni", "shape", "hgt_median_m", lambda h: h)),
+    # Roof elevation minus the lowest ground point, metres (Open Government Licence – City of Calgary).
+    building_row("Calgary", (50.84, 51.22), (-114.32, -113.86), lambda r: footprints(socrata(
+        "data.calgary.ca", "cchr-krqg", intersects("polygon", r), "rooftop_elev_z,grd_elev_min_z,polygon"),
+        lambda p: None if number(p.get("rooftop_elev_z")) is None or number(p.get("grd_elev_min_z")) is None
+        else number(p["rooftop_elev_z"]) - number(p["grd_elev_min_z"]))),
+    # The 2009 capture, height above ground in metres.
+    building_row("Vancouver", (49.19, 49.32), (-123.23, -123.02), lambda r: footprints(opendatasoft(
+        "opendata.vancouver.ca", "building-footprints-2009", in_bbox("geo_point_2d", r), "hgt_agl"),
+        lambda p: p.get("hgt_agl"))),
+    # Mean roof height above ground; the QGIS server answers WFS 1.1.0 only (2.0.0 returns an HTML error page).
+    building_row("Zurich", (47.32, 47.44), (8.44, 8.63), lambda r: footprints(wfs(
+        "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Bauten___Blockmodell", {"VERSION": "1.1.0",
+        "TYPENAME": "bauten_blockmodell_2d", "MAXFEATURES": "5000", "OUTPUTFORMAT": "application/vnd.geo+json",
+        "SRSNAME": "EPSG:4326", "PROPERTYNAME": "geometry,h_rel_mean_boden"}, r), lambda p: p.get("h_rel_mean_boden"))),
+    # max_height is feet (2013 capture).
+    building_row("Austin", (30.10, 30.52), (-97.94, -97.56), socrata_buildings(
+        "data.austintexas.gov", "3qcc-8uhz", "the_geom", "max_height", lambda h: h * 0.3048 if h else None)),
+    # LARIAC4, City of Los Angeles only (neighbouring cities answer nothing and fall to OSM); HEIGHT is feet.
+    building_row("Los Angeles", (33.70, 34.34), (-118.67, -118.15), lambda r: footprints(arcgis(
+        "https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/Building_Footprints/FeatureServer/0",
+        r, ["HEIGHT"]), lambda p: p["HEIGHT"] * 0.3048 if p.get("HEIGHT") else None)),
+    # max_hgt is feet, else approx_hgt.
+    building_row("Philadelphia", (39.86, 40.14), (-75.29, -74.95), lambda r: footprints(arcgis(
+        "https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/LI_BUILDING_FOOTPRINTS/FeatureServer/0",
+        r, ["max_hgt", "approx_hgt"], oid="objectid"),
+        lambda p: (p.get("max_hgt") or p.get("approx_hgt") or 0) * 0.3048 or None)),
 ]
 
 
