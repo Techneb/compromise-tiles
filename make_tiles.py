@@ -322,7 +322,7 @@ class OSM:
                     if not ring: continue
                     lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
                 venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
-                         "amenity": tags["amenity"], "outdoor_seating": tags.get("outdoor_seating") == "yes", "source": "osm"}
+                         "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating")), "source": "osm"}
                 self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
             for f in (box, kept):
@@ -358,6 +358,13 @@ def osm_terraces(rect):
         if v["name"]: item["name"] = v["name"]
         out.append(item)
     return out
+
+def seating(tag):
+    """OpenStreetMap's outdoor_seating as the tile carries it: true/false for yes/no, and the value
+    itself when it names where the seats are (roof, terrace, patio…), so a reader can tell a rooftop."""
+    if tag in (None, "", "no"): return False
+    if tag == "yes": return True
+    return str(tag)
 
 def osm_venues(cell):
     """The named venues of one ~2 km cell, the key's own truncation deciding the edge."""

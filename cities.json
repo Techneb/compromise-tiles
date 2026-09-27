@@ -552,5 +552,95 @@
       39.9752,
       -75.1341
     ]
+  },
+  {
+    "city": "Seoul",
+    "district": "Seoul (going-out core, densest 150 km²)",
+    "box": [
+      37.4791,
+      126.9189,
+      37.5892,
+      127.0576
+    ]
+  },
+  {
+    "city": "Tokyo",
+    "district": "Tokyo (going-out core, densest 150 km²)",
+    "box": [
+      35.6298,
+      139.6616,
+      35.7398,
+      139.7971
+    ]
+  },
+  {
+    "city": "Osaka",
+    "district": "Osaka (going-out core, densest 150 km²)",
+    "box": [
+      34.6394,
+      135.4664,
+      34.7494,
+      135.6002
+    ]
+  },
+  {
+    "city": "Istanbul",
+    "district": "Istanbul (going-out core, densest 150 km²)",
+    "box": [
+      40.9772,
+      28.8956,
+      41.0873,
+      29.0414
+    ]
+  },
+  {
+    "city": "Milan",
+    "district": "Milan (going-out core, densest 150 km²)",
+    "box": [
+      45.435,
+      9.0903,
+      45.5451,
+      9.2473
+    ]
+  },
+  {
+    "city": "Lisbon",
+    "district": "Lisbon (going-out core, densest 150 km²)",
+    "box": [
+      38.6517,
+      -9.243,
+      38.7617,
+      -9.1021
+    ]
+  },
+  {
+    "city": "Rome",
+    "district": "Rome (going-out core, densest 150 km²)",
+    "box": [
+      41.8417,
+      12.4256,
+      41.9517,
+      12.5734
+    ]
+  },
+  {
+    "city": "Manila",
+    "district": "Manila (going-out core, densest 150 km²)",
+    "box": [
+      14.5333,
+      120.9736,
+      14.6433,
+      121.0873
+    ]
+  },
+  {
+    "city": "Bogotá",
+    "district": "Bogotá (going-out core, densest 150 km²)",
+    "box": [
+      4.5967,
+      -74.147,
+      4.7067,
+      -74.0366
+    ]
   }
 ]

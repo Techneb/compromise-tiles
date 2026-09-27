@@ -12,6 +12,9 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
                  named or not, at least TERRACE_RATIO of its named ones and TERRACE_MINIMUM (the
                  same rule the tiles' reader applies)
   venues, terraces  the named venues and the outdoor-seating ones inside the city's extent
+  coreBox, coreKm2  the box [s, w, n, e] of the going-out cells' centres padded by CORE_PAD, and its area
+  denseBox       only when coreKm2 exceeds DENSE_KM2: the square of DENSE_KM2 holding the city's point
+                 that holds the most going-out cells (a 500 m step search)
   extent         "municipality" where --boxes (cities.json) holds a box for the city, with its
                  boundary polygon when it has one; "commune" for a French city counted inside its own
                  contour (geo.api.gouv.fr); else the 2 × HALF_KM square around the point
@@ -28,13 +31,15 @@ Also writes the same rows as CSV beside --write, sorted by going-out cells, most
 Needs Python 3 (standard library only) and osmium-tool on the PATH.
 """
 import argparse, csv, datetime, json, math, os, sys, time, urllib.parse
-from make_tiles import (AMENITIES, Cell, SourceError, bounds, contains, download, features, geofabrik_pbf, get_json, index,
+from make_tiles import (AMENITIES, M, Cell, SourceError, bounds, contains, download, features, geofabrik_pbf, get_json, index,
                         metres, osmium, outer_rings, padded)
 
 GOING_OUT = 10   # named venues in the disk for a going-out cell
 TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: outdoor-seating venues vs named ones in the disk
 RADIUS = 400     # metres
 HALF_KM = 12     # half-side of the box around a city's point
+CORE_PAD = 1000  # metres around the going-out cells: the "going-out core + 1 km" box
+DENSE_KM2 = 150  # a core larger than this also gets its densest square of this area
 
 
 def venues(pbf):
@@ -107,9 +112,36 @@ def count(points, box, boundary=None):
                 v[0] += named
                 v[1] += outdoor
     going = [v for v in near.values() if v[0] >= GOING_OUT]
+    centres = [(Cell(*k).lat, Cell(*k).lon) for k, v in near.items() if v[0] >= GOING_OUT]
     in_box = [p for p in points if inside(p[0], p[1])]
     terrace = lambda v: v[1] >= max(TERRACE_MINIMUM, TERRACE_RATIO * v[0])
-    return len(going), sum(terrace(v) for v in going), sum(p[2] for p in in_box), sum(p[3] for p in in_box)
+    return len(going), sum(terrace(v) for v in going), sum(p[2] for p in in_box), sum(p[3] for p in in_box), centres
+
+
+def km2(box):
+    s, w, n, e = box
+    return (n - s) * M * (e - w) * M * math.cos(math.radians((s + n) / 2)) / 1e6
+
+
+def core(centres):
+    """(box, km²) of the going-out cells' centres padded by CORE_PAD, or (None, 0) without any."""
+    if not centres: return None, 0
+    lats, lons = [c[0] for c in centres], [c[1] for c in centres]
+    box = padded((min(lats), min(lons), max(lats), max(lons)), CORE_PAD)
+    return box, km2(box)
+
+
+def dense(centres, lat, lon, area=DENSE_KM2, step=500):
+    """The square of `area` km² that holds (lat, lon) and the most going-out cells, its centre moved by `step` m."""
+    half = math.sqrt(area) * 500  # metres
+    dlat, dlon = 1 / M, 1 / (M * math.cos(math.radians(lat)))
+    best = None
+    for dy in range(-int(half), int(half) + 1, step):
+        for dx in range(-int(half), int(half) + 1, step):
+            box = padded((lat + dy * dlat, lon + dx * dlon) * 2, half)
+            held = sum(box[0] <= a <= box[2] and box[1] <= o <= box[3] for a, o in centres)
+            if best is None or held > best[0]: best = held, box
+    return best[1]
 
 
 def main():
@@ -153,10 +185,14 @@ def main():
         for e in members:
             t = time.monotonic()
             box, boundary = extent(e)
-            going, terrace, named, outdoor = count(points, box, boundary)
+            going, terrace, named, outdoor, centres = count(points, box, boundary)
+            core_box, core_km2 = core(centres)
             rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
-                         "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square"})
+                         "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square",
+                         "coreBox": [round(x, 4) for x in core_box] if core_box else None, "coreKm2": round(core_km2, 1)})
+            if core_km2 > DENSE_KM2 and "lat" in e:
+                rows[-1]["denseBox"] = [round(x, 4) for x in dense(centres, e["lat"], e["lon"])]
             print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
@@ -175,7 +211,8 @@ def main():
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
                   f, ensure_ascii=False, indent=1)
     with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent"])
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "denseBox"],
+                           extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
     print(f"{len(rows)} cities, {len(no_point)} without a point, {len(failed)} failed -> {args.write}", file=sys.stderr)
