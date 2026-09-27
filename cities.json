@@ -662,5 +662,35 @@
       -34.906,
       138.627
     ]
+  },
+  {
+    "city": "Toronto",
+    "district": "Toronto (going-out core + 1 km)",
+    "box": [
+      43.631,
+      -79.415,
+      43.676,
+      -79.353
+    ]
+  },
+  {
+    "city": "Riga",
+    "district": "Riga (going-out core + 1 km)",
+    "box": [
+      56.927,
+      24.064,
+      56.972,
+      24.146
+    ]
+  },
+  {
+    "city": "Eindhoven",
+    "district": "Eindhoven (going-out core + 1 km)",
+    "box": [
+      51.417,
+      5.441,
+      51.462,
+      5.513
+    ]
   }
 ]
