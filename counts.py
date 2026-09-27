@@ -13,7 +13,8 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
                  same rule the tiles' reader applies)
   venues, terraces  the named venues and the outdoor-seating ones inside the city's extent
   extent         "municipality" where --boxes (cities.json) holds a box for the city, with its
-                 boundary polygon when it has one; else the 2 × HALF_KM square around the point
+                 boundary polygon when it has one; "commune" for a French city counted inside its own
+                 contour (geo.api.gouv.fr); else the 2 × HALF_KM square around the point
 
 A city given as a point is taken as a square of 2 × HALF_KM a side around it unless cities.json tiles
 it as a municipality. A city without a point is listed under
@@ -26,8 +27,8 @@ given --only keeps the published rows of the cities it did not count.
 Also writes the same rows as CSV beside --write, sorted by going-out cells, most first.
 Needs Python 3 (standard library only) and osmium-tool on the PATH.
 """
-import argparse, csv, datetime, json, math, os, sys, time
-from make_tiles import (AMENITIES, Cell, SourceError, contains, download, features, geofabrik_pbf, index,
+import argparse, csv, datetime, json, math, os, sys, time, urllib.parse
+from make_tiles import (AMENITIES, Cell, SourceError, bounds, contains, download, features, geofabrik_pbf, get_json, index,
                         metres, osmium, outer_rings, padded)
 
 GOING_OUT = 10   # named venues in the disk for a going-out cell
@@ -76,6 +77,18 @@ def municipal(cities_json):
     return out
 
 
+def french_commune(name, lat, lon):
+    """(box, contour) of the French commune called `name` that holds the row's point — the geo API's
+    contours, so Levallois is counted inside Levallois and not over 24 km of Paris. None when unknown."""
+    q = urllib.parse.urlencode({"nom": name, "fields": "nom,code,contour", "format": "geojson", "geometry": "contour", "limit": "10"})
+    try: found = get_json("https://geo.api.gouv.fr/communes?" + q).get("features") or []
+    except SourceError: return None
+    for f in found:
+        g = f.get("geometry")
+        if g and contains(g, lat, lon): return bounds(g), g
+    return None
+
+
 def count(points, box, boundary=None):
     """Going-out cells, terrace cells among them, named venues and terraces in the box (inside the boundary when given)."""
     within = lambda r, lat, lon: r[0] <= lat <= r[2] and r[1] <= lon <= r[3]
@@ -115,6 +128,10 @@ def main():
 
     # A city tiled as a municipality is counted over that box and boundary; the others over the 12 km square.
     munis = municipal(args.boxes)
+    for e in cities:  # French communes not tiled as a box: their own contour, one geo API call each
+        if e["city"] not in munis and e.get("country") == "France" and "lat" in e:
+            shape = french_commune(e["city"], e["lat"], e["lon"])
+            if shape: munis[e["city"]] = shape; e["_commune"] = True
     extent = lambda e: munis.get(e["city"], (city_box(e), None))
     groups, failed = {}, []  # extract URL -> cities, so each extract is read once
     for e in cities:
@@ -139,7 +156,7 @@ def main():
             going, terrace, named, outdoor = count(points, box, boundary)
             rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
-                         "extent": "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square"})
+                         "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square"})
             print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
