@@ -442,5 +442,25 @@
       -1.8879
     ],
     "boundary": "boundaries/san-sebastian.geojson"
+  },
+  {
+    "city": "Vilnius",
+    "district": "Vilnius (centre, 5 km)",
+    "box": [
+      54.662,
+      25.24,
+      54.712,
+      25.32
+    ]
+  },
+  {
+    "city": "Oslo",
+    "district": "Oslo (centre, 5 km)",
+    "box": [
+      59.895,
+      10.7,
+      59.935,
+      10.8
+    ]
   }
 ]
