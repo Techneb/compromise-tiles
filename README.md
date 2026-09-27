@@ -64,6 +64,12 @@ none, this says so rather than guessing.
 - Adelaide: City of Adelaide, outdoor dining permits and property
   boundaries, CC BY (2026-09-28 snapshot; a few points from OpenStreetMap
   Nominatim, ODbL).
+- Toronto: City of Toronto, CaféTO locations. Contains information
+  licensed under the Open Government Licence – Toronto.
+- Riga: Rīgas valstspilsētas pašvaldība, GEO RĪGA outdoor terraces
+  (licence not stated by the publisher).
+- Eindhoven: Gemeente Eindhoven, terras tekeningen (licence not stated by
+  the publisher).
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal. "The City of Chicago makes no
   claims as to the content, accuracy, timeliness, or completeness of any

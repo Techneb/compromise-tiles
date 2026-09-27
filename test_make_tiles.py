@@ -1,5 +1,6 @@
 """python3 test_make_tiles.py — stdlib asserts, no network."""
 from make_tiles import smallest_region, cells_in, clip, rooftop, seating
+from make_tiles import smallest_region, cells_in, clip, riga_venue_name, toronto_name, permit_items
 
 def square(s, w, n, e): return {"type": "Polygon", "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]]}
 def region(id, parent, geometry): return {"properties": {"id": id, "parent": parent, "urls": {"pbf": id}}, "geometry": geometry}
@@ -31,4 +32,12 @@ assert not rooftop({})
 assert seating(None, True) == "roof" and seating("yes", True) == "roof" and seating("no", True) == "roof"
 assert seating("roof;terrace", True) == "roof;terrace" and seating("terrace", True) == "roof"
 assert seating("yes") is True and seating("no") is False and seating(None) is False and seating("patio") == "patio"
+# Riga's holder loses its legal form, either side; CaféTO's placeholders name nothing.
+assert riga_venue_name("Muca Bistro Bar SIA") == "Muca Bistro Bar" and riga_venue_name("SIA Piga Avotu") == "Piga Avotu"
+assert riga_venue_name("Kalve Coffee AS") == "Kalve Coffee" and riga_venue_name("Vira V SIA ") == "Vira V"
+assert toronto_name("None") is None and toronto_name("PUBLIC PARKLET") is None and toronto_name("BARBURRITO") == "BARBURRITO"
+# A one-point MultiPoint (CaféTO) lands on its point.
+toronto = {"name": "OPERATOR_NAME", "kinds": [], "clean": "toronto"}
+point = {"geometry": {"type": "MultiPoint", "coordinates": [[-79.41, 43.69]]}, "properties": {"OPERATOR_NAME": "None"}}
+assert permit_items([point], toronto) == [{"kind": "TERRASSE", "coordinate": {"latitude": 43.69, "longitude": -79.41}}]
 print("ok")

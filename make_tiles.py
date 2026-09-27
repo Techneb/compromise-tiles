@@ -126,6 +126,19 @@ PERMIT_CITIES = [
     # Adelaide: City of Adelaide outdoor dining permits (CC BY), matched on the city's own property parcels.
     row("Adelaide", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/adelaide.geojson",
         "name", [], (-34.96, -34.89), (138.57, 138.63), shape="geojson"),
+    # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
+    # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints.
+    row("Toronto", "", "ckan0.cf.opendata.inter.prod-toronto.ca",
+        "dataset/3b605a2e-f3bf-4b2b-b972-c0829b2788f5/resource/aa839e97-df7f-4c65-8aba-d336bb3c8f06/download/"
+        "cafe-to-locations-4326.geojson", "OPERATOR_NAME", [], (43.58, 43.86), (-79.64, -79.11),
+        shape="geojson", clean="toronto"),
+    # ArcGIS MapServer (GEO RĪGA, no licence stated): layer 16 is the permits in force; the name is the
+    # holder's company, less its legal form. The OID field is gid.
+    row("Riga", "", "georiga.lv/server/rest/services", "Ara_kafejnicas_terases/MapServer/16", "nosaukums", [],
+        (56.85, 57.09), (23.93, 24.33), shape="arcgis", oid="gid", clean="riga"),
+    # Opendatasoft (no licence stated): the latest permit's terrace drawing, at its centre point; the only
+    # text is the drawing's file name (an address), so no name field — door rule only.
+    row("Eindhoven", "", "data.eindhoven.nl", "terrastekeningen", "", [], (51.39, 51.50), (5.38, 5.56)),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -718,6 +731,7 @@ def permit_items(features, c, point="geo_point_2d"):
         p = f.get("properties") or {}
         g = f.get("geometry") or {}
         if g.get("type") == "Point": lon, lat = g["coordinates"][:2]
+        elif g.get("type") == "MultiPoint" and g.get("coordinates"): lon, lat = g["coordinates"][0][:2]  # Toronto
         elif isinstance(p.get(point), dict): lat, lon = p[point]["lat"], p[point]["lon"]
         elif isinstance(p.get("geo_point_2d"), dict): lat, lon = p["geo_point_2d"]["lat"], p["geo_point_2d"]["lon"]
         elif g.get("type") in ("Polygon", "MultiPolygon"):  # Vilnius: the mean vertex
@@ -759,7 +773,17 @@ def vilnius_venue_name(text):
     name = trim(re.sub(r"[„“”\"]", "", venue))
     return trim(re.sub(r"^(UAB|MB|AB|IĮ|VšĮ|ŽŪB|TŪB|KŪB)\s+", "", name)) or None
 
-CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name}
+def riga_venue_name(text):
+    """Riga's nosaukums is the holder's company: "Muca Bistro Bar SIA", "SIA Piga Avotu" — less its legal form."""
+    name = re.sub(r"^(SIA|AS|IK)\s+|\s+(SIA|AS|IK)$", "", text.strip()).strip(" \"'“”„")
+    return name or None
+
+def toronto_name(text):
+    """CaféTO's OPERATOR_NAME: "None" and "PUBLIC PARKLET" name no venue."""
+    return None if text.strip().upper() in ("NONE", "PUBLIC PARKLET") else text.strip()
+
+CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name,
+         "riga": riga_venue_name, "toronto": toronto_name}
 
 def socrata_filter(text):
     """Socrata dates: a floating timestamp, no zone."""
