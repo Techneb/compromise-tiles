@@ -73,11 +73,15 @@ def area_box(e):
 
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    a.add_argument("--out", required=True)
+    a.add_argument("--out", help="a tiles folder to scan (this run's build)")
     a.add_argument("--cities", required=True)
     a.add_argument("--previous", default="")
-    a.add_argument("--write", required=True)
+    a.add_argument("--write", help="the feed to write")
+    a.add_argument("--fragment", help="write only the records this --out touched (one build job's share), no areas")
+    a.add_argument("--fragments", help="a folder of fragments from parallel build jobs to overlay on --previous before the areas")
     args = a.parse_args()
+    if not (args.out or args.fragments): a.error("--out or --fragments")
+    if not (args.write or args.fragment): a.error("--write or --fragment")
     today = datetime.date.today().isoformat()
 
     prev = load_previous(args.previous) if args.previous else {}
@@ -89,34 +93,49 @@ def main():
     venues = {f"{r[0]},{r[1]}": [r[2], r[3], day(r[4])] for r in prev.get("venueCells", [])}
     names = dict(prev.get("communes", {}))
 
+    touched, touched_venues, new_names = set(), set(), {}
+    # Fragments from parallel build jobs: their records overlay the previous feed (the last one wins).
+    for folder, _, files in os.walk(args.fragments or "/nonexistent"):
+        for name in sorted(files):
+            if not name.endswith(".json"): continue
+            frag = json.load(open(os.path.join(folder, name)))
+            cells.update(frag.get("cells", {})); venues.update(frag.get("venues", {})); names.update(frag.get("communes", {}))
     # Counting keys in the bytes is enough: names never hold these quoted keys.
-    for k, raw in tiles(args.out, "terraces-v2"):
+    for k, raw in tiles(args.out, "terraces-v2") if args.out else []:
         c = cells.setdefault(k, [0, 0, 0, None, None, ""])
-        c[0], c[3] = raw.count(b'"coordinate"'), today
-    for k, raw in tiles(args.out, "buildings"):
+        c[0], c[3] = raw.count(b'"coordinate"'), today; touched.add(k)
+    for k, raw in tiles(args.out, "buildings") if args.out else []:
         c = cells.setdefault(k, [0, 0, 0, None, None, ""])
         n = raw.count(b'"outline"')
-        c[1], c[2], c[4] = n, n - len(FALLBACK_HEIGHT.findall(raw)), today
-    for k, raw in tiles(args.out, "communes"):
+        c[1], c[2], c[4] = n, n - len(FALLBACK_HEIGHT.findall(raw)), today; touched.add(k)
+    for k, raw in tiles(args.out, "communes") if args.out else []:
         if k in cells:
             found = json.loads(raw)
-            names.update((x["code"], x["nom"]) for x in found)
-            cells[k][5] = " ".join(x["code"] for x in found)
-    for k, raw in tiles(args.out, "venues"):
-        venues[k] = [raw.count(b'"name"'), len(re.findall(rb'"outdoor_seating":\s*true', raw)), today]
+            names.update((x["code"], x["nom"]) for x in found); new_names.update((x["code"], x["nom"]) for x in found)
+            cells[k][5] = " ".join(x["code"] for x in found); touched.add(k)
+    for k, raw in tiles(args.out, "venues") if args.out else []:
+        venues[k] = [raw.count(b'"name"'), len(re.findall(rb'"outdoor_seating":\s*true', raw)), today]; touched_venues.add(k)
         # Places per 200 m block, for the blocks that hold data: c[6] venues, c[7] with outdoor seating.
         # A rebuilt venue tile recounts its blocks from zero first.
         # ponytail: a scan of every cell per venue tile (~10 M steps for 400 tiles); index cells by tile if it drags.
         ty, tx = map(int, k.split(","))
         for ck, c in cells.items():
             cy, cx = map(int, ck.split(","))
-            if int(cy / 10) == ty and int(cx / 10) == tx and len(c) > 7: c[6] = c[7] = 0
+            if int(cy / 10) == ty and int(cx / 10) == tx and len(c) > 7: c[6] = c[7] = 0; touched.add(ck)
         for p in json.loads(raw):
-            c = cells.get(f"{int(p['coordinate']['latitude'] * 500)},{int(p['coordinate']['longitude'] * 500)}")
+            ck = f"{int(p['coordinate']['latitude'] * 500)},{int(p['coordinate']['longitude'] * 500)}"
+            c = cells.get(ck)
             if c is None: continue
             while len(c) < 8: c.append(0)
             c[6] += 1
             c[7] += 1 if p.get("outdoor_seating") else 0
+            touched.add(ck)
+
+    if args.fragment:
+        json.dump({"cells": {k: cells[k] for k in touched}, "venues": {k: venues[k] for k in touched_venues}, "communes": new_names},
+                  open(args.fragment, "w"), ensure_ascii=False, separators=(",", ":"))
+        print(f"fragment: {len(touched)} cells, {len(touched_venues)} venue cells -> {args.fragment}")
+        return
 
     # Going-out cells. The owner's rule: at least GOING_OUT bars, cafés and restaurants in
     # the 400 m around a cell. Approximated from the 2 km venue cells: each spreads its
