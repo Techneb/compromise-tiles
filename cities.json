@@ -492,5 +492,65 @@
       47.78,
       -3.32
     ]
+  },
+  {
+    "city": "Calgary",
+    "district": "Calgary (going-out core + 1 km)",
+    "box": [
+      51.0231,
+      -114.0933,
+      51.0681,
+      -114.0217
+    ]
+  },
+  {
+    "city": "Vancouver",
+    "district": "Vancouver (going-out core + 1 km)",
+    "box": [
+      49.2384,
+      -123.1485,
+      49.2834,
+      -123.0795
+    ]
+  },
+  {
+    "city": "Zurich",
+    "district": "Zurich (going-out core + 1 km)",
+    "box": [
+      47.3519,
+      8.5078,
+      47.3969,
+      8.5742
+    ]
+  },
+  {
+    "city": "Austin",
+    "district": "Austin (going-out core + 1 km)",
+    "box": [
+      30.2486,
+      -97.7698,
+      30.2936,
+      -97.7176
+    ]
+  },
+  {
+    "city": "Los Angeles",
+    "district": "Los Angeles (going-out core + 1 km)",
+    "box": [
+      34.0312,
+      -118.27,
+      34.0762,
+      -118.2156
+    ]
+  },
+  {
+    "city": "Philadelphia",
+    "district": "Philadelphia (going-out core + 1 km)",
+    "box": [
+      39.9302,
+      -75.1929,
+      39.9752,
+      -75.1341
+    ]
   }
 ]

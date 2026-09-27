@@ -91,6 +91,17 @@ none, this says so rather than guessing.
   by the publisher).
 - São Paulo: Prefeitura de São Paulo, GeoSampa Edificações (licence not
   stated by the publisher).
+- Calgary: City of Calgary, 3D Buildings. Contains information licensed
+  under the Open Government Licence – City of Calgary.
+- Vancouver: City of Vancouver, Building footprints 2009. Contains
+  information licensed under the Open Government Licence – Vancouver.
+- Zurich: Stadt Zürich, Blockmodell, CC0.
+- Austin: City of Austin, Building Footprints 2013 (licence not stated by
+  the publisher).
+- Los Angeles: City of Los Angeles, LARIAC4 Building Footprints (licence not
+  stated by the publisher).
+- Philadelphia: City of Philadelphia, L&I Building Footprints (the City
+  reserves all rights; provided as is).
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
