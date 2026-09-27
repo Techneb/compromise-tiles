@@ -17,10 +17,10 @@ Output (compact JSON):
               (-1: layer never built); communes: space-separated INSEE codes, "" outside France
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
-  areas       [{name, city, box: [s, w, n, e], tiled, passing, places, seats, terracesKnown, km2, goingOutShare, lastBuilt}]
+  areas       [{name, city, box: [s, w, n, e], tiled, passing, places, seats, terracesKnown, km2, goingOut, goingOutShare, lastBuilt}]
               (a départements entry gives one area per commune, never an aggregate)
               passing: cells with enough buildings; terracesKnown: cells with enough terraces;
-              km2: area of the passing cells; goingOutShare: share of the going-out cells
+              km2: area of the passing cells; goingOut: going-out cells; goingOutShare: share of the going-out cells
               holding enough terraces and buildings both
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
@@ -188,6 +188,7 @@ def main():
                 "places": sum(c[6] for _, _, c in keys if len(c) > 7), "seats": sum(c[7] for _, _, c in keys if len(c) > 7),
                 "terracesKnown": sum(terraces_known(ky, kx, c) for ky, kx, c in keys),
                 "km2": round(sum(cell_km2(ky) for ky, _ in ok), 2),
+                "goingOut": len(out_cells),
                 "goingOutShare": round(sum(terraces_known(ky, kx, c) and passes(c) for ky, kx, c in out_cells) / len(out_cells), 3)
                 if out_cells else None,
                 "lastBuilt": max(dates) if dates else None,
