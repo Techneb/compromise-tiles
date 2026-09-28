@@ -80,7 +80,7 @@ jobs:
           LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
-          timeout 330m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 || true
+          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 || true
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
         if: ${{ !cancelled() }}
@@ -104,6 +104,8 @@ jobs:
           # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
+          # Tens of thousands of small files (Paris, 2026-09-28: over 20 min at the default 10): more in flight.
+          aws configure set default.s3.max_concurrent_requests 64
           aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
 
