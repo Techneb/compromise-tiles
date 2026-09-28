@@ -16,13 +16,19 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
                  castle, palace, monument, memorial, fort, city gate, ruin, archaeological site or
                  place of worship carrying a wikidata or wikipedia tag) whose 400 m disk holds at
                  least LANDMARK_VENUES named venues
-  coreBox, coreKm2  the box [s, w, n, e] of the going-out and landmark cells' centres padded by CORE_PAD,
-                 and its area
+  coreCells      the cluster: the connected set of going-out cells that holds, or is nearest to, the
+                 city's point (the box's centre for a city given as a box), two cells connected when
+                 they lie within GAP cells of each other in both axes; a suburb's own centre elsewhere
+                 in the square stays out
+  clusterLandmarks  the landmark cells that join the cluster: within GAP cells of a cluster cell or of a
+                 landmark cell that already joined
+  coreBox, coreKm2  the box [s, w, n, e] of the cluster's cells (going-out and joined landmarks) padded by
+                 CORE_PAD, and its area
   goingOutCellsWide, landmarkCellsWide  the going-out and landmark cells over the wide square below
-  landmarksAdded the landmarks (at most 15, with their cell key) whose cell lies outside the box the
-                 going-out cells alone would give
+  landmarksAdded the joined landmarks (at most 15, with their cell key) whose cell lies outside the box the
+                 cluster's going-out cells alone would give
   denseBox       only when coreKm2 exceeds DENSE_KM2: the square of DENSE_KM2 holding the city's point
-                 that holds the most going-out and landmark cells (a 500 m step search)
+                 that holds the most going-out and landmark cells of the square (a 500 m step search)
 
 The going-out numbers are counted over the city's extent below; the core, landmark and dense fields
 always over the 2 × HALF_KM square around the city's point (or its given box), so a core can grow past
@@ -56,6 +62,7 @@ LANDMARK_TAGS = {"tourism": {"attraction", "museum", "gallery", "viewpoint"},
                  "historic": {"castle", "palace", "monument", "memorial", "fort", "city_gate", "ruins", "archaeological_site"},
                  "building": {"cathedral", "basilica", "mosque", "synagogue", "temple", "church"}}
 LANDMARKS_LISTED = 15
+GAP = 2  # cells: two going-out cells within GAP of each other in both axes are connected (one empty cell between)
 DENSE_KM2 = 150  # a core larger than this also gets its densest square of this area
 
 
@@ -166,15 +173,33 @@ def count(points, box, boundary=None):
 
 
 def core_cells(points, marks, box):
-    """(going-out cell centres, {landmark cell key: [names]}) over the box: a landmark's cell qualifies with
+    """(going-out cell keys, {landmark cell key: [names]}) over the box: a landmark's cell qualifies with
     at least LANDMARK_VENUES named venues in its disk."""
     near = disks(points, box)
-    going = [(Cell(*k).lat, Cell(*k).lon) for k, v in near.items() if v[0] >= GOING_OUT]
+    going = {k for k, v in near.items() if v[0] >= GOING_OUT}
     cells = {}
     for lat, lon, name in marks:
         k = (index(lat), index(lon))
         if within(box, lat, lon) and near.get(k, [0])[0] >= LANDMARK_VENUES: cells.setdefault(k, []).append(name)
     return going, cells
+
+
+def cluster(going, marks, lat, lon):
+    """(going-out cluster keys, joined landmark keys): the going-out cells connected to the one holding or
+    nearest (lat, lon), then the landmark cells touching it, transitively among landmarks."""
+    if not going: return set(), set()
+    seed = min(going, key=lambda k: metres(Cell(*k).lat, Cell(*k).lon, lat, lon))
+    def grow(start, pool):
+        todo, found = list(start), set()
+        while todo:
+            ky, kx = todo.pop()
+            for dy in range(-GAP, GAP + 1):
+                for dx in range(-GAP, GAP + 1):
+                    k = (ky + dy, kx + dx)
+                    if k in pool and k not in found: found.add(k); todo.append(k)
+        return found
+    core_keys = grow([seed], going) | {seed}
+    return core_keys, grow(core_keys, set(marks) - core_keys)
 
 
 def km2(box):
@@ -245,21 +270,25 @@ def main():
             t = time.monotonic()
             box, boundary = extent(e)
             going, terrace, named, outdoor, _ = count(points, box, boundary)
-            wide_going, marked = core_cells(points, marks, city_box(e))  # the core over the wide square, whatever the extent
-            centres = wide_going + [(Cell(*k).lat, Cell(*k).lon) for k in marked]
-            core_box, core_km2 = core(centres)
-            only_going = core(wide_going)[0]
-            added = [{"name": n, "cell": f"{k[0]},{k[1]}"} for k, names in marked.items() for n in names
+            wide_box = city_box(e)
+            wide_going, marked = core_cells(points, marks, wide_box)  # the core over the wide square, whatever the extent
+            centre = lambda keys: [(Cell(*k).lat, Cell(*k).lon) for k in keys]
+            centres = centre(wide_going) + centre(marked)
+            lat, lon = (e["lat"], e["lon"]) if "lat" in e else ((wide_box[0] + wide_box[2]) / 2, (wide_box[1] + wide_box[3]) / 2)
+            core_going, joined = cluster(wide_going, marked, lat, lon)
+            core_box, core_km2 = core(centre(core_going | joined))
+            only_going = core(centre(core_going))[0]
+            added = [{"name": n, "cell": f"{k[0]},{k[1]}"} for k in sorted(joined) for n in marked[k]
                      if not only_going or not within(only_going, Cell(*k).lat, Cell(*k).lon)][:LANDMARKS_LISTED]
             rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
                          "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square",
                          "coreBox": [round(x, 4) for x in core_box] if core_box else None, "coreKm2": round(core_km2, 1),
-                         "landmarkCells": len(marked), "landmarksAdded": added,
+                         "landmarkCells": len(marked), "coreCells": len(core_going), "clusterLandmarks": len(joined), "landmarksAdded": added,
                          "goingOutCellsWide": len(wide_going), "landmarkCellsWide": len(marked)})
             if core_km2 > DENSE_KM2 and "lat" in e:
                 rows[-1]["denseBox"] = [round(x, 4) for x in dense(centres, e["lat"], e["lon"])]
-            print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
+            print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {len(core_going)} cells + {len(joined)} landmarks, {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
     # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
@@ -277,7 +306,7 @@ def main():
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
                   f, ensure_ascii=False, indent=1)
     with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "landmarkCells", "denseBox", "goingOutCellsWide", "landmarkCellsWide"],
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "landmarkCellsWide"],
                            extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
