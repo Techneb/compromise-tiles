@@ -40,4 +40,17 @@ assert toronto_name("None") is None and toronto_name("PUBLIC PARKLET") is None a
 toronto = {"name": "OPERATOR_NAME", "kinds": [], "clean": "toronto"}
 point = {"geometry": {"type": "MultiPoint", "coordinates": [[-79.41, 43.69]]}, "properties": {"OPERATOR_NAME": "None"}}
 assert permit_items([point], toronto) == [{"kind": "TERRASSE", "coordinate": {"latitude": 43.69, "longitude": -79.41}}]
+
+# sources/: each layer writes its own field and keeps the other's; a cell's building source is what answered.
+import tempfile, make_tiles
+from make_tiles import note_sources, read, path, do_buildings
+with tempfile.TemporaryDirectory() as out:
+    cell = cells_in(51.219, 4.402, 51.2192, 4.4022)[0]  # Antwerp: no city feed, not France
+    note_sources(out, cell, permits=None)
+    assert read(path(out, "sources", cell)) == [{"permits": None}]
+    make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [{"height": 9, "outline": [{"latitude": cell.lat, "longitude": cell.lon}] * 3}]
+    do_buildings([cell], out, [])
+    assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
+    note_sources(out, cell, permits="Paris")
+    assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM"}]
 print("ok")
