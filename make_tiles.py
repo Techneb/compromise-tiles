@@ -1050,14 +1050,16 @@ _cell_by_cell = set()  # sources whose blocks failed where single cells answered
 def gather(cells, fetch, pad, source):
     """{key: items or SourceError}: the block asked once, and each cell alone if the block failed.
     A source whose block failed while its cells answered is asked cell by cell for the rest of the
-    run (Overpass from a cloud proxy, 2026-09-24: 3×3 blocks reset every time, single cells went through)."""
+    run (Overpass from a cloud proxy, 2026-09-24: 3×3 blocks reset every time, single cells went through).
+    Not when the block got an HTTP status: the server answered, so only that block goes cell by cell
+    (one IGN 400 in Paris, 2026-09-28, sent 4,700 cells one at a time and ran past the job's 6 hours)."""
     if len(cells) > 1 and source not in _cell_by_cell:
         try:
             items = unique(fetch(padded(union(cells), pad)))
             return {c.key: items for c in cells}
         except SourceError as e:
             log(f"    {source}: block failed ({e}); asking cell by cell")
-            block_failed = True
+            block_failed = "HTTP " not in str(e)
     else:
         block_failed = False
     answers = {}
