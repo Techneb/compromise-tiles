@@ -1,5 +1,5 @@
 """python3 test_counts.py — the disk count on made-up points, no extract needed."""
-from counts import count, city_box, core, core_cells, dense, km2
+from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, km2
 
 box = city_box({"lat": 48.87, "lon": 2.33})
 ten = [(48.87, 2.33, True, True)] * 10
@@ -19,7 +19,23 @@ assert d[0] <= 48.87 <= d[2] and not d[0] <= 49.2 <= d[2]             # out of r
 # A landmark 5 km east: its cell joins the core with 6 named venues around it, not with 2.
 mark = [(48.87, 2.40, "Museum")]
 going, cells = core_cells(ten + [(48.87, 2.40, True, False)] * 6, mark, box)
-assert list(cells.values()) == [["Museum"]] and core(going + [(48.87, 2.40)])[0][3] > 2.40 > core(going)[0][3], cells
+assert list(cells.values()) == [["Museum"]] and core([(Cell(*k).lat, Cell(*k).lon) for k in going] + [(48.87, 2.40)])[0][3] > 2.40 > core([(Cell(*k).lat, Cell(*k).lon) for k in going])[0][3], cells
 assert core_cells(ten + [(48.87, 2.40, True, False)] * 2, mark, box)[1] == {}
 assert core_cells(ten + [(48.87, 2.40, True, False)] * 6, [(10.0, 10.0, "Far")], box)[1] == {}   # outside the box
+# The cluster around the point (cell keys, 200 m each; the point sits in cell (100, 100)).
+assert GAP == 2
+here = {(100, 100 + i) for i in range(5)}                             # five cells in a row from the point
+suburb = {(140, 100 + i) for i in range(5)}                           # a second centre 40 cells (8 km) north
+pt = Cell(100, 100)
+got, _ = cluster(here | suburb, {}, pt.lat, pt.lon)
+assert got == here, got                                               # the suburb stays out
+got, _ = cluster(here | {(100, 106), (100, 107)}, {}, pt.lat, pt.lon)
+assert (100, 107) in got                                              # one empty cell (100, 105) bridges
+assert cluster(here | {(100, 107)}, {}, pt.lat, pt.lon)[0] == here   # two empty cells do not
+got, _ = cluster(suburb, {}, pt.lat, pt.lon)
+assert got == suburb                                                  # no cell at the point: the nearest cluster
+marks = {(102, 104): ["Two away"], (104, 104): ["Past it"], (108, 100): ["Four past"], (100, 108): ["Four away"]}
+_, joined = cluster(here, marks, pt.lat, pt.lon)
+assert joined == {(102, 104), (104, 104)}, joined                     # two away joins, and the one beyond it; four away does not
+assert cluster(set(), marks, pt.lat, pt.lon) == (set(), set())
 print("ok")
