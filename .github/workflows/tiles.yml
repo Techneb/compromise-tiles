@@ -85,7 +85,7 @@ jobs:
       - name: Coverage fragment
         if: ${{ !cancelled() }}
         continue-on-error: true
-        run: python3 coverage.py --out out --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --fragment fragment.json
+        run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && hashFiles('fragment.json') != '' }}
         with:
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 coverage.py --out tiles --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --fragment fragment.json
+      - run: python3 coverage.py --out tiles --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
       - uses: actions/upload-artifact@v4
         with:
           name: fragment-repo
@@ -141,7 +141,7 @@ jobs:
         with:
           pattern: fragment-*
           path: fragments
-      - run: python3 coverage.py --fragments fragments --cities cities.json --previous "https://pub-c7dde6811086418585889c3e30cf9880.r2.dev/coverage.json" --write out-coverage.json
+      - run: python3 coverage.py --fragments fragments --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --write out-coverage.json
       - env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
