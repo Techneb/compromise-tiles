@@ -4,7 +4,9 @@
 Writes one JSON array per ~200 m
 cell, keyed "<int(lat*500)>,<int(lon*500)>", under buildings/,
 terraces-v2/ and communes/, and one per ~2 km cell, keyed
-"<int(lat*50)>,<int(lon*50)>", under venues/.
+"<int(lat*50)>,<int(lon*50)>", under venues/. Beside the first two,
+sources/ names what built each cell ([{"permits": city|null,
+"buildings": city|"IGN"|"OSM"}]) — what the app credits.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -1109,6 +1111,17 @@ def do_buildings(cells, out, failures):
             if not items and next_source(source, c):
                 groups.setdefault(next_source(source, c), []).append(c); continue
             write(path(out, "buildings", c), items)
+            note_sources(out, c, buildings=source)
+
+def note_sources(out, cell, **fields):
+    """sources/<key>.json, one object in an array like every layer: which permit feed
+    (a PERMIT_CITIES city, or null) and which building source (a CITY_BUILDINGS city,
+    "IGN" or "OSM") built the cell — what the app credits. Each field is written with
+    its own layer, so a run building one layer keeps the other's field."""
+    file = path(out, "sources", cell)
+    entry = (read(file) or [{}])[0]
+    entry.update(fields)
+    write(file, [entry])
 
 def permit_city(cell, communes):
     """The permit feed for a cell: by INSEE code when a commune answered, else by box."""
@@ -1117,9 +1130,9 @@ def permit_city(cell, communes):
 
 def do_terraces(cells, communes, out, failures):
     osm = gather(cells, osm_terraces, TERRACE_RADIUS, "OSM terraces")
-    feeds = {}
+    feeds, feed_of = {}, {}
     for c in cells:
-        feed = permit_city(c, communes.get(c.key))
+        feed = feed_of[c.key] = permit_city(c, communes.get(c.key))
         if feed: feeds.setdefault(id(feed), (feed, []))[1].append(c)
     found = {}
     for feed, group in feeds.values():
@@ -1130,6 +1143,7 @@ def do_terraces(cells, communes, out, failures):
         if errors:  # half an answer is not a tile
             failures.append((c.key, "terraces-v2", "; ".join(map(str, errors)))); continue
         write(path(out, "terraces-v2", c), near_terraces(c, [t for a in answers[1:] for t in a] + answers[0]))
+        note_sources(out, c, permits=feed_of[c.key] and feed_of[c.key]["city"])
 
 def area(entry, half_km):
     """An entry's box: its own `box` [s, w, n, e], else `half_km` around its point."""

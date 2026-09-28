@@ -9,7 +9,8 @@ The tiles are served from Cloudflare R2 at
 `tiles/<layer>/<key>.json` (gzipped at rest), with `config.json` at the
 root. Layers: `buildings/`, `terraces-v2/` and `communes/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
-point, amenity, outdoor seating, source).
+point, amenity, outdoor seating, source); `sources/` per ~200 m cell
+names the permit feed and building source each cell was built from.
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the
