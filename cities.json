@@ -1,7 +1,7 @@
 [
   {
     "city": "Paris",
-    "district": "Intra-muros (inside the périphérique)",
+    "district": "Intra-muros (inside the p\u00e9riph\u00e9rique)",
     "box": [
       48.815,
       2.224,
@@ -78,7 +78,7 @@
   },
   {
     "city": "Berlin",
-    "district": "Berlin (densest 150 km² of the core)",
+    "district": "Berlin (densest 150 km\u00b2 of the core)",
     "box": [
       52.4592,
       13.2863,
@@ -109,7 +109,7 @@
   },
   {
     "city": "Chicago",
-    "district": "Chicago (densest 150 km² of the core)",
+    "district": "Chicago (densest 150 km\u00b2 of the core)",
     "box": [
       41.8638,
       -87.753,
@@ -141,7 +141,7 @@
   },
   {
     "city": "London",
-    "district": "London (densest 150 km² of the core)",
+    "district": "London (densest 150 km\u00b2 of the core)",
     "box": [
       51.4548,
       -0.2157,
@@ -151,7 +151,7 @@
   },
   {
     "city": "Madrid",
-    "district": "Madrid (densest 150 km² of the core)",
+    "district": "Madrid (densest 150 km\u00b2 of the core)",
     "box": [
       40.3788,
       -3.7654,
@@ -172,7 +172,7 @@
   },
   {
     "city": "New York",
-    "district": "New York (densest 150 km² of the core)",
+    "district": "New York (densest 150 km\u00b2 of the core)",
     "box": [
       40.673,
       -74.0175,
@@ -269,7 +269,7 @@
   },
   {
     "city": "Vienna",
-    "district": "Vienna (densest 150 km² of the core)",
+    "district": "Vienna (densest 150 km\u00b2 of the core)",
     "box": [
       48.1651,
       16.2751,
@@ -288,8 +288,8 @@
     ]
   },
   {
-    "city": "Wrocław",
-    "district": "Wrocław (going-out core + 2 km)",
+    "city": "Wroc\u0142aw",
+    "district": "Wroc\u0142aw (going-out core + 2 km)",
     "box": [
       51.075,
       16.9864,
@@ -330,8 +330,8 @@
     ]
   },
   {
-    "city": "Málaga",
-    "district": "Málaga (going-out core + 2 km)",
+    "city": "M\u00e1laga",
+    "district": "M\u00e1laga (going-out core + 2 km)",
     "box": [
       36.669,
       -4.4734,
@@ -381,8 +381,8 @@
     ]
   },
   {
-    "city": "Córdoba",
-    "district": "Córdoba (going-out core + 2 km)",
+    "city": "C\u00f3rdoba",
+    "district": "C\u00f3rdoba (going-out core + 2 km)",
     "box": [
       37.853,
       -4.8298,
@@ -412,8 +412,8 @@
     "boundary": "boundaries/vigo.geojson"
   },
   {
-    "city": "Gijón",
-    "district": "Gijón (going-out core + 2 km)",
+    "city": "Gij\u00f3n",
+    "district": "Gij\u00f3n (going-out core + 2 km)",
     "box": [
       43.505,
       -5.7138,
@@ -433,8 +433,8 @@
     "boundary": "boundaries/bilbao.geojson"
   },
   {
-    "city": "San Sebastián",
-    "district": "San Sebastián (whole municipality)",
+    "city": "San Sebasti\u00e1n",
+    "district": "San Sebasti\u00e1n (whole municipality)",
     "box": [
       43.2178,
       -2.0868,
@@ -495,67 +495,67 @@
   },
   {
     "city": "Calgary",
-    "district": "Calgary (going-out core + 1 km)",
+    "district": "Calgary (going-out core + 2 km)",
     "box": [
-      51.0231,
-      -114.0933,
-      51.0681,
-      -114.0217
+      51.013,
+      -114.1276,
+      51.075,
+      -114.0104
     ]
   },
   {
     "city": "Vancouver",
-    "district": "Vancouver (going-out core + 1 km)",
+    "district": "Vancouver (densest 150 km\u00b2 of the core)",
     "box": [
-      49.2384,
-      -123.1485,
-      49.2834,
-      -123.0795
+      49.2228,
+      -123.1656,
+      49.3328,
+      -122.997
     ]
   },
   {
     "city": "Zurich",
-    "district": "Zurich (going-out core + 1 km)",
+    "district": "Zurich (going-out core + 2 km)",
     "box": [
-      47.3519,
-      8.5078,
-      47.3969,
-      8.5742
+      47.329,
+      8.4545,
+      47.415,
+      8.5915
     ]
   },
   {
     "city": "Austin",
-    "district": "Austin (going-out core + 1 km)",
+    "district": "Austin (going-out core + 2 km)",
     "box": [
-      30.2486,
-      -97.7698,
-      30.2936,
-      -97.7176
+      30.215,
+      -97.8158,
+      30.293,
+      -97.6902
     ]
   },
   {
     "city": "Los Angeles",
-    "district": "Los Angeles (going-out core + 1 km)",
+    "district": "Los Angeles (going-out core + 2 km)",
     "box": [
-      34.0312,
-      -118.27,
-      34.0762,
-      -118.2156
+      34.015,
+      -118.2907,
+      34.087,
+      -118.2073
     ]
   },
   {
     "city": "Philadelphia",
-    "district": "Philadelphia (going-out core + 1 km)",
+    "district": "Philadelphia (going-out core + 2 km)",
     "box": [
-      39.9302,
-      -75.1929,
-      39.9752,
-      -75.1341
+      39.905,
+      -75.2464,
+      40.003,
+      -75.0996
     ]
   },
   {
     "city": "Seoul",
-    "district": "Seoul (going-out core, densest 150 km²)",
+    "district": "Seoul (going-out core, densest 150 km\u00b2)",
     "box": [
       37.4791,
       126.9189,
@@ -565,7 +565,7 @@
   },
   {
     "city": "Tokyo",
-    "district": "Tokyo (going-out core, densest 150 km²)",
+    "district": "Tokyo (going-out core, densest 150 km\u00b2)",
     "box": [
       35.6298,
       139.6616,
@@ -575,7 +575,7 @@
   },
   {
     "city": "Osaka",
-    "district": "Osaka (going-out core, densest 150 km²)",
+    "district": "Osaka (going-out core, densest 150 km\u00b2)",
     "box": [
       34.6394,
       135.4664,
@@ -585,7 +585,7 @@
   },
   {
     "city": "Istanbul",
-    "district": "Istanbul (densest 150 km² of the core)",
+    "district": "Istanbul (densest 150 km\u00b2 of the core)",
     "box": [
       40.9772,
       28.9015,
@@ -595,7 +595,7 @@
   },
   {
     "city": "Milan",
-    "district": "Milan (densest 150 km² of the core)",
+    "district": "Milan (densest 150 km\u00b2 of the core)",
     "box": [
       45.435,
       9.0903,
@@ -605,7 +605,7 @@
   },
   {
     "city": "Lisbon",
-    "district": "Lisbon (densest 150 km² of the core)",
+    "district": "Lisbon (densest 150 km\u00b2 of the core)",
     "box": [
       38.6517,
       -9.243,
@@ -615,7 +615,7 @@
   },
   {
     "city": "Rome",
-    "district": "Rome (densest 150 km² of the core)",
+    "district": "Rome (densest 150 km\u00b2 of the core)",
     "box": [
       41.8417,
       12.4256,
@@ -625,7 +625,7 @@
   },
   {
     "city": "Manila",
-    "district": "Manila (going-out core, densest 150 km²)",
+    "district": "Manila (going-out core, densest 150 km\u00b2)",
     "box": [
       14.5333,
       120.9736,
@@ -634,8 +634,8 @@
     ]
   },
   {
-    "city": "Bogotá",
-    "district": "Bogotá (going-out core, densest 150 km²)",
+    "city": "Bogot\u00e1",
+    "district": "Bogot\u00e1 (going-out core, densest 150 km\u00b2)",
     "box": [
       4.5967,
       -74.147,
@@ -645,27 +645,27 @@
   },
   {
     "city": "Buenos Aires",
-    "district": "Buenos Aires (going-out core: Palermo, 5 km)",
+    "district": "Buenos Aires (densest 150 km\u00b2 of the core)",
     "box": [
-      -34.61,
-      -58.445,
-      -34.565,
-      -58.395
+      -34.6433,
+      -58.4952,
+      -34.5332,
+      -58.3615
     ]
   },
   {
     "city": "Adelaide",
-    "district": "Adelaide (going-out core + 1 km)",
+    "district": "Adelaide (going-out core + 2 km)",
     "box": [
-      -34.951,
-      138.572,
-      -34.906,
-      138.627
+      -34.953,
+      138.5651,
+      -34.899,
+      138.6449
     ]
   },
   {
     "city": "Toronto",
-    "district": "Toronto (densest 150 km² of the core)",
+    "district": "Toronto (densest 150 km\u00b2 of the core)",
     "box": [
       43.6333,
       -79.4739,
