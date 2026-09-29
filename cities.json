@@ -692,5 +692,48 @@
       51.473,
       5.5258
     ]
+  },
+  {
+    "city": "Ramat Gan",
+    "district": "Ramat Gan (whole municipality)",
+    "box": [
+      32.0361,
+      34.7991,
+      32.1056,
+      34.8546
+    ],
+    "boundary": "boundaries/ramat-gan.geojson"
+  },
+  {
+    "city": "Holon",
+    "district": "Holon (whole municipality)",
+    "box": [
+      31.9887,
+      34.7553,
+      32.0387,
+      34.8148
+    ],
+    "boundary": "boundaries/holon.geojson"
+  },
+  {
+    "city": "Herzliya",
+    "district": "Herzliya (whole municipality)",
+    "box": [
+      32.144,
+      34.7876,
+      32.2029,
+      34.8646
+    ],
+    "boundary": "boundaries/herzliya.geojson"
+  },
+  {
+    "city": "Hamburg",
+    "district": "Hamburg (densest 150 km\u00b2 of the core)",
+    "box": [
+      53.5121,
+      9.8993,
+      53.6221,
+      10.0845
+    ]
   }
 ]
