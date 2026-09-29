@@ -24,6 +24,9 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
                  landmark cell that already joined
   coreBox, coreKm2  the box [s, w, n, e] of the cluster's cells (going-out and joined landmarks) padded by
                  CORE_PAD, and its area
+  goingOutCovered  those going-out cells (same extent, same count) where the sunny filter works: the
+                 coverage feed (--coverage) marks the cell passing, at least FLOOR buildings — the
+                 cities page's "going-out blocks covered, %" divides it by goingOutCells
   goingOutCellsWide, landmarkCellsWide  the going-out and landmark cells over the wide square below
   landmarksAdded the joined landmarks (at most 15, with their cell key) whose cell lies outside the box the
                  cluster's going-out cells alone would give
@@ -58,6 +61,7 @@ RADIUS = 400     # metres
 HALF_KM = 12     # half-side of the box around a city's point
 CORE_PAD = 2000  # metres around the going-out and landmark cells
 LANDMARK_VENUES = 5  # named venues in the disk for a landmark's cell to join the core
+FLOOR = 20       # buildings a cell needs for the filter, as coverage.py
 LANDMARK_TAGS = {"tourism": {"attraction", "museum", "gallery", "viewpoint"},
                  "historic": {"castle", "palace", "monument", "memorial", "fort", "city_gate", "ruins", "archaeological_site"},
                  "building": {"cathedral", "basilica", "mosque", "synagogue", "temple", "church"}}
@@ -165,11 +169,24 @@ def count(points, box, boundary=None):
     """Going-out cells, terrace cells among them, named venues and terraces in the box (inside the boundary when given)."""
     inside = lambda lat, lon: within(box, lat, lon) and (boundary is None or contains(boundary, lat, lon))
     near = disks(points, box, boundary)
-    going = [v for v in near.values() if v[0] >= GOING_OUT]
-    centres = [(Cell(*k).lat, Cell(*k).lon) for k, v in near.items() if v[0] >= GOING_OUT]
+    keys = [k for k, v in near.items() if v[0] >= GOING_OUT]
+    going = [near[k] for k in keys]
+    centres = [(Cell(*k).lat, Cell(*k).lon) for k in keys]
     in_box = [p for p in points if inside(p[0], p[1])]
     terrace = lambda v: v[1] >= max(TERRACE_MINIMUM, TERRACE_RATIO * v[0])
-    return len(going), sum(terrace(v) for v in going), sum(p[2] for p in in_box), sum(p[3] for p in in_box), centres
+    return len(going), sum(terrace(v) for v in going), sum(p[2] for p in in_box), sum(p[3] for p in in_box), centres, keys
+
+
+def passing_cells(source):
+    """(ky, kx) of the cells the coverage feed marks passing (FLOOR buildings); None when it cannot be read."""
+    try:
+        import urllib.request
+        raw = urllib.request.urlopen(urllib.request.Request(source, headers={"User-Agent": "compromise-tiles"})).read() \
+            if "://" in source else open(source, "rb").read()
+        return {(c[0], c[1]) for c in json.loads(raw)["cells"] if c[3] >= FLOOR}
+    except Exception as x:  # noqa: BLE001 — the other counts do not depend on it
+        print(f"coverage feed not read, no goingOutCovered: {x}", file=sys.stderr)
+        return None
 
 
 def core_cells(points, marks, box):
@@ -237,7 +254,9 @@ def main():
     a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 24 km square")
     a.add_argument("--drop", action="store_true", help="delete each extract once its cities are counted (small disks)")
     a.add_argument("--previous", default="", help="the published counts.json (URL or path): its rows for cities not counted this run are kept")
+    a.add_argument("--coverage", default="https://tiles.alephb.uk/coverage.json", help="the coverage feed (URL or path), for goingOutCovered")
     args = a.parse_args()
+    passing = passing_cells(args.coverage) if args.coverage else None
     only = {x.strip() for x in args.only.split(",") if x.strip()}
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]
     no_point = [f"{e['city']}, {e['country']}" for e in cities if "lat" not in e and not e.get("box")]
@@ -269,7 +288,7 @@ def main():
         for e in members:
             t = time.monotonic()
             box, boundary = extent(e)
-            going, terrace, named, outdoor, _ = count(points, box, boundary)
+            going, terrace, named, outdoor, _, going_keys = count(points, box, boundary)
             wide_box = city_box(e)
             wide_going, marked = core_cells(points, marks, wide_box)  # the core over the wide square, whatever the extent
             centre = lambda keys: [(Cell(*k).lat, Cell(*k).lon) for k in keys]
@@ -281,6 +300,7 @@ def main():
             added = [{"name": n, "cell": f"{k[0]},{k[1]}"} for k in sorted(joined) for n in marked[k]
                      if not only_going or not within(only_going, Cell(*k).lat, Cell(*k).lon)][:LANDMARKS_LISTED]
             rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
+                         "goingOutCovered": sum(k in passing for k in going_keys) if passing is not None else None,
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
                          "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square",
                          "coreBox": [round(x, 4) for x in core_box] if core_box else None, "coreKm2": round(core_km2, 1),
@@ -288,7 +308,7 @@ def main():
                          "goingOutCellsWide": len(wide_going), "landmarkCellsWide": len(marked)})
             if core_km2 > DENSE_KM2 and "lat" in e:
                 rows[-1]["denseBox"] = [round(x, 4) for x in dense(centres, e["lat"], e["lon"])]
-            print(f"  {e['city']}: {going} going-out cells, {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {len(core_going)} cells + {len(joined)} landmarks, {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
+            print(f"  {e['city']}: {going} going-out cells ({rows[-1]['goingOutCovered']} covered), {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {len(core_going)} cells + {len(joined)} landmarks, {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
     # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
@@ -306,7 +326,7 @@ def main():
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
                   f, ensure_ascii=False, indent=1)
     with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "landmarkCellsWide"],
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "goingOutCovered", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "landmarkCellsWide"],
                            extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
