@@ -36,9 +36,15 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
 The going-out numbers are counted over the city's extent below; the core, landmark and dense fields
 always over the 2 × HALF_KM square around the city's point (or its given box), so a core can grow past
 the box a city is tiled with today.
-  extent         "municipality" where --boxes (cities.json) holds a box for the city, with its
-                 boundary polygon when it has one; "commune" for a French city counted inside its own
-                 contour (geo.api.gouv.fr); else the 2 × HALF_KM square around the point
+  extent         what goingOutCells, goingOutCovered, terraceShare, venues and terraces were counted over:
+                 "commune"      a French city inside its own contour (geo.api.gouv.fr), unless cities.json
+                                tiles it as a core box;
+                 "municipality" a cities.json box that is the whole city (a boundary polygon, or a district
+                                named whole / intra-muros / municipality, or named as the city — the rule the
+                                cities page applies to the coverage feed's areas), inside its boundary if any;
+                 "tiled box"    a cities.json box that is only the city's core (a cluster or densest square);
+                 "24 km square" the 2 × HALF_KM square around the point
+  goingOutCoveredWide  the cells of goingOutCellsWide the coverage feed marks passing (as goingOutCovered)
 
 A city given as a point is taken as a square of 2 × HALF_KM a side around it unless cities.json tiles
 it as a municipality. A city without a point is listed under
@@ -51,7 +57,7 @@ given --only keeps the published rows of the cities it did not count.
 Also writes the same rows as CSV beside --write, sorted by going-out cells, most first.
 Needs Python 3 (standard library only) and osmium-tool on the PATH.
 """
-import argparse, csv, datetime, json, math, os, sys, time, urllib.parse
+import argparse, csv, datetime, json, math, os, re, sys, time, urllib.parse
 from make_tiles import (AMENITIES, M, Cell, SourceError, bounds, contains, download, features, geofabrik_pbf, get_json, index,
                         metres, osmium, outer_rings, padded)
 
@@ -116,9 +122,15 @@ def city_box(e):
     return padded((e["lat"], e["lon"], e["lat"], e["lon"]), HALF_KM * 1000)
 
 
+def is_whole(e):
+    """A cities.json entry that tiles the whole city: a boundary, or a district name the cities page reads as whole."""
+    d = e.get("district", "")
+    return bool(e.get("boundary")) or d == e["city"] or bool(re.search(r"whole|intra-muros|municipality", d, re.I))
+
+
 def municipal(cities_json):
-    """city name -> (box, boundary or None) from a cities.json: its first plain box entry per city (not a
-    departements one), with its boundary polygon when it has one — the municipality where it is tiled that way."""
+    """city name -> (box, boundary or None, whole) from a cities.json: its first plain box entry per city (not a
+    departements one), with its boundary polygon when it has one, and whether it is the whole city (is_whole)."""
     if not cities_json or not os.path.exists(cities_json): return {}
     out = {}
     for e in json.load(open(cities_json)):
@@ -127,7 +139,7 @@ def municipal(cities_json):
         if e.get("boundary"):
             with open(os.path.join(os.path.dirname(os.path.abspath(cities_json)), e["boundary"])) as f: boundary = json.load(f)
             boundary = boundary.get("geometry", boundary)
-        out[e["city"]] = (tuple(e["box"]), boundary)
+        out[e["city"]] = (tuple(e["box"]), boundary, is_whole(e))
     return out
 
 
@@ -261,13 +273,13 @@ def main():
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]
     no_point = [f"{e['city']}, {e['country']}" for e in cities if "lat" not in e and not e.get("box")]
 
-    # A city tiled as a municipality is counted over that box and boundary; the others over the 12 km square.
-    munis = municipal(args.boxes)
-    for e in cities:  # French communes not tiled as a box: their own contour, one geo API call each
-        if e["city"] not in munis and e.get("country") == "France" and "lat" in e:
+    # A city tiled in cities.json is counted over that box and boundary; the others over the 24 km square.
+    munis = {k: (box, boundary, "municipality" if whole else "tiled box") for k, (box, boundary, whole) in municipal(args.boxes).items()}
+    for e in cities:  # French communes not tiled as a core box: their own contour, one geo API call each
+        if e.get("country") == "France" and "lat" in e and munis.get(e["city"], (0, 0, ""))[2] != "tiled box":
             shape = french_commune(e["city"], e["lat"], e["lon"])
-            if shape: munis[e["city"]] = shape; e["_commune"] = True
-    extent = lambda e: munis.get(e["city"], (city_box(e), None))
+            if shape: munis[e["city"]] = (*shape, "commune")
+    extent = lambda e: munis.get(e["city"], (city_box(e), None, f"{2 * HALF_KM} km square"))
     groups, failed = {}, []  # extract URL -> cities, so each extract is read once
     for e in cities:
         if "lat" not in e and not e.get("box"): continue
@@ -287,7 +299,7 @@ def main():
         print(f"{url.rsplit('/', 1)[1]}: {len(points)} venues, {len(marks)} landmarks read in {time.monotonic() - t:.0f} s", file=sys.stderr)
         for e in members:
             t = time.monotonic()
-            box, boundary = extent(e)
+            box, boundary, label = extent(e)
             going, terrace, named, outdoor, _, going_keys = count(points, box, boundary)
             wide_box = city_box(e)
             wide_going, marked = core_cells(points, marks, wide_box)  # the core over the wide square, whatever the extent
@@ -302,10 +314,11 @@ def main():
             rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
                          "goingOutCovered": sum(k in passing for k in going_keys) if passing is not None else None,
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
-                         "extent": "commune" if e.get("_commune") else "municipality" if e["city"] in munis else f"{2 * HALF_KM} km square",
+                         "extent": label,
                          "coreBox": [round(x, 4) for x in core_box] if core_box else None, "coreKm2": round(core_km2, 1),
                          "landmarkCells": len(marked), "coreCells": len(core_going), "clusterLandmarks": len(joined), "landmarksAdded": added,
-                         "goingOutCellsWide": len(wide_going), "landmarkCellsWide": len(marked)})
+                         "goingOutCellsWide": len(wide_going), "landmarkCellsWide": len(marked),
+                         "goingOutCoveredWide": len(wide_going & passing) if passing is not None else None})
             if core_km2 > DENSE_KM2 and "lat" in e:
                 rows[-1]["denseBox"] = [round(x, 4) for x in dense(centres, e["lat"], e["lon"])]
             print(f"  {e['city']}: {going} going-out cells ({rows[-1]['goingOutCovered']} covered), {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {len(core_going)} cells + {len(joined)} landmarks, {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
@@ -326,7 +339,7 @@ def main():
         json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
                   f, ensure_ascii=False, indent=1)
     with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "goingOutCovered", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "landmarkCellsWide"],
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "goingOutCovered", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "goingOutCoveredWide", "landmarkCellsWide"],
                            extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)

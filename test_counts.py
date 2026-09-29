@@ -1,9 +1,9 @@
 """python3 test_counts.py — the disk count on made-up points, no extract needed."""
-from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, km2
+from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, is_whole, km2
 
 box = city_box({"lat": 48.87, "lon": 2.33})
 ten = [(48.87, 2.33, True, True)] * 10
-going, terrace, named, outdoor, centres = count(ten, box)
+going, terrace, named, outdoor, centres, _ = count(ten, box)
 assert going > 0 and terrace == going and named == 10 and outdoor == 10, (going, terrace)   # 10 of 10 outdoor: >= 30 %, >= 5
 assert count(ten[:9], box)[0] == 0                                    # one short of the floor
 assert count([(48.87, 2.33, True, False)] * 10, box)[1] == 0          # no outdoor seating, no terrace cell
@@ -38,4 +38,12 @@ marks = {(102, 104): ["Two away"], (104, 104): ["Past it"], (108, 100): ["Four p
 _, joined = cluster(here, marks, pt.lat, pt.lon)
 assert joined == {(102, 104), (104, 104)}, joined                     # two away joins, and the one beyond it; four away does not
 assert cluster(set(), marks, pt.lat, pt.lon) == (set(), set())
+# Which cities.json entries are the whole city (extent "municipality") and which a core ("tiled box").
+assert is_whole({"city": "Paris", "district": "Intra-muros (inside the périphérique)"})
+assert is_whole({"city": "Athens", "district": "Athens (whole municipality)", "boundary": "b.geojson"})
+assert is_whole({"city": "Tel Aviv", "district": "Tel Aviv-Yafo (whole city)"})
+assert is_whole({"city": "Oslo", "district": "Oslo"})
+assert not is_whole({"city": "London", "district": "London (densest 150 km² of the core)"})
+assert not is_whole({"city": "Zaragoza", "district": "Zaragoza (going-out core + 2 km)"})
+assert not is_whole({"city": "Oslo", "district": "Oslo (centre, 5 km)"})
 print("ok")
