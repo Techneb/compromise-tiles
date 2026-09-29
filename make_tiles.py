@@ -625,13 +625,44 @@ def _load_catastro(href, crs, focus, title):
                 elem.clear()
     log(f"    catastro: {title}: {kept} parts inside the box in {time.monotonic() - started:.0f} s")
 
-def building_row(name, lat, lon, fetch, osm_on_error=False):
-    return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error)
+def hamburg(rect):
+    """LGV Hamburg's LoD2 model (OGC API, CityJSON only, and only in a 3D CRS: ETRS89 / UTM 32N + height,
+    whole metres): each building's ground surface as its outline, measuredHeight as its height."""
+    s, w, n, e = rect
+    q = urllib.parse.urlencode({"f": "cityjson", "bbox": f"{w},{s},{e},{n}", "limit": "10000",
+                                "crs": "http://www.opengis.net/def/crs/EPSG/0/5555"})
+    root = get_json("https://api.hamburg.de/datasets/v1/lod2_hamburg/collections/building/items?" + q)
+    objects = root.get("CityObjects") or {}
+    if len(objects) >= 10000:
+        ms, me = (s + n) / 2, (w + e) / 2
+        return [b for part in ((s, w, ms, me), (s, me, ms, e), (ms, w, n, me), (ms, me, n, e)) for b in hamburg(part)]
+    (sx, sy, _), (tx, ty, _) = root["transform"]["scale"], root["transform"]["translate"]
+    vertices = root.get("vertices") or []
+    out = []
+    for o in objects.values():
+        for g in o.get("geometry") or []:
+            surfaces = (g.get("semantics") or {}).get("surfaces") or []
+            for shell, values in zip(g.get("boundaries") or [], (g.get("semantics") or {}).get("values") or []):
+                for face, v in zip(shell, values):
+                    if v is None or surfaces[v].get("type") != "GroundSurface": continue
+                    ring = [vertex(*utm_to_wgs84(vertices[i][0] * sx + tx, vertices[i][1] * sy + ty, 32)) for i in face[0]]
+                    if len(ring) >= 3: out.append(building(ring, (o.get("attributes") or {}).get("measuredHeight") or 15.0))
+    return out
 
-# The city height feeds, one row each. The first box holding the cell's centre is asked first,
-# then IGN (France), then OpenStreetMap, each only when the one before answered nothing.
+def boundary(slug):
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
+
+def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None):
+    return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary)
+
+def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None or contains(b["boundary"], lat, lon))
+
+# The city height feeds, one row each. The first row holding the cell's centre (its box, and its
+# municipal boundary when the feed stops there) is asked first, then IGN (France), then
+# OpenStreetMap, each only when the one before answered nothing. A boundary keeps a neighbour's
+# cells off a feed that answers only a few buildings there (Fitzroy got 73 from Melbourne's).
 CITY_BUILDINGS = [
-    building_row("Melbourne", (-37.90, -37.75), (144.90, 145.02), lambda r: footprints(opendatasoft(
+    building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
         "structure_extrusion"), lambda p: p.get("structure_extrusion"))),
     building_row("Amsterdam", (52.28, 52.43), (4.73, 5.02), bag3d),
@@ -657,6 +688,17 @@ CITY_BUILDINGS = [
         lambda p: p.get("qt_altura_edificacao"))),
     building_row("Wrocław", (51.08, 51.16), (16.95, 17.10), lambda r: footprints(arcgis(
         "https://gis.um.wroc.pl/portal_srv/rest/services/SMH_2022_Budynki/MapServer/0", r, ["HA"]), lambda p: p.get("HA"))),
+    # Ramat Gan, Holon, Herzliya (ArcGIS Online, no licence stated): floors × 3 m. Before Tel Aviv's
+    # box, which covers Ramat Gan whole; each held to its municipal boundary (OSM, admin level 8).
+    building_row("Ramat Gan", (32.035, 32.106), (34.799, 34.855), boundary=boundary("ramat-gan"), fetch=lambda r: footprints(arcgis(
+        "https://services8.arcgis.com/MdnyDq2GlaTWezhQ/arcgis/rest/services/building_23_02_2025/FeatureServer/0", r,
+        ["NUM_FLOORS"]), lambda p: number(p.get("NUM_FLOORS")) * 3 if number(p.get("NUM_FLOORS")) else None)),
+    building_row("Holon", (31.988, 32.039), (34.755, 34.815), boundary=boundary("holon"), fetch=lambda r: footprints(arcgis(
+        "https://services2.arcgis.com/cjDo9oPmimdHxumn/arcgis/rest/services/Buildings_shp/FeatureServer/0", r,
+        ["NUM_FLOORS"], oid="FID"), lambda p: number(p.get("NUM_FLOORS")) * 3 if number(p.get("NUM_FLOORS")) else None)),
+    building_row("Herzliya", (32.144, 32.203), (34.787, 34.865), boundary=boundary("herzliya"), fetch=lambda r: footprints(arcgis(
+        "https://services3.arcgis.com/9qGhZGtb39XMVQyR/arcgis/rest/services/herzliya_reka_2023/FeatureServer/3", r,
+        ["Num_floors"]), lambda p: number(p.get("Num_floors")) * 3 if number(p.get("Num_floors")) else None)),
     # Metres, else floors × 3 m. Answers only from Israel (HTTP 571 elsewhere): from the cloud every
     # Tel Aviv cell fails and no tile is written — never an OSM tile in its place.
     building_row("Tel Aviv", (32.02, 32.16), (34.73, 34.86), lambda r: footprints(arcgis(
@@ -716,6 +758,8 @@ CITY_BUILDINGS = [
     building_row("Los Angeles", (33.70, 34.34), (-118.67, -118.15), lambda r: footprints(arcgis(
         "https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/Building_Footprints/FeatureServer/0",
         r, ["HEIGHT"]), lambda p: p["HEIGHT"] * 0.3048 if p.get("HEIGHT") else None)),
+    # LoD2 measuredHeight, metres (Datenlizenz Deutschland – Namensnennung – 2.0); box: the model's extent.
+    building_row("Hamburg", (53.39, 53.94), (8.48, 10.34), hamburg),
     # max_hgt is feet, else approx_hgt.
     building_row("Philadelphia", (39.86, 40.14), (-75.29, -74.95), lambda r: footprints(arcgis(
         "https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/LI_BUILDING_FOOTPRINTS/FeatureServer/0",
@@ -1084,7 +1128,7 @@ def near_terraces(cell, terraces):
             if metres(cell.lat, cell.lon, t["coordinate"]["latitude"], t["coordinate"]["longitude"]) <= TERRACE_RADIUS]
 
 def building_source(cell):
-    city = next((b for b in CITY_BUILDINGS if in_box(b, cell.lat, cell.lon)), None)
+    city = next((b for b in CITY_BUILDINGS if in_feed(b, cell.lat, cell.lon)), None)
     return city["city"] if city else "IGN" if in_france(cell.lat, cell.lon) else "OSM"
 
 FETCH_BUILDINGS = dict({b["city"]: b["fetch"] for b in CITY_BUILDINGS}, IGN=ign_buildings, OSM=osm_buildings)

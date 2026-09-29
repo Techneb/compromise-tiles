@@ -98,6 +98,15 @@ none, this says so rather than guessing.
   share and adapt with credit).
 - Jerusalem: Jerusalem Municipality, bldg2020 ("for reference and general
   use only", as stated by the publisher).
+- Ramat Gan: Ramat Gan Municipality, buildings layer (licence not stated
+  by the publisher).
+- Holon: Holon Municipality, buildings layer (licence not stated by the
+  publisher).
+- Herzliya: Herzliya Municipality, buildings layer (licence not stated by
+  the publisher).
+- Hamburg: Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und
+  Vermessung (LGV), 3D-Gebäudemodell LoD2-DE, Datenlizenz Deutschland –
+  Namensnennung – 2.0.
 - Denver: City and County of Denver, Building Outlines 2022 (licence not
   stated by the publisher).
 - Cape Town: City of Cape Town, 2D Building Footprints (licence not stated

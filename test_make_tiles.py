@@ -53,4 +53,24 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
     note_sources(out, cell, permits="Paris")
     assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM"}]
+
+# A building source is held to its municipal boundary: Fitzroy sits in Melbourne's box but not in
+# the City of Melbourne, Bitsaron (Tel Aviv) in Ramat Gan's box but not in Ramat Gan.
+from make_tiles import building_source, hamburg, CITY_BUILDINGS
+at = lambda lat, lon: building_source(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0])
+assert at(-37.8150, 144.9660) == "Melbourne" and at(-37.7990, 144.9790) == "OSM"
+assert at(32.0830, 34.8130) == "Ramat Gan" and at(32.0760, 34.8000) == "Tel Aviv"
+assert at(32.0150, 34.7800) == "Holon" and at(32.1650, 34.8400) == "Herzliya" and at(53.5500, 10.0000) == "Hamburg"
+# Floors arrive as strings in Holon and Herzliya: × 3 m, blank → the 15 m default.
+floors = next(b for b in CITY_BUILDINGS if b["city"] == "Holon")["fetch"]
+ring = {"type": "Polygon", "coordinates": [[[34.78, 32.01], [34.781, 32.01], [34.781, 32.011], [34.78, 32.01]]]}
+make_tiles.arcgis = lambda *a, **k: [{"geometry": ring, "properties": {"NUM_FLOORS": "4"}}, {"geometry": ring, "properties": {"NUM_FLOORS": " "}}]
+assert [b["height"] for b in floors((0, 0, 1, 1))] == [12.0, 15.0]
+# Hamburg's CityJSON: the ground surface in UTM 32N, measuredHeight.
+make_tiles.get_json = lambda url: {"transform": {"scale": [1, 1, 1], "translate": [566000, 5935000, 0]},
+    "vertices": [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 0, 20]],
+    "CityObjects": {"a": {"attributes": {"measuredHeight": 20.5}, "geometry": [{"boundaries": [[[[0, 1, 2]], [[3, 1, 2]]]],
+        "semantics": {"surfaces": [{"type": "GroundSurface"}, {"type": "RoofSurface"}], "values": [[0, 1]]}}]}}}
+b, = hamburg((53.5, 10.0, 53.6, 10.1))
+assert b["height"] == 20.5 and len(b["outline"]) == 3 and abs(b["outline"][0]["latitude"] - 53.55) < 0.01
 print("ok")
