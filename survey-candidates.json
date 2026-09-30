@@ -271,7 +271,11 @@
   "lon": 44.002,
   "population": 1259013,
   "timezone": "Europe/Moscow",
-  "geonames": 520555
+  "geonames": 520555,
+  "goingOutCells": 252,
+  "terraceShare": 0.044,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Kazan",
@@ -280,7 +284,11 @@
   "lon": 49.1221,
   "population": 1243500,
   "timezone": "Europe/Moscow",
-  "geonames": 551487
+  "geonames": 551487,
+  "goingOutCells": 499,
+  "terraceShare": 0.016,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Port-au-Prince",
@@ -346,7 +354,11 @@
   "lon": 50.1355,
   "population": 1163399,
   "timezone": "Europe/Samara",
-  "geonames": 499099
+  "geonames": 499099,
+  "goingOutCells": 169,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Sofia",
@@ -394,7 +406,11 @@
   "lon": 55.9678,
   "population": 1120547,
   "timezone": "Asia/Yekaterinburg",
-  "geonames": 479561
+  "geonames": 479561,
+  "goingOutCells": 181,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Krasnoyarsk",
@@ -542,7 +558,11 @@
   "lon": 56.2502,
   "population": 982419,
   "timezone": "Asia/Yekaterinburg",
-  "geonames": 511196
+  "geonames": 511196,
+  "goingOutCells": 194,
+  "terraceShare": 0.005,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Managua",
@@ -694,7 +714,11 @@
   "lon": 45.9901,
   "population": 844858,
   "timezone": "Europe/Saratov",
-  "geonames": 498677
+  "geonames": 498677,
+  "goingOutCells": 157,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Naucalpan de Juárez",
@@ -881,7 +905,11 @@
   "lon": 49.3461,
   "population": 702879,
   "timezone": "Europe/Samara",
-  "geonames": 482283
+  "geonames": 482283,
+  "goingOutCells": 18,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Sarajevo",
@@ -955,7 +983,11 @@
   "lon": 53.1986,
   "population": 648213,
   "timezone": "Europe/Samara",
-  "geonames": 554840
+  "geonames": 554840,
+  "goingOutCells": 134,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Detroit",
@@ -1038,7 +1070,11 @@
   "lon": 48.3866,
   "population": 626540,
   "timezone": "Europe/Ulyanovsk",
-  "geonames": 479123
+  "geonames": 479123,
+  "goingOutCells": 81,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Louisville",
@@ -1274,7 +1310,11 @@
   "lon": 55.0988,
   "population": 564773,
   "timezone": "Asia/Yekaterinburg",
-  "geonames": 515003
+  "geonames": 515003,
+  "goingOutCells": 57,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Albuquerque",
@@ -1357,7 +1397,11 @@
   "lon": 33.5213,
   "population": 547820,
   "timezone": "Europe/Simferopol",
-  "geonames": 694423
+  "geonames": 694423,
+  "goingOutCells": 110,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Bremen",
@@ -1479,7 +1523,11 @@
   "lon": 45.0108,
   "population": 523553,
   "timezone": "Europe/Moscow",
-  "geonames": 511565
+  "geonames": 511565,
+  "goingOutCells": 83,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Victoria de Durango",
@@ -1553,7 +1601,11 @@
   "lon": 52.4196,
   "population": 509870,
   "timezone": "Europe/Moscow",
-  "geonames": 523750
+  "geonames": 523750,
+  "goingOutCells": 26,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Lipetsk",
@@ -1588,7 +1640,11 @@
   "lon": 49.6578,
   "population": 507155,
   "timezone": "Europe/Kirov",
-  "geonames": 548408
+  "geonames": 548408,
+  "goingOutCells": 53,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Leipzig",
@@ -1636,7 +1692,11 @@
   "lon": 47.246,
   "population": 492331,
   "timezone": "Europe/Moscow",
-  "geonames": 569696
+  "geonames": 569696,
+  "goingOutCells": 87,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Toluca",
@@ -1944,7 +2004,11 @@
   "lon": -81.233,
   "population": 422324,
   "timezone": "America/Toronto",
-  "geonames": 6058560
+  "geonames": 6058560,
+  "goingOutCells": 112,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Tver",
@@ -2005,7 +2069,11 @@
   "lon": -66.1057,
   "population": 418140,
   "timezone": "America/Puerto_Rico",
-  "geonames": 4568127
+  "geonames": 4568127,
+  "goingOutCells": 414,
+  "terraceShare": 0.002,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Nuevo Laredo",
@@ -2570,7 +2638,11 @@
   "lon": 23.7175,
   "population": 347138,
   "timezone": "Europe/Minsk",
-  "geonames": 629634
+  "geonames": 629634,
+  "goingOutCells": 104,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Central Coast",
@@ -2683,7 +2755,11 @@
   "lon": 34.1108,
   "population": 336460,
   "timezone": "Europe/Simferopol",
-  "geonames": 693805
+  "geonames": 693805,
+  "goingOutCells": 94,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Lublin",
@@ -2770,7 +2846,11 @@
   "lon": 7.0955,
   "population": 330579,
   "timezone": "Europe/Berlin",
-  "geonames": 2946447
+  "geonames": 2946447,
+  "goingOutCells": 417,
+  "terraceShare": 0.849,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Bydgoszcz",
@@ -2922,7 +3002,11 @@
   "lon": 45.1717,
   "population": 318841,
   "timezone": "Europe/Moscow",
-  "geonames": 498698
+  "geonames": 498698,
+  "goingOutCells": 36,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-09-30"
  },
  {
   "city": "Varna",
