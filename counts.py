@@ -51,7 +51,8 @@ it as a municipality. A city without a point is listed under
 "noPoint" and skipped (nothing is geocoded). OpenStreetMap comes from the smallest Geofabrik
 extract holding the point, filtered with osmium-tool, never from Overpass.
 
-Scope: every city of counts-cities.json. With --previous (the published counts.json), a run
+Scope: every city of --cities (counts-cities.json, or survey-candidates.json for the cities not listed yet),
+or the k-th share of their extracts with --part k/n. With --previous (the published counts.json), a run
 given --only keeps the published rows of the cities it did not count.
 
 Also writes the same rows as CSV beside --write, sorted by going-out cells, most first.
@@ -257,6 +258,15 @@ def dense(centres, lat, lon, area=DENSE_KM2, step=500):
     return best[1]
 
 
+def part(groups, spec):
+    """The k-th of n shares ("k/n", k from 1) of the extract groups: whole extracts, so no extract is read by two
+    parts, dealt by size (most cities first) so the parts end at about the same time."""
+    k, n = (int(x) for x in spec.split("/"))
+    if not 1 <= k <= n: raise SystemExit(f"--part {spec}: k must be between 1 and n")
+    ranked = sorted(groups.items(), key=lambda g: (-len(g[1]), g[0]))
+    return [g for i, g in enumerate(ranked) if i % n == k - 1]
+
+
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     a.add_argument("--cities", default="counts-cities.json")
@@ -266,6 +276,7 @@ def main():
     a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 24 km square")
     a.add_argument("--drop", action="store_true", help="delete each extract once its cities are counted (small disks)")
     a.add_argument("--previous", default="", help="the published counts.json (URL or path): its rows for cities not counted this run are kept")
+    a.add_argument("--part", default="", help="k/n: count only the k-th of n shares of the extracts (runs in parallel)")
     a.add_argument("--coverage", default="https://tiles.alephb.uk/coverage.json", help="the coverage feed (URL or path), for goingOutCovered")
     args = a.parse_args()
     passing = passing_cells(args.coverage) if args.coverage else None
@@ -287,6 +298,8 @@ def main():
         try: groups.setdefault(geofabrik_pbf((s + n) / 2, (w + east) / 2), []).append(e)
         except SourceError as x: failed.append(f"{e['city']}: {x}")
 
+    if args.part:
+        groups = dict(part(groups, args.part))
     rows = []
     for url, members in groups.items():
         t = time.monotonic()
@@ -344,6 +357,9 @@ def main():
                            extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
+    # The rows in the log too, one JSON line each, so a session without artifact access can read a run.
+    for r in rows:
+        print("ROW", json.dumps({k: r.get(k) for k in ("city", "country", "goingOutCells", "terraceShare", "extent")}, ensure_ascii=False))
     print(f"{len(rows)} cities, {len(no_point)} without a point, {len(failed)} failed -> {args.write}", file=sys.stderr)
     for x in failed: print(f"  failed {x}", file=sys.stderr)
 

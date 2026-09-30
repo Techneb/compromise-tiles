@@ -1,5 +1,5 @@
 """python3 test_counts.py — the disk count on made-up points, no extract needed."""
-from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, is_whole, km2
+from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, is_whole, km2, part
 
 box = city_box({"lat": 48.87, "lon": 2.33})
 ten = [(48.87, 2.33, True, True)] * 10
@@ -46,4 +46,10 @@ assert is_whole({"city": "Oslo", "district": "Oslo"})
 assert not is_whole({"city": "London", "district": "London (densest 150 km² of the core)"})
 assert not is_whole({"city": "Zaragoza", "district": "Zaragoza (going-out core + 2 km)"})
 assert not is_whole({"city": "Oslo", "district": "Oslo (centre, 5 km)"})
+# --part: whole extract groups, each in exactly one share.
+groups = {"a": [1, 2, 3], "b": [4], "c": [5, 6], "d": [7]}
+shares = [dict(part(groups, f"{k}/3")) for k in (1, 2, 3)]
+assert sorted(u for s in shares for u in s) == sorted(groups) and sum(len(s) for s in shares) == 4, shares
+assert shares[0] == {"a": [1, 2, 3], "d": [7]} and shares[1] == {"c": [5, 6]}, shares   # biggest first, dealt round
+assert dict(part(groups, "1/1")) == groups
 print("ok")
