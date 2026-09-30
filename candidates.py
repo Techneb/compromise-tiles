@@ -75,7 +75,7 @@ def select(city_lines, country_lines, listed):
         population, code = int(f[14] or 0), f[8]
         if population < POPULATION or continent.get(code) not in CONTINENTS or f[7] == "PPLX": continue
         places.append({"city": f[1], "country": country[code], "lat": round(float(f[4]), 4), "lon": round(float(f[5]), 4),
-                       "population": population, "geonames": int(f[0]),
+                       "population": population, "timezone": f[17], "geonames": int(f[0]),
                        "_names": {fold(f[1]), fold(f[2])} | {fold(a) for a in f[3].split(",") if a}})
     places.sort(key=lambda p: (-p["population"], p["geonames"]))
     kept = []
