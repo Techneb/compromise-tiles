@@ -21,14 +21,15 @@ cities = [line(1, "Köln", 50.93, 6.95, "DE", "PPLA2", 1_000_000, "Cologne,Koeln
           line(6, "Kiel", 54.32, 10.13, "DE", "PPLA", 299_999),                    # under the floor
           line(7, "Recife", -8.05, -34.9, "BR", "PPLA", 1_600_000),                # South America
           line(8, "Eindhoven", 51.44, 5.47, "NL", "PPL", 300_000),
-          line(9, "Queens", 53.0, 8.8, "DE", "PPLA2", 2_000_000)]                  # a borough in PART_OF
+          line(9, "Queens", 53.0, 8.8, "DE", "PPLA2", 2_000_000),                  # a borough in PART_OF
+          line(10, "Berlin", 44.0, 20.0, "NL", "PPL", 320_000)]                    # a listed name, another country
 got = select(cities, countries, listed)
-assert [c["city"] for c in got] == ["Hamburg", "Eindhoven"], got                  # most populous first
-assert got[1]["country"] == "Netherlands" and got[0]["population"] == 1_800_000 and got[0]["geonames"] == 3 and got[0]["timezone"] == "Europe/Berlin"
+assert [c["city"] for c in got] == ["Hamburg", "Berlin (Netherlands)", "Eindhoven"], got   # most populous first
+assert got[2]["country"] == "Netherlands" and got[0]["population"] == 1_800_000 and got[0]["geonames"] == 3 and got[0]["timezone"] == "Europe/Berlin"
 assert fold("Köln") == "koln" and fold(" Łódź") == "łodz"
 assert in_square(52.62, 13.40, listed[1]) and not in_square(52.63, 13.40, listed[1])   # 11.1 km in, 12.2 km out
 # merge: a counts run's numbers join by city and country; the uncounted stay without them.
 runs = [{"updated": "2026-09-30", "cities": [{"city": "Hamburg", "country": "Germany", "goingOutCells": 400, "terraceShare": 0.3, "extent": "24 km square"}]}]
 merged = merge(got, runs)
-assert merged[0]["goingOutCells"] == 400 and merged[0]["counted"] == "2026-09-30" and "goingOutCells" not in merged[1]
+assert merged[0]["goingOutCells"] == 400 and merged[0]["counted"] == "2026-09-30" and "goingOutCells" not in merged[2]
 print("ok")
