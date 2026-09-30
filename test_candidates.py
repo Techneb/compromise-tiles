@@ -4,6 +4,7 @@ from candidates import fold, in_square, merge, select
 def line(gid, name, lat, lon, code, feature, population, alt=""):
     f = [""] * 19
     f[0], f[1], f[2], f[3], f[4], f[5], f[7], f[8], f[14] = str(gid), name, name, alt, str(lat), str(lon), feature, code, str(population)
+    f[17] = "Europe/Berlin"
     return "\t".join(f)
 
 countries = ["#ISO\tISO3\tnum\tfips\tCountry\tCapital\tArea\tPop\tContinent",
@@ -23,7 +24,7 @@ cities = [line(1, "Köln", 50.93, 6.95, "DE", "PPLA2", 1_000_000, "Cologne,Koeln
           line(9, "Queens", 53.0, 8.8, "DE", "PPLA2", 2_000_000)]                  # a borough in PART_OF
 got = select(cities, countries, listed)
 assert [c["city"] for c in got] == ["Hamburg", "Eindhoven"], got                  # most populous first
-assert got[1]["country"] == "Netherlands" and got[0]["population"] == 1_800_000 and got[0]["geonames"] == 3
+assert got[1]["country"] == "Netherlands" and got[0]["population"] == 1_800_000 and got[0]["geonames"] == 3 and got[0]["timezone"] == "Europe/Berlin"
 assert fold("Köln") == "koln" and fold(" Łódź") == "łodz"
 assert in_square(52.62, 13.40, listed[1]) and not in_square(52.63, 13.40, listed[1])   # 11.1 km in, 12.2 km out
 # merge: a counts run's numbers join by city and country; the uncounted stay without them.

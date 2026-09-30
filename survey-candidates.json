@@ -5,6 +5,7 @@
   "lat": 55.752,
   "lon": 37.6178,
   "population": 10381222,
+  "timezone": "Europe/Moscow",
   "geonames": 524901
  },
  {
@@ -13,6 +14,7 @@
   "lat": 59.9386,
   "lon": 30.3141,
   "population": 5351935,
+  "timezone": "Europe/Moscow",
   "geonames": 498817
  },
  {
@@ -21,6 +23,7 @@
   "lat": 29.7633,
   "lon": -95.3633,
   "population": 2314157,
+  "timezone": "America/Chicago",
   "geonames": 4699066
  },
  {
@@ -29,6 +32,7 @@
   "lat": 18.4719,
   "lon": -69.8923,
   "population": 2201941,
+  "timezone": "America/Santo_Domingo",
   "geonames": 3492908
  },
  {
@@ -37,6 +41,7 @@
   "lat": 23.133,
   "lon": -82.383,
   "population": 2163824,
+  "timezone": "America/Havana",
   "geonames": 3553478
  },
  {
@@ -45,6 +50,7 @@
   "lat": 32.5027,
   "lon": -117.0037,
   "population": 1922523,
+  "timezone": "America/Tijuana",
   "geonames": 3981609
  },
  {
@@ -53,6 +59,7 @@
   "lat": 53.9002,
   "lon": 27.5665,
   "population": 1742124,
+  "timezone": "Europe/Minsk",
   "geonames": 625144
  },
  {
@@ -61,6 +68,7 @@
   "lat": 19.0478,
   "lon": -98.2072,
   "population": 1692181,
+  "timezone": "America/Mexico_City",
   "geonames": 3521081
  },
  {
@@ -69,6 +77,7 @@
   "lat": 33.4484,
   "lon": -112.074,
   "population": 1650070,
+  "timezone": "America/Phoenix",
   "geonames": 5308655
  },
  {
@@ -77,6 +86,7 @@
   "lat": 19.6049,
   "lon": -99.0606,
   "population": 1645352,
+  "timezone": "America/Mexico_City",
   "geonames": 3529612
  },
  {
@@ -85,6 +95,7 @@
   "lat": 55.0226,
   "lon": 82.9317,
   "population": 1612833,
+  "timezone": "Asia/Novosibirsk",
   "geonames": 1496747
  },
  {
@@ -93,6 +104,7 @@
   "lat": 20.5881,
   "lon": -100.3881,
   "population": 1594212,
+  "timezone": "America/Mexico_City",
   "geonames": 3991164
  },
  {
@@ -101,6 +113,7 @@
   "lat": 21.1218,
   "lon": -101.6825,
   "population": 1579803,
+  "timezone": "America/Mexico_City",
   "geonames": 3998655
  },
  {
@@ -109,6 +122,7 @@
   "lat": 29.4241,
   "lon": -98.4936,
   "population": 1526656,
+  "timezone": "America/Chicago",
   "geonames": 4726206
  },
  {
@@ -117,6 +131,7 @@
   "lat": 31.7202,
   "lon": -106.4608,
   "population": 1512450,
+  "timezone": "America/Ciudad_Juarez",
   "geonames": 4013708
  },
  {
@@ -125,6 +140,7 @@
   "lat": 56.8573,
   "lon": 60.6153,
   "population": 1495066,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 1486209
  },
  {
@@ -133,6 +149,7 @@
   "lat": 20.7211,
   "lon": -103.3874,
   "population": 1476491,
+  "timezone": "America/Mexico_City",
   "geonames": 3979770
  },
  {
@@ -141,6 +158,7 @@
   "lat": 49.9818,
   "lon": 36.2548,
   "population": 1421125,
+  "timezone": "Europe/Kyiv",
   "geonames": 706483
  },
  {
@@ -149,6 +167,7 @@
   "lat": 32.7157,
   "lon": -117.1647,
   "population": 1404452,
+  "timezone": "America/Los_Angeles",
   "geonames": 5391811
  },
  {
@@ -157,6 +176,7 @@
   "lat": 32.7831,
   "lon": -96.8067,
   "population": 1326087,
+  "timezone": "America/Chicago",
   "geonames": 4684888
  },
  {
@@ -165,6 +185,7 @@
   "lat": 44.804,
   "lon": 20.4651,
   "population": 1273651,
+  "timezone": "Europe/Belgrade",
   "geonames": 792680
  },
  {
@@ -173,6 +194,7 @@
   "lat": 56.3287,
   "lon": 44.002,
   "population": 1259013,
+  "timezone": "Europe/Moscow",
   "geonames": 520555
  },
  {
@@ -181,6 +203,7 @@
   "lat": 55.7887,
   "lon": 49.1221,
   "population": 1243500,
+  "timezone": "Europe/Moscow",
   "geonames": 551487
  },
  {
@@ -189,6 +212,7 @@
   "lat": 18.5435,
   "lon": -72.3388,
   "population": 1234742,
+  "timezone": "America/Port-au-Prince",
   "geonames": 3718426
  },
  {
@@ -197,6 +221,7 @@
   "lat": 55.1611,
   "lon": 61.4288,
   "population": 1202371,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 1508291
  },
  {
@@ -205,6 +230,7 @@
   "lat": 20.967,
   "lon": -89.6232,
   "population": 1201000,
+  "timezone": "America/Merida",
   "geonames": 3523349
  },
  {
@@ -213,6 +239,7 @@
   "lat": 19.4504,
   "lon": -70.6908,
   "population": 1200000,
+  "timezone": "America/Santo_Domingo",
   "geonames": 3492914
  },
  {
@@ -221,6 +248,7 @@
   "lat": 54.9924,
   "lon": 73.3686,
   "population": 1172070,
+  "timezone": "Asia/Omsk",
   "geonames": 1496153
  },
  {
@@ -229,6 +257,7 @@
   "lat": 53.2077,
   "lon": 50.1355,
   "population": 1163399,
+  "timezone": "Europe/Samara",
   "geonames": 499099
  },
  {
@@ -237,6 +266,7 @@
   "lat": 42.6975,
   "lon": 23.3241,
   "population": 1152556,
+  "timezone": "Europe/Sofia",
   "geonames": 727011
  },
  {
@@ -245,6 +275,7 @@
   "lat": 25.6843,
   "lon": -100.3172,
   "population": 1135512,
+  "timezone": "America/Monterrey",
   "geonames": 3995465
  },
  {
@@ -253,6 +284,7 @@
   "lat": 47.22,
   "lon": 39.7077,
   "population": 1130305,
+  "timezone": "Europe/Moscow",
   "geonames": 501175
  },
  {
@@ -261,6 +293,7 @@
   "lat": 54.7431,
   "lon": 55.9678,
   "population": 1120547,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 479561
  },
  {
@@ -269,6 +302,7 @@
   "lat": 56.0374,
   "lon": 92.9314,
   "population": 1090811,
+  "timezone": "Asia/Krasnoyarsk",
   "geonames": 1502026
  },
  {
@@ -277,6 +311,7 @@
   "lat": 19.4006,
   "lon": -99.0148,
   "population": 1077208,
+  "timezone": "America/Mexico_City",
   "geonames": 3530589
  },
  {
@@ -285,6 +320,7 @@
   "lat": 51.6683,
   "lon": 39.192,
   "population": 1047549,
+  "timezone": "Europe/Moscow",
   "geonames": 472045
  },
  {
@@ -293,6 +329,7 @@
   "lat": 32.6278,
   "lon": -115.4545,
   "population": 1032686,
+  "timezone": "America/Tijuana",
   "geonames": 3996069
  },
  {
@@ -301,6 +338,7 @@
   "lat": 48.7138,
   "lon": 44.4976,
   "population": 1013533,
+  "timezone": "Europe/Volgograd",
   "geonames": 472757
  },
  {
@@ -309,6 +347,7 @@
   "lat": 53.5501,
   "lon": -113.4687,
   "population": 1010899,
+  "timezone": "America/Edmonton",
   "geonames": 5946768
  },
  {
@@ -317,6 +356,7 @@
   "lat": 46.4857,
   "lon": 30.7438,
   "population": 1010537,
+  "timezone": "Europe/Kyiv",
   "geonames": 698740
  },
  {
@@ -325,6 +365,7 @@
   "lat": 30.3322,
   "lon": -81.6556,
   "population": 1009833,
+  "timezone": "America/New_York",
   "geonames": 4160021
  },
  {
@@ -333,6 +374,7 @@
   "lat": 32.7254,
   "lon": -97.3208,
   "population": 1008106,
+  "timezone": "America/Chicago",
   "geonames": 4691930
  },
  {
@@ -341,6 +383,7 @@
   "lat": 37.3394,
   "lon": -121.895,
   "population": 997368,
+  "timezone": "America/Los_Angeles",
   "geonames": 5392171
  },
  {
@@ -349,6 +392,7 @@
   "lat": 14.6407,
   "lon": -90.5133,
   "population": 994938,
+  "timezone": "America/Guatemala",
   "geonames": 3598132
  },
  {
@@ -357,6 +401,7 @@
   "lat": 58.0105,
   "lon": 56.2502,
   "population": 982419,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 511196
  },
  {
@@ -365,6 +410,7 @@
   "lat": 12.1328,
   "lon": -86.2504,
   "population": 973087,
+  "timezone": "America/Managua",
   "geonames": 3617763
  },
  {
@@ -373,6 +419,7 @@
   "lat": 48.4666,
   "lon": 35.0407,
   "population": 968502,
+  "timezone": "Europe/Kyiv",
   "geonames": 709930
  },
  {
@@ -381,6 +428,7 @@
   "lat": 17.997,
   "lon": -76.7936,
   "population": 937700,
+  "timezone": "America/Jamaica",
   "geonames": 3489854
  },
  {
@@ -389,6 +437,7 @@
   "lat": 28.6353,
   "lon": -106.0889,
   "population": 925762,
+  "timezone": "America/Chihuahua",
   "geonames": 4014338
  },
  {
@@ -397,6 +446,7 @@
   "lat": 39.9612,
   "lon": -82.9988,
   "population": 913175,
+  "timezone": "America/New_York",
   "geonames": 4509177
  },
  {
@@ -405,6 +455,7 @@
   "lat": 35.2271,
   "lon": -80.8431,
   "population": 911311,
+  "timezone": "America/New_York",
   "geonames": 4460243
  },
  {
@@ -413,6 +464,7 @@
   "lat": 48.023,
   "lon": 37.8022,
   "population": 901645,
+  "timezone": "Europe/Kyiv",
   "geonames": 709717
  },
  {
@@ -421,6 +473,7 @@
   "lat": 45.0453,
   "lon": 38.9818,
   "population": 899541,
+  "timezone": "Europe/Moscow",
   "geonames": 542420
  },
  {
@@ -429,6 +482,7 @@
   "lat": 21.1743,
   "lon": -86.8466,
   "population": 888797,
+  "timezone": "America/Cancun",
   "geonames": 3531673
  },
  {
@@ -437,6 +491,7 @@
   "lat": 39.7684,
   "lon": -86.158,
   "population": 887642,
+  "timezone": "America/Indiana/Indianapolis",
   "geonames": 4259418
  },
  {
@@ -445,6 +500,7 @@
   "lat": 14.0818,
   "lon": -87.2068,
   "population": 850848,
+  "timezone": "America/Tegucigalpa",
   "geonames": 3600949
  },
  {
@@ -453,6 +509,7 @@
   "lat": 51.5405,
   "lon": 45.9901,
   "population": 844858,
+  "timezone": "Europe/Saratov",
   "geonames": 498677
  },
  {
@@ -461,6 +518,7 @@
   "lat": 19.4785,
   "lon": -99.2396,
   "population": 834434,
+  "timezone": "America/Mexico_City",
   "geonames": 3522790
  },
  {
@@ -469,6 +527,7 @@
   "lat": 29.0887,
   "lon": -110.9668,
   "population": 812229,
+  "timezone": "America/Hermosillo",
   "geonames": 4004898
  },
  {
@@ -477,6 +536,7 @@
   "lat": 24.8021,
   "lon": -107.3942,
   "population": 808416,
+  "timezone": "America/Mazatlan",
   "geonames": 4012176
  },
  {
@@ -485,6 +545,7 @@
   "lat": 15.5059,
   "lon": -88.0259,
   "population": 801259,
+  "timezone": "America/Tegucigalpa",
   "geonames": 3601782
  },
  {
@@ -493,6 +554,7 @@
   "lat": 57.1522,
   "lon": 65.5272,
   "population": 768358,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 1488754
  },
  {
@@ -501,6 +563,7 @@
   "lat": 49.8844,
   "lon": -97.147,
   "population": 749607,
+  "timezone": "America/Winnipeg",
   "geonames": 6183235
  },
  {
@@ -509,6 +572,7 @@
   "lat": 19.7008,
   "lon": -101.1844,
   "population": 743275,
+  "timezone": "America/Mexico_City",
   "geonames": 3995402
  },
  {
@@ -517,6 +581,7 @@
   "lat": 25.5439,
   "lon": -103.419,
   "population": 735340,
+  "timezone": "America/Monterrey",
   "geonames": 3981254
  },
  {
@@ -525,6 +590,7 @@
   "lat": 22.1523,
   "lon": -100.9714,
   "population": 722772,
+  "timezone": "America/Monterrey",
   "geonames": 3985606
  },
  {
@@ -533,6 +599,7 @@
   "lat": 21.8826,
   "lon": -102.2843,
   "population": 722250,
+  "timezone": "America/Mexico_City",
   "geonames": 4019233
  },
  {
@@ -541,6 +608,7 @@
   "lat": 43.5789,
   "lon": -79.6583,
   "population": 717961,
+  "timezone": "America/Toronto",
   "geonames": 6075357
  },
  {
@@ -549,6 +617,7 @@
   "lat": 49.8383,
   "lon": 24.0232,
   "population": 717273,
+  "timezone": "Europe/Kyiv",
   "geonames": 702550
  },
  {
@@ -557,6 +626,7 @@
   "lat": 47.8517,
   "lon": 35.1171,
   "population": 710052,
+  "timezone": "Europe/Kyiv",
   "geonames": 687700
  },
  {
@@ -565,6 +635,7 @@
   "lat": 25.426,
   "lon": -100.9796,
   "population": 709671,
+  "timezone": "America/Monterrey",
   "geonames": 3988086
  },
  {
@@ -573,6 +644,7 @@
   "lat": 53.5303,
   "lon": 49.3461,
   "population": 702879,
+  "timezone": "Europe/Samara",
   "geonames": 482283
  },
  {
@@ -581,6 +653,7 @@
   "lat": 43.8486,
   "lon": 18.3564,
   "population": 696731,
+  "timezone": "Europe/Sarajevo",
   "geonames": 3191281
  },
  {
@@ -589,6 +662,7 @@
   "lat": 36.1659,
   "lon": -86.7844,
   "population": 689447,
+  "timezone": "America/Chicago",
   "geonames": 4644585
  },
  {
@@ -597,6 +671,7 @@
   "lat": 35.4676,
   "lon": -97.5164,
   "population": 681054,
+  "timezone": "America/Chicago",
   "geonames": 4544349
  },
  {
@@ -605,6 +680,7 @@
   "lat": 45.8144,
   "lon": 15.978,
   "population": 663592,
+  "timezone": "Europe/Zagreb",
   "geonames": 3186886
  },
  {
@@ -613,6 +689,7 @@
   "lat": 16.8494,
   "lon": -99.9089,
   "population": 658609,
+  "timezone": "America/Mexico_City",
   "geonames": 3533462
  },
  {
@@ -621,6 +698,7 @@
   "lat": 56.8522,
   "lon": 53.1986,
   "population": 648213,
+  "timezone": "Europe/Samara",
   "geonames": 554840
  },
  {
@@ -629,6 +707,7 @@
   "lat": 42.3314,
   "lon": -83.0457,
   "population": 645705,
+  "timezone": "America/Detroit",
   "geonames": 4990729
  },
  {
@@ -637,6 +716,7 @@
   "lat": 36.175,
   "lon": -115.1372,
   "population": 641903,
+  "timezone": "America/Los_Angeles",
   "geonames": 5506956
  },
  {
@@ -645,6 +725,7 @@
   "lat": -28.0003,
   "lon": 153.4309,
   "population": 640778,
+  "timezone": "Australia/Brisbane",
   "geonames": 2165087
  },
  {
@@ -653,6 +734,7 @@
   "lat": 47.009,
   "lon": 28.8594,
   "population": 635994,
+  "timezone": "Europe/Chisinau",
   "geonames": 618426
  },
  {
@@ -661,6 +743,7 @@
   "lat": 35.1495,
   "lon": -90.049,
   "population": 633104,
+  "timezone": "America/Chicago",
   "geonames": 4641239
  },
  {
@@ -669,6 +752,7 @@
   "lat": 53.362,
   "lon": 83.7279,
   "population": 632372,
+  "timezone": "Asia/Barnaul",
   "geonames": 1510853
  },
  {
@@ -677,6 +761,7 @@
   "lat": 54.3282,
   "lon": 48.3866,
   "population": 626540,
+  "timezone": "Europe/Ulyanovsk",
   "geonames": 479123
  },
  {
@@ -685,6 +770,7 @@
   "lat": 38.2542,
   "lon": -85.7594,
   "population": 624444,
+  "timezone": "America/Kentucky/Louisville",
   "geonames": 4299276
  },
  {
@@ -693,6 +779,7 @@
   "lat": 52.2957,
   "lon": 104.2908,
   "population": 623869,
+  "timezone": "Asia/Irkutsk",
   "geonames": 2023469
  },
  {
@@ -701,6 +788,7 @@
   "lat": 51.2232,
   "lon": 6.7793,
   "population": 618685,
+  "timezone": "Europe/Berlin",
   "geonames": 2934246
  },
  {
@@ -709,6 +797,7 @@
   "lat": 14.5251,
   "lon": -90.5854,
   "population": 618397,
+  "timezone": "America/Guatemala",
   "geonames": 3587902
  },
  {
@@ -717,6 +806,7 @@
   "lat": 48.462,
   "lon": 135.0971,
   "population": 618150,
+  "timezone": "Asia/Vladivostok",
   "geonames": 2022890
  },
  {
@@ -725,6 +815,7 @@
   "lat": 57.6299,
   "lon": 39.8737,
   "population": 608722,
+  "timezone": "Europe/Moscow",
   "geonames": 468902
  },
  {
@@ -733,6 +824,7 @@
   "lat": 43.1056,
   "lon": 131.8735,
   "population": 604901,
+  "timezone": "Asia/Vladivostok",
   "geonames": 2013348
  },
  {
@@ -741,6 +833,7 @@
   "lat": 16.7536,
   "lon": -93.1158,
   "population": 604147,
+  "timezone": "America/Merida",
   "geonames": 3515001
  },
  {
@@ -749,6 +842,7 @@
   "lat": 47.9057,
   "lon": 33.394,
   "population": 603904,
+  "timezone": "Europe/Kyiv",
   "geonames": 703845
  },
  {
@@ -757,6 +851,7 @@
   "lat": 42.9778,
   "lon": 47.5003,
   "population": 596356,
+  "timezone": "Europe/Moscow",
   "geonames": 532096
  },
  {
@@ -765,6 +860,7 @@
   "lat": 51.4566,
   "lon": 7.0123,
   "population": 593085,
+  "timezone": "Europe/Berlin",
   "geonames": 2928810
  },
  {
@@ -773,6 +869,7 @@
   "lat": 26.08,
   "lon": -98.2846,
   "population": 589466,
+  "timezone": "America/Matamoros",
   "geonames": 3520339
  },
  {
@@ -781,6 +878,7 @@
   "lat": 51.5149,
   "lon": 7.466,
   "population": 588462,
+  "timezone": "Europe/Berlin",
   "geonames": 2935517
  },
  {
@@ -789,6 +887,7 @@
   "lat": 39.2904,
   "lon": -76.6122,
   "population": 585708,
+  "timezone": "America/New_York",
   "geonames": 4347778
  },
  {
@@ -797,6 +896,7 @@
   "lat": 44.4048,
   "lon": 8.9444,
   "population": 580097,
+  "timezone": "Europe/Rome",
   "geonames": 3176219
  },
  {
@@ -805,6 +905,7 @@
   "lat": 56.5005,
   "lon": 84.9822,
   "population": 574002,
+  "timezone": "Asia/Tomsk",
   "geonames": 1489425
  },
  {
@@ -813,6 +914,7 @@
   "lat": 43.2501,
   "lon": -79.8496,
   "population": 569353,
+  "timezone": "America/Toronto",
   "geonames": 5969782
  },
  {
@@ -821,6 +923,7 @@
   "lat": 49.1063,
   "lon": -122.8251,
   "population": 568322,
+  "timezone": "America/Vancouver",
   "geonames": 6159905
  },
  {
@@ -829,6 +932,7 @@
   "lat": 51.0509,
   "lon": 13.7383,
   "population": 564904,
+  "timezone": "Europe/Berlin",
   "geonames": 2935022
  },
  {
@@ -837,6 +941,7 @@
   "lat": 51.7671,
   "lon": 55.0988,
   "population": 564773,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 515003
  },
  {
@@ -845,6 +950,7 @@
   "lat": 35.0845,
   "lon": -106.6511,
   "population": 564559,
+  "timezone": "America/Denver",
   "geonames": 5454711
  },
  {
@@ -853,6 +959,7 @@
   "lat": 43.0389,
   "lon": -87.9065,
   "population": 563531,
+  "timezone": "America/Chicago",
   "geonames": 5263045
  },
  {
@@ -861,6 +968,7 @@
   "lat": 55.3542,
   "lon": 86.1043,
   "population": 558973,
+  "timezone": "Asia/Novokuznetsk",
   "geonames": 1503901
  },
  {
@@ -869,6 +977,7 @@
   "lat": 20.0229,
   "lon": -75.8217,
   "population": 555865,
+  "timezone": "America/Havana",
   "geonames": 3536729
  },
  {
@@ -877,6 +986,7 @@
   "lat": 19.6439,
   "lon": -99.216,
   "population": 555163,
+  "timezone": "America/Mexico_City",
   "geonames": 3515807
  },
  {
@@ -885,6 +995,7 @@
   "lat": 42.6727,
   "lon": 21.1669,
   "population": 550000,
+  "timezone": "Europe/Belgrade",
   "geonames": 786714
  },
  {
@@ -893,6 +1004,7 @@
   "lat": 44.608,
   "lon": 33.5213,
   "population": 547820,
+  "timezone": "Europe/Simferopol",
   "geonames": 694423
  },
  {
@@ -901,6 +1013,7 @@
   "lat": 53.0758,
   "lon": 8.8072,
   "population": 546501,
+  "timezone": "Europe/Berlin",
   "geonames": 2944388
  },
  {
@@ -909,6 +1022,7 @@
   "lat": 32.2217,
   "lon": -110.9265,
   "population": 542629,
+  "timezone": "America/Phoenix",
   "geonames": 5318313
  },
  {
@@ -917,6 +1031,7 @@
   "lat": 36.7477,
   "lon": -119.7724,
   "population": 542107,
+  "timezone": "America/Los_Angeles",
   "geonames": 5350937
  },
  {
@@ -925,6 +1040,7 @@
   "lat": 53.7575,
   "lon": 87.136,
   "population": 539616,
+  "timezone": "Asia/Novokuznetsk",
   "geonames": 1496990
  },
  {
@@ -933,6 +1049,7 @@
   "lat": 54.627,
   "lon": 39.7041,
   "population": 538962,
+  "timezone": "Europe/Moscow",
   "geonames": 500096
  },
  {
@@ -941,6 +1058,7 @@
   "lat": 46.3497,
   "lon": 48.0408,
   "population": 533925,
+  "timezone": "Europe/Astrakhan",
   "geonames": 580497
  },
  {
@@ -949,6 +1067,7 @@
   "lat": 46.8123,
   "lon": -71.2145,
   "population": 531902,
+  "timezone": "America/Toronto",
   "geonames": 6325494
  },
  {
@@ -957,6 +1076,7 @@
   "lat": 13.6893,
   "lon": -89.1872,
   "population": 525990,
+  "timezone": "America/El_Salvador",
   "geonames": 3583361
  },
  {
@@ -965,6 +1085,7 @@
   "lat": 38.5816,
   "lon": -121.4944,
   "population": 524943,
+  "timezone": "America/Los_Angeles",
   "geonames": 5389489
  },
  {
@@ -973,6 +1094,7 @@
   "lat": 53.1957,
   "lon": 45.0108,
   "population": 523553,
+  "timezone": "Europe/Moscow",
   "geonames": 511565
  },
  {
@@ -981,6 +1103,7 @@
   "lat": 24.0203,
   "lon": -104.6576,
   "population": 518709,
+  "timezone": "America/Monterrey",
   "geonames": 4011743
  },
  {
@@ -989,6 +1112,7 @@
   "lat": 49.4542,
   "lon": 11.0775,
   "population": 515543,
+  "timezone": "Europe/Berlin",
   "geonames": 2861650
  },
  {
@@ -997,6 +1121,7 @@
   "lat": 52.3705,
   "lon": 9.7332,
   "population": 515140,
+  "timezone": "Europe/Berlin",
   "geonames": 2910831
  },
  {
@@ -1005,6 +1130,7 @@
   "lat": 33.749,
   "lon": -84.388,
   "population": 510823,
+  "timezone": "America/New_York",
   "geonames": 4180439
  },
  {
@@ -1013,6 +1139,7 @@
   "lat": 25.8797,
   "lon": -97.5042,
   "population": 510739,
+  "timezone": "America/Matamoros",
   "geonames": 3523466
  },
  {
@@ -1021,6 +1148,7 @@
   "lat": 55.7372,
   "lon": 52.4196,
   "population": 509870,
+  "timezone": "Europe/Moscow",
   "geonames": 523750
  },
  {
@@ -1029,6 +1157,7 @@
   "lat": 52.5876,
   "lon": 39.5515,
   "population": 509735,
+  "timezone": "Europe/Moscow",
   "geonames": 535121
  },
  {
@@ -1037,6 +1166,7 @@
   "lat": -32.9295,
   "lon": 151.7801,
   "population": 508437,
+  "timezone": "Australia/Sydney",
   "geonames": 2155472
  },
  {
@@ -1045,6 +1175,7 @@
   "lat": 58.5981,
   "lon": 49.6578,
   "population": 507155,
+  "timezone": "Europe/Kirov",
   "geonames": 548408
  },
  {
@@ -1053,6 +1184,7 @@
   "lat": 51.3396,
   "lon": 12.3713,
   "population": 504971,
+  "timezone": "Europe/Berlin",
   "geonames": 2879139
  },
  {
@@ -1061,6 +1193,7 @@
   "lat": 51.4325,
   "lon": 6.7652,
   "population": 504358,
+  "timezone": "Europe/Berlin",
   "geonames": 2934691
  },
  {
@@ -1069,6 +1202,7 @@
   "lat": 52.4345,
   "lon": 30.9754,
   "population": 501193,
+  "timezone": "Europe/Minsk",
   "geonames": 627907
  },
  {
@@ -1077,6 +1211,7 @@
   "lat": 56.1322,
   "lon": 47.246,
   "population": 492331,
+  "timezone": "Europe/Moscow",
   "geonames": 569696
  },
  {
@@ -1085,6 +1220,7 @@
   "lat": 19.2879,
   "lon": -99.6532,
   "population": 489333,
+  "timezone": "America/Mexico_City",
   "geonames": 3515302
  },
  {
@@ -1093,6 +1229,7 @@
   "lat": 41.2563,
   "lon": -95.9404,
   "population": 486051,
+  "timezone": "America/Chicago",
   "geonames": 5074472
  },
  {
@@ -1101,6 +1238,7 @@
   "lat": 54.1961,
   "lon": 37.6182,
   "population": 482873,
+  "timezone": "Europe/Moscow",
   "geonames": 480562
  },
  {
@@ -1109,6 +1247,7 @@
   "lat": 35.7721,
   "lon": -78.6386,
   "population": 482295,
+  "timezone": "America/New_York",
   "geonames": 4487042
  },
  {
@@ -1117,6 +1256,7 @@
   "lat": 39.0997,
   "lon": -94.5786,
   "population": 475378,
+  "timezone": "America/Chicago",
   "geonames": 4393217
  },
  {
@@ -1125,6 +1265,7 @@
   "lat": 54.7064,
   "lon": 20.511,
   "population": 475056,
+  "timezone": "Europe/Kaliningrad",
   "geonames": 554234
  },
  {
@@ -1133,6 +1274,7 @@
   "lat": 41.9965,
   "lon": 21.4314,
   "population": 474889,
+  "timezone": "Europe/Skopje",
   "geonames": 785842
  },
  {
@@ -1141,6 +1283,7 @@
   "lat": 33.767,
   "lon": -118.1892,
   "population": 474140,
+  "timezone": "America/Los_Angeles",
   "geonames": 5367929
  },
  {
@@ -1149,6 +1292,7 @@
   "lat": 33.4223,
   "lon": -111.8226,
   "population": 471825,
+  "timezone": "America/Phoenix",
   "geonames": 5304391
  },
  {
@@ -1157,6 +1301,7 @@
   "lat": 44.6427,
   "lon": -63.5769,
   "population": 471559,
+  "timezone": "America/Halifax",
   "geonames": 6324729
  },
  {
@@ -1165,6 +1310,7 @@
   "lat": 46.9763,
   "lon": 31.993,
   "population": 470011,
+  "timezone": "Europe/Kyiv",
   "geonames": 700569
  },
  {
@@ -1173,6 +1319,7 @@
   "lat": 25.7814,
   "lon": -100.1891,
   "population": 467157,
+  "timezone": "America/Monterrey",
   "geonames": 4018390
  },
  {
@@ -1181,6 +1328,7 @@
   "lat": 38.8339,
   "lon": -104.8214,
   "population": 456568,
+  "timezone": "America/Denver",
   "geonames": 5417598
  },
  {
@@ -1189,6 +1337,7 @@
   "lat": 25.7966,
   "lon": -100.3177,
   "population": 454967,
+  "timezone": "America/Monterrey",
   "geonames": 4005867
  },
  {
@@ -1197,6 +1346,7 @@
   "lat": 36.8529,
   "lon": -75.978,
   "population": 454808,
+  "timezone": "America/New_York",
   "geonames": 4791259
  },
  {
@@ -1205,6 +1355,7 @@
   "lat": 51.7269,
   "lon": 36.1846,
   "population": 448733,
+  "timezone": "Europe/Moscow",
   "geonames": 538560
  },
  {
@@ -1213,6 +1364,7 @@
   "lat": 31.8715,
   "lon": -116.6007,
   "population": 443807,
+  "timezone": "America/Tijuana",
   "geonames": 4006702
  },
  {
@@ -1221,6 +1373,7 @@
   "lat": 45.0344,
   "lon": 41.9642,
   "population": 433931,
+  "timezone": "Europe/Moscow",
   "geonames": 487846
  },
  {
@@ -1229,6 +1382,7 @@
   "lat": 49.2322,
   "lon": 28.4687,
   "population": 430091,
+  "timezone": "Europe/Kyiv",
   "geonames": 689558
  },
  {
@@ -1237,6 +1391,7 @@
   "lat": 19.1809,
   "lon": -96.1429,
   "population": 428323,
+  "timezone": "America/Mexico_City",
   "geonames": 3514783
  },
  {
@@ -1245,6 +1400,7 @@
   "lat": 53.271,
   "lon": 34.3214,
   "population": 427236,
+  "timezone": "Europe/Moscow",
   "geonames": 571476
  },
  {
@@ -1253,6 +1409,7 @@
   "lat": 19.5312,
   "lon": -96.9159,
   "population": 424755,
+  "timezone": "America/Mexico_City",
   "geonames": 3526617
  },
  {
@@ -1261,6 +1418,7 @@
   "lat": 48.1482,
   "lon": 17.1067,
   "population": 423737,
+  "timezone": "Europe/Bratislava",
   "geonames": 3060972
  },
  {
@@ -1269,6 +1427,7 @@
   "lat": 42.9834,
   "lon": -81.233,
   "population": 422324,
+  "timezone": "America/Toronto",
   "geonames": 6058560
  },
  {
@@ -1277,6 +1436,7 @@
   "lat": 56.8584,
   "lon": 35.9006,
   "population": 420065,
+  "timezone": "Europe/Moscow",
   "geonames": 480060
  },
  {
@@ -1285,6 +1445,7 @@
   "lat": 37.8044,
   "lon": -122.2708,
   "population": 419267,
+  "timezone": "America/Los_Angeles",
   "geonames": 5378538
  },
  {
@@ -1293,6 +1454,7 @@
   "lat": -43.5333,
   "lon": 172.6333,
   "population": 419200,
+  "timezone": "Pacific/Auckland",
   "geonames": 2192362
  },
  {
@@ -1301,6 +1463,7 @@
   "lat": 41.3274,
   "lon": 19.8187,
   "population": 418495,
+  "timezone": "Europe/Tirane",
   "geonames": 3183875
  },
  {
@@ -1309,6 +1472,7 @@
   "lat": 18.4663,
   "lon": -66.1057,
   "population": 418140,
+  "timezone": "America/Puerto_Rico",
   "geonames": 4568127
  },
  {
@@ -1317,6 +1481,7 @@
   "lat": 27.4763,
   "lon": -99.5164,
   "population": 416055,
+  "timezone": "America/Matamoros",
   "geonames": 3522551
  },
  {
@@ -1325,6 +1490,7 @@
   "lat": 27.9475,
   "lon": -82.4584,
   "population": 414547,
+  "timezone": "America/New_York",
   "geonames": 4174757
  },
  {
@@ -1333,6 +1499,7 @@
   "lat": 53.3981,
   "lon": 59.0066,
   "population": 413351,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 532288
  },
  {
@@ -1341,6 +1508,7 @@
   "lat": 36.154,
   "lon": -95.9928,
   "population": 413066,
+  "timezone": "America/Chicago",
   "geonames": 4553433
  },
  {
@@ -1349,6 +1517,7 @@
   "lat": 44.98,
   "lon": -93.2638,
   "population": 410939,
+  "timezone": "America/Chicago",
   "geonames": 5037649
  },
  {
@@ -1357,6 +1526,7 @@
   "lat": 20.6226,
   "lon": -103.2417,
   "population": 408759,
+  "timezone": "America/Mexico_City",
   "geonames": 3981369
  },
  {
@@ -1365,6 +1535,7 @@
   "lat": 8.9936,
   "lon": -79.5197,
   "population": 408168,
+  "timezone": "America/Panama",
   "geonames": 3703443
  },
  {
@@ -1373,6 +1544,7 @@
   "lat": 56.9999,
   "lon": 40.9726,
   "population": 406113,
+  "timezone": "Europe/Moscow",
   "geonames": 555312
  },
  {
@@ -1381,6 +1553,7 @@
   "lat": 49.1952,
   "lon": 16.608,
   "population": 404296,
+  "timezone": "Europe/Prague",
   "geonames": 3078610
  },
  {
@@ -1389,6 +1562,7 @@
   "lat": -26.6568,
   "lon": 153.0796,
   "population": 398840,
+  "timezone": "Australia/Brisbane",
   "geonames": 10630449
  },
  {
@@ -1397,6 +1571,7 @@
   "lat": 48.5681,
   "lon": 39.3055,
   "population": 397677,
+  "timezone": "Europe/Kyiv",
   "geonames": 702658
  },
  {
@@ -1405,6 +1580,7 @@
   "lat": 37.6922,
   "lon": -97.3375,
   "population": 396119,
+  "timezone": "America/Chicago",
   "geonames": 4281730
  },
  {
@@ -1413,6 +1589,7 @@
   "lat": 59.437,
   "lon": 24.7535,
   "population": 394024,
+  "timezone": "Europe/Tallinn",
   "geonames": 588409
  },
  {
@@ -1421,6 +1598,7 @@
   "lat": 32.7357,
   "lon": -97.1081,
   "population": 388125,
+  "timezone": "America/Chicago",
   "geonames": 4671240
  },
  {
@@ -1429,6 +1607,7 @@
   "lat": 51.4817,
   "lon": 7.2165,
   "population": 385729,
+  "timezone": "Europe/Berlin",
   "geonames": 2947416
  },
  {
@@ -1437,6 +1616,7 @@
   "lat": 19.2703,
   "lon": -98.9509,
   "population": 384327,
+  "timezone": "America/Mexico_City",
   "geonames": 3514519
  },
  {
@@ -1445,6 +1625,7 @@
   "lat": -41.2866,
   "lon": 174.7756,
   "population": 381900,
+  "timezone": "Pacific/Auckland",
   "geonames": 2179537
  },
  {
@@ -1453,6 +1634,7 @@
   "lat": 23.2216,
   "lon": -106.4189,
   "population": 381583,
+  "timezone": "America/Mazatlan",
   "geonames": 3996322
  },
  {
@@ -1461,6 +1643,7 @@
   "lat": 57.9194,
   "lon": 59.965,
   "population": 381116,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 520494
  },
  {
@@ -1469,6 +1652,7 @@
   "lat": 20.671,
   "lon": -101.3558,
   "population": 380941,
+  "timezone": "America/Mexico_City",
   "geonames": 4004330
  },
  {
@@ -1477,6 +1661,7 @@
   "lat": 47.1667,
   "lon": 27.6,
   "population": 378954,
+  "timezone": "Europe/Bucharest",
   "geonames": 675810
  },
  {
@@ -1485,6 +1670,7 @@
   "lat": 35.3733,
   "lon": -119.0187,
   "population": 373640,
+  "timezone": "America/Los_Angeles",
   "geonames": 5325738
  },
  {
@@ -1493,6 +1679,7 @@
   "lat": 51.48,
   "lon": -3.18,
   "population": 372089,
+  "timezone": "Europe/London",
   "geonames": 2653822
  },
  {
@@ -1501,6 +1688,7 @@
   "lat": 52.6386,
   "lon": -1.1317,
   "population": 368600,
+  "timezone": "Europe/London",
   "geonames": 2644668
  },
  {
@@ -1509,6 +1697,7 @@
   "lat": -35.2835,
   "lon": 149.1281,
   "population": 367752,
+  "timezone": "Australia/Sydney",
   "geonames": 2172517
  },
  {
@@ -1517,6 +1706,7 @@
   "lat": 53.7939,
   "lon": -1.7521,
   "population": 366187,
+  "timezone": "Europe/London",
   "geonames": 2654993
  },
  {
@@ -1525,6 +1715,7 @@
   "lat": 41.4995,
   "lon": -81.6954,
   "population": 365379,
+  "timezone": "America/New_York",
   "geonames": 5150529
  },
  {
@@ -1533,6 +1724,7 @@
   "lat": 53.6758,
   "lon": 23.8289,
   "population": 363718,
+  "timezone": "Europe/Minsk",
   "geonames": 627904
  },
  {
@@ -1541,6 +1733,7 @@
   "lat": 29.9547,
   "lon": -90.0751,
   "population": 362701,
+  "timezone": "America/Chicago",
   "geonames": 4335045
  },
  {
@@ -1549,6 +1742,7 @@
   "lat": 55.6059,
   "lon": 13.0007,
   "population": 362133,
+  "timezone": "Europe/Stockholm",
   "geonames": 2692969
  },
  {
@@ -1557,6 +1751,7 @@
   "lat": 51.2563,
   "lon": 7.1482,
   "population": 360797,
+  "timezone": "Europe/Berlin",
   "geonames": 2805753
  },
  {
@@ -1565,6 +1760,7 @@
   "lat": 51.8265,
   "lon": 107.5998,
   "population": 360278,
+  "timezone": "Asia/Irkutsk",
   "geonames": 2014407
  },
  {
@@ -1573,6 +1769,7 @@
   "lat": 39.7294,
   "lon": -104.8319,
   "population": 359407,
+  "timezone": "America/Denver",
   "geonames": 5412347
  },
  {
@@ -1581,6 +1778,7 @@
   "lat": 55.1904,
   "lon": 30.2049,
   "population": 358927,
+  "timezone": "Europe/Minsk",
   "geonames": 620127
  },
  {
@@ -1589,6 +1787,7 @@
   "lat": 56.1385,
   "lon": 40.3998,
   "population": 357024,
+  "timezone": "Europe/Moscow",
   "geonames": 473247
  },
  {
@@ -1597,6 +1796,7 @@
   "lat": 14.9054,
   "lon": -92.2589,
   "population": 353706,
+  "timezone": "America/Merida",
   "geonames": 3516266
  },
  {
@@ -1605,6 +1805,7 @@
   "lat": 17.9862,
   "lon": -92.9393,
   "population": 353577,
+  "timezone": "America/Merida",
   "geonames": 3514670
  },
  {
@@ -1613,6 +1814,7 @@
   "lat": 53.9088,
   "lon": 30.3404,
   "population": 352896,
+  "timezone": "Europe/Minsk",
   "geonames": 625665
  },
  {
@@ -1621,6 +1823,7 @@
   "lat": 21.3069,
   "lon": -157.8583,
   "population": 350964,
+  "timezone": "Pacific/Honolulu",
   "geonames": 5856195
  },
  {
@@ -1629,6 +1832,7 @@
   "lat": 33.8353,
   "lon": -117.9145,
   "population": 350742,
+  "timezone": "America/Los_Angeles",
   "geonames": 5323810
  },
  {
@@ -1637,6 +1841,7 @@
   "lat": 64.5461,
   "lon": 40.5518,
   "population": 349742,
+  "timezone": "Europe/Moscow",
   "geonames": 581049
  },
  {
@@ -1645,6 +1850,7 @@
   "lat": 52.0431,
   "lon": 113.4917,
   "population": 349005,
+  "timezone": "Asia/Chita",
   "geonames": 2025339
  },
  {
@@ -1653,6 +1859,7 @@
   "lat": 54.5968,
   "lon": -5.9254,
   "population": 348005,
+  "timezone": "Europe/London",
   "geonames": 2655984
  },
  {
@@ -1661,6 +1868,7 @@
   "lat": 21.3808,
   "lon": -77.9169,
   "population": 347562,
+  "timezone": "America/Havana",
   "geonames": 3566067
  },
  {
@@ -1669,6 +1877,7 @@
   "lat": 52.1089,
   "lon": 23.7175,
   "population": 347138,
+  "timezone": "Europe/Minsk",
   "geonames": 629634
  },
  {
@@ -1677,6 +1886,7 @@
   "lat": -33.4298,
   "lon": 151.3714,
   "population": 346596,
+  "timezone": "Australia/Sydney",
   "geonames": 8310663
  },
  {
@@ -1685,6 +1895,7 @@
   "lat": 52.4066,
   "lon": -1.5122,
   "population": 345324,
+  "timezone": "Europe/London",
   "geonames": 2652221
  },
  {
@@ -1693,6 +1904,7 @@
   "lat": 50.6034,
   "lon": 36.5809,
   "population": 345289,
+  "timezone": "Europe/Moscow",
   "geonames": 578072
  },
  {
@@ -1701,6 +1913,7 @@
   "lat": -27.6392,
   "lon": 153.1094,
   "population": 345098,
+  "timezone": "Australia/Brisbane",
   "geonames": 7281838
  },
  {
@@ -1709,6 +1922,7 @@
   "lat": 54.5306,
   "lon": 36.27,
   "population": 340851,
+  "timezone": "Europe/Moscow",
   "geonames": 553915
  },
  {
@@ -1717,6 +1931,7 @@
   "lat": 20.5218,
   "lon": -100.814,
   "population": 340387,
+  "timezone": "America/Mexico_City",
   "geonames": 4014875
  },
  {
@@ -1725,6 +1940,7 @@
   "lat": 18.9261,
   "lon": -99.2308,
   "population": 338650,
+  "timezone": "America/Mexico_City",
   "geonames": 3529947
  },
  {
@@ -1733,6 +1949,7 @@
   "lat": 43.8668,
   "lon": -79.2663,
   "population": 338503,
+  "timezone": "America/Toronto",
   "geonames": 6066513
  },
  {
@@ -1741,6 +1958,7 @@
   "lat": 44.9572,
   "lon": 34.1108,
   "population": 336460,
+  "timezone": "Europe/Simferopol",
   "geonames": 693805
  },
  {
@@ -1749,6 +1967,7 @@
   "lat": 51.2506,
   "lon": 22.5701,
   "population": 336339,
+  "timezone": "Europe/Warsaw",
   "geonames": 765876
  },
  {
@@ -1757,6 +1976,7 @@
   "lat": 9.9339,
   "lon": -84.0849,
   "population": 335007,
+  "timezone": "America/Costa_Rica",
   "geonames": 3621849
  },
  {
@@ -1765,6 +1985,7 @@
   "lat": 28.5383,
   "lon": -81.3792,
   "population": 334854,
+  "timezone": "America/New_York",
   "geonames": 4167147
  },
  {
@@ -1773,6 +1994,7 @@
   "lat": 21.5073,
   "lon": -104.8933,
   "population": 332863,
+  "timezone": "America/Mazatlan",
   "geonames": 3981941
  },
  {
@@ -1781,6 +2003,7 @@
   "lat": 23.7406,
   "lon": -99.1436,
   "population": 332100,
+  "timezone": "America/Monterrey",
   "geonames": 3530580
  },
  {
@@ -1789,6 +2012,7 @@
   "lat": 52.0333,
   "lon": 8.5333,
   "population": 331906,
+  "timezone": "Europe/Berlin",
   "geonames": 2949186
  },
  {
@@ -1797,6 +2021,7 @@
   "lat": 50.7344,
   "lon": 7.0955,
   "population": 330579,
+  "timezone": "Europe/Berlin",
   "geonames": 2946447
  },
  {
@@ -1805,6 +2030,7 @@
   "lat": 53.1235,
   "lon": 18.0076,
   "population": 330038,
+  "timezone": "Europe/Warsaw",
   "geonames": 3102014
  },
  {
@@ -1813,6 +2039,7 @@
   "lat": 54.7783,
   "lon": 32.0509,
   "population": 330025,
+  "timezone": "Europe/Moscow",
   "geonames": 491687
  },
  {
@@ -1821,6 +2048,7 @@
   "lat": 42.1539,
   "lon": 24.75,
   "population": 329489,
+  "timezone": "Europe/Sofia",
   "geonames": 728193
  },
  {
@@ -1829,6 +2057,7 @@
   "lat": 27.4864,
   "lon": -109.9408,
   "population": 329404,
+  "timezone": "America/Hermosillo",
   "geonames": 4013704
  },
  {
@@ -1837,6 +2066,7 @@
   "lat": 43.597,
   "lon": 39.7248,
   "population": 327608,
+  "timezone": "Europe/Moscow",
   "geonames": 491422
  },
  {
@@ -1845,6 +2075,7 @@
   "lat": 60.2052,
   "lon": 24.6522,
   "population": 323910,
+  "timezone": "Europe/Helsinki",
   "geonames": 660158
  },
  {
@@ -1853,6 +2084,7 @@
   "lat": 52.9536,
   "lon": -1.1505,
   "population": 323632,
+  "timezone": "Europe/London",
   "geonames": 2641170
  },
  {
@@ -1861,6 +2093,7 @@
   "lat": 48.7858,
   "lon": 44.7797,
   "population": 323293,
+  "timezone": "Europe/Volgograd",
   "geonames": 472231
  },
  {
@@ -1869,6 +2102,7 @@
   "lat": 43.8361,
   "lon": -79.4983,
   "population": 323103,
+  "timezone": "America/Toronto",
   "geonames": 6173577
  },
  {
@@ -1877,6 +2111,7 @@
   "lat": 37.9887,
   "lon": -84.4777,
   "population": 320347,
+  "timezone": "America/New_York",
   "geonames": 4297983
  },
  {
@@ -1885,6 +2120,7 @@
   "lat": 20.8872,
   "lon": -76.2631,
   "population": 319102,
+  "timezone": "America/Havana",
   "geonames": 3556969
  },
  {
@@ -1893,6 +2129,7 @@
   "lat": 54.1848,
   "lon": 45.1717,
   "population": 318841,
+  "timezone": "Europe/Moscow",
   "geonames": 498698
  },
  {
@@ -1901,6 +2138,7 @@
   "lat": 43.2191,
   "lon": 27.9102,
   "population": 318737,
+  "timezone": "Europe/Sofia",
   "geonames": 726050
  },
  {
@@ -1909,6 +2147,7 @@
   "lat": 51.4562,
   "lon": -0.9711,
   "population": 318014,
+  "timezone": "Europe/London",
   "geonames": 2639577
  },
  {
@@ -1917,6 +2156,7 @@
   "lat": 44.1807,
   "lon": 28.6343,
   "population": 317832,
+  "timezone": "Europe/Bucharest",
   "geonames": 680963
  },
  {
@@ -1925,6 +2165,7 @@
   "lat": 40.6407,
   "lon": 22.9349,
   "population": 317778,
+  "timezone": "Europe/Athens",
   "geonames": 734077
  },
  {
@@ -1933,6 +2174,7 @@
   "lat": 33.9534,
   "lon": -117.3962,
   "population": 317261,
+  "timezone": "America/Los_Angeles",
   "geonames": 5387877
  },
  {
@@ -1941,6 +2183,7 @@
   "lat": 41.1207,
   "lon": 16.8698,
   "population": 316491,
+  "timezone": "Europe/Rome",
   "geonames": 3182351
  },
  {
@@ -1949,6 +2192,7 @@
   "lat": 27.8006,
   "lon": -97.3964,
   "population": 316239,
+  "timezone": "America/Chicago",
   "geonames": 4683416
  },
  {
@@ -1957,6 +2201,7 @@
   "lat": 59.1333,
   "lon": 37.9,
   "population": 315738,
+  "timezone": "Europe/Moscow",
   "geonames": 569223
  },
  {
@@ -1965,6 +2210,7 @@
   "lat": 53.7446,
   "lon": -0.3352,
   "population": 314018,
+  "timezone": "Europe/London",
   "geonames": 2645425
  },
  {
@@ -1973,6 +2219,7 @@
   "lat": 53.7628,
   "lon": -2.7045,
   "population": 313332,
+  "timezone": "Europe/London",
   "geonames": 2639912
  },
  {
@@ -1981,6 +2228,7 @@
   "lat": 59.2239,
   "lon": 39.884,
   "population": 312420,
+  "timezone": "Europe/Moscow",
   "geonames": 472459
  },
  {
@@ -1989,6 +2237,7 @@
   "lat": 37.4922,
   "lon": 15.0704,
   "population": 311584,
+  "timezone": "Europe/Rome",
   "geonames": 2525068
  },
  {
@@ -1997,6 +2246,7 @@
   "lat": 39.1271,
   "lon": -84.5144,
   "population": 311097,
+  "timezone": "America/New_York",
   "geonames": 4508722
  },
  {
@@ -2005,6 +2255,7 @@
   "lat": 18.149,
   "lon": -94.4447,
   "population": 310698,
+  "timezone": "America/Mexico_City",
   "geonames": 3530517
  },
  {
@@ -2013,6 +2264,7 @@
   "lat": 55.449,
   "lon": 65.3434,
   "population": 309285,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 1501321
  },
  {
@@ -2021,6 +2273,7 @@
   "lat": 22.2852,
   "lon": -97.8778,
   "population": 309003,
+  "timezone": "America/Monterrey",
   "geonames": 3516355
  },
  {
@@ -2029,6 +2282,7 @@
   "lat": 25.6466,
   "lon": -100.0914,
   "population": 308285,
+  "timezone": "America/Monterrey",
   "geonames": 4003757
  },
  {
@@ -2037,6 +2291,7 @@
   "lat": 51.9624,
   "lon": 7.6257,
   "population": 308258,
+  "timezone": "Europe/Berlin",
   "geonames": 2867543
  },
  {
@@ -2045,6 +2300,7 @@
   "lat": 49.4891,
   "lon": 8.4669,
   "population": 307960,
+  "timezone": "Europe/Berlin",
   "geonames": 2873891
  },
  {
@@ -2053,6 +2309,7 @@
   "lat": 43.041,
   "lon": 44.6699,
   "population": 306258,
+  "timezone": "Europe/Moscow",
   "geonames": 473249
  },
  {
@@ -2061,6 +2318,7 @@
   "lat": 19.9398,
   "lon": -72.8304,
   "population": 306217,
+  "timezone": "America/Port-au-Prince",
   "geonames": 3718420
  },
  {
@@ -2069,6 +2327,7 @@
   "lat": 37.9577,
   "lon": -121.2908,
   "population": 305658,
+  "timezone": "America/Los_Angeles",
   "geonames": 5399020
  },
  {
@@ -2077,6 +2336,7 @@
   "lat": 40.4406,
   "lon": -79.9959,
   "population": 304391,
+  "timezone": "America/New_York",
   "geonames": 5206379
  },
  {
@@ -2085,6 +2345,7 @@
   "lat": 25.6732,
   "lon": -100.4581,
   "population": 304052,
+  "timezone": "America/Monterrey",
   "geonames": 3984583
  },
  {
@@ -2093,6 +2354,7 @@
   "lat": 52.9688,
   "lon": 36.0791,
   "population": 303696,
+  "timezone": "Europe/Moscow",
   "geonames": 515012
  },
  {
@@ -2101,6 +2363,7 @@
   "lat": 47.0673,
   "lon": 15.442,
   "population": 303270,
+  "timezone": "Europe/Vienna",
   "geonames": 2778067
  },
  {
@@ -2109,6 +2372,7 @@
   "lat": 44.9444,
   "lon": -93.0933,
   "population": 303176,
+  "timezone": "America/Chicago",
   "geonames": 5045360
  },
  {
@@ -2117,6 +2381,7 @@
   "lat": 48.3715,
   "lon": 10.8985,
   "population": 301105,
+  "timezone": "Europe/Berlin",
   "geonames": 2954172
  },
  {
@@ -2125,6 +2390,7 @@
   "lat": 61.2576,
   "lon": 73.4177,
   "population": 300367,
+  "timezone": "Asia/Yekaterinburg",
   "geonames": 1490624
  },
  {
@@ -2133,6 +2399,7 @@
   "lat": 51.6208,
   "lon": -3.9432,
   "population": 300352,
+  "timezone": "Europe/London",
   "geonames": 2636432
  },
  {
@@ -2141,6 +2408,7 @@
   "lat": 54.9733,
   "lon": -1.614,
   "population": 300125,
+  "timezone": "Europe/London",
   "geonames": 2641673
  }
 ]
