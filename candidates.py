@@ -16,6 +16,8 @@ the second list from GeoNames (cities15000 and countryInfo, CC BY 4.0, downloade
     same country, or its point lies inside the 24 km square the counts job counts a listed city over;
   - not inside the 24 km square of a more populous candidate (Coyoacán is Mexico City's square, Brooklyn
     New York's): its count would be that city's.
+  A candidate named as a listed city of another country is named with its country ("London (Canada)"): the
+  counts job looks cities.json boxes up by name, and counted London, Canada over London's box on 2026-09-30.
 
 Sorted by population, most first, which is the tiebreak the survey queue keeps. `merge` copies a counts
 run's goingOutCells, terraceShare and extent into the list (the run given `--cities survey-candidates.json`),
@@ -84,7 +86,12 @@ def select(city_lines, country_lines, listed):
         if any(in_square(p["lat"], p["lon"], e) for e in listed if "lat" in e): continue
         if any(in_square(p["lat"], p["lon"], k) for k in kept): continue
         kept.append(p)
-    for p in kept: del p["_names"]
+    listed_names = {e["city"] for e in listed}
+    for p in kept:
+        del p["_names"]
+        # A listed city's name in another country (London, Canada): the counts job, cities.json and the status
+        # feed key cities by name, so the candidate carries its country from the start.
+        if p["city"] in listed_names: p["city"] = f"{p['city']} ({p['country']})"
     return kept
 
 
@@ -110,7 +117,7 @@ def main():
     if args.action == "build":
         previous = json.load(open(args.write)) if os.path.exists(args.write) else []
         out = select(*read_geonames(args.geonames), listed)
-        # A rebuild keeps the counts already merged for the cities that stay.
+        # A rebuild keeps the counts already merged for the cities that stay (same name, same country).
         counted = {(c["city"], c["country"]): c for c in previous if "goingOutCells" in c}
         out = [{**c, **{k: v for k, v in counted.get((c["city"], c["country"]), {}).items() if k not in c}} for c in out]
     else:
