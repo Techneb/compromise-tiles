@@ -33,6 +33,9 @@ For each city ({"city", "country", "lat", "lon"} or {"city", "country", "box": [
   denseBox       only when coreKm2 exceeds DENSE_KM2: the square of DENSE_KM2 holding the city's point
                  that holds the most going-out and landmark cells of the square (a 500 m step search)
 
+Each row carries the list's point (lat, lon, null for a city given as a box), so a reader can tell two cities of
+one name apart; a cities.json box found by name is used only when the city's point lies within HALF_KM of it.
+
 The going-out numbers are counted over the city's extent below; the core, landmark and dense fields
 always over the 2 × HALF_KM square around the city's point (or its given box), so a core can grow past
 the box a city is tiled with today.
@@ -268,6 +271,24 @@ def part(groups, spec):
     return [g for i, g in enumerate(ranked) if i % n == k - 1]
 
 
+def holds(muni, e):
+    """Whether a cities.json extent found by name is this city's: its point lies within HALF_KM of the box. A name
+    alone is not enough — London, Canada was counted over London's box on 2026-09-30. A city given as a box has
+    no point and keeps its entry."""
+    if not muni: return False
+    if "lat" not in e: return True
+    return within(padded(muni[0], HALF_KM * 1000), e["lat"], e["lon"])
+
+
+def same_city(a, b):
+    """Whether two counts rows (or a row and a list entry) are the same city: same name, same country, and when
+    both carry a point, within HALF_KM of each other."""
+    if (a["city"], a.get("country")) != (b["city"], b.get("country")): return False
+    if "lat" in a and "lat" in b and a["lat"] is not None and b["lat"] is not None:
+        return metres(a["lat"], a["lon"], b["lat"], b["lon"]) <= HALF_KM * 1000
+    return True
+
+
 def publish(rows, no_point, failed, args):
     """Write counts.json and counts.csv from the rows (the previous file's rows kept for the listed cities not counted)."""
     # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
@@ -276,9 +297,9 @@ def publish(rows, no_point, failed, args):
             import urllib.request
             raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
                 if "://" in args.previous else open(args.previous, "rb").read()
-            counted = {r["city"] for r in rows}
-            listed = {e["city"] for e in json.load(open(args.cities))}  # a city renamed or dropped from the list leaves
-            rows += [r for r in json.loads(raw).get("cities", []) if r["city"] not in counted and r["city"] in listed]
+            listed = json.load(open(args.cities))  # a city renamed, moved or dropped from the list leaves
+            rows += [r for r in json.loads(raw).get("cities", [])
+                     if not any(same_city(r, c) for c in rows) and any(same_city(r, e) for e in listed)]
         except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
             print(f"previous counts not merged: {x}", file=sys.stderr)
     rows.sort(key=lambda r: -r["goingOutCells"])
@@ -335,7 +356,8 @@ def main():
         if e.get("country") == "France" and "lat" in e and munis.get(e["city"], (0, 0, ""))[2] != "tiled box":
             shape = french_commune(e["city"], e["lat"], e["lon"])
             if shape: munis[e["city"]] = (*shape, "commune")
-    extent = lambda e: munis.get(e["city"], (city_box(e), None, f"{2 * HALF_KM} km square"))
+    square = lambda e: (city_box(e), None, f"{2 * HALF_KM} km square")
+    extent = lambda e: munis[e["city"]] if holds(munis.get(e["city"]), e) else square(e)
     groups, failed = {}, []  # extract URL -> cities, so each extract is read once
     for e in cities:
         if "lat" not in e and not e.get("box"): continue
@@ -369,7 +391,7 @@ def main():
             only_going = core(centre(core_going))[0]
             added = [{"name": n, "cell": f"{k[0]},{k[1]}"} for k in sorted(joined) for n in marked[k]
                      if not only_going or not within(only_going, Cell(*k).lat, Cell(*k).lon)][:LANDMARKS_LISTED]
-            rows.append({"city": e["city"], "country": e["country"], "goingOutCells": going,
+            rows.append({"city": e["city"], "country": e["country"], "lat": e.get("lat"), "lon": e.get("lon"), "goingOutCells": going,
                          "goingOutCovered": sum(k in passing for k in going_keys) if passing is not None else None,
                          "terraceShare": round(terrace / going, 3) if going else None, "venues": named, "terraces": outdoor,
                          "extent": label,
