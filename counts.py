@@ -51,7 +51,9 @@ it as a municipality. A city without a point is listed under
 "noPoint" and skipped (nothing is geocoded). OpenStreetMap comes from the smallest Geofabrik
 extract holding the point, filtered with osmium-tool, never from Overpass.
 
-Scope: every city of counts-cities.json. With --previous (the published counts.json), a run
+Scope: every city of --cities (counts-cities.json, or survey-candidates.json for the cities not listed yet),
+or the k-th share of their extracts with --part k/n (then `--merge part1.json part2.json …` writes the parts
+as one run, the way counts.yml's publish job does). With --previous (the published counts.json), a run
 given --only keeps the published rows of the cities it did not count.
 
 Also writes the same rows as CSV beside --write, sorted by going-out cells, most first.
@@ -257,6 +259,55 @@ def dense(centres, lat, lon, area=DENSE_KM2, step=500):
     return best[1]
 
 
+def part(groups, spec):
+    """The k-th of n shares ("k/n", k from 1) of the extract groups: whole extracts, so no extract is read by two
+    parts, dealt by size (most cities first) so the parts end at about the same time."""
+    k, n = (int(x) for x in spec.split("/"))
+    if not 1 <= k <= n: raise SystemExit(f"--part {spec}: k must be between 1 and n")
+    ranked = sorted(groups.items(), key=lambda g: (-len(g[1]), g[0]))
+    return [g for i, g in enumerate(ranked) if i % n == k - 1]
+
+
+def publish(rows, no_point, failed, args):
+    """Write counts.json and counts.csv from the rows (the previous file's rows kept for the listed cities not counted)."""
+    # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
+    if args.previous:
+        try:
+            import urllib.request
+            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
+                if "://" in args.previous else open(args.previous, "rb").read()
+            counted = {r["city"] for r in rows}
+            listed = {e["city"] for e in json.load(open(args.cities))}  # a city renamed or dropped from the list leaves
+            rows += [r for r in json.loads(raw).get("cities", []) if r["city"] not in counted and r["city"] in listed]
+        except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
+            print(f"previous counts not merged: {x}", file=sys.stderr)
+    rows.sort(key=lambda r: -r["goingOutCells"])
+    with open(args.write, "w") as f:
+        json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
+                  f, ensure_ascii=False, indent=1)
+    with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
+        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "goingOutCovered", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "goingOutCoveredWide", "landmarkCellsWide"],
+                           extrasaction="ignore")
+        w.writeheader()
+        w.writerows(rows)
+    # The rows in the log too, one JSON line each, so a session without artifact access can read a run.
+    for r in rows:
+        print("ROW", json.dumps({k: r.get(k) for k in ("city", "country", "goingOutCells", "terraceShare", "extent")}, ensure_ascii=False))
+    print(f"{len(rows)} cities, {len(no_point)} without a point, {len(failed)} failed -> {args.write}", file=sys.stderr)
+    for x in failed: print(f"  failed {x}", file=sys.stderr)
+
+
+def merge_parts(paths):
+    """(rows, noPoint, failed) of the parts' counts.json files, each written by a --part run without --previous."""
+    rows, no_point, failed = [], [], []
+    for p in paths:
+        part = json.load(open(p))
+        rows += part.get("cities", [])
+        no_point += [x for x in part.get("noPoint", []) if x not in no_point]
+        failed += part.get("failed", [])
+    return rows, no_point, failed
+
+
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     a.add_argument("--cities", default="counts-cities.json")
@@ -266,8 +317,13 @@ def main():
     a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 24 km square")
     a.add_argument("--drop", action="store_true", help="delete each extract once its cities are counted (small disks)")
     a.add_argument("--previous", default="", help="the published counts.json (URL or path): its rows for cities not counted this run are kept")
+    a.add_argument("--part", default="", help="k/n: count only the k-th of n shares of the extracts (runs in parallel)")
+    a.add_argument("--merge", nargs="+", default=[], help="the counts.json of each part: merged, then written as a whole run")
     a.add_argument("--coverage", default="https://tiles.alephb.uk/coverage.json", help="the coverage feed (URL or path), for goingOutCovered")
     args = a.parse_args()
+    if args.merge:
+        publish(*merge_parts(args.merge), args)
+        return
     passing = passing_cells(args.coverage) if args.coverage else None
     only = {x.strip() for x in args.only.split(",") if x.strip()}
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]
@@ -287,6 +343,8 @@ def main():
         try: groups.setdefault(geofabrik_pbf((s + n) / 2, (w + east) / 2), []).append(e)
         except SourceError as x: failed.append(f"{e['city']}: {x}")
 
+    if args.part:
+        groups = dict(part(groups, args.part))
     rows = []
     for url, members in groups.items():
         t = time.monotonic()
@@ -324,28 +382,7 @@ def main():
             print(f"  {e['city']}: {going} going-out cells ({rows[-1]['goingOutCovered']} covered), {terrace} with terraces, {named} venues, {outdoor} terraces, {len(marked)} landmark cells, core {len(core_going)} cells + {len(joined)} landmarks, {core_km2:.0f} km² ({time.monotonic() - t:.1f} s)", file=sys.stderr)
         if args.drop: os.remove(pbf)
 
-    # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
-    if args.previous:
-        try:
-            import urllib.request
-            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
-                if "://" in args.previous else open(args.previous, "rb").read()
-            counted = {r["city"] for r in rows}
-            listed = {e["city"] for e in json.load(open(args.cities))}  # a city renamed or dropped from the list leaves
-            rows += [r for r in json.loads(raw).get("cities", []) if r["city"] not in counted and r["city"] in listed]
-        except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
-            print(f"previous counts not merged: {x}", file=sys.stderr)
-    rows.sort(key=lambda r: -r["goingOutCells"])
-    with open(args.write, "w") as f:
-        json.dump({"updated": datetime.date.today().isoformat(), "cities": rows, "noPoint": no_point, "failed": failed},
-                  f, ensure_ascii=False, indent=1)
-    with open(os.path.splitext(args.write)[0] + ".csv", "w", newline="") as f:
-        w = csv.DictWriter(f, ["city", "country", "goingOutCells", "goingOutCovered", "terraceShare", "venues", "terraces", "extent", "coreBox", "coreKm2", "coreCells", "clusterLandmarks", "landmarkCells", "denseBox", "goingOutCellsWide", "goingOutCoveredWide", "landmarkCellsWide"],
-                           extrasaction="ignore")
-        w.writeheader()
-        w.writerows(rows)
-    print(f"{len(rows)} cities, {len(no_point)} without a point, {len(failed)} failed -> {args.write}", file=sys.stderr)
-    for x in failed: print(f"  failed {x}", file=sys.stderr)
+    publish(rows, no_point, failed, args)
 
 
 if __name__ == "__main__":

@@ -135,6 +135,9 @@ none, this says so rather than guessing.
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
 
+**City names and points (`survey-candidates.json`)**
+- GeoNames (geonames.org), CC BY 4.0.
+
 Every key is the rounded coordinate of a public area, and every area is
 named by its city, a district or a public street or square. Venue names are the trading names
 the city registers publish; nothing about a person beyond that.

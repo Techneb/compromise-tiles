@@ -1,6 +1,10 @@
 # Per-city counts from OpenStreetMap extracts (going-out cells, terrace share); writes no tiles.
 # Uploads counts.json to the store's root. Secrets as tiles.yml. Public repo, standard runner:
-# no minutes are billed.
+# no minutes are billed. Four jobs count a share of the extracts each (--part k/4: one job over the
+# 306 listed cities took 4 h 30 of its 350 minutes on 2026-09-29, and the list grows), then `publish`
+# merges them (--merge) with the published rows of the cities not counted. A run over
+# survey-candidates.json (the cities not listed yet, candidates.py) uploads nothing: its rows are in
+# the artifact and in the log (ROW lines), and `candidates.py merge` copies them into that file.
 name: Counts
 
 on:
@@ -11,25 +15,54 @@ on:
       only:
         description: "Cities to count (comma-separated names; empty: all)"
         default: ""
+      cities:
+        description: "The list to count"
+        type: choice
+        options: [counts-cities.json, survey-candidates.json]
+        default: counts-cities.json
 
 concurrency:
-  group: counts
+  group: counts-${{ inputs.cities }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
+env:
+  CITIES: ${{ inputs.cities || 'counts-cities.json' }}
+
 jobs:
   counts:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # --drop: each extract is deleted once its cities are counted, the runner's disk is small.
-      # --previous: a run given `only` keeps the published rows of the cities it did not count.
-      - run: python3 counts.py --cities counts-cities.json --extracts extracts --write counts.json --drop --only "${{ inputs.only }}" --previous "https://tiles.alephb.uk/counts.json"
+      - run: python3 counts.py --cities "$CITIES" --part "${{ matrix.part }}/4" --extracts extracts --write counts.json --drop --only "${{ inputs.only }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: counts-part-${{ matrix.part }}
+          path: counts.json
+
+  publish:
+    needs: counts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: counts-part-*
+          path: parts
+      # --previous: a run given `only` keeps the published rows of the listed cities it did not count.
+      - run: python3 counts.py --cities "$CITIES" --extracts extracts --write counts.json --merge parts/*/counts.json --previous "https://tiles.alephb.uk/counts.json"
       - name: Upload to R2
+        # Only the listed cities: the published file is what the cities page reads.
+        if: ${{ env.CITIES == 'counts-cities.json' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -43,4 +76,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: counts
-          path: counts.csv
+          path: |
+            counts.csv
+            counts.json
