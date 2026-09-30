@@ -1,5 +1,5 @@
 """python3 test_counts.py — the disk count on made-up points, no extract needed."""
-from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, is_whole, km2, merge_parts, part
+from counts import GAP, Cell, cluster, count, city_box, core, core_cells, dense, holds, is_whole, km2, merge_parts, part, same_city
 
 box = city_box({"lat": 48.87, "lon": 2.33})
 ten = [(48.87, 2.33, True, True)] * 10
@@ -59,4 +59,12 @@ for i, (city, failed) in enumerate([("A", []), ("B", ["C: 404"])]):
     json.dump({"cities": [{"city": city, "goingOutCells": i}], "noPoint": ["Z, Nowhere"], "failed": failed}, open(os.path.join(d, f"{i}.json"), "w"))
 rows, no_point, failed = merge_parts([os.path.join(d, f"{i}.json") for i in range(2)])
 assert [r["city"] for r in rows] == ["A", "B"] and no_point == ["Z, Nowhere"] and failed == ["C: 404"], (rows, no_point, failed)
+# Two cities of one name: London's box is not London, Canada's; a previous row matches by name, country and place.
+london_box = ((51.417, -0.3219, 51.643, 0.0539), None, "tiled box")
+assert holds(london_box, {"city": "London", "lat": 51.507, "lon": -0.128})
+assert not holds(london_box, {"city": "London", "lat": 42.98, "lon": -81.25})
+assert holds(london_box, {"city": "London", "box": [51.4, -0.3, 51.6, 0.0]}) and not holds(None, {"city": "London"})
+uk, ca = {"city": "London", "country": "United Kingdom", "lat": 51.507, "lon": -0.128}, {"city": "London", "country": "Canada", "lat": 42.98, "lon": -81.25}
+assert same_city(uk, dict(uk)) and not same_city(uk, ca) and not same_city(uk, dict(uk, lat=42.98, lon=-81.25))
+assert same_city(uk, {"city": "London", "country": "United Kingdom"})   # a row published before rows carried a point
 print("ok")
