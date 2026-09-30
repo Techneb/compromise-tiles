@@ -1,0 +1,2146 @@
+[
+ {
+  "city": "Moscow",
+  "country": "Russia",
+  "lat": 55.752,
+  "lon": 37.6178,
+  "population": 10381222,
+  "geonames": 524901
+ },
+ {
+  "city": "Saint Petersburg",
+  "country": "Russia",
+  "lat": 59.9386,
+  "lon": 30.3141,
+  "population": 5351935,
+  "geonames": 498817
+ },
+ {
+  "city": "Houston",
+  "country": "United States",
+  "lat": 29.7633,
+  "lon": -95.3633,
+  "population": 2314157,
+  "geonames": 4699066
+ },
+ {
+  "city": "Santo Domingo",
+  "country": "Dominican Republic",
+  "lat": 18.4719,
+  "lon": -69.8923,
+  "population": 2201941,
+  "geonames": 3492908
+ },
+ {
+  "city": "Havana",
+  "country": "Cuba",
+  "lat": 23.133,
+  "lon": -82.383,
+  "population": 2163824,
+  "geonames": 3553478
+ },
+ {
+  "city": "Tijuana",
+  "country": "Mexico",
+  "lat": 32.5027,
+  "lon": -117.0037,
+  "population": 1922523,
+  "geonames": 3981609
+ },
+ {
+  "city": "Minsk",
+  "country": "Belarus",
+  "lat": 53.9002,
+  "lon": 27.5665,
+  "population": 1742124,
+  "geonames": 625144
+ },
+ {
+  "city": "Puebla",
+  "country": "Mexico",
+  "lat": 19.0478,
+  "lon": -98.2072,
+  "population": 1692181,
+  "geonames": 3521081
+ },
+ {
+  "city": "Phoenix",
+  "country": "United States",
+  "lat": 33.4484,
+  "lon": -112.074,
+  "population": 1650070,
+  "geonames": 5308655
+ },
+ {
+  "city": "Ecatepec de Morelos",
+  "country": "Mexico",
+  "lat": 19.6049,
+  "lon": -99.0606,
+  "population": 1645352,
+  "geonames": 3529612
+ },
+ {
+  "city": "Novosibirsk",
+  "country": "Russia",
+  "lat": 55.0226,
+  "lon": 82.9317,
+  "population": 1612833,
+  "geonames": 1496747
+ },
+ {
+  "city": "Santiago de Querétaro",
+  "country": "Mexico",
+  "lat": 20.5881,
+  "lon": -100.3881,
+  "population": 1594212,
+  "geonames": 3991164
+ },
+ {
+  "city": "León de los Aldama",
+  "country": "Mexico",
+  "lat": 21.1218,
+  "lon": -101.6825,
+  "population": 1579803,
+  "geonames": 3998655
+ },
+ {
+  "city": "San Antonio",
+  "country": "United States",
+  "lat": 29.4241,
+  "lon": -98.4936,
+  "population": 1526656,
+  "geonames": 4726206
+ },
+ {
+  "city": "Ciudad Juárez",
+  "country": "Mexico",
+  "lat": 31.7202,
+  "lon": -106.4608,
+  "population": 1512450,
+  "geonames": 4013708
+ },
+ {
+  "city": "Yekaterinburg",
+  "country": "Russia",
+  "lat": 56.8573,
+  "lon": 60.6153,
+  "population": 1495066,
+  "geonames": 1486209
+ },
+ {
+  "city": "Zapopan",
+  "country": "Mexico",
+  "lat": 20.7211,
+  "lon": -103.3874,
+  "population": 1476491,
+  "geonames": 3979770
+ },
+ {
+  "city": "Kharkiv",
+  "country": "Ukraine",
+  "lat": 49.9818,
+  "lon": 36.2548,
+  "population": 1421125,
+  "geonames": 706483
+ },
+ {
+  "city": "San Diego",
+  "country": "United States",
+  "lat": 32.7157,
+  "lon": -117.1647,
+  "population": 1404452,
+  "geonames": 5391811
+ },
+ {
+  "city": "Dallas",
+  "country": "United States",
+  "lat": 32.7831,
+  "lon": -96.8067,
+  "population": 1326087,
+  "geonames": 4684888
+ },
+ {
+  "city": "Belgrade",
+  "country": "Serbia",
+  "lat": 44.804,
+  "lon": 20.4651,
+  "population": 1273651,
+  "geonames": 792680
+ },
+ {
+  "city": "Nizhniy Novgorod",
+  "country": "Russia",
+  "lat": 56.3287,
+  "lon": 44.002,
+  "population": 1259013,
+  "geonames": 520555
+ },
+ {
+  "city": "Kazan",
+  "country": "Russia",
+  "lat": 55.7887,
+  "lon": 49.1221,
+  "population": 1243500,
+  "geonames": 551487
+ },
+ {
+  "city": "Port-au-Prince",
+  "country": "Haiti",
+  "lat": 18.5435,
+  "lon": -72.3388,
+  "population": 1234742,
+  "geonames": 3718426
+ },
+ {
+  "city": "Chelyabinsk",
+  "country": "Russia",
+  "lat": 55.1611,
+  "lon": 61.4288,
+  "population": 1202371,
+  "geonames": 1508291
+ },
+ {
+  "city": "Mérida",
+  "country": "Mexico",
+  "lat": 20.967,
+  "lon": -89.6232,
+  "population": 1201000,
+  "geonames": 3523349
+ },
+ {
+  "city": "Santiago de los Caballeros",
+  "country": "Dominican Republic",
+  "lat": 19.4504,
+  "lon": -70.6908,
+  "population": 1200000,
+  "geonames": 3492914
+ },
+ {
+  "city": "Omsk",
+  "country": "Russia",
+  "lat": 54.9924,
+  "lon": 73.3686,
+  "population": 1172070,
+  "geonames": 1496153
+ },
+ {
+  "city": "Samara",
+  "country": "Russia",
+  "lat": 53.2077,
+  "lon": 50.1355,
+  "population": 1163399,
+  "geonames": 499099
+ },
+ {
+  "city": "Sofia",
+  "country": "Bulgaria",
+  "lat": 42.6975,
+  "lon": 23.3241,
+  "population": 1152556,
+  "geonames": 727011
+ },
+ {
+  "city": "Monterrey",
+  "country": "Mexico",
+  "lat": 25.6843,
+  "lon": -100.3172,
+  "population": 1135512,
+  "geonames": 3995465
+ },
+ {
+  "city": "Rostov-on-Don",
+  "country": "Russia",
+  "lat": 47.22,
+  "lon": 39.7077,
+  "population": 1130305,
+  "geonames": 501175
+ },
+ {
+  "city": "Ufa",
+  "country": "Russia",
+  "lat": 54.7431,
+  "lon": 55.9678,
+  "population": 1120547,
+  "geonames": 479561
+ },
+ {
+  "city": "Krasnoyarsk",
+  "country": "Russia",
+  "lat": 56.0374,
+  "lon": 92.9314,
+  "population": 1090811,
+  "geonames": 1502026
+ },
+ {
+  "city": "Ciudad Nezahualcoyotl",
+  "country": "Mexico",
+  "lat": 19.4006,
+  "lon": -99.0148,
+  "population": 1077208,
+  "geonames": 3530589
+ },
+ {
+  "city": "Voronezh",
+  "country": "Russia",
+  "lat": 51.6683,
+  "lon": 39.192,
+  "population": 1047549,
+  "geonames": 472045
+ },
+ {
+  "city": "Mexicali",
+  "country": "Mexico",
+  "lat": 32.6278,
+  "lon": -115.4545,
+  "population": 1032686,
+  "geonames": 3996069
+ },
+ {
+  "city": "Volgograd",
+  "country": "Russia",
+  "lat": 48.7138,
+  "lon": 44.4976,
+  "population": 1013533,
+  "geonames": 472757
+ },
+ {
+  "city": "Edmonton",
+  "country": "Canada",
+  "lat": 53.5501,
+  "lon": -113.4687,
+  "population": 1010899,
+  "geonames": 5946768
+ },
+ {
+  "city": "Odesa",
+  "country": "Ukraine",
+  "lat": 46.4857,
+  "lon": 30.7438,
+  "population": 1010537,
+  "geonames": 698740
+ },
+ {
+  "city": "Jacksonville",
+  "country": "United States",
+  "lat": 30.3322,
+  "lon": -81.6556,
+  "population": 1009833,
+  "geonames": 4160021
+ },
+ {
+  "city": "Fort Worth",
+  "country": "United States",
+  "lat": 32.7254,
+  "lon": -97.3208,
+  "population": 1008106,
+  "geonames": 4691930
+ },
+ {
+  "city": "San Jose",
+  "country": "United States",
+  "lat": 37.3394,
+  "lon": -121.895,
+  "population": 997368,
+  "geonames": 5392171
+ },
+ {
+  "city": "Guatemala City",
+  "country": "Guatemala",
+  "lat": 14.6407,
+  "lon": -90.5133,
+  "population": 994938,
+  "geonames": 3598132
+ },
+ {
+  "city": "Perm",
+  "country": "Russia",
+  "lat": 58.0105,
+  "lon": 56.2502,
+  "population": 982419,
+  "geonames": 511196
+ },
+ {
+  "city": "Managua",
+  "country": "Nicaragua",
+  "lat": 12.1328,
+  "lon": -86.2504,
+  "population": 973087,
+  "geonames": 3617763
+ },
+ {
+  "city": "Dnipro",
+  "country": "Ukraine",
+  "lat": 48.4666,
+  "lon": 35.0407,
+  "population": 968502,
+  "geonames": 709930
+ },
+ {
+  "city": "Kingston",
+  "country": "Jamaica",
+  "lat": 17.997,
+  "lon": -76.7936,
+  "population": 937700,
+  "geonames": 3489854
+ },
+ {
+  "city": "Chihuahua",
+  "country": "Mexico",
+  "lat": 28.6353,
+  "lon": -106.0889,
+  "population": 925762,
+  "geonames": 4014338
+ },
+ {
+  "city": "Columbus",
+  "country": "United States",
+  "lat": 39.9612,
+  "lon": -82.9988,
+  "population": 913175,
+  "geonames": 4509177
+ },
+ {
+  "city": "Charlotte",
+  "country": "United States",
+  "lat": 35.2271,
+  "lon": -80.8431,
+  "population": 911311,
+  "geonames": 4460243
+ },
+ {
+  "city": "Donetsk",
+  "country": "Ukraine",
+  "lat": 48.023,
+  "lon": 37.8022,
+  "population": 901645,
+  "geonames": 709717
+ },
+ {
+  "city": "Krasnodar",
+  "country": "Russia",
+  "lat": 45.0453,
+  "lon": 38.9818,
+  "population": 899541,
+  "geonames": 542420
+ },
+ {
+  "city": "Cancún",
+  "country": "Mexico",
+  "lat": 21.1743,
+  "lon": -86.8466,
+  "population": 888797,
+  "geonames": 3531673
+ },
+ {
+  "city": "Indianapolis",
+  "country": "United States",
+  "lat": 39.7684,
+  "lon": -86.158,
+  "population": 887642,
+  "geonames": 4259418
+ },
+ {
+  "city": "Tegucigalpa",
+  "country": "Honduras",
+  "lat": 14.0818,
+  "lon": -87.2068,
+  "population": 850848,
+  "geonames": 3600949
+ },
+ {
+  "city": "Saratov",
+  "country": "Russia",
+  "lat": 51.5405,
+  "lon": 45.9901,
+  "population": 844858,
+  "geonames": 498677
+ },
+ {
+  "city": "Naucalpan de Juárez",
+  "country": "Mexico",
+  "lat": 19.4785,
+  "lon": -99.2396,
+  "population": 834434,
+  "geonames": 3522790
+ },
+ {
+  "city": "Hermosillo",
+  "country": "Mexico",
+  "lat": 29.0887,
+  "lon": -110.9668,
+  "population": 812229,
+  "geonames": 4004898
+ },
+ {
+  "city": "Culiacán",
+  "country": "Mexico",
+  "lat": 24.8021,
+  "lon": -107.3942,
+  "population": 808416,
+  "geonames": 4012176
+ },
+ {
+  "city": "San Pedro Sula",
+  "country": "Honduras",
+  "lat": 15.5059,
+  "lon": -88.0259,
+  "population": 801259,
+  "geonames": 3601782
+ },
+ {
+  "city": "Tyumen",
+  "country": "Russia",
+  "lat": 57.1522,
+  "lon": 65.5272,
+  "population": 768358,
+  "geonames": 1488754
+ },
+ {
+  "city": "Winnipeg",
+  "country": "Canada",
+  "lat": 49.8844,
+  "lon": -97.147,
+  "population": 749607,
+  "geonames": 6183235
+ },
+ {
+  "city": "Morelia",
+  "country": "Mexico",
+  "lat": 19.7008,
+  "lon": -101.1844,
+  "population": 743275,
+  "geonames": 3995402
+ },
+ {
+  "city": "Torreón",
+  "country": "Mexico",
+  "lat": 25.5439,
+  "lon": -103.419,
+  "population": 735340,
+  "geonames": 3981254
+ },
+ {
+  "city": "San Luis Potosí",
+  "country": "Mexico",
+  "lat": 22.1523,
+  "lon": -100.9714,
+  "population": 722772,
+  "geonames": 3985606
+ },
+ {
+  "city": "Aguascalientes",
+  "country": "Mexico",
+  "lat": 21.8826,
+  "lon": -102.2843,
+  "population": 722250,
+  "geonames": 4019233
+ },
+ {
+  "city": "Mississauga",
+  "country": "Canada",
+  "lat": 43.5789,
+  "lon": -79.6583,
+  "population": 717961,
+  "geonames": 6075357
+ },
+ {
+  "city": "Lviv",
+  "country": "Ukraine",
+  "lat": 49.8383,
+  "lon": 24.0232,
+  "population": 717273,
+  "geonames": 702550
+ },
+ {
+  "city": "Zaporizhzhya",
+  "country": "Ukraine",
+  "lat": 47.8517,
+  "lon": 35.1171,
+  "population": 710052,
+  "geonames": 687700
+ },
+ {
+  "city": "Saltillo",
+  "country": "Mexico",
+  "lat": 25.426,
+  "lon": -100.9796,
+  "population": 709671,
+  "geonames": 3988086
+ },
+ {
+  "city": "Tolyatti",
+  "country": "Russia",
+  "lat": 53.5303,
+  "lon": 49.3461,
+  "population": 702879,
+  "geonames": 482283
+ },
+ {
+  "city": "Sarajevo",
+  "country": "Bosnia and Herzegovina",
+  "lat": 43.8486,
+  "lon": 18.3564,
+  "population": 696731,
+  "geonames": 3191281
+ },
+ {
+  "city": "Nashville",
+  "country": "United States",
+  "lat": 36.1659,
+  "lon": -86.7844,
+  "population": 689447,
+  "geonames": 4644585
+ },
+ {
+  "city": "Oklahoma City",
+  "country": "United States",
+  "lat": 35.4676,
+  "lon": -97.5164,
+  "population": 681054,
+  "geonames": 4544349
+ },
+ {
+  "city": "Zagreb",
+  "country": "Croatia",
+  "lat": 45.8144,
+  "lon": 15.978,
+  "population": 663592,
+  "geonames": 3186886
+ },
+ {
+  "city": "Acapulco de Juárez",
+  "country": "Mexico",
+  "lat": 16.8494,
+  "lon": -99.9089,
+  "population": 658609,
+  "geonames": 3533462
+ },
+ {
+  "city": "Izhevsk",
+  "country": "Russia",
+  "lat": 56.8522,
+  "lon": 53.1986,
+  "population": 648213,
+  "geonames": 554840
+ },
+ {
+  "city": "Detroit",
+  "country": "United States",
+  "lat": 42.3314,
+  "lon": -83.0457,
+  "population": 645705,
+  "geonames": 4990729
+ },
+ {
+  "city": "Las Vegas",
+  "country": "United States",
+  "lat": 36.175,
+  "lon": -115.1372,
+  "population": 641903,
+  "geonames": 5506956
+ },
+ {
+  "city": "Gold Coast",
+  "country": "Australia",
+  "lat": -28.0003,
+  "lon": 153.4309,
+  "population": 640778,
+  "geonames": 2165087
+ },
+ {
+  "city": "Chisinau",
+  "country": "Moldova",
+  "lat": 47.009,
+  "lon": 28.8594,
+  "population": 635994,
+  "geonames": 618426
+ },
+ {
+  "city": "Memphis",
+  "country": "United States",
+  "lat": 35.1495,
+  "lon": -90.049,
+  "population": 633104,
+  "geonames": 4641239
+ },
+ {
+  "city": "Barnaul",
+  "country": "Russia",
+  "lat": 53.362,
+  "lon": 83.7279,
+  "population": 632372,
+  "geonames": 1510853
+ },
+ {
+  "city": "Ulyanovsk",
+  "country": "Russia",
+  "lat": 54.3282,
+  "lon": 48.3866,
+  "population": 626540,
+  "geonames": 479123
+ },
+ {
+  "city": "Louisville",
+  "country": "United States",
+  "lat": 38.2542,
+  "lon": -85.7594,
+  "population": 624444,
+  "geonames": 4299276
+ },
+ {
+  "city": "Irkutsk",
+  "country": "Russia",
+  "lat": 52.2957,
+  "lon": 104.2908,
+  "population": 623869,
+  "geonames": 2023469
+ },
+ {
+  "city": "Düsseldorf",
+  "country": "Germany",
+  "lat": 51.2232,
+  "lon": 6.7793,
+  "population": 618685,
+  "geonames": 2934246
+ },
+ {
+  "city": "Villa Nueva",
+  "country": "Guatemala",
+  "lat": 14.5251,
+  "lon": -90.5854,
+  "population": 618397,
+  "geonames": 3587902
+ },
+ {
+  "city": "Khabarovsk",
+  "country": "Russia",
+  "lat": 48.462,
+  "lon": 135.0971,
+  "population": 618150,
+  "geonames": 2022890
+ },
+ {
+  "city": "Yaroslavl",
+  "country": "Russia",
+  "lat": 57.6299,
+  "lon": 39.8737,
+  "population": 608722,
+  "geonames": 468902
+ },
+ {
+  "city": "Vladivostok",
+  "country": "Russia",
+  "lat": 43.1056,
+  "lon": 131.8735,
+  "population": 604901,
+  "geonames": 2013348
+ },
+ {
+  "city": "Tuxtla",
+  "country": "Mexico",
+  "lat": 16.7536,
+  "lon": -93.1158,
+  "population": 604147,
+  "geonames": 3515001
+ },
+ {
+  "city": "Kryvyy Rih",
+  "country": "Ukraine",
+  "lat": 47.9057,
+  "lon": 33.394,
+  "population": 603904,
+  "geonames": 703845
+ },
+ {
+  "city": "Makhachkala",
+  "country": "Russia",
+  "lat": 42.9778,
+  "lon": 47.5003,
+  "population": 596356,
+  "geonames": 532096
+ },
+ {
+  "city": "Essen",
+  "country": "Germany",
+  "lat": 51.4566,
+  "lon": 7.0123,
+  "population": 593085,
+  "geonames": 2928810
+ },
+ {
+  "city": "Reynosa",
+  "country": "Mexico",
+  "lat": 26.08,
+  "lon": -98.2846,
+  "population": 589466,
+  "geonames": 3520339
+ },
+ {
+  "city": "Dortmund",
+  "country": "Germany",
+  "lat": 51.5149,
+  "lon": 7.466,
+  "population": 588462,
+  "geonames": 2935517
+ },
+ {
+  "city": "Baltimore",
+  "country": "United States",
+  "lat": 39.2904,
+  "lon": -76.6122,
+  "population": 585708,
+  "geonames": 4347778
+ },
+ {
+  "city": "Genoa",
+  "country": "Italy",
+  "lat": 44.4048,
+  "lon": 8.9444,
+  "population": 580097,
+  "geonames": 3176219
+ },
+ {
+  "city": "Tomsk",
+  "country": "Russia",
+  "lat": 56.5005,
+  "lon": 84.9822,
+  "population": 574002,
+  "geonames": 1489425
+ },
+ {
+  "city": "Hamilton",
+  "country": "Canada",
+  "lat": 43.2501,
+  "lon": -79.8496,
+  "population": 569353,
+  "geonames": 5969782
+ },
+ {
+  "city": "Surrey",
+  "country": "Canada",
+  "lat": 49.1063,
+  "lon": -122.8251,
+  "population": 568322,
+  "geonames": 6159905
+ },
+ {
+  "city": "Dresden",
+  "country": "Germany",
+  "lat": 51.0509,
+  "lon": 13.7383,
+  "population": 564904,
+  "geonames": 2935022
+ },
+ {
+  "city": "Orenburg",
+  "country": "Russia",
+  "lat": 51.7671,
+  "lon": 55.0988,
+  "population": 564773,
+  "geonames": 515003
+ },
+ {
+  "city": "Albuquerque",
+  "country": "United States",
+  "lat": 35.0845,
+  "lon": -106.6511,
+  "population": 564559,
+  "geonames": 5454711
+ },
+ {
+  "city": "Milwaukee",
+  "country": "United States",
+  "lat": 43.0389,
+  "lon": -87.9065,
+  "population": 563531,
+  "geonames": 5263045
+ },
+ {
+  "city": "Kemerovo",
+  "country": "Russia",
+  "lat": 55.3542,
+  "lon": 86.1043,
+  "population": 558973,
+  "geonames": 1503901
+ },
+ {
+  "city": "Santiago de Cuba",
+  "country": "Cuba",
+  "lat": 20.0229,
+  "lon": -75.8217,
+  "population": 555865,
+  "geonames": 3536729
+ },
+ {
+  "city": "Cuautitlán Izcalli",
+  "country": "Mexico",
+  "lat": 19.6439,
+  "lon": -99.216,
+  "population": 555163,
+  "geonames": 3515807
+ },
+ {
+  "city": "Pristina",
+  "country": "Kosovo",
+  "lat": 42.6727,
+  "lon": 21.1669,
+  "population": 550000,
+  "geonames": 786714
+ },
+ {
+  "city": "Sevastopol",
+  "country": "Ukraine",
+  "lat": 44.608,
+  "lon": 33.5213,
+  "population": 547820,
+  "geonames": 694423
+ },
+ {
+  "city": "Bremen",
+  "country": "Germany",
+  "lat": 53.0758,
+  "lon": 8.8072,
+  "population": 546501,
+  "geonames": 2944388
+ },
+ {
+  "city": "Tucson",
+  "country": "United States",
+  "lat": 32.2217,
+  "lon": -110.9265,
+  "population": 542629,
+  "geonames": 5318313
+ },
+ {
+  "city": "Fresno",
+  "country": "United States",
+  "lat": 36.7477,
+  "lon": -119.7724,
+  "population": 542107,
+  "geonames": 5350937
+ },
+ {
+  "city": "Novokuznetsk",
+  "country": "Russia",
+  "lat": 53.7575,
+  "lon": 87.136,
+  "population": 539616,
+  "geonames": 1496990
+ },
+ {
+  "city": "Ryazan’",
+  "country": "Russia",
+  "lat": 54.627,
+  "lon": 39.7041,
+  "population": 538962,
+  "geonames": 500096
+ },
+ {
+  "city": "Astrakhan",
+  "country": "Russia",
+  "lat": 46.3497,
+  "lon": 48.0408,
+  "population": 533925,
+  "geonames": 580497
+ },
+ {
+  "city": "Québec",
+  "country": "Canada",
+  "lat": 46.8123,
+  "lon": -71.2145,
+  "population": 531902,
+  "geonames": 6325494
+ },
+ {
+  "city": "San Salvador",
+  "country": "El Salvador",
+  "lat": 13.6893,
+  "lon": -89.1872,
+  "population": 525990,
+  "geonames": 3583361
+ },
+ {
+  "city": "Sacramento",
+  "country": "United States",
+  "lat": 38.5816,
+  "lon": -121.4944,
+  "population": 524943,
+  "geonames": 5389489
+ },
+ {
+  "city": "Penza",
+  "country": "Russia",
+  "lat": 53.1957,
+  "lon": 45.0108,
+  "population": 523553,
+  "geonames": 511565
+ },
+ {
+  "city": "Victoria de Durango",
+  "country": "Mexico",
+  "lat": 24.0203,
+  "lon": -104.6576,
+  "population": 518709,
+  "geonames": 4011743
+ },
+ {
+  "city": "Nuremberg",
+  "country": "Germany",
+  "lat": 49.4542,
+  "lon": 11.0775,
+  "population": 515543,
+  "geonames": 2861650
+ },
+ {
+  "city": "Hannover",
+  "country": "Germany",
+  "lat": 52.3705,
+  "lon": 9.7332,
+  "population": 515140,
+  "geonames": 2910831
+ },
+ {
+  "city": "Atlanta",
+  "country": "United States",
+  "lat": 33.749,
+  "lon": -84.388,
+  "population": 510823,
+  "geonames": 4180439
+ },
+ {
+  "city": "Heroica Matamoros",
+  "country": "Mexico",
+  "lat": 25.8797,
+  "lon": -97.5042,
+  "population": 510739,
+  "geonames": 3523466
+ },
+ {
+  "city": "Naberezhnyye Chelny",
+  "country": "Russia",
+  "lat": 55.7372,
+  "lon": 52.4196,
+  "population": 509870,
+  "geonames": 523750
+ },
+ {
+  "city": "Lipetsk",
+  "country": "Russia",
+  "lat": 52.5876,
+  "lon": 39.5515,
+  "population": 509735,
+  "geonames": 535121
+ },
+ {
+  "city": "Newcastle",
+  "country": "Australia",
+  "lat": -32.9295,
+  "lon": 151.7801,
+  "population": 508437,
+  "geonames": 2155472
+ },
+ {
+  "city": "Kirov",
+  "country": "Russia",
+  "lat": 58.5981,
+  "lon": 49.6578,
+  "population": 507155,
+  "geonames": 548408
+ },
+ {
+  "city": "Leipzig",
+  "country": "Germany",
+  "lat": 51.3396,
+  "lon": 12.3713,
+  "population": 504971,
+  "geonames": 2879139
+ },
+ {
+  "city": "Duisburg",
+  "country": "Germany",
+  "lat": 51.4325,
+  "lon": 6.7652,
+  "population": 504358,
+  "geonames": 2934691
+ },
+ {
+  "city": "Homyel'",
+  "country": "Belarus",
+  "lat": 52.4345,
+  "lon": 30.9754,
+  "population": 501193,
+  "geonames": 627907
+ },
+ {
+  "city": "Cheboksary",
+  "country": "Russia",
+  "lat": 56.1322,
+  "lon": 47.246,
+  "population": 492331,
+  "geonames": 569696
+ },
+ {
+  "city": "Toluca",
+  "country": "Mexico",
+  "lat": 19.2879,
+  "lon": -99.6532,
+  "population": 489333,
+  "geonames": 3515302
+ },
+ {
+  "city": "Omaha",
+  "country": "United States",
+  "lat": 41.2563,
+  "lon": -95.9404,
+  "population": 486051,
+  "geonames": 5074472
+ },
+ {
+  "city": "Tula",
+  "country": "Russia",
+  "lat": 54.1961,
+  "lon": 37.6182,
+  "population": 482873,
+  "geonames": 480562
+ },
+ {
+  "city": "Raleigh",
+  "country": "United States",
+  "lat": 35.7721,
+  "lon": -78.6386,
+  "population": 482295,
+  "geonames": 4487042
+ },
+ {
+  "city": "Kansas City",
+  "country": "United States",
+  "lat": 39.0997,
+  "lon": -94.5786,
+  "population": 475378,
+  "geonames": 4393217
+ },
+ {
+  "city": "Kaliningrad",
+  "country": "Russia",
+  "lat": 54.7064,
+  "lon": 20.511,
+  "population": 475056,
+  "geonames": 554234
+ },
+ {
+  "city": "Skopje",
+  "country": "North Macedonia",
+  "lat": 41.9965,
+  "lon": 21.4314,
+  "population": 474889,
+  "geonames": 785842
+ },
+ {
+  "city": "Long Beach",
+  "country": "United States",
+  "lat": 33.767,
+  "lon": -118.1892,
+  "population": 474140,
+  "geonames": 5367929
+ },
+ {
+  "city": "Mesa",
+  "country": "United States",
+  "lat": 33.4223,
+  "lon": -111.8226,
+  "population": 471825,
+  "geonames": 5304391
+ },
+ {
+  "city": "Halifax",
+  "country": "Canada",
+  "lat": 44.6427,
+  "lon": -63.5769,
+  "population": 471559,
+  "geonames": 6324729
+ },
+ {
+  "city": "Mykolayiv",
+  "country": "Ukraine",
+  "lat": 46.9763,
+  "lon": 31.993,
+  "population": 470011,
+  "geonames": 700569
+ },
+ {
+  "city": "Ciudad Apodaca",
+  "country": "Mexico",
+  "lat": 25.7814,
+  "lon": -100.1891,
+  "population": 467157,
+  "geonames": 4018390
+ },
+ {
+  "city": "Colorado Springs",
+  "country": "United States",
+  "lat": 38.8339,
+  "lon": -104.8214,
+  "population": 456568,
+  "geonames": 5417598
+ },
+ {
+  "city": "Ciudad General Escobedo",
+  "country": "Mexico",
+  "lat": 25.7966,
+  "lon": -100.3177,
+  "population": 454967,
+  "geonames": 4005867
+ },
+ {
+  "city": "Virginia Beach",
+  "country": "United States",
+  "lat": 36.8529,
+  "lon": -75.978,
+  "population": 454808,
+  "geonames": 4791259
+ },
+ {
+  "city": "Kursk",
+  "country": "Russia",
+  "lat": 51.7269,
+  "lon": 36.1846,
+  "population": 448733,
+  "geonames": 538560
+ },
+ {
+  "city": "Ensenada",
+  "country": "Mexico",
+  "lat": 31.8715,
+  "lon": -116.6007,
+  "population": 443807,
+  "geonames": 4006702
+ },
+ {
+  "city": "Stavropol",
+  "country": "Russia",
+  "lat": 45.0344,
+  "lon": 41.9642,
+  "population": 433931,
+  "geonames": 487846
+ },
+ {
+  "city": "Vinnytsya",
+  "country": "Ukraine",
+  "lat": 49.2322,
+  "lon": 28.4687,
+  "population": 430091,
+  "geonames": 689558
+ },
+ {
+  "city": "Veracruz",
+  "country": "Mexico",
+  "lat": 19.1809,
+  "lon": -96.1429,
+  "population": 428323,
+  "geonames": 3514783
+ },
+ {
+  "city": "Bryansk",
+  "country": "Russia",
+  "lat": 53.271,
+  "lon": 34.3214,
+  "population": 427236,
+  "geonames": 571476
+ },
+ {
+  "city": "Xalapa de Enríquez",
+  "country": "Mexico",
+  "lat": 19.5312,
+  "lon": -96.9159,
+  "population": 424755,
+  "geonames": 3526617
+ },
+ {
+  "city": "Bratislava",
+  "country": "Slovakia",
+  "lat": 48.1482,
+  "lon": 17.1067,
+  "population": 423737,
+  "geonames": 3060972
+ },
+ {
+  "city": "London",
+  "country": "Canada",
+  "lat": 42.9834,
+  "lon": -81.233,
+  "population": 422324,
+  "geonames": 6058560
+ },
+ {
+  "city": "Tver",
+  "country": "Russia",
+  "lat": 56.8584,
+  "lon": 35.9006,
+  "population": 420065,
+  "geonames": 480060
+ },
+ {
+  "city": "Oakland",
+  "country": "United States",
+  "lat": 37.8044,
+  "lon": -122.2708,
+  "population": 419267,
+  "geonames": 5378538
+ },
+ {
+  "city": "Christchurch",
+  "country": "New Zealand",
+  "lat": -43.5333,
+  "lon": 172.6333,
+  "population": 419200,
+  "geonames": 2192362
+ },
+ {
+  "city": "Tirana",
+  "country": "Albania",
+  "lat": 41.3274,
+  "lon": 19.8187,
+  "population": 418495,
+  "geonames": 3183875
+ },
+ {
+  "city": "San Juan",
+  "country": "Puerto Rico",
+  "lat": 18.4663,
+  "lon": -66.1057,
+  "population": 418140,
+  "geonames": 4568127
+ },
+ {
+  "city": "Nuevo Laredo",
+  "country": "Mexico",
+  "lat": 27.4763,
+  "lon": -99.5164,
+  "population": 416055,
+  "geonames": 3522551
+ },
+ {
+  "city": "Tampa",
+  "country": "United States",
+  "lat": 27.9475,
+  "lon": -82.4584,
+  "population": 414547,
+  "geonames": 4174757
+ },
+ {
+  "city": "Magnitogorsk",
+  "country": "Russia",
+  "lat": 53.3981,
+  "lon": 59.0066,
+  "population": 413351,
+  "geonames": 532288
+ },
+ {
+  "city": "Tulsa",
+  "country": "United States",
+  "lat": 36.154,
+  "lon": -95.9928,
+  "population": 413066,
+  "geonames": 4553433
+ },
+ {
+  "city": "Minneapolis",
+  "country": "United States",
+  "lat": 44.98,
+  "lon": -93.2638,
+  "population": 410939,
+  "geonames": 5037649
+ },
+ {
+  "city": "Tonalá",
+  "country": "Mexico",
+  "lat": 20.6226,
+  "lon": -103.2417,
+  "population": 408759,
+  "geonames": 3981369
+ },
+ {
+  "city": "Panama City",
+  "country": "Panama",
+  "lat": 8.9936,
+  "lon": -79.5197,
+  "population": 408168,
+  "geonames": 3703443
+ },
+ {
+  "city": "Ivanovo",
+  "country": "Russia",
+  "lat": 56.9999,
+  "lon": 40.9726,
+  "population": 406113,
+  "geonames": 555312
+ },
+ {
+  "city": "Brno",
+  "country": "Czechia",
+  "lat": 49.1952,
+  "lon": 16.608,
+  "population": 404296,
+  "geonames": 3078610
+ },
+ {
+  "city": "Sunshine Coast",
+  "country": "Australia",
+  "lat": -26.6568,
+  "lon": 153.0796,
+  "population": 398840,
+  "geonames": 10630449
+ },
+ {
+  "city": "Luhansk",
+  "country": "Ukraine",
+  "lat": 48.5681,
+  "lon": 39.3055,
+  "population": 397677,
+  "geonames": 702658
+ },
+ {
+  "city": "Wichita",
+  "country": "United States",
+  "lat": 37.6922,
+  "lon": -97.3375,
+  "population": 396119,
+  "geonames": 4281730
+ },
+ {
+  "city": "Tallinn",
+  "country": "Estonia",
+  "lat": 59.437,
+  "lon": 24.7535,
+  "population": 394024,
+  "geonames": 588409
+ },
+ {
+  "city": "Arlington",
+  "country": "United States",
+  "lat": 32.7357,
+  "lon": -97.1081,
+  "population": 388125,
+  "geonames": 4671240
+ },
+ {
+  "city": "Bochum",
+  "country": "Germany",
+  "lat": 51.4817,
+  "lon": 7.2165,
+  "population": 385729,
+  "geonames": 2947416
+ },
+ {
+  "city": "Xico",
+  "country": "Mexico",
+  "lat": 19.2703,
+  "lon": -98.9509,
+  "population": 384327,
+  "geonames": 3514519
+ },
+ {
+  "city": "Wellington",
+  "country": "New Zealand",
+  "lat": -41.2866,
+  "lon": 174.7756,
+  "population": 381900,
+  "geonames": 2179537
+ },
+ {
+  "city": "Mazatlán",
+  "country": "Mexico",
+  "lat": 23.2216,
+  "lon": -106.4189,
+  "population": 381583,
+  "geonames": 3996322
+ },
+ {
+  "city": "Nizhny Tagil",
+  "country": "Russia",
+  "lat": 57.9194,
+  "lon": 59.965,
+  "population": 381116,
+  "geonames": 520494
+ },
+ {
+  "city": "Irapuato",
+  "country": "Mexico",
+  "lat": 20.671,
+  "lon": -101.3558,
+  "population": 380941,
+  "geonames": 4004330
+ },
+ {
+  "city": "Iaşi",
+  "country": "Romania",
+  "lat": 47.1667,
+  "lon": 27.6,
+  "population": 378954,
+  "geonames": 675810
+ },
+ {
+  "city": "Bakersfield",
+  "country": "United States",
+  "lat": 35.3733,
+  "lon": -119.0187,
+  "population": 373640,
+  "geonames": 5325738
+ },
+ {
+  "city": "Cardiff",
+  "country": "United Kingdom",
+  "lat": 51.48,
+  "lon": -3.18,
+  "population": 372089,
+  "geonames": 2653822
+ },
+ {
+  "city": "Leicester",
+  "country": "United Kingdom",
+  "lat": 52.6386,
+  "lon": -1.1317,
+  "population": 368600,
+  "geonames": 2644668
+ },
+ {
+  "city": "Canberra",
+  "country": "Australia",
+  "lat": -35.2835,
+  "lon": 149.1281,
+  "population": 367752,
+  "geonames": 2172517
+ },
+ {
+  "city": "Bradford",
+  "country": "United Kingdom",
+  "lat": 53.7939,
+  "lon": -1.7521,
+  "population": 366187,
+  "geonames": 2654993
+ },
+ {
+  "city": "Cleveland",
+  "country": "United States",
+  "lat": 41.4995,
+  "lon": -81.6954,
+  "population": 365379,
+  "geonames": 5150529
+ },
+ {
+  "city": "Hrodna",
+  "country": "Belarus",
+  "lat": 53.6758,
+  "lon": 23.8289,
+  "population": 363718,
+  "geonames": 627904
+ },
+ {
+  "city": "New Orleans",
+  "country": "United States",
+  "lat": 29.9547,
+  "lon": -90.0751,
+  "population": 362701,
+  "geonames": 4335045
+ },
+ {
+  "city": "Malmö",
+  "country": "Sweden",
+  "lat": 55.6059,
+  "lon": 13.0007,
+  "population": 362133,
+  "geonames": 2692969
+ },
+ {
+  "city": "Wuppertal",
+  "country": "Germany",
+  "lat": 51.2563,
+  "lon": 7.1482,
+  "population": 360797,
+  "geonames": 2805753
+ },
+ {
+  "city": "Ulan-Ude",
+  "country": "Russia",
+  "lat": 51.8265,
+  "lon": 107.5998,
+  "population": 360278,
+  "geonames": 2014407
+ },
+ {
+  "city": "Aurora",
+  "country": "United States",
+  "lat": 39.7294,
+  "lon": -104.8319,
+  "population": 359407,
+  "geonames": 5412347
+ },
+ {
+  "city": "Vitebsk",
+  "country": "Belarus",
+  "lat": 55.1904,
+  "lon": 30.2049,
+  "population": 358927,
+  "geonames": 620127
+ },
+ {
+  "city": "Vladimir",
+  "country": "Russia",
+  "lat": 56.1385,
+  "lon": 40.3998,
+  "population": 357024,
+  "geonames": 473247
+ },
+ {
+  "city": "Tapachula",
+  "country": "Mexico",
+  "lat": 14.9054,
+  "lon": -92.2589,
+  "population": 353706,
+  "geonames": 3516266
+ },
+ {
+  "city": "Villahermosa",
+  "country": "Mexico",
+  "lat": 17.9862,
+  "lon": -92.9393,
+  "population": 353577,
+  "geonames": 3514670
+ },
+ {
+  "city": "Mahilyow",
+  "country": "Belarus",
+  "lat": 53.9088,
+  "lon": 30.3404,
+  "population": 352896,
+  "geonames": 625665
+ },
+ {
+  "city": "Honolulu",
+  "country": "United States",
+  "lat": 21.3069,
+  "lon": -157.8583,
+  "population": 350964,
+  "geonames": 5856195
+ },
+ {
+  "city": "Anaheim",
+  "country": "United States",
+  "lat": 33.8353,
+  "lon": -117.9145,
+  "population": 350742,
+  "geonames": 5323810
+ },
+ {
+  "city": "Arkhangel’sk",
+  "country": "Russia",
+  "lat": 64.5461,
+  "lon": 40.5518,
+  "population": 349742,
+  "geonames": 581049
+ },
+ {
+  "city": "Chita",
+  "country": "Russia",
+  "lat": 52.0431,
+  "lon": 113.4917,
+  "population": 349005,
+  "geonames": 2025339
+ },
+ {
+  "city": "Belfast",
+  "country": "United Kingdom",
+  "lat": 54.5968,
+  "lon": -5.9254,
+  "population": 348005,
+  "geonames": 2655984
+ },
+ {
+  "city": "Camagüey",
+  "country": "Cuba",
+  "lat": 21.3808,
+  "lon": -77.9169,
+  "population": 347562,
+  "geonames": 3566067
+ },
+ {
+  "city": "Brest",
+  "country": "Belarus",
+  "lat": 52.1089,
+  "lon": 23.7175,
+  "population": 347138,
+  "geonames": 629634
+ },
+ {
+  "city": "Central Coast",
+  "country": "Australia",
+  "lat": -33.4298,
+  "lon": 151.3714,
+  "population": 346596,
+  "geonames": 8310663
+ },
+ {
+  "city": "Coventry",
+  "country": "United Kingdom",
+  "lat": 52.4066,
+  "lon": -1.5122,
+  "population": 345324,
+  "geonames": 2652221
+ },
+ {
+  "city": "Belgorod",
+  "country": "Russia",
+  "lat": 50.6034,
+  "lon": 36.5809,
+  "population": 345289,
+  "geonames": 578072
+ },
+ {
+  "city": "Logan City",
+  "country": "Australia",
+  "lat": -27.6392,
+  "lon": 153.1094,
+  "population": 345098,
+  "geonames": 7281838
+ },
+ {
+  "city": "Kaluga",
+  "country": "Russia",
+  "lat": 54.5306,
+  "lon": 36.27,
+  "population": 340851,
+  "geonames": 553915
+ },
+ {
+  "city": "Celaya",
+  "country": "Mexico",
+  "lat": 20.5218,
+  "lon": -100.814,
+  "population": 340387,
+  "geonames": 4014875
+ },
+ {
+  "city": "Cuernavaca",
+  "country": "Mexico",
+  "lat": 18.9261,
+  "lon": -99.2308,
+  "population": 338650,
+  "geonames": 3529947
+ },
+ {
+  "city": "Markham",
+  "country": "Canada",
+  "lat": 43.8668,
+  "lon": -79.2663,
+  "population": 338503,
+  "geonames": 6066513
+ },
+ {
+  "city": "Simferopol",
+  "country": "Ukraine",
+  "lat": 44.9572,
+  "lon": 34.1108,
+  "population": 336460,
+  "geonames": 693805
+ },
+ {
+  "city": "Lublin",
+  "country": "Poland",
+  "lat": 51.2506,
+  "lon": 22.5701,
+  "population": 336339,
+  "geonames": 765876
+ },
+ {
+  "city": "San José",
+  "country": "Costa Rica",
+  "lat": 9.9339,
+  "lon": -84.0849,
+  "population": 335007,
+  "geonames": 3621849
+ },
+ {
+  "city": "Orlando",
+  "country": "United States",
+  "lat": 28.5383,
+  "lon": -81.3792,
+  "population": 334854,
+  "geonames": 4167147
+ },
+ {
+  "city": "Tepic",
+  "country": "Mexico",
+  "lat": 21.5073,
+  "lon": -104.8933,
+  "population": 332863,
+  "geonames": 3981941
+ },
+ {
+  "city": "Ciudad Victoria",
+  "country": "Mexico",
+  "lat": 23.7406,
+  "lon": -99.1436,
+  "population": 332100,
+  "geonames": 3530580
+ },
+ {
+  "city": "Bielefeld",
+  "country": "Germany",
+  "lat": 52.0333,
+  "lon": 8.5333,
+  "population": 331906,
+  "geonames": 2949186
+ },
+ {
+  "city": "Bonn",
+  "country": "Germany",
+  "lat": 50.7344,
+  "lon": 7.0955,
+  "population": 330579,
+  "geonames": 2946447
+ },
+ {
+  "city": "Bydgoszcz",
+  "country": "Poland",
+  "lat": 53.1235,
+  "lon": 18.0076,
+  "population": 330038,
+  "geonames": 3102014
+ },
+ {
+  "city": "Smolensk",
+  "country": "Russia",
+  "lat": 54.7783,
+  "lon": 32.0509,
+  "population": 330025,
+  "geonames": 491687
+ },
+ {
+  "city": "Plovdiv",
+  "country": "Bulgaria",
+  "lat": 42.1539,
+  "lon": 24.75,
+  "population": 329489,
+  "geonames": 728193
+ },
+ {
+  "city": "Ciudad Obregón",
+  "country": "Mexico",
+  "lat": 27.4864,
+  "lon": -109.9408,
+  "population": 329404,
+  "geonames": 4013704
+ },
+ {
+  "city": "Sochi",
+  "country": "Russia",
+  "lat": 43.597,
+  "lon": 39.7248,
+  "population": 327608,
+  "geonames": 491422
+ },
+ {
+  "city": "Espoo",
+  "country": "Finland",
+  "lat": 60.2052,
+  "lon": 24.6522,
+  "population": 323910,
+  "geonames": 660158
+ },
+ {
+  "city": "Nottingham",
+  "country": "United Kingdom",
+  "lat": 52.9536,
+  "lon": -1.1505,
+  "population": 323632,
+  "geonames": 2641170
+ },
+ {
+  "city": "Volzhsky",
+  "country": "Russia",
+  "lat": 48.7858,
+  "lon": 44.7797,
+  "population": 323293,
+  "geonames": 472231
+ },
+ {
+  "city": "Vaughan",
+  "country": "Canada",
+  "lat": 43.8361,
+  "lon": -79.4983,
+  "population": 323103,
+  "geonames": 6173577
+ },
+ {
+  "city": "Lexington",
+  "country": "United States",
+  "lat": 37.9887,
+  "lon": -84.4777,
+  "population": 320347,
+  "geonames": 4297983
+ },
+ {
+  "city": "Holguín",
+  "country": "Cuba",
+  "lat": 20.8872,
+  "lon": -76.2631,
+  "population": 319102,
+  "geonames": 3556969
+ },
+ {
+  "city": "Saransk",
+  "country": "Russia",
+  "lat": 54.1848,
+  "lon": 45.1717,
+  "population": 318841,
+  "geonames": 498698
+ },
+ {
+  "city": "Varna",
+  "country": "Bulgaria",
+  "lat": 43.2191,
+  "lon": 27.9102,
+  "population": 318737,
+  "geonames": 726050
+ },
+ {
+  "city": "Reading",
+  "country": "United Kingdom",
+  "lat": 51.4562,
+  "lon": -0.9711,
+  "population": 318014,
+  "geonames": 2639577
+ },
+ {
+  "city": "Constanţa",
+  "country": "Romania",
+  "lat": 44.1807,
+  "lon": 28.6343,
+  "population": 317832,
+  "geonames": 680963
+ },
+ {
+  "city": "Thessaloníki",
+  "country": "Greece",
+  "lat": 40.6407,
+  "lon": 22.9349,
+  "population": 317778,
+  "geonames": 734077
+ },
+ {
+  "city": "Riverside",
+  "country": "United States",
+  "lat": 33.9534,
+  "lon": -117.3962,
+  "population": 317261,
+  "geonames": 5387877
+ },
+ {
+  "city": "Bari",
+  "country": "Italy",
+  "lat": 41.1207,
+  "lon": 16.8698,
+  "population": 316491,
+  "geonames": 3182351
+ },
+ {
+  "city": "Corpus Christi",
+  "country": "United States",
+  "lat": 27.8006,
+  "lon": -97.3964,
+  "population": 316239,
+  "geonames": 4683416
+ },
+ {
+  "city": "Cherepovets",
+  "country": "Russia",
+  "lat": 59.1333,
+  "lon": 37.9,
+  "population": 315738,
+  "geonames": 569223
+ },
+ {
+  "city": "Kingston upon Hull",
+  "country": "United Kingdom",
+  "lat": 53.7446,
+  "lon": -0.3352,
+  "population": 314018,
+  "geonames": 2645425
+ },
+ {
+  "city": "Preston",
+  "country": "United Kingdom",
+  "lat": 53.7628,
+  "lon": -2.7045,
+  "population": 313332,
+  "geonames": 2639912
+ },
+ {
+  "city": "Vologda",
+  "country": "Russia",
+  "lat": 59.2239,
+  "lon": 39.884,
+  "population": 312420,
+  "geonames": 472459
+ },
+ {
+  "city": "Catania",
+  "country": "Italy",
+  "lat": 37.4922,
+  "lon": 15.0704,
+  "population": 311584,
+  "geonames": 2525068
+ },
+ {
+  "city": "Cincinnati",
+  "country": "United States",
+  "lat": 39.1271,
+  "lon": -84.5144,
+  "population": 311097,
+  "geonames": 4508722
+ },
+ {
+  "city": "Coatzacoalcos",
+  "country": "Mexico",
+  "lat": 18.149,
+  "lon": -94.4447,
+  "population": 310698,
+  "geonames": 3530517
+ },
+ {
+  "city": "Kurgan",
+  "country": "Russia",
+  "lat": 55.449,
+  "lon": 65.3434,
+  "population": 309285,
+  "geonames": 1501321
+ },
+ {
+  "city": "Tampico",
+  "country": "Mexico",
+  "lat": 22.2852,
+  "lon": -97.8778,
+  "population": 309003,
+  "geonames": 3516355
+ },
+ {
+  "city": "Ciudad Benito Juárez",
+  "country": "Mexico",
+  "lat": 25.6466,
+  "lon": -100.0914,
+  "population": 308285,
+  "geonames": 4003757
+ },
+ {
+  "city": "Münster",
+  "country": "Germany",
+  "lat": 51.9624,
+  "lon": 7.6257,
+  "population": 308258,
+  "geonames": 2867543
+ },
+ {
+  "city": "Mannheim",
+  "country": "Germany",
+  "lat": 49.4891,
+  "lon": 8.4669,
+  "population": 307960,
+  "geonames": 2873891
+ },
+ {
+  "city": "Vladikavkaz",
+  "country": "Russia",
+  "lat": 43.041,
+  "lon": 44.6699,
+  "population": 306258,
+  "geonames": 473249
+ },
+ {
+  "city": "Port-de-Paix",
+  "country": "Haiti",
+  "lat": 19.9398,
+  "lon": -72.8304,
+  "population": 306217,
+  "geonames": 3718420
+ },
+ {
+  "city": "Stockton",
+  "country": "United States",
+  "lat": 37.9577,
+  "lon": -121.2908,
+  "population": 305658,
+  "geonames": 5399020
+ },
+ {
+  "city": "Pittsburgh",
+  "country": "United States",
+  "lat": 40.4406,
+  "lon": -79.9959,
+  "population": 304391,
+  "geonames": 5206379
+ },
+ {
+  "city": "Santa Catarina",
+  "country": "Mexico",
+  "lat": 25.6732,
+  "lon": -100.4581,
+  "population": 304052,
+  "geonames": 3984583
+ },
+ {
+  "city": "Orël",
+  "country": "Russia",
+  "lat": 52.9688,
+  "lon": 36.0791,
+  "population": 303696,
+  "geonames": 515012
+ },
+ {
+  "city": "Graz",
+  "country": "Austria",
+  "lat": 47.0673,
+  "lon": 15.442,
+  "population": 303270,
+  "geonames": 2778067
+ },
+ {
+  "city": "Saint Paul",
+  "country": "United States",
+  "lat": 44.9444,
+  "lon": -93.0933,
+  "population": 303176,
+  "geonames": 5045360
+ },
+ {
+  "city": "Augsburg",
+  "country": "Germany",
+  "lat": 48.3715,
+  "lon": 10.8985,
+  "population": 301105,
+  "geonames": 2954172
+ },
+ {
+  "city": "Surgut",
+  "country": "Russia",
+  "lat": 61.2576,
+  "lon": 73.4177,
+  "population": 300367,
+  "geonames": 1490624
+ },
+ {
+  "city": "Swansea",
+  "country": "United Kingdom",
+  "lat": 51.6208,
+  "lon": -3.9432,
+  "population": 300352,
+  "geonames": 2636432
+ },
+ {
+  "city": "Newcastle upon Tyne",
+  "country": "United Kingdom",
+  "lat": 54.9733,
+  "lon": -1.614,
+  "population": 300125,
+  "geonames": 2641673
+ }
+]
