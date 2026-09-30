@@ -331,7 +331,8 @@ def main():
             raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
                 if "://" in args.previous else open(args.previous, "rb").read()
             counted = {r["city"] for r in rows}
-            rows += [r for r in json.loads(raw).get("cities", []) if r["city"] not in counted]
+            listed = {e["city"] for e in json.load(open(args.cities))}  # a city renamed or dropped from the list leaves
+            rows += [r for r in json.loads(raw).get("cities", []) if r["city"] not in counted and r["city"] in listed]
         except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
             print(f"previous counts not merged: {x}", file=sys.stderr)
     rows.sort(key=lambda r: -r["goingOutCells"])
