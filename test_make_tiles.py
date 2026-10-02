@@ -41,6 +41,46 @@ toronto = {"name": "OPERATOR_NAME", "kinds": [], "clean": "toronto"}
 point = {"geometry": {"type": "MultiPoint", "coordinates": [[-79.41, 43.69]]}, "properties": {"OPERATOR_NAME": "None"}}
 assert permit_items([point], toronto) == [{"kind": "TERRASSE", "coordinate": {"latitude": 43.69, "longitude": -79.41}}]
 
+# San Sebastián's terraces (Donostia's MapServer, FID from 0): the paging must not skip FID 0.
+import make_tiles, urllib.parse
+from make_tiles import gipuzkoa_buildings, permits, PERMIT_CITIES
+asked = []
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote(url))
+    return {"features": [{"geometry": {"type": "Point", "coordinates": [-1.958171550804368, 43.312719267068616]},
+                          "properties": {"FID": 0, "IzenTe": "ADI TABERNA"}}]} if len(asked) == 1 else {"features": []}
+make_tiles.get, real_get = fake_get, make_tiles.get
+donostia = next(c for c in PERMIT_CITIES if c["city"] == "San Sebastián")
+assert permits(donostia, (43.31, -1.96, 43.32, -1.95)) == [
+    {"kind": "TERRASSE", "coordinate": {"latitude": 43.312719267068616, "longitude": -1.958171550804368}, "name": "ADI TABERNA"}]
+assert "FID>-1" in asked[0] and "outFields=FID,IzenTe" in asked[0]
+make_tiles.get = real_get
+# Gipuzkoa's INSPIRE GML (the feed's shape, trimmed): heightAboveGround, else floors × 3 m when it reads 0, else 15 m.
+def member(height, floors, ring):
+    return f"""<wfs:member><bu-ext2d:Building xmlns:bu-ext2d="http://inspire.ec.europa.eu/schemas/bu-ext2d/4.0">
+<bu-base:heightAboveGround xmlns:bu-base="http://inspire.ec.europa.eu/schemas/bu-base/4.0"><bu-base:HeightAboveGround>
+<bu-base:value uom="m">{height}</bu-base:value></bu-base:HeightAboveGround></bu-base:heightAboveGround>
+<bu-base:numberOfFloorsAboveGround xmlns:bu-base="http://inspire.ec.europa.eu/schemas/bu-base/4.0">{floors}</bu-base:numberOfFloorsAboveGround>
+<bu-core2d:geometry2D xmlns:bu-core2d="http://inspire.ec.europa.eu/schemas/bu-core2d/4.0"><gml:Polygon><gml:exterior><gml:LinearRing>
+<gml:posList>{ring}</gml:posList></gml:LinearRing></gml:exterior><gml:interior><gml:LinearRing><gml:posList>0 0 0 1 1 1 0 0</gml:posList>
+</gml:LinearRing></gml:interior></gml:Polygon></bu-core2d:geometry2D></bu-ext2d:Building></wfs:member>"""
+ring = "43.323921 -1.986071 43.323889 -1.986158 43.323834 -1.986123 43.323921 -1.986071"
+gml = ('<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2">'
+       + member(20, 5, ring) + member(0, 4, ring) + member(0, "", ring) + "</wfs:FeatureCollection>").encode()
+built = gipuzkoa_buildings(gml)
+assert [b["height"] for b in built] == [20.0, 12.0, 15.0]
+assert built[0]["outline"][0] == {"latitude": 43.323921, "longitude": -1.986071} and len(built[0]["outline"]) == 4
+# Johannesburg's ELEVATION is already metres above ground (Carlton Centre 204.1); San Sebastián's cells are Gipuzkoa's, not Catastro's.
+from make_tiles import building_source, CITY_BUILDINGS
+joburg = next(b for b in CITY_BUILDINGS if b["city"] == "Johannesburg")["fetch"]
+real_arcgis = make_tiles.arcgis
+make_tiles.arcgis = lambda *a, **k: [{"geometry": {"type": "Polygon", "coordinates": [[[28.047, -26.206], [28.048, -26.206],
+    [28.048, -26.205], [28.047, -26.206]]]}, "properties": {"ELEVATION": 204.1}}]
+assert [b["height"] for b in joburg((0, 0, 1, 1))] == [204.1]
+make_tiles.arcgis = real_arcgis
+at = lambda lat, lon: building_source(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0])
+assert at(43.3236, -1.9849) == "San Sebastián" and at(-26.2058, 28.0471) == "Johannesburg" and at(-26.1063, 28.0542) == "Johannesburg"
+
 # sources/: each layer writes its own field and keeps the other's; a cell's building source is what answered.
 import tempfile, make_tiles
 from make_tiles import note_sources, read, path, do_buildings
