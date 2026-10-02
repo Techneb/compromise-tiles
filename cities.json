@@ -1362,5 +1362,25 @@
       42.731,
       23.3874
     ]
+  },
+  {
+    "city": "Bratislava",
+    "district": "Bratislava (going-out core + 2 km)",
+    "box": [
+      48.095,
+      17.0621,
+      48.193,
+      17.2119
+    ]
+  },
+  {
+    "city": "Oakland",
+    "district": "Oakland (going-out core + 2 km)",
+    "box": [
+      37.775,
+      -122.3037,
+      37.837,
+      -122.2183
+    ]
   }
 ]
