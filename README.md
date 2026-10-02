@@ -132,9 +132,9 @@ none, this says so rather than guessing.
   stated by the publisher).
 - Philadelphia: City of Philadelphia, L&I Building Footprints (the City
   reserves all rights; provided as is).
-- Bratislava: Hlavné mesto SR Bratislava, Pocet_obyvatelov_budovy
-  (licence not stated by the publisher); heights on OpenStreetMap's
-  footprints.
+- Bratislava: Magistrát hlavného mesta SR, Bratislava,
+  Pocet_obyvatelov_budovy (licence not stated by the publisher); heights
+  on OpenStreetMap's footprints.
 - Oakland: City of Oakland, BuildingFootprints (licence not stated by the
   publisher); heights on OpenStreetMap's footprints.
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
