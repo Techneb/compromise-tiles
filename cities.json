@@ -735,5 +735,15 @@
       53.6221,
       10.0845
     ]
+  },
+  {
+    "city": "Johannesburg",
+    "district": "Johannesburg (going-out core + 2 km)",
+    "box": [
+      -26.227,
+      28.019,
+      -26.187,
+      28.065
+    ]
   }
 ]

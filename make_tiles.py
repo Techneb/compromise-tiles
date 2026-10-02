@@ -140,6 +140,10 @@ PERMIT_CITIES = [
         (56.85, 57.09), (23.93, 24.33), shape="arcgis", oid="gid", clean="riga"),
     # Opendatasoft (no licence stated): the latest permit's terrace drawing, at its centre point; the only
     # text is the drawing's file name (an address), so no name field — door rule only.
+    # ArcGIS MapServer (© Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, no licence
+    # stated): every point a granted terrace, IzenTe the venue; the OID field is FID. The box is the layer's.
+    row("San Sebastián", "", "www.donostia.eus/geozerbitzuak/rest/services", "ext/URBANISMO/MapServer/34", "IzenTe", [],
+        (43.29, 43.33), (-2.02, -1.91), shape="arcgis", oid="FID"),
     row("Eindhoven", "", "data.eindhoven.nl", "terrastekeningen", "", [], (51.39, 51.50), (5.38, 5.56)),
 ]
 
@@ -457,7 +461,7 @@ def arcgis(url, rect, fields, where="1=1", oid="OBJECTID"):
         root = json.loads(raw)
         if "error" in root: raise ValueError(root["error"])
         return root
-    out, last = [], 0
+    out, last = [], -1   # a shapefile's FID starts at 0 (San Sebastián's first terrace)
     while True:
         q = urllib.parse.urlencode({"where": f"({where}) AND {oid}>{last}", "geometry": f"{w},{s},{e},{n}",
                                     "geometryType": "esriGeometryEnvelope", "inSR": "4326", "outSR": "4326",
@@ -649,6 +653,35 @@ def hamburg(rect):
                     if len(ring) >= 3: out.append(building(ring, (o.get("attributes") or {}).get("measuredHeight") or 15.0))
     return out
 
+GIPUZKOA_NS = {"gml": "http://www.opengis.net/gml/3.2", "wfs": "http://www.opengis.net/wfs/2.0",
+               "bu-base": "http://inspire.ec.europa.eu/schemas/bu-base/4.0",
+               "bu-core2d": "http://inspire.ec.europa.eu/schemas/bu-core2d/4.0"}
+
+def gipuzkoa_buildings(raw):
+    """INSPIRE BU GML 3.2 (the only format served), lat lon: heightAboveGround (estimated), else floors × 3 m."""
+    out = []
+    for b in ET.fromstring(raw).iterfind("wfs:member/*", GIPUZKOA_NS):
+        h = number(b.findtext("bu-base:heightAboveGround/bu-base:HeightAboveGround/bu-base:value", namespaces=GIPUZKOA_NS))
+        if not h or h <= 0:
+            floors = number(b.findtext("bu-base:numberOfFloorsAboveGround", namespaces=GIPUZKOA_NS))
+            h = floors * 3 if floors and floors > 0 else 15.0
+        for ring in b.iterfind("bu-core2d:geometry2D//gml:exterior//gml:posList", GIPUZKOA_NS):
+            v = [float(x) for x in ring.text.split()]
+            if len(v) >= 6: out.append(building([vertex(v[i], v[i + 1]) for i in range(0, len(v) - 1, 2)], h))
+    return out
+
+def gipuzkoa(rect, cap=2000):
+    """Gipuzkoa Provincial Council's INSPIRE buildings WFS (~13 KB a building: addresses ride along); a full page is split in four."""
+    s, w, n, e = rect
+    q = urllib.parse.urlencode({"SERVICE": "WFS", "VERSION": "2.0.0", "REQUEST": "GetFeature", "TYPENAMES": "bu-ext2d:Building",
+                                "COUNT": str(cap), "SRSNAME": "urn:ogc:def:crs:EPSG::4326",
+                                "BBOX": f"{s},{w},{n},{e},urn:ogc:def:crs:EPSG::4326"})
+    raw = get("https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_bu?" + q)
+    if raw.count(b"<wfs:member") >= cap:
+        ms, me = (s + n) / 2, (w + e) / 2
+        return [b for part in ((s, w, ms, me), (s, me, ms, e), (ms, w, n, me), (ms, me, n, e)) for b in gipuzkoa(part, cap)]
+    return gipuzkoa_buildings(raw)
+
 def boundary(slug):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
 
@@ -725,6 +758,15 @@ CITY_BUILDINGS = [
     building_row("Valladolid", (41.60, 41.70), (-4.78, -4.68), catastro),
     building_row("Vigo", (42.19, 42.26), (-8.78, -8.67), catastro),
     building_row("Gijón", (43.50, 43.56), (-5.72, -5.62), catastro),
+    # Not Catastro: the Basque cadastres are their own. Gipuzkoa's covers the whole province, so the
+    # box is the municipality's (cities.json) and needs no boundary.
+    building_row("San Sebastián", (43.2178, 43.3382), (-2.0868, -1.8879), gipuzkoa),
+    # CoJ Building Footprints (no licence stated): ELEVATION is metres above ground (Carlton Centre
+    # 204.1, Michelangelo Towers 145.7; the city sits at ~1,750 m). Captured for the CBDs, business
+    # zones and station areas only; the box is the layer's extent.
+    building_row("Johannesburg", (-26.5696, -25.9075), (27.7418, 28.2540), lambda r: footprints(arcgis(
+        "https://ags.joburg.org.za/server/rest/services/Property/MapServer/1", r, ["ELEVATION"]),
+        lambda p: p.get("ELEVATION"))),
     building_row("Bologna", (44.42, 44.56), (11.23, 11.44), lambda r: footprints(opendatasoft(
         "opendata.comune.bologna.it", "c_a944ctc_edifici_pl", in_bbox("geo_point_2d", r), "altezza_gr"),
         lambda p: p.get("altezza_gr"))),
