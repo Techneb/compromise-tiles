@@ -3398,5 +3398,545 @@
   "terraceShare": 0.157,
   "extent": "24 km square",
   "counted": "2026-09-30"
+ },
+ {
+  "city": "Saint-Denis (La Réunion)",
+  "country": "France",
+  "lat": -20.8794,
+  "lon": 55.4478,
+  "population": 155634,
+  "timezone": "Indian/Reunion",
+  "insee": "97411"
+ },
+ {
+  "city": "Saint-Paul",
+  "country": "France",
+  "lat": -21.0097,
+  "lon": 55.2696,
+  "population": 108088,
+  "timezone": "Indian/Reunion",
+  "insee": "97415"
+ },
+ {
+  "city": "Argenteuil",
+  "country": "France",
+  "lat": 48.9478,
+  "lon": 2.2489,
+  "population": 106130,
+  "timezone": "Europe/Paris",
+  "insee": "95018"
+ },
+ {
+  "city": "Tourcoing",
+  "country": "France",
+  "lat": 50.724,
+  "lon": 3.161,
+  "population": 98772,
+  "timezone": "Europe/Paris",
+  "insee": "59599"
+ },
+ {
+  "city": "Roubaix",
+  "country": "France",
+  "lat": 50.691,
+  "lon": 3.1741,
+  "population": 98286,
+  "timezone": "Europe/Paris",
+  "insee": "59512"
+ },
+ {
+  "city": "Poitiers",
+  "country": "France",
+  "lat": 46.5801,
+  "lon": 0.3412,
+  "population": 89916,
+  "timezone": "Europe/Paris",
+  "insee": "86194"
+ },
+ {
+  "city": "Dunkerque",
+  "country": "France",
+  "lat": 51.0377,
+  "lon": 2.3764,
+  "population": 86263,
+  "timezone": "Europe/Paris",
+  "insee": "59183"
+ },
+ {
+  "city": "Nouméa",
+  "country": "France",
+  "lat": -22.3363,
+  "lon": 166.4076,
+  "population": 85976,
+  "timezone": "Pacific/Noumea",
+  "insee": "98818"
+ },
+ {
+  "city": "Saint-Pierre",
+  "country": "France",
+  "lat": -21.3418,
+  "lon": 55.4778,
+  "population": 85038,
+  "timezone": "Indian/Reunion",
+  "insee": "97416"
+ },
+ {
+  "city": "Versailles",
+  "country": "France",
+  "lat": 48.8012,
+  "lon": 2.1301,
+  "population": 84095,
+  "timezone": "Europe/Paris",
+  "insee": "78646"
+ },
+ {
+  "city": "Le Tampon",
+  "country": "France",
+  "lat": -21.2782,
+  "lon": 55.5153,
+  "population": 82579,
+  "timezone": "Indian/Reunion",
+  "insee": "97422"
+ },
+ {
+  "city": "Béziers",
+  "country": "France",
+  "lat": 43.343,
+  "lon": 3.2138,
+  "population": 81545,
+  "timezone": "Europe/Paris",
+  "insee": "34032"
+ },
+ {
+  "city": "Cherbourg-en-Cotentin",
+  "country": "France",
+  "lat": 49.6424,
+  "lon": -1.6244,
+  "population": 78258,
+  "timezone": "Europe/Paris",
+  "insee": "50129"
+ },
+ {
+  "city": "Mérignac",
+  "country": "France",
+  "lat": 44.845,
+  "lon": -0.6565,
+  "population": 78090,
+  "timezone": "Europe/Paris",
+  "insee": "33281"
+ },
+ {
+  "city": "Antibes",
+  "country": "France",
+  "lat": 43.5813,
+  "lon": 7.1279,
+  "population": 77637,
+  "timezone": "Europe/Paris",
+  "insee": "06004"
+ },
+ {
+  "city": "Ajaccio",
+  "country": "France",
+  "lat": 41.9194,
+  "lon": 8.7391,
+  "population": 76320,
+  "timezone": "Europe/Paris",
+  "insee": "2A004"
+ },
+ {
+  "city": "Fort-de-France",
+  "country": "France",
+  "lat": 14.6072,
+  "lon": -61.0695,
+  "population": 75506,
+  "timezone": "America/Martinique",
+  "insee": "97209"
+ },
+ {
+  "city": "Saint-Nazaire",
+  "country": "France",
+  "lat": 47.2733,
+  "lon": -2.2139,
+  "population": 74568,
+  "timezone": "Europe/Paris",
+  "insee": "44184"
+ },
+ {
+  "city": "Cannes",
+  "country": "France",
+  "lat": 43.5514,
+  "lon": 7.0126,
+  "population": 74350,
+  "timezone": "Europe/Paris",
+  "insee": "06029"
+ },
+ {
+  "city": "Mamoudzou",
+  "country": "France",
+  "lat": -12.7807,
+  "lon": 45.2324,
+  "population": 71437,
+  "timezone": "Indian/Mayotte",
+  "insee": "97611"
+ },
+ {
+  "city": "Cergy",
+  "country": "France",
+  "lat": 49.0525,
+  "lon": 2.0353,
+  "population": 70906,
+  "timezone": "Europe/Paris",
+  "insee": "95127"
+ },
+ {
+  "city": "Calais",
+  "country": "France",
+  "lat": 50.9526,
+  "lon": 1.8546,
+  "population": 67571,
+  "timezone": "Europe/Paris",
+  "insee": "62193"
+ },
+ {
+  "city": "Pessac",
+  "country": "France",
+  "lat": 44.8057,
+  "lon": -0.6303,
+  "population": 67339,
+  "timezone": "Europe/Paris",
+  "insee": "33318"
+ },
+ {
+  "city": "Colmar",
+  "country": "France",
+  "lat": 48.0793,
+  "lon": 7.3583,
+  "population": 66970,
+  "timezone": "Europe/Paris",
+  "insee": "68066"
+ },
+ {
+  "city": "Évry-Courcouronnes",
+  "country": "France",
+  "lat": 48.6238,
+  "lon": 2.4295,
+  "population": 66919,
+  "timezone": "Europe/Paris",
+  "insee": "91228"
+ },
+ {
+  "city": "Vénissieux",
+  "country": "France",
+  "lat": 45.6971,
+  "lon": 4.8855,
+  "population": 65502,
+  "timezone": "Europe/Paris",
+  "insee": "69259"
+ },
+ {
+  "city": "Valence",
+  "country": "France",
+  "lat": 44.9333,
+  "lon": 4.8921,
+  "population": 64458,
+  "timezone": "Europe/Paris",
+  "insee": "26362"
+ },
+ {
+  "city": "Quimper",
+  "country": "France",
+  "lat": 47.9965,
+  "lon": -4.1019,
+  "population": 64385,
+  "timezone": "Europe/Paris",
+  "insee": "29232"
+ },
+ {
+  "city": "Bourges",
+  "country": "France",
+  "lat": 47.0806,
+  "lon": 2.3989,
+  "population": 64186,
+  "timezone": "Europe/Paris",
+  "insee": "18033"
+ },
+ {
+  "city": "La Seyne-sur-Mer",
+  "country": "France",
+  "lat": 43.1021,
+  "lon": 5.8811,
+  "population": 63732,
+  "timezone": "Europe/Paris",
+  "insee": "83126"
+ },
+ {
+  "city": "Montauban",
+  "country": "France",
+  "lat": 44.0162,
+  "lon": 1.3526,
+  "population": 62945,
+  "timezone": "Europe/Paris",
+  "insee": "82121"
+ },
+ {
+  "city": "Villeneuve-d'Ascq",
+  "country": "France",
+  "lat": 50.6195,
+  "lon": 3.1318,
+  "population": 62868,
+  "timezone": "Europe/Paris",
+  "insee": "59009"
+ },
+ {
+  "city": "Cayenne",
+  "country": "France",
+  "lat": 4.9382,
+  "lon": -52.3351,
+  "population": 62675,
+  "timezone": "America/Cayenne",
+  "insee": "97302"
+ },
+ {
+  "city": "Troyes",
+  "country": "France",
+  "lat": 48.2977,
+  "lon": 4.074,
+  "population": 62088,
+  "timezone": "Europe/Paris",
+  "insee": "10387"
+ },
+ {
+  "city": "Chambéry",
+  "country": "France",
+  "lat": 45.5665,
+  "lon": 5.9207,
+  "population": 59964,
+  "timezone": "Europe/Paris",
+  "insee": "73065"
+ },
+ {
+  "city": "Niort",
+  "country": "France",
+  "lat": 46.3237,
+  "lon": -0.4648,
+  "population": 59854,
+  "timezone": "Europe/Paris",
+  "insee": "79191"
+ },
+ {
+  "city": "Fréjus",
+  "country": "France",
+  "lat": 43.433,
+  "lon": 6.7372,
+  "population": 59719,
+  "timezone": "Europe/Paris",
+  "insee": "83061"
+ },
+ {
+  "city": "Sarcelles",
+  "country": "France",
+  "lat": 48.9974,
+  "lon": 2.3783,
+  "population": 59173,
+  "timezone": "Europe/Paris",
+  "insee": "95585"
+ },
+ {
+  "city": "Saint-André",
+  "country": "France",
+  "lat": -20.9604,
+  "lon": 55.6505,
+  "population": 58885,
+  "timezone": "Indian/Reunion",
+  "insee": "97409"
+ },
+ {
+  "city": "Narbonne",
+  "country": "France",
+  "lat": 43.1839,
+  "lon": 3.0038,
+  "population": 57587,
+  "timezone": "Europe/Paris",
+  "insee": "11262"
+ },
+ {
+  "city": "Meaux",
+  "country": "France",
+  "lat": 48.9584,
+  "lon": 2.878,
+  "population": 56905,
+  "timezone": "Europe/Paris",
+  "insee": "77284"
+ },
+ {
+  "city": "Hyères",
+  "country": "France",
+  "lat": 43.1197,
+  "lon": 6.1301,
+  "population": 55858,
+  "timezone": "Europe/Paris",
+  "insee": "83069"
+ },
+ {
+  "city": "Vannes",
+  "country": "France",
+  "lat": 47.6584,
+  "lon": -2.7609,
+  "population": 55790,
+  "timezone": "Europe/Paris",
+  "insee": "56260"
+ },
+ {
+  "city": "Beauvais",
+  "country": "France",
+  "lat": 49.4296,
+  "lon": 2.0818,
+  "population": 55550,
+  "timezone": "Europe/Paris",
+  "insee": "60057"
+ },
+ {
+  "city": "Saint-Louis",
+  "country": "France",
+  "lat": -21.2866,
+  "lon": 55.4092,
+  "population": 54941,
+  "timezone": "Indian/Reunion",
+  "insee": "97414"
+ },
+ {
+  "city": "La Roche-sur-Yon",
+  "country": "France",
+  "lat": 46.6704,
+  "lon": -1.4291,
+  "population": 54849,
+  "timezone": "Europe/Paris",
+  "insee": "85191"
+ },
+ {
+  "city": "Chelles",
+  "country": "France",
+  "lat": 48.8778,
+  "lon": 2.5901,
+  "population": 54620,
+  "timezone": "Europe/Paris",
+  "insee": "77108"
+ },
+ {
+  "city": "Corbeil-Essonnes",
+  "country": "France",
+  "lat": 48.6139,
+  "lon": 2.4821,
+  "population": 54471,
+  "timezone": "Europe/Paris",
+  "insee": "91174"
+ },
+ {
+  "city": "Saint-Laurent-du-Maroni",
+  "country": "France",
+  "lat": 5.5036,
+  "lon": -54.029,
+  "population": 54429,
+  "timezone": "America/Cayenne",
+  "insee": "97311"
+ },
+ {
+  "city": "Cholet",
+  "country": "France",
+  "lat": 47.0592,
+  "lon": -0.8793,
+  "population": 54404,
+  "timezone": "Europe/Paris",
+  "insee": "49099"
+ },
+ {
+  "city": "Cagnes-sur-Mer",
+  "country": "France",
+  "lat": 43.6637,
+  "lon": 7.1488,
+  "population": 53354,
+  "timezone": "Europe/Paris",
+  "insee": "06027"
+ },
+ {
+  "city": "Vaulx-en-Velin",
+  "country": "France",
+  "lat": 45.7785,
+  "lon": 4.9202,
+  "population": 53069,
+  "timezone": "Europe/Paris",
+  "insee": "69256"
+ },
+ {
+  "city": "Saint-Quentin",
+  "country": "France",
+  "lat": 49.847,
+  "lon": 3.2871,
+  "population": 52813,
+  "timezone": "Europe/Paris",
+  "insee": "02691"
+ },
+ {
+  "city": "Sartrouville",
+  "country": "France",
+  "lat": 48.9411,
+  "lon": 2.1583,
+  "population": 52763,
+  "timezone": "Europe/Paris",
+  "insee": "78586"
+ },
+ {
+  "city": "Arles",
+  "country": "France",
+  "lat": 43.6768,
+  "lon": 4.6274,
+  "population": 51811,
+  "timezone": "Europe/Paris",
+  "insee": "13004"
+ },
+ {
+  "city": "Massy",
+  "country": "France",
+  "lat": 48.7309,
+  "lon": 2.2713,
+  "population": 51729,
+  "timezone": "Europe/Paris",
+  "insee": "91377"
+ },
+ {
+  "city": "Albi",
+  "country": "France",
+  "lat": 43.9273,
+  "lon": 2.1464,
+  "population": 51290,
+  "timezone": "Europe/Paris",
+  "insee": "81004"
+ },
+ {
+  "city": "Les Abymes",
+  "country": "France",
+  "lat": 16.2712,
+  "lon": -61.5053,
+  "population": 51055,
+  "timezone": "America/Guadeloupe",
+  "insee": "97101"
+ },
+ {
+  "city": "Saint-Herblain",
+  "country": "France",
+  "lat": 47.2111,
+  "lon": -1.6484,
+  "population": 50973,
+  "timezone": "Europe/Paris",
+  "insee": "44162"
+ },
+ {
+  "city": "Grasse",
+  "country": "France",
+  "lat": 43.6581,
+  "lon": 6.9247,
+  "population": 50970,
+  "timezone": "Europe/Paris",
+  "insee": "06069"
  }
 ]
