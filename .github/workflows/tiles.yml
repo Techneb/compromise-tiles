@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       layers:
-        description: "Layers to build (comma-separated)"
+        description: "Layers to build (comma-separated); sources alone restores the building source of the published sources/ tiles that lack it"
         default: "terraces-v2,venues"
       repo_tiles:
         description: "Skip the build and upload the tiles committed in this repository (built off GitHub, such as Tel Aviv, whose heights feed answers only from Israel)"
@@ -109,6 +109,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      # --store: a sources/ tile keeps the published tile's field this run does not build (a terraces run
+      # keeps "buildings", a buildings run "permits"), read from the store's public host (no credentials).
       # Capped below the job's limit so a long build (Spain's cadastre answers slowly) still
       # reaches the upload with every cell it finished; a cell not finished keeps its last tile.
       - name: Build ${{ matrix.city }}
@@ -117,7 +119,8 @@ jobs:
           LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
-          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 || true
+          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 \
+            --store "https://tiles.alephb.uk/tiles/" || true
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
         if: ${{ !cancelled() }}

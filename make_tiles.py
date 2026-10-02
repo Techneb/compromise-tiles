@@ -6,10 +6,16 @@ cell, keyed "<int(lat*500)>,<int(lon*500)>", under buildings/,
 terraces-v2/ and communes/, and one per ~2 km cell, keyed
 "<int(lat*50)>,<int(lon*50)>", under venues/. Beside the first two,
 sources/ names what built each cell ([{"permits": city|null,
-"buildings": city|"IGN"|"OSM"}]) — what the app credits.
+"buildings": city|"IGN"|"OSM"|city+"+OSM"}]) — what the app credits.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
+    make_tiles.py --cities cities.json --out ./tiles --layers sources --store https://tiles.alephb.uk/tiles/
+
+With --store (the published tiles' base URL), a sources/ tile keeps the field a run does not build:
+a run building terraces keeps the published tile's "buildings", one building buildings keeps its
+"permits". The `sources` layer writes nothing else: it finds each cell's building source the way the
+buildings layer does (its tiles not written) for the published sources tiles that lack it.
 
 OpenStreetMap comes from a Geofabrik extract (the smallest region holding
 each area, found in Geofabrik's index), cut and read with osmium-tool —
@@ -27,7 +33,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, csv, datetime, gzip, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
+import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -145,6 +151,11 @@ PERMIT_CITIES = [
     row("San Sebastián", "", "www.donostia.eus/geozerbitzuak/rest/services", "ext/URBANISMO/MapServer/34", "IzenTe", [],
         (43.29, 43.33), (-2.02, -1.91), shape="arcgis", oid="FID"),
     row("Eindhoven", "", "data.eindhoven.nl", "terrastekeningen", "", [], (51.39, 51.50), (5.38, 5.56)),
+    # Municipality of Thessaloníki's shops of health interest (GeoServer; the licence a link to the Ministry
+    # of the Interior's "Ανοιχτή Άδεια"): only those with a terrace permit number, the 2017–2019 register.
+    # Metres asked for: its degrees come rounded to 3 decimals (~100 m). The box is the points'.
+    row("Thessaloníki", "", "sdi.thessaloniki.gr/geoserver/wfs", "KOSE:TRAP2017", "eponymia", [],
+        (40.59, 40.66), (22.92, 22.99), shape="wfs", filter="adeiestrap IS NOT NULL", geom="geom", srs="EPSG:3857"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -308,11 +319,18 @@ def download(url, folder, max_days=6):
     os.replace(file + ".tmp", file)
     return file
 
+def tag_number(tags, key):
+    try: return float(str(tags[key]).replace(" m", "").strip())
+    except (KeyError, ValueError): return None
+
+def osm_tagged(tags):
+    """Which tag gives a building its height: "height", "levels" (`building:levels`), or None (the 15 m guess)."""
+    return "height" if tag_number(tags, "height") is not None else "levels" if tag_number(tags, "building:levels") is not None else None
+
 def osm_height(tags):
     """`height`, else `building:levels` × 3 m, else 15 m."""
     for key, scale in (("height", 1), ("building:levels", 3)):
-        try: return float(str(tags[key]).replace(" m", "").strip()) * scale
-        except (KeyError, ValueError): pass
+        if tag_number(tags, key) is not None: return tag_number(tags, key) * scale
     return 15.0
 
 def buckets(s, w, n, e):
@@ -356,14 +374,15 @@ class OSM:
             for f in (box, kept):
                 if os.path.exists(f): os.remove(f)
 
-    def buildings(self, rect):
+    def buildings(self, rect, tagged=False):
         """Building ways meeting the rect. osmium keeps a way with a node in the cut, whole; a big one
         (a station hall) can reach a cell with every node outside it, hence 500 m more — the
-        in-memory index had them, and near_buildings trims the rest."""
+        in-memory index had them, and near_buildings trims the rest. With tagged=True, a building
+        whose height comes from its tags says which ("tagged": osm_tagged()), for combined()."""
         s, w, n, e = padded(rect, 500)
         cut = self.walls + ".cut.pbf"
         osmium("extract", "-b", f"{w},{s},{e},{n}", self.walls, "-o", cut, "--overwrite")
-        return [building(ring, osm_height(f["properties"])) for f in features(cut)
+        return [dict(building(ring, osm_height(f["properties"])), **({"tagged": osm_tagged(f["properties"])} if tagged and osm_tagged(f["properties"]) else {})) for f in features(cut)
                 if "building" in f["properties"] and f["geometry"]["type"] != "Point" for ring in outer_rings(f["geometry"])]
 
     def near(self, table, rect):
@@ -375,7 +394,7 @@ class OSM:
 
 _osm = None  # the current area's OSM, set by run()
 
-def osm_buildings(rect): return _osm.buildings(rect)
+def osm_buildings(rect, tagged=False): return _osm.buildings(rect, tagged)
 
 def osm_terraces(rect):
     """Outdoor seating on a bar, pub, beer garden, café or restaurant, named or not."""
@@ -426,13 +445,47 @@ def outer_rings(geometry):
         ring = [vertex(v[1], v[0]) for v in (polygon[0] if polygon else []) if len(v) >= 2]
         if len(ring) >= 3: yield ring
 
-def footprints(features, height):
-    """GeoJSON → a building: outer rings, the city's height rule, 15 m when it reads nothing sensible."""
+def footprints(features, height, default=15.0):
+    """GeoJSON → a building: outer rings, the city's height rule, `default` (15 m) when it reads nothing
+    sensible; with default=None such a footprint is left out (a combine row: OSM's own height stays)."""
     out = []
     for f in features:
         h = height(f.get("properties") or {})
+        if not (h and h > 0) and default is None: continue
         for ring in outer_rings(f.get("geometry")):
-            out.append(building(ring, h if h and h > 0 else 15.0))
+            out.append(building(ring, h if h and h > 0 else default))
+    return out
+
+COMBINE_GRID = 2000  # the city footprints' index in combined(): 1/2000°, ~50 m
+
+def combined(osm, city, metres=False):
+    """OpenStreetMap's footprints (osm_buildings(rect, tagged=True)), each taking the height of the city
+    footprint it matches, marked "city": True: each holds the other's centre (the mean of its vertices),
+    so a small OSM building inside a big city outline (an annex under an office block's footprint) matches
+    none; an OSM outline drawn round several city buildings takes the one under its centre. A `height` tag is kept: a mapper's
+    measure, which a city's floor count is coarser than (Oakland's Ordway Building: 28 floors × 3 m = 84 m,
+    tagged 123 m). `building:levels` × 3 m is kept too, unless the city's height is measured in metres
+    (metres=True): two floor counts, the mapper's is the newer (Packard Lofts: 1 floor in Oakland's 2015
+    layer, 4 levels in OSM). OSM's 15 m guess always gives way.
+    City footprints OSM lacks are not added: the two outlines of one building rarely agree, and one added
+    beside the other would double it."""
+    def centre(b): return (sum(p["latitude"] for p in b["outline"]) / len(b["outline"]),
+                           sum(p["longitude"] for p in b["outline"]) / len(b["outline"]))
+    def ring(b): return {"type": "Polygon", "coordinates": [[[p["longitude"], p["latitude"]] for p in b["outline"]]]}
+    grid = {}
+    for b in city:
+        lats, lons = [p["latitude"] for p in b["outline"]], [p["longitude"] for p in b["outline"]]
+        for y in range(math.floor(min(lats) * COMBINE_GRID), math.floor(max(lats) * COMBINE_GRID) + 1):
+            for x in range(math.floor(min(lons) * COMBINE_GRID), math.floor(max(lons) * COMBINE_GRID) + 1):
+                grid.setdefault((y, x), []).append((ring(b), centre(b), b["height"]))
+    out = []
+    for b in osm:
+        lat, lon = centre(b)
+        near = grid.get((math.floor(lat * COMBINE_GRID), math.floor(lon * COMBINE_GRID)), ())
+        mine = ring(b)
+        height = next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None)
+        kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
+        out.append(b if height is None or kept else dict(b, height=height, city=True))
     return out
 
 def unique(items):
@@ -682,11 +735,113 @@ def gipuzkoa(rect, cap=2000):
         return [b for part in ((s, w, ms, me), (s, me, ms, e), (ms, w, n, me), (ms, me, n, e)) for b in gipuzkoa(part, cap)]
     return gipuzkoa_buildings(raw)
 
+def citygml_buildings(raw, zone=32):
+    """LoD2 CityGML in UTM (NRW's, Bavaria's): each Building's or BuildingPart's ground surface as an outline,
+    its measuredHeight (metres, ground to roof) as the height; a parent made only of parts gives none itself."""
+    out = []
+    for _, el in ET.iterparse(io.BytesIO(raw)):
+        if el.tag.rsplit("}", 1)[-1] != "Building": continue
+        for obj in [el] + el.findall(".//{*}BuildingPart"):
+            h = number(obj.findtext("{*}measuredHeight"))
+            for pos in obj.findall("{*}boundedBy/{*}GroundSurface//{*}exterior//{*}posList"):
+                v, d = [float(x) for x in pos.text.split()], int(pos.get("srsDimension") or 3)
+                ring = [vertex(*utm_to_wgs84(v[i], v[i + 1], zone)) for i in range(0, len(v) - d + 1, d)]
+                if len(ring) >= 3: out.append(building(ring, h if h and h > 0 else 15.0))
+        el.clear()
+    return out
+
+_citygml = {}  # tile URL → its buildings, each tile parsed once a run
+
+def citygml_tiles(url, km):
+    """A fetch over LoD2 CityGML tiles of `km` km in UTM 32N, named by their south-west corner in km: each
+    tile a box touches is downloaded and parsed once a run, then served from memory. A tile the publisher
+    does not have (404: no building there) is empty."""
+    def fetch(rect):
+        s, w, n, e = rect
+        corners = [wgs84_to_utm(la, lo, 32) for la in (s, n) for lo in (w, e)]
+        span = lambda i: range(int(min(c[i] for c in corners) // 1000 // km * km), int(max(c[i] for c in corners) // 1000) + 1, km)
+        out = []
+        for x in span(0):
+            for y in span(1):
+                u = url.format(e=x, n=y)
+                if u not in _citygml:
+                    try: _citygml[u] = citygml_buildings(get(u))
+                    except SourceError as err:
+                        if "HTTP 404" not in str(err): raise
+                        _citygml[u] = []
+                out += [b for b in _citygml[u] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+        return out
+    return fetch
+
+def beoland(rect):
+    """Beoland's Belgrade LoD2 multipatch, which answers no GeoJSON and leaves measuredheight empty: the
+    footprints' outer (clockwise) rings from one query, each height (the extent's top minus its bottom,
+    metres) from a second, matched by objectid."""
+    s, w, n, e = rect
+    def features(option):
+        def parse(raw):
+            root = json.loads(raw)
+            if "error" in root: raise ValueError(root["error"])
+            return root
+        out, last = [], -1
+        while True:
+            q = urllib.parse.urlencode({"where": f"objectid>{last}", "geometry": f"{w},{s},{e},{n}", "geometryType": "esriGeometryEnvelope",
+                                        "inSR": "4326", "outSR": "4326", "outFields": "objectid", "returnZ": "true",
+                                        "multipatchOption": option, "orderByFields": "objectid", "f": "json"})
+            page = get("https://gis.beoland.com/server/rest/services/Hosted/Beograd_3D_WSL1/FeatureServer/2/query?" + q, parse=parse)
+            out += page.get("features") or []
+            if not page.get("features") or not page.get("exceededTransferLimit"): return out
+            last = max(f["attributes"]["objectid"] for f in page["features"])
+    heights = {}
+    for f in features("extent"):
+        z = [p[2] for r in (f.get("geometry") or {}).get("rings") or [] for p in r if len(p) > 2 and p[2] is not None]
+        if z: heights[f["attributes"]["objectid"]] = max(z) - min(z)
+    out = []
+    for f in features("xyFootprint"):
+        for r in (f.get("geometry") or {}).get("rings") or []:
+            if len(r) >= 4 and sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(r, r[1:])) < 0:  # clockwise: outer
+                h = heights.get(f["attributes"]["objectid"])
+                out.append(building([vertex(p[1], p[0]) for p in r], h if h and h > 0 else 15.0))
+    return out
+
+LIGURIA = "https://geoservizi.regione.liguria.it/geoserver/ows"
+
+def liguria(rect):
+    """Regione Liguria's NC5 3D footprints, every vertex at the eave's elevation: the height is that minus the
+    nearest spot height measured at a building's foot ("al piede", 0301) within 40 m, else 15 m."""
+    params = {"OUTPUTFORMAT": "application/json", "SRSNAME": "EPSG:4326"}
+    feet = {}  # 0.001° buckets
+    for f in wfs(LIGURIA, {**params, "TYPENAMES": "M2052:L6911", "PROPERTYNAME": "wkb_geometry,pt_quo_q,pt_quo_sed"}, padded(rect, 50)):
+        p = f.get("properties") or {}
+        if p.get("pt_quo_sed") == "0301" and f.get("geometry") and p.get("pt_quo_q") is not None:
+            lon, lat = f["geometry"]["coordinates"][:2]
+            feet.setdefault((round(lat, 3), round(lon, 3)), []).append((lat, lon, p["pt_quo_q"]))
+    out = []
+    for f in wfs(LIGURIA, {**params, "TYPENAMES": "M2052:L6871", "PROPERTYNAME": "wkb_geometry"}, rect):
+        g = f.get("geometry") or {}
+        for polygon in [g.get("coordinates")] if g.get("type") == "Polygon" else g.get("coordinates") or []:
+            ring = [v for v in (polygon or [[]])[0] if len(v) >= 3]
+            if len(ring) < 3: continue
+            lat, lon = sum(v[1] for v in ring) / len(ring), sum(v[0] for v in ring) / len(ring)
+            near = [q for dy in (-1, 0, 1) for dx in (-1, 0, 1)
+                    for q in feet.get((round(round(lat, 3) + dy / 1000, 3), round(round(lon, 3) + dx / 1000, 3)), ())]
+            foot = min(near, key=lambda q: metres(lat, lon, q[0], q[1]), default=None)
+            h = ring[0][2] - foot[2] if foot and metres(lat, lon, foot[0], foot[1]) <= 40 else None
+            out.append(building([vertex(v[1], v[0]) for v in ring], h if h and h > 0 else 15.0))
+    return out
+
+def oakland(rect):
+    """Oakland's footprints: nostory × 3 m. A 20-floor footprint under 5,000 sq ft is left out: the six
+    of them are houses, a placeholder, not a count."""
+    return footprints([f for f in socrata("data.oaklandca.gov", "iqfp-6kz5", intersects("the_geom", rect), "nostory,shape_area,the_geom")
+                       if not (number(f["properties"].get("nostory")) == 20 and (number(f["properties"].get("shape_area")) or 0) < 5000)],
+                      lambda p: (number(p.get("nostory")) or 0) * 3.0, default=None)
+
 def boundary(slug):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
 
-def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None):
-    return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary)
+def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
+    return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary, combine=combine)
 
 def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None or contains(b["boundary"], lat, lon))
 
@@ -694,6 +849,10 @@ def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None 
 # municipal boundary when the feed stops there) is asked first, then IGN (France), then
 # OpenStreetMap, each only when the one before answered nothing. A boundary keeps a neighbour's
 # cells off a feed that answers only a few buildings there (Fitzroy got 73 from Melbourne's).
+# A combine row ("metres" or "floors", what its heights are) keeps OpenStreetMap's footprints and
+# takes the feed's height where it has the building (combined(), which says when OSM's own stays):
+# for a feed that lacks many buildings, whose cells it would otherwise empty of them. Its fetch
+# returns only the footprints with a height (footprints(..., default=None)).
 CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
@@ -807,6 +966,45 @@ CITY_BUILDINGS = [
         "https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/LI_BUILDING_FOOTPRINTS/FeatureServer/0",
         r, ["max_hgt", "approx_hgt"], oid="objectid"),
         lambda p: (p.get("max_hgt") or p.get("approx_hgt") or 0) * 0.3048 or None)),
+    # Wired 2026-10-02. Statewide LoD2 models (Düsseldorf: Dreischeibenhaus 93.6 m; Nuremberg: Business
+    # Tower 131.6 m), so the box is the city's cities.json area.
+    building_row("Düsseldorf", (51.179, 51.269), (6.7203, 6.8497), citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Nuremberg", (49.409, 49.491), (11.0034, 11.1366), citygml_tiles(
+        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+    # ZG3D 2022 (Otvorena dozvola): Z_Delta is metres from ground to top (the cathedral 103.5 m). The box is the layer's.
+    building_row("Zagreb", (45.622, 45.969), (15.771, 16.229), lambda r: footprints(arcgis(
+        "https://services8.arcgis.com/Usi0jGQwMmBUpFjr/arcgis/rest/services/ZG3D_2022_3d_model_GZ/FeatureServer/0", r,
+        ["Z_Delta"]), lambda p: p.get("Z_Delta"))),
+    # Beoland's central-Belgrade model (no licence stated; Beograđanka 99.8 m). The box is the layer's.
+    building_row("Belgrade", (44.797, 44.824), (20.438, 20.485), beoland),
+    # One polygon per floor slab: the ground floor's, CantPisos × 3.5 m (each slab's ALTURA). The box is the layer's.
+    building_row("San José", (9.9005, 9.9658), (-84.1499, -84.0472), lambda r: footprints(arcgis(
+        "https://services5.arcgis.com/0ZvuJDanWVJc4vYr/arcgis/rest/services/SIG_SER_3D_Edificaciones/FeatureServer/0", r,
+        ["CantPisos"], where="PISO=1"), lambda p: number(p.get("CantPisos")) * 3.5 if number(p.get("CantPisos")) else None)),
+    # Santa Clara County's 2020 lidar footprints (county-wide, no licence stated): Building_H is feet above
+    # ground (houses 10–30, City Hall 285.6). The box is San Jose's cities.json area.
+    building_row("San Jose", (37.309, 37.359), (-121.9236, -121.8544), lambda r: footprints(arcgis(
+        "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40", r, ["Building_H"]),
+        lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)),
+    # Regione Liguria's region-wide NC5 3D footprints (CC BY 4.0; Torre Piacentini 99.9 m); where NC5
+    # has nothing (Pegli, Voltri) the cell falls to OSM. The box is Genoa's cities.json area.
+    building_row("Genoa", (44.371, 44.441), (8.8399, 9.0141), liguria),
+    # Sofiaplan's "Сгради 18.12.2009" (the 2009 cadastre's buildings; licence not stated by the publisher, wired
+    # 2026-10-02 on the owner's decision): sgr_text's leading number is floors (26МСБЖ, Park Hotel Moskva: 78 m),
+    # none is one floor. Towers built since 2009 are missing. The box is the layer's.
+    building_row("Sofia", (42.424, 42.857), (23.077, 23.639), lambda r: footprints(arcgis(
+        "https://gis.sofiaplan.bg/server/rest/services/oup_2009/oup_2009/FeatureServer/98", r, ["sgr_text"], oid="objectid"),
+        lambda p: int((re.match(r"\d+", p.get("sgr_text") or "") or ["1"])[0]) * 3.0)),
+    # Combined with OSM (owner, 2026-10-02): Bratislava's Pocet_obyvatelov_budovy holds residential buildings
+    # only (Vyska, metres; licence not stated by the publisher), so the office towers come from OSM.
+    # The box is the layer's extent.
+    building_row("Bratislava", (48.0059, 48.2894), (16.9578, 17.3772), combine="metres", fetch=lambda r: footprints(arcgis(
+        "https://services8.arcgis.com/pRlN1m0su5BYaFAS/arcgis/rest/services/Pocet_obyvatelov_budovy/FeatureServer/0", r,
+        ["Vyska"]), lambda p: number(p.get("Vyska")), default=None)),
+    # Oakland's 2015 BuildingFootprints (Socrata iqfp-6kz5; licence not stated by the publisher): nostory
+    # floors × 3 m, combined with OSM (complete in few cells). The box is the layer's extent.
+    building_row("Oakland", (37.7224, 37.8527), (-122.3301, -122.1622), combine="floors", fetch=oakland),
 ]
 
 
@@ -931,6 +1129,25 @@ def utm_to_wgs84(easting, northing, zone=30):
                               + (5 - 2 * c1 + 28 * t1 - 3 * c1**2 + 8 * ep2 + 24 * t1**2) * d**5 / 120) / cos1
     return math.degrees(phi), math.degrees(lon)
 
+def wgs84_to_utm(lat, lon, zone):
+    """WGS84 → UTM north (easting, northing), Snyder's forward transverse Mercator: which CityGML tiles a box needs."""
+    a, f, k0 = 6_378_137.0, 1 / 298.257223563, 0.9996
+    e2 = f * (2 - f); ep2 = e2 / (1 - e2)
+    phi = math.radians(lat)
+    n = a / math.sqrt(1 - e2 * math.sin(phi)**2)
+    t, c, A = math.tan(phi)**2, ep2 * math.cos(phi)**2, math.radians(lon - (zone * 6 - 183)) * math.cos(phi)
+    m = a * ((1 - e2 / 4 - 3 * e2**2 / 64 - 5 * e2**3 / 256) * phi - (3 * e2 / 8 + 3 * e2**2 / 32 + 45 * e2**3 / 1024) * math.sin(2 * phi)
+             + (15 * e2**2 / 256 + 45 * e2**3 / 1024) * math.sin(4 * phi) - (35 * e2**3 / 3072) * math.sin(6 * phi))
+    x = 500_000 + k0 * n * (A + (1 - t + c) * A**3 / 6 + (5 - 18 * t + t**2 + 72 * c - 58 * ep2) * A**5 / 120)
+    y = k0 * (m + n * math.tan(phi) * (A**2 / 2 + (5 - t + 9 * c + 4 * c**2) * A**4 / 24
+                                       + (61 - 58 * t + t**2 + 600 * c - 330 * ep2) * A**6 / 720))
+    return x, y
+
+def mercator_to_wgs84(x, y):
+    """Web Mercator (EPSG:3857) → (lat, lon)."""
+    r = 6_378_137.0
+    return math.degrees(2 * math.atan(math.exp(y / r)) - math.pi / 2), math.degrees(x / r)
+
 _whole = {}  # whole-file feeds, fetched once per run
 
 def madrid_all(c):
@@ -1043,13 +1260,19 @@ def permits(c, rect):
         # WFS 1.1.0: longitude first, and the
         # bbox needs its own trailing CRS or the server silently answers zero.
         params = {"service": "WFS", "version": "1.1.0", "request": "GetFeature",
-                  "typeName": c["dataset"], "outputFormat": "json", "srsName": "EPSG:4326"}
+                  "typeName": c["dataset"], "outputFormat": "json", "srsName": c.get("srs", "EPSG:4326")}
         if c.get("filter"):
             # Copenhagen's GeoServer refuses bbox alongside CQL_FILTER.
-            params["CQL_FILTER"] = f"{c['filter']} AND BBOX(wkb_geometry,{w},{s},{e},{n},'EPSG:4326')"
+            params["CQL_FILTER"] = f"{c['filter']} AND BBOX({c.get('geom', 'wkb_geometry')},{w},{s},{e},{n},'EPSG:4326')"
         else:
             params["bbox"] = f"{w},{s},{e},{n},EPSG:4326"
         features = get_json(f"https://{c['host']}?" + urllib.parse.urlencode(params)).get("features") or []
+        if c.get("srs") == "EPSG:3857":  # Thessaloníki: metres to the millimetre, where its degrees are rounded to ~100 m
+            for f in features:
+                g = f.get("geometry") or {}
+                if g.get("type") in ("Point", "MultiPoint"):
+                    pts = g["coordinates"] if g["type"] == "MultiPoint" else [g["coordinates"]]
+                    g.update(type="MultiPoint", coordinates=[mercator_to_wgs84(*p[:2])[::-1] for p in pts])
         return permit_items(features, c)   # polygons land on their mean vertex
     if c.get("shape") == "arcgis":
         fields = [f for f in [c["name"]] + c["kinds"] if f]
@@ -1173,7 +1396,10 @@ def building_source(cell):
     city = next((b for b in CITY_BUILDINGS if in_feed(b, cell.lat, cell.lon)), None)
     return city["city"] if city else "IGN" if in_france(cell.lat, cell.lon) else "OSM"
 
-FETCH_BUILDINGS = dict({b["city"]: b["fetch"] for b in CITY_BUILDINGS}, IGN=ign_buildings, OSM=osm_buildings)
+FETCH_BUILDINGS = dict({b["city"]: (lambda r, b=b: combined(osm_buildings(r, True), b["fetch"](r), b["combine"] == "metres"))
+                        if b["combine"] else b["fetch"]
+                        for b in CITY_BUILDINGS}, IGN=ign_buildings, OSM=osm_buildings)
+COMBINE = {b["city"] for b in CITY_BUILDINGS if b["combine"]}
 
 def next_source(source, cell):
     """A city feed or IGN answering nothing for a cell hands it on; an error does not."""
@@ -1181,7 +1407,9 @@ def next_source(source, cell):
     if source == "OSM": return None
     return "IGN" if in_france(cell.lat, cell.lon) else "OSM"
 
-def do_buildings(cells, out, failures):
+def do_buildings(cells, out, failures, published=None, tiles=True):
+    """The building tiles (with tiles=False, only each cell's source in sources/), by source."""
+    published = published if published is not None else published_sources(out, cells)
     groups = {}
     for c in cells: groups.setdefault(building_source(c), []).append(c)
     while groups:
@@ -1198,18 +1426,56 @@ def do_buildings(cells, out, failures):
             items = near_buildings(c, answer)
             if not items and next_source(source, c):
                 groups.setdefault(next_source(source, c), []).append(c); continue
-            write(path(out, "buildings", c), items)
-            note_sources(out, c, buildings=source)
+            name = source
+            if source in COMBINE:  # "<city>+OSM" where the city gave a height, else OSM's alone
+                name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
+                items = [{"outline": b["outline"], "height": b["height"]} for b in items]
+            if tiles: write(path(out, "buildings", c), items)
+            note_sources(out, c, published, buildings=name)
 
-def note_sources(out, cell, **fields):
+STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
+STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
+
+def published_source(cell):
+    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
+    url = f"{STORE}sources/{cell.key}.json"
+    error = "?"
+    for attempt in range(3):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": UA})  # the store refuses urllib's own
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response: body = response.read()
+            if body[:2] == b"\x1f\x8b": body = gzip.decompress(body)  # gzipped at rest, inflated by the CDN or not
+            items = json.loads(body)
+            return items[0] if isinstance(items, list) and items and isinstance(items[0], dict) else {}
+        except urllib.error.HTTPError as e:
+            if e.code == 404: return {}
+            error = f"HTTP {e.code}"
+        except Exception as e:  # noqa: BLE001 — resets, timeouts, a truncated body: asked again
+            error = f"{type(e).__name__}: {e}"[:200]
+        time.sleep(2 * (attempt + 1))
+    return SourceError(f"store: {error}")
+
+def published_sources(out, cells):
+    """{key: published entry or SourceError} for the cells with no sources/ tile in `out` yet
+    (a tile there already holds them); {} without a store."""
+    todo = [c for c in cells if STORE and read(path(out, "sources", c)) is None]
+    if not todo: return {}
+    with concurrent.futures.ThreadPoolExecutor(STORE_THREADS) as pool:
+        return dict(zip((c.key for c in todo), pool.map(published_source, todo)))
+
+def note_sources(out, cell, published=None, **fields):
     """sources/<key>.json, one object in an array like every layer: which permit feed
     (a PERMIT_CITIES city, or null) and which building source (a CITY_BUILDINGS city,
-    "IGN" or "OSM") built the cell — what the app credits. Each field is written with
-    its own layer, so a run building one layer keeps the other's field."""
+    "IGN", "OSM", or "<city>+OSM" for a combine row's cell the city gave heights to) built the cell — what the app credits. Each field is written with
+    its own layer, over the tile already in `out`, else over the published one (`published`,
+    from published_sources), so a run building one layer keeps the other's field. A cell
+    whose published tile could not be read gets no tile: the upload leaves the published one."""
     file = path(out, "sources", cell)
-    entry = (read(file) or [{}])[0]
-    entry.update(fields)
-    write(file, [entry])
+    local = read(file)
+    base = (published or {}).get(cell.key, {}) if local is None else local[0]
+    if isinstance(base, SourceError):
+        log(f"    {cell.key}: sources/ not written, the published tile was not read ({base})"); return
+    write(file, [dict(base, **fields)])
 
 def permit_city(cell, communes):
     """The permit feed for a cell: by INSEE code when a commune answered, else by box."""
@@ -1222,7 +1488,7 @@ def do_terraces(cells, communes, out, failures):
     for c in cells:
         feed = feed_of[c.key] = permit_city(c, communes.get(c.key))
         if feed: feeds.setdefault(id(feed), (feed, []))[1].append(c)
-    found = {}
+    found, published = {}, published_sources(out, cells)
     for feed, group in feeds.values():
         found.update(gather(group, lambda r, feed=feed: permits(feed, r), TERRACE_RADIUS, feed["city"] + " permits"))
     for c in cells:
@@ -1231,7 +1497,19 @@ def do_terraces(cells, communes, out, failures):
         if errors:  # half an answer is not a tile
             failures.append((c.key, "terraces-v2", "; ".join(map(str, errors)))); continue
         write(path(out, "terraces-v2", c), near_terraces(c, [t for a in answers[1:] for t in a] + answers[0]))
-        note_sources(out, c, permits=feed_of[c.key] and feed_of[c.key]["city"])
+        note_sources(out, c, published, permits=feed_of[c.key] and feed_of[c.key]["city"])
+
+def do_sources(cells, out, failures):
+    """The `sources` layer: the published sources/ tiles that lack a building source get it, found as
+    the buildings layer finds it (the city feed, IGN, then OSM), its tiles not written. A cell without
+    a published tile was never built and is left alone; one whose tile already names its source too."""
+    if not STORE:
+        failures += [(c.key, "sources", "no --store to read the published tiles from") for c in cells]; return
+    published = published_sources(out, cells)
+    for c in cells:
+        if isinstance(published.get(c.key), SourceError): failures.append((c.key, "sources", str(published[c.key])))
+    need = [c for c in cells if isinstance(published.get(c.key), dict) and published[c.key] and "buildings" not in published[c.key]]
+    if need: do_buildings(need, out, failures, published, tiles=False)
 
 def area(entry, half_km):
     """An entry's box: its own `box` [s, w, n, e], else `half_km` around its point."""
@@ -1265,12 +1543,15 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         return len(cells), [(c.key, "all", str(e)) for c in cells]
     # A French extract means French communes; elsewhere the geo API would answer [] a cell at a time.
     french = "/europe/france" in pbf
+    sources_only = set(layers) <= {"sources", "venues"}
     if "venues" in layers:
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
     for group in blocks(cells, block):
-        communes, need_terraces, need_buildings = {}, [], []
+        communes, need_terraces, need_buildings, need_sources = {}, [], [], []
         for c in group:
+            if "sources" in layers: need_sources.append(c)
+            if sources_only: continue  # no commune needed: a cell outside the départements has no published tile
             if french and in_france(c.lat, c.lon):
                 communes[c.key] = read(path(out, "communes", c))
                 if communes[c.key] is None:
@@ -1287,9 +1568,10 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
                 if french and communes.get(c.key) is None:
                     failures.append((c.key, "terraces-v2", "commune unknown, so the permit feed is too")); continue
                 need_terraces.append(c)
-        skipped += sum(1 for c in group if c not in need_buildings and c not in need_terraces and c.key not in outside)
+        skipped += sum(1 for c in group if c not in need_buildings and c not in need_terraces and c not in need_sources and c.key not in outside)
         if need_buildings: do_buildings(need_buildings, out, failures)
         if need_terraces: do_terraces(need_terraces, communes, out, failures)
+        if need_sources: do_sources(need_sources, out, failures)
     failed = {k for k, _, _ in failures}
     log(f"{label}: {len(cells) - len(outside) - len(failed)} of {len(cells) - len(outside)} cells complete ({skipped} already there), "
         f"{len(failed)} failed, {time.monotonic() - started:.0f} s")
@@ -1303,9 +1585,13 @@ def main():
     a.add_argument("--half-km", type=float, default=0.5)
     a.add_argument("--block", type=int, default=3, help="cells per side asked of a source at once (default 3)")
     a.add_argument("--out", default="tiles")
-    a.add_argument("--layers", default=",".join(LAYERS), help="which to write (default all): " + ", ".join(LAYERS))
+    a.add_argument("--layers", default=",".join(LAYERS), help="which to write (default all): " + ", ".join(LAYERS)
+                   + "; or sources, the building source of the published sources/ tiles that lack it (needs --store)")
+    a.add_argument("--store", help="the published tiles' base URL (https://tiles.alephb.uk/tiles/): sources/ tiles keep its fields")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
+    global STORE
+    STORE = args.store and args.store.rstrip("/") + "/"
     if args.cities:
         with open(args.cities) as f: entries = json.load(f)
     elif args.city and args.lat is not None and args.lon is not None:
