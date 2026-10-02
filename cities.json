@@ -1382,5 +1382,398 @@
       37.837,
       -122.2183
     ]
+  },
+  {
+    "city": "Lyon",
+    "district": "Lyon (whole commune)",
+    "box": [
+      45.7074,
+      4.7718,
+      45.8083,
+      4.8984
+    ],
+    "boundary": "boundaries/lyon.geojson"
+  },
+  {
+    "city": "Marseille",
+    "district": "Marseille (going-out core + 2 km)",
+    "box": [
+      43.247,
+      5.3243,
+      43.335,
+      5.4297
+    ]
+  },
+  {
+    "city": "Lille",
+    "district": "Lille (whole commune)",
+    "box": [
+      50.6009,
+      2.9679,
+      50.6613,
+      3.1257
+    ],
+    "boundary": "boundaries/lille.geojson"
+  },
+  {
+    "city": "Nantes",
+    "district": "Nantes (whole commune)",
+    "box": [
+      47.1806,
+      -1.6418,
+      47.2959,
+      -1.4789
+    ],
+    "boundary": "boundaries/nantes.geojson"
+  },
+  {
+    "city": "Nice",
+    "district": "Nice (whole commune)",
+    "box": [
+      43.6454,
+      7.1821,
+      43.761,
+      7.3235
+    ],
+    "boundary": "boundaries/nice.geojson"
+  },
+  {
+    "city": "Montpellier",
+    "district": "Montpellier (whole commune)",
+    "box": [
+      43.5668,
+      3.807,
+      43.6533,
+      3.9413
+    ],
+    "boundary": "boundaries/montpellier.geojson"
+  },
+  {
+    "city": "Grenoble",
+    "district": "Grenoble (whole commune)",
+    "box": [
+      45.1541,
+      5.678,
+      45.2144,
+      5.7531
+    ],
+    "boundary": "boundaries/grenoble.geojson"
+  },
+  {
+    "city": "Clermont-Ferrand",
+    "district": "Clermont-Ferrand (whole commune)",
+    "box": [
+      45.7557,
+      3.0532,
+      45.8184,
+      3.1722
+    ],
+    "boundary": "boundaries/clermont-ferrand.geojson"
+  },
+  {
+    "city": "Nancy",
+    "district": "Nancy (whole commune)",
+    "box": [
+      48.6668,
+      6.1342,
+      48.7093,
+      6.2127
+    ],
+    "boundary": "boundaries/nancy.geojson"
+  },
+  {
+    "city": "Villeurbanne",
+    "district": "Villeurbanne (whole commune)",
+    "box": [
+      45.7484,
+      4.8584,
+      45.7954,
+      4.9213
+    ],
+    "boundary": "boundaries/villeurbanne.geojson"
+  },
+  {
+    "city": "Dijon",
+    "district": "Dijon (whole commune)",
+    "box": [
+      47.2862,
+      4.9624,
+      47.3775,
+      5.102
+    ],
+    "boundary": "boundaries/dijon.geojson"
+  },
+  {
+    "city": "Le Havre",
+    "district": "Le Havre (whole commune)",
+    "box": [
+      49.4515,
+      0.0667,
+      49.5401,
+      0.1956
+    ],
+    "boundary": "boundaries/le-havre.geojson"
+  },
+  {
+    "city": "Rennes",
+    "district": "Rennes (whole commune)",
+    "box": [
+      48.0768,
+      -1.7526,
+      48.155,
+      -1.6243
+    ],
+    "boundary": "boundaries/rennes.geojson"
+  },
+  {
+    "city": "Reims",
+    "district": "Reims (whole commune)",
+    "box": [
+      49.2039,
+      3.986,
+      49.3032,
+      4.1242
+    ],
+    "boundary": "boundaries/reims.geojson"
+  },
+  {
+    "city": "Metz",
+    "district": "Metz (whole commune)",
+    "box": [
+      49.0608,
+      6.136,
+      49.1489,
+      6.2565
+    ],
+    "boundary": "boundaries/metz.geojson"
+  },
+  {
+    "city": "Brest",
+    "district": "Brest (whole commune)",
+    "box": [
+      48.3573,
+      -4.569,
+      48.4596,
+      -4.4303
+    ],
+    "boundary": "boundaries/brest.geojson"
+  },
+  {
+    "city": "Saint-\u00c9tienne",
+    "district": "Saint-\u00c9tienne (whole commune)",
+    "box": [
+      45.3715,
+      4.244,
+      45.4768,
+      4.4889
+    ],
+    "boundary": "boundaries/saint-etienne.geojson"
+  },
+  {
+    "city": "Caen",
+    "district": "Caen (whole commune)",
+    "box": [
+      49.153,
+      -0.4138,
+      49.2163,
+      -0.3307
+    ],
+    "boundary": "boundaries/caen.geojson"
+  },
+  {
+    "city": "Annecy",
+    "district": "Annecy (whole commune)",
+    "box": [
+      45.828,
+      6.0484,
+      45.9768,
+      6.2044
+    ],
+    "boundary": "boundaries/annecy.geojson"
+  },
+  {
+    "city": "Tours",
+    "district": "Tours (whole commune)",
+    "box": [
+      47.3489,
+      0.6527,
+      47.4396,
+      0.7371
+    ],
+    "boundary": "boundaries/tours.geojson"
+  },
+  {
+    "city": "Angers",
+    "district": "Angers (whole commune)",
+    "box": [
+      47.4375,
+      -0.6178,
+      47.5264,
+      -0.5081
+    ],
+    "boundary": "boundaries/angers.geojson"
+  },
+  {
+    "city": "Besan\u00e7on",
+    "district": "Besan\u00e7on (whole commune)",
+    "box": [
+      47.2006,
+      5.9408,
+      47.3198,
+      6.0837
+    ],
+    "boundary": "boundaries/besancon.geojson"
+  },
+  {
+    "city": "Limoges",
+    "district": "Limoges (whole commune)",
+    "box": [
+      45.7886,
+      1.1462,
+      45.9284,
+      1.3176
+    ],
+    "boundary": "boundaries/limoges.geojson"
+  },
+  {
+    "city": "Amiens",
+    "district": "Amiens (whole commune)",
+    "box": [
+      49.8468,
+      2.2235,
+      49.9506,
+      2.3458
+    ],
+    "boundary": "boundaries/amiens.geojson"
+  },
+  {
+    "city": "Le Mans",
+    "district": "Le Mans (whole commune)",
+    "box": [
+      47.9279,
+      0.1362,
+      48.0359,
+      0.2552
+    ],
+    "boundary": "boundaries/le-mans.geojson"
+  },
+  {
+    "city": "N\u00eemes",
+    "district": "N\u00eemes (going-out core + 2 km)",
+    "box": [
+      43.811,
+      4.3241,
+      43.861,
+      4.3979
+    ]
+  },
+  {
+    "city": "La Rochelle",
+    "district": "La Rochelle (whole commune)",
+    "box": [
+      46.1332,
+      -1.2419,
+      46.191,
+      -1.111
+    ],
+    "boundary": "boundaries/la-rochelle.geojson"
+  },
+  {
+    "city": "Toulon",
+    "district": "Toulon (whole commune)",
+    "box": [
+      43.1011,
+      5.8796,
+      43.1717,
+      5.9874
+    ],
+    "boundary": "boundaries/toulon.geojson"
+  },
+  {
+    "city": "Orl\u00e9ans",
+    "district": "Orl\u00e9ans (whole commune)",
+    "box": [
+      47.8133,
+      1.8757,
+      47.9336,
+      1.9487
+    ],
+    "boundary": "boundaries/orleans.geojson"
+  },
+  {
+    "city": "Avignon",
+    "district": "Avignon (whole commune)",
+    "box": [
+      43.8864,
+      4.7392,
+      43.9967,
+      4.9273
+    ],
+    "boundary": "boundaries/avignon.geojson"
+  },
+  {
+    "city": "Pau",
+    "district": "Pau (whole commune)",
+    "box": [
+      43.2857,
+      -0.3926,
+      43.358,
+      -0.2943
+    ],
+    "boundary": "boundaries/pau.geojson"
+  },
+  {
+    "city": "Aix-en-Provence",
+    "district": "Aix-en-Provence (going-out core + 2 km)",
+    "box": [
+      43.503,
+      5.4122,
+      43.551,
+      5.4818
+    ]
+  },
+  {
+    "city": "Perpignan",
+    "district": "Perpignan (whole commune)",
+    "box": [
+      42.6492,
+      2.8262,
+      42.7489,
+      2.9828
+    ],
+    "boundary": "boundaries/perpignan.geojson"
+  },
+  {
+    "city": "Biarritz",
+    "district": "Biarritz (whole commune)",
+    "box": [
+      43.4474,
+      -1.5771,
+      43.4945,
+      -1.5343
+    ],
+    "boundary": "boundaries/biarritz.geojson"
+  },
+  {
+    "city": "Bayonne",
+    "district": "Bayonne (whole commune)",
+    "box": [
+      43.4498,
+      -1.5049,
+      43.5189,
+      -1.4173
+    ],
+    "boundary": "boundaries/bayonne.geojson"
+  },
+  {
+    "city": "Mulhouse",
+    "district": "Mulhouse (whole commune)",
+    "box": [
+      47.7218,
+      7.2824,
+      47.7834,
+      7.3686
+    ],
+    "boundary": "boundaries/mulhouse.geojson"
   }
 ]
