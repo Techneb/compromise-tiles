@@ -737,6 +737,433 @@
     ]
   },
   {
+    "city": "Stockholm",
+    "district": "Stockholm (going-out core + 2 km)",
+    "box": [
+      59.267,
+      17.9638,
+      59.371,
+      18.1642
+    ]
+  },
+  {
+    "city": "Sydney",
+    "district": "Sydney (going-out core + 2 km)",
+    "box": [
+      -33.937,
+      151.1274,
+      -33.837,
+      151.2686
+    ]
+  },
+  {
+    "city": "Kyiv",
+    "district": "Kyiv (densest 150 km\u00b2 of the core)",
+    "box": [
+      50.3804,
+      30.4642,
+      50.4904,
+      30.6369
+    ]
+  },
+  {
+    "city": "Brussels",
+    "district": "Brussels (whole municipality)",
+    "box": [
+      50.7963,
+      4.3137,
+      50.9139,
+      4.4371
+    ],
+    "boundary": "boundaries/brussels.geojson"
+  },
+  {
+    "city": "Montr\u00e9al",
+    "district": "Montr\u00e9al (densest 150 km\u00b2 of the core)",
+    "box": [
+      45.4516,
+      -73.6883,
+      45.5616,
+      -73.5313
+    ]
+  },
+  {
+    "city": "Kuala Lumpur",
+    "district": "Kuala Lumpur (going-out core + 2 km)",
+    "box": [
+      3.089,
+      101.643,
+      3.203,
+      101.749
+    ]
+  },
+  {
+    "city": "Prague",
+    "district": "Prague (densest 150 km\u00b2 of the core)",
+    "box": [
+      50.0269,
+      14.3409,
+      50.1369,
+      14.5123
+    ]
+  },
+  {
+    "city": "Singapore",
+    "district": "Singapore (densest 150 km\u00b2 of the core)",
+    "box": [
+      1.2697,
+      103.7868,
+      1.3797,
+      103.8968
+    ]
+  },
+  {
+    "city": "Munich",
+    "district": "Munich (densest 150 km\u00b2 of the core)",
+    "box": [
+      48.0855,
+      11.4577,
+      48.1955,
+      11.6225
+    ]
+  },
+  {
+    "city": "Seattle",
+    "district": "Seattle (going-out core + 2 km)",
+    "box": [
+      47.571,
+      -122.3876,
+      47.647,
+      -122.2584
+    ]
+  },
+  {
+    "city": "Frankfurt",
+    "district": "Frankfurt (going-out core + 2 km)",
+    "box": [
+      50.075,
+      8.595,
+      50.151,
+      8.751
+    ]
+  },
+  {
+    "city": "Helsinki",
+    "district": "Helsinki (going-out core + 2 km)",
+    "box": [
+      60.135,
+      24.8649,
+      60.227,
+      25.0211
+    ]
+  },
+  {
+    "city": "Boston",
+    "district": "Boston (going-out core + 2 km)",
+    "box": [
+      42.315,
+      -71.1553,
+      42.423,
+      -71.0107
+    ]
+  },
+  {
+    "city": "Cologne",
+    "district": "Cologne (going-out core + 2 km)",
+    "box": [
+      50.887,
+      6.8685,
+      50.987,
+      7.0095
+    ]
+  },
+  {
+    "city": "Dublin",
+    "district": "Dublin (whole municipality)",
+    "box": [
+      53.2987,
+      -6.3871,
+      53.4106,
+      -6.1149
+    ],
+    "boundary": "boundaries/dublin.geojson"
+  },
+  {
+    "city": "Stuttgart",
+    "district": "Stuttgart (going-out core + 2 km)",
+    "box": [
+      48.739,
+      9.1197,
+      48.833,
+      9.2563
+    ]
+  },
+  {
+    "city": "Auckland",
+    "district": "Auckland (going-out core + 2 km)",
+    "box": [
+      -36.913,
+      174.7085,
+      -36.821,
+      174.8095
+    ]
+  },
+  {
+    "city": "Birmingham",
+    "district": "Birmingham (going-out core + 2 km)",
+    "box": [
+      52.451,
+      -1.8965,
+      52.491,
+      -1.8235
+    ]
+  },
+  {
+    "city": "Leeds",
+    "district": "Leeds (going-out core + 2 km)",
+    "box": [
+      53.771,
+      -1.6274,
+      53.849,
+      -1.4766
+    ]
+  },
+  {
+    "city": "Washington DC",
+    "district": "Washington DC (densest 150 km\u00b2 of the core)",
+    "box": [
+      38.857,
+      -77.1201,
+      38.967,
+      -76.9787
+    ]
+  },
+  {
+    "city": "Glasgow",
+    "district": "Glasgow (going-out core + 2 km)",
+    "box": [
+      55.829,
+      -4.351,
+      55.899,
+      -4.195
+    ]
+  },
+  {
+    "city": "Edinburgh",
+    "district": "Edinburgh (going-out core + 2 km)",
+    "box": [
+      55.901,
+      -3.2731,
+      56.001,
+      -3.1289
+    ]
+  },
+  {
+    "city": "Gothenburg",
+    "district": "Gothenburg (going-out core + 2 km)",
+    "box": [
+      57.665,
+      11.8734,
+      57.743,
+      12.0426
+    ]
+  },
+  {
+    "city": "Dhaka",
+    "district": "Dhaka (going-out core + 2 km)",
+    "box": [
+      23.743,
+      90.3794,
+      23.821,
+      90.4526
+    ]
+  },
+  {
+    "city": "Antwerp",
+    "district": "Antwerp (going-out core + 2 km)",
+    "box": [
+      51.175,
+      4.3543,
+      51.255,
+      4.4817
+    ]
+  },
+  {
+    "city": "Brisbane",
+    "district": "Brisbane (going-out core + 2 km)",
+    "box": [
+      -27.521,
+      152.9688,
+      -27.425,
+      153.0832
+    ]
+  },
+  {
+    "city": "Sheffield",
+    "district": "Sheffield (going-out core + 2 km)",
+    "box": [
+      53.335,
+      -1.5431,
+      53.427,
+      -1.4229
+    ]
+  },
+  {
+    "city": "Florence",
+    "district": "Florence (whole municipality)",
+    "box": [
+      43.7258,
+      11.1497,
+      43.8355,
+      11.3389
+    ],
+    "boundary": "boundaries/florence.geojson"
+  },
+  {
+    "city": "Bristol",
+    "district": "Bristol (going-out core + 2 km)",
+    "box": [
+      51.419,
+      -2.6558,
+      51.505,
+      -2.5182
+    ]
+  },
+  {
+    "city": "Naples",
+    "district": "Naples (whole municipality)",
+    "box": [
+      40.7912,
+      14.1321,
+      40.9162,
+      14.3538
+    ],
+    "boundary": "boundaries/naples.geojson"
+  },
+  {
+    "city": "Liverpool",
+    "district": "Liverpool (whole municipality)",
+    "box": [
+      53.3117,
+      -3.0192,
+      53.475,
+      -2.818
+    ],
+    "boundary": "boundaries/liverpool.geojson"
+  },
+  {
+    "city": "Ottawa",
+    "district": "Ottawa (going-out core + 2 km)",
+    "box": [
+      45.373,
+      -75.7666,
+      45.451,
+      -75.6514
+    ]
+  },
+  {
+    "city": "Perth",
+    "district": "Perth (going-out core + 2 km)",
+    "box": [
+      -31.979,
+      115.8158,
+      -31.909,
+      115.8962
+    ]
+  },
+  {
+    "city": "Ghent",
+    "district": "Ghent (going-out core + 2 km)",
+    "box": [
+      51.011,
+      3.6704,
+      51.089,
+      3.7776
+    ]
+  },
+  {
+    "city": "Bordeaux",
+    "district": "Bordeaux (whole municipality)",
+    "box": [
+      44.8107,
+      -0.6387,
+      44.9162,
+      -0.5336
+    ],
+    "boundary": "boundaries/bordeaux.geojson"
+  },
+  {
+    "city": "Krak\u00f3w",
+    "district": "Krak\u00f3w (going-out core + 2 km)",
+    "box": [
+      50.043,
+      19.975,
+      50.081,
+      20.039
+    ]
+  },
+  {
+    "city": "Delhi",
+    "district": "Delhi (going-out core + 2 km)",
+    "box": [
+      28.565,
+      77.2005,
+      28.603,
+      77.2435
+    ]
+  },
+  {
+    "city": "Miami",
+    "district": "Miami (whole municipality)",
+    "box": [
+      25.709,
+      -80.3198,
+      25.8558,
+      -80.1391
+    ],
+    "boundary": "boundaries/miami.geojson"
+  },
+  {
+    "city": "Pozna\u0144",
+    "district": "Pozna\u0144 (going-out core + 2 km)",
+    "box": [
+      52.375,
+      16.8596,
+      52.437,
+      16.9884
+    ]
+  },
+  {
+    "city": "Palermo",
+    "district": "Palermo (going-out core + 2 km)",
+    "box": [
+      38.089,
+      13.3082,
+      38.169,
+      13.3978
+    ]
+  },
+  {
+    "city": "\u0141\u00f3d\u017a",
+    "district": "\u0141\u00f3d\u017a (going-out core + 2 km)",
+    "box": [
+      51.727,
+      19.414,
+      51.801,
+      19.5
+    ]
+  },
+  {
+    "city": "Szczecin",
+    "district": "Szczecin (going-out core + 2 km)",
+    "box": [
+      53.403,
+      14.5008,
+      53.465,
+      14.5992
+    ]
+  },
+  {
     "city": "Johannesburg",
     "district": "Johannesburg (going-out core + 2 km)",
     "box": [
