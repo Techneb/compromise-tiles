@@ -937,6 +937,12 @@ CITY_BUILDINGS = [
     # Regione Liguria's region-wide NC5 3D footprints (CC BY 4.0; Torre Piacentini 99.9 m); where NC5
     # has nothing (Pegli, Voltri) the cell falls to OSM. The box is Genoa's cities.json area.
     building_row("Genoa", (44.371, 44.441), (8.8399, 9.0141), liguria),
+    # Sofiaplan's "Сгради 18.12.2009" (the 2009 cadastre's buildings; licence not stated by the publisher, wired
+    # 2026-10-02 on the owner's decision): sgr_text's leading number is floors (26МСБЖ, Park Hotel Moskva: 78 m),
+    # none is one floor. Towers built since 2009 are missing. The box is the layer's.
+    building_row("Sofia", (42.424, 42.857), (23.077, 23.639), lambda r: footprints(arcgis(
+        "https://gis.sofiaplan.bg/server/rest/services/oup_2009/oup_2009/FeatureServer/98", r, ["sgr_text"], oid="objectid"),
+        lambda p: int((re.match(r"\d+", p.get("sgr_text") or "") or ["1"])[0]) * 3.0)),
 ]
 
 
