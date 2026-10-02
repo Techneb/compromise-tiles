@@ -150,6 +150,8 @@ none, this says so rather than guessing.
 
 **City names and points (`survey-candidates.json`)**
 - GeoNames (geonames.org), CC BY 4.0.
+- French communes of 50,000 and more: Etalab geo API (communes, populations,
+  town halls), Licence Ouverte 2.0.
 
 Every key is the rounded coordinate of a public area, and every area is
 named by its city, a district or a public street or square. Venue names are the trading names

@@ -1,5 +1,5 @@
 """python3 test_candidates.py — the survey candidates' selection on made-up GeoNames lines, no network."""
-from candidates import fold, in_square, merge, select
+from candidates import fold, france, in_square, merge, select
 
 def line(gid, name, lat, lon, code, feature, population, alt=""):
     f = [""] * 19
@@ -32,4 +32,15 @@ assert in_square(52.62, 13.40, listed[1]) and not in_square(52.63, 13.40, listed
 runs = [{"updated": "2026-09-30", "cities": [{"city": "Hamburg", "country": "Germany", "goingOutCells": 400, "terraceShare": 0.3, "extent": "24 km square"}]}]
 merged = merge(got, runs)
 assert merged[0]["goingOutCells"] == 400 and merged[0]["counted"] == "2026-09-30" and "goingOutCells" not in merged[2]
+# france: communes of 50,000 and more, not listed (a listed name whose point is within the square), the town hall as point.
+pt = lambda lon, lat: {"type": "Point", "coordinates": [lon, lat]}
+communes = [{"nom": "Saint-Denis", "code": "93066", "population": 150_000, "mairie": pt(2.3574, 48.9356), "codeDepartement": "93"},
+            {"nom": "Saint-Denis", "code": "97411", "population": 155_000, "mairie": pt(55.4481, -20.8789), "codeDepartement": "974"},
+            {"nom": "Argenteuil", "code": "95018", "population": 106_000, "centre": pt(2.25, 48.95), "codeDepartement": "95"},
+            {"nom": "Albi", "code": "81004", "population": 49_999, "mairie": pt(2.14, 43.92), "codeDepartement": "81"}]
+fr = france(communes, [{"city": "Saint-Denis", "country": "France", "lat": 48.9356, "lon": 2.3574}], [])
+assert [c["city"] for c in fr] == ["Saint-Denis (La Réunion)", "Argenteuil"], fr
+assert fr[0]["timezone"] == "Indian/Reunion" and fr[0]["insee"] == "97411" and fr[1]["timezone"] == "Europe/Paris" and fr[1]["lat"] == 48.95
+# nothing listed: the more populous namesake keeps the name, the other takes its département
+assert [c["city"] for c in france(communes, [], [{"city": "Argenteuil", "country": "France", "lat": 48.95, "lon": 2.25}])] == ["Saint-Denis", "Saint-Denis (93)"]
 print("ok")

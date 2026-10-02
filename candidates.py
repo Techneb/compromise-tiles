@@ -19,6 +19,14 @@ the second list from GeoNames (cities15000 and countryInfo, CC BY 4.0, downloade
   A candidate named as a listed city of another country is named with its country ("London (Canada)"): the
   counts job looks cities.json boxes up by name, and counted London, Canada over London's box on 2026-09-30.
 
+Then a France pass (owner, 2026-10-02): every French commune of at least FRANCE_POPULATION (the Etalab geo
+API's communes and populations, Licence Ouverte 2.0) that counts-cities.json and the list above do not hold,
+with its town hall as its point (the commune's centre when it has none). No square rule here: the counts job
+counts a French city inside its own commune's contour, so Montreuil is counted apart from Paris. A commune
+is already listed when a listed French city of its name has its point within the 24 km square (Saint-Denis,
+Seine-Saint-Denis); a namesake elsewhere is named with its département ("Saint-Denis (La Réunion)").
+`python3 candidates.py france` redoes this pass alone over the current list, leaving the rest untouched.
+
 Sorted by population, most first, which is the tiebreak the survey queue keeps. `merge` copies a counts
 run's goingOutCells, terraceShare and extent into the list (the run given `--cities survey-candidates.json`),
 so the cities page can show the candidates that meet the survey rule before they are listed.
@@ -34,6 +42,12 @@ COUNTRY = {"The Netherlands": "Netherlands"}  # GeoNames' name -> the one cities
 PART_OF = {"Queens": "New York", "The Bronx": "New York", "Staten Island": "New York",
            "Gustavo Adolfo Madero": "Mexico City", "Manukau City": "Auckland"}  # GeoNames' name -> the one cities.csv uses
 UA = {"User-Agent": "compromise-tiles (contact@alephb.uk)"}
+GEO_API = "https://geo.api.gouv.fr/communes?fields=nom,code,population,centre,mairie,codeDepartement&format=json"
+FRANCE_POPULATION = 50_000
+# Overseas départements and collectivities: their own time zone and a name to tell a namesake apart; metropolitan France is Europe/Paris.
+OVERSEAS = {"971": ("America/Guadeloupe", "Guadeloupe"), "972": ("America/Martinique", "Martinique"),
+            "973": ("America/Cayenne", "Guyane"), "974": ("Indian/Reunion", "La Réunion"), "976": ("Indian/Mayotte", "Mayotte"),
+            "987": ("Pacific/Tahiti", "Polynésie française"), "988": ("Pacific/Noumea", "Nouvelle-Calédonie")}
 
 
 def fold(s):
@@ -95,6 +109,38 @@ def select(city_lines, country_lines, listed):
     return kept
 
 
+def read_communes():
+    """Every French commune from the geo API: [{nom, code, population, centre, mairie, codeDepartement}]."""
+    return json.load(urllib.request.urlopen(urllib.request.Request(GEO_API, headers=UA), timeout=300))
+
+
+def france(communes, listed, kept):
+    """The French communes of at least FRANCE_POPULATION that neither listed (counts-cities.json) nor kept (the
+    candidates so far) holds, most populous first; each carries its INSEE code instead of a GeoNames id."""
+    taken = [e for e in list(listed) + list(kept) if e.get("country") == "France" and "lat" in e]
+    names = {e["city"] for e in list(listed) + list(kept)}
+    out = []
+    for c in sorted(communes, key=lambda c: (-(c.get("population") or 0), c["code"])):
+        if (c.get("population") or 0) < FRANCE_POPULATION: continue
+        point = (c.get("mairie") or c.get("centre") or {}).get("coordinates")
+        if not point: continue
+        lon, lat = round(point[0], 4), round(point[1], 4)
+        if any(fold(e["city"]) == fold(c["nom"]) and in_square(lat, lon, e) for e in taken): continue
+        zone, region = OVERSEAS.get(c["codeDepartement"], ("Europe/Paris", None))
+        name = c["nom"] if c["nom"] not in names else f"{c['nom']} ({region or c['codeDepartement']})"
+        names.add(name)
+        out.append({"city": name, "country": "France", "lat": lat, "lon": lon, "population": c["population"],
+                    "timezone": zone, "insee": c["code"]})
+    return out
+
+
+def keep_counts(out, previous):
+    """A rebuild keeps the counts already merged for the cities that stay (same name, same country)."""
+    counted = {(c["city"], c["country"]): c for c in previous if "goingOutCells" in c}
+    out = sorted(out, key=lambda c: -c["population"])  # one list, most populous first, the French pass included
+    return [{**c, **{k: v for k, v in counted.get((c["city"], c["country"]), {}).items() if k not in c}} for c in out]
+
+
 def merge(candidates, runs):
     """The candidates with each counts run's numbers copied in (a later run wins); `counted` is the run's date."""
     by_city = {}
@@ -107,19 +153,20 @@ def merge(candidates, runs):
 
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    a.add_argument("action", choices=("build", "merge"))
+    a.add_argument("action", choices=("build", "france", "merge"))
     a.add_argument("--geonames", default="", help="a folder holding cities15000.txt and countryInfo.txt (else downloaded)")
     a.add_argument("--listed", default="counts-cities.json")
     a.add_argument("--counts", action="append", default=[], help="a counts.json of a run over the candidates")
     a.add_argument("--write", default="survey-candidates.json")
     args = a.parse_args()
     listed = json.load(open(args.listed))
+    previous = json.load(open(args.write)) if os.path.exists(args.write) else []
     if args.action == "build":
-        previous = json.load(open(args.write)) if os.path.exists(args.write) else []
         out = select(*read_geonames(args.geonames), listed)
-        # A rebuild keeps the counts already merged for the cities that stay (same name, same country).
-        counted = {(c["city"], c["country"]): c for c in previous if "goingOutCells" in c}
-        out = [{**c, **{k: v for k, v in counted.get((c["city"], c["country"]), {}).items() if k not in c}} for c in out]
+        out = keep_counts(out + france(read_communes(), listed, out), previous)
+    elif args.action == "france":  # the France pass alone: the other candidates stay as they are
+        out = [c for c in previous if "insee" not in c]
+        out = keep_counts(out + france(read_communes(), listed, out), previous)
     else:
         out = merge(json.load(open(args.write)), [json.load(open(p)) for p in args.counts])
     with open(args.write, "w") as f:
