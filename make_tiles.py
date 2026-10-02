@@ -832,7 +832,7 @@ def liguria(rect):
 
 def oakland(rect):
     """Oakland's footprints: nostory × 3 m. A 20-floor footprint under 5,000 sq ft is left out: the six
-    of them are houses (1807 Martin Luther King Jr Way, 653 11th St), a placeholder, not a count."""
+    of them are houses, a placeholder, not a count."""
     return footprints([f for f in socrata("data.oaklandca.gov", "iqfp-6kz5", intersects("the_geom", rect), "nostory,shape_area,the_geom")
                        if not (number(f["properties"].get("nostory")) == 20 and (number(f["properties"].get("shape_area")) or 0) < 5000)],
                       lambda p: (number(p.get("nostory")) or 0) * 3.0, default=None)
