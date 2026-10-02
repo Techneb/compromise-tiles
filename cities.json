@@ -1272,5 +1272,85 @@
       -26.175,
       28.057
     ]
+  },
+  {
+    "city": "D\u00fcsseldorf",
+    "district": "D\u00fcsseldorf (going-out core + 2 km)",
+    "box": [
+      51.179,
+      6.7203,
+      51.269,
+      6.8497
+    ]
+  },
+  {
+    "city": "Zagreb",
+    "district": "Zagreb (going-out core + 2 km)",
+    "box": [
+      45.761,
+      15.8612,
+      45.843,
+      16.0428
+    ]
+  },
+  {
+    "city": "Belgrade",
+    "district": "Belgrade (going-out core + 2 km)",
+    "box": [
+      44.761,
+      20.4157,
+      44.849,
+      20.5303
+    ]
+  },
+  {
+    "city": "San Jos\u00e9",
+    "district": "San Jos\u00e9 (municipality)",
+    "box": [
+      9.9005,
+      -84.1499,
+      9.9658,
+      -84.0472
+    ]
+  },
+  {
+    "city": "San Jose",
+    "district": "San Jose (going-out core + 2 km)",
+    "box": [
+      37.309,
+      -121.9236,
+      37.359,
+      -121.8544
+    ]
+  },
+  {
+    "city": "Thessalon\u00edki",
+    "district": "Thessalon\u00edki (municipality)",
+    "box": [
+      40.59,
+      22.92,
+      40.66,
+      22.99
+    ]
+  },
+  {
+    "city": "Nuremberg",
+    "district": "Nuremberg (going-out core + 2 km)",
+    "box": [
+      49.409,
+      11.0034,
+      49.491,
+      11.1366
+    ]
+  },
+  {
+    "city": "Genoa",
+    "district": "Genoa (going-out core + 2 km)",
+    "box": [
+      44.371,
+      8.8399,
+      44.441,
+      9.0141
+    ]
   }
 ]
