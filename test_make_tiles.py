@@ -81,6 +81,80 @@ make_tiles.arcgis = real_arcgis
 at = lambda lat, lon: building_source(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0])
 assert at(43.3236, -1.9849) == "San Sebastián" and at(-26.2058, 28.0471) == "Johannesburg" and at(-26.1063, 28.0542) == "Johannesburg"
 
+# 2026-10-02 rows. UTM forward and back agree (Düsseldorf's Dreischeibenhaus).
+from make_tiles import wgs84_to_utm, utm_to_wgs84, mercator_to_wgs84, citygml_buildings, citygml_tiles, beoland, liguria
+x, y = wgs84_to_utm(51.2282, 6.7826, 32)
+assert 345178 < x < 345179 and 5677538 < y < 5677539
+assert all(abs(a - b) < 1e-7 for a, b in zip(utm_to_wgs84(x, y, 32), (51.2282, 6.7826)))
+# NRW's CityGML (a real Altstadt building, trimmed): each part's ground surface with its own measuredHeight
+# (0 → 15 m); the parent, made only of parts, adds nothing; an interior ring is not a building.
+part = lambda h, ring: f"""<bldg:consistsOfBuildingPart><bldg:BuildingPart><bldg:measuredHeight uom="urn:adv:uom:m">{h}</bldg:measuredHeight>
+<bldg:boundedBy><bldg:GroundSurface><bldg:lod2MultiSurface><gml:MultiSurface><gml:surfaceMember><gml:Polygon><gml:exterior><gml:LinearRing>
+<gml:posList srsDimension="3">{ring}</gml:posList></gml:LinearRing></gml:exterior><gml:interior><gml:LinearRing><gml:posList srsDimension="3">0 0 0 1 1 1 2 2 2</gml:posList>
+</gml:LinearRing></gml:interior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></bldg:lod2MultiSurface></bldg:GroundSurface></bldg:boundedBy>
+</bldg:BuildingPart></bldg:consistsOfBuildingPart>"""
+ring = ("344635.253 5677213.394 35.455 344635.015 5677213.366 35.455 344631.737 5677212.759 35.455 344631.273 5677216.688 35.455 "
+        "344631.103 5677218.188 35.455 344634.681 5677218.845 35.455 344635.253 5677213.394 35.455")
+gml = ('<core:CityModel xmlns:core="http://www.opengis.net/citygml/1.0" xmlns:bldg="http://www.opengis.net/citygml/building/1.0" '
+       'xmlns:gml="http://www.opengis.net/gml"><core:cityObjectMember><bldg:Building>'
+       + part(8.934, ring) + part(0, ring) + "</bldg:Building></core:cityObjectMember></core:CityModel>").encode()
+built = citygml_buildings(gml)
+assert [b["height"] for b in built] == [8.9, 15.0] and len(built[0]["outline"]) == 7
+assert abs(built[0]["outline"][0]["latitude"] - 51.2251) < 0.0001 and abs(built[0]["outline"][0]["longitude"] - 6.7750) < 0.001
+# The tiles a box touches, by their south-west corner in km (Bavaria: 2 km, even); a missing tile (404) is empty.
+asked = []
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(url)
+    if "654_" in url: raise make_tiles.SourceError("download1.bayernwolke.de: HTTP 404")
+    return gml
+make_tiles.get = fake_get
+fetch = citygml_tiles("https://t/{e}_{n}.gml", 2)
+assert fetch((49.4315, 11.119, 49.4345, 11.124)) == [] and sorted(asked) == ["https://t/652_5476.gml", "https://t/654_5476.gml"]
+assert len(citygml_tiles("https://u/{e}_{n}.gml", 1)((51.2250, 6.7747, 51.2253, 6.7752))) == 2   # the fixture, inside
+# Belgrade's multipatch: the footprint's clockwise ring (a counter-clockwise one is a hole), height = extent top − bottom.
+def fake_get(url, data=None, parse=None, **k):
+    cw = [[20.4588, 44.8167], [20.4594, 44.8167], [20.4594, 44.8163], [20.4588, 44.8167]]
+    if "multipatchOption=extent" in url:
+        return {"features": [{"attributes": {"objectid": 41}, "geometry": {"rings": [[[20.45886, 44.81628, 113.75],
+                [20.45944, 44.81669, 140.277], [20.45886, 44.81628, 113.75]]]}}]}
+    return {"features": [{"attributes": {"objectid": 41}, "geometry": {"rings": [cw, cw[::-1]]}},
+                         {"attributes": {"objectid": 42}, "geometry": {"rings": [cw]}}]}
+make_tiles.get = fake_get
+assert [b["height"] for b in beoland((44.81, 20.45, 44.82, 20.46))] == [26.5, 15.0]
+# Genoa: eave elevation minus the nearest foot spot height (0301) within 40 m; an eave spot (0302) is no foot.
+real_wfs = make_tiles.wfs
+make_tiles.wfs = lambda url, params, rect, **k: ([{"geometry": {"type": "Point", "coordinates": [8.93235, 44.40763, 18.11]},
+        "properties": {"pt_quo_q": 18.11, "pt_quo_sed": "0301"}},
+    {"geometry": {"type": "Point", "coordinates": [8.93236, 44.40763, 69.11]}, "properties": {"pt_quo_q": 69.11, "pt_quo_sed": "0302"}}]
+    if params["TYPENAMES"] == "M2052:L6911" else
+    [{"geometry": {"type": "Polygon", "coordinates": [[[8.9322, 44.4076, 69.11], [8.9324, 44.4076, 69.11], [8.9324, 44.4077, 69.11],
+        [8.9322, 44.4076, 69.11]]]}}, {"geometry": {"type": "Polygon", "coordinates": [[[8.95, 44.42, 50], [8.951, 44.42, 50],
+        [8.951, 44.421, 50], [8.95, 44.42, 50]]]}}])
+assert [b["height"] for b in liguria((44.40, 8.93, 44.41, 8.94))] == [51.0, 15.0]
+make_tiles.wfs = real_wfs
+# Thessaloníki's permits come in Web Mercator (its degrees are rounded to ~100 m), filtered on a permit number.
+lat, lon = mercator_to_wgs84(2553970.46, 4958174.064)
+assert abs(lat - 40.631739) < 1e-6 and abs(lon - 22.942707) < 1e-6
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    return {"features": [{"geometry": {"type": "MultiPoint", "coordinates": [[2553970.46, 4958174.064]]}, "properties": {"eponymia": "BUTLER"}}]}
+make_tiles.get = fake_get
+thess = next(c for c in PERMIT_CITIES if c["city"] == "Thessaloníki")
+t, = permits(thess, (40.63, 22.94, 40.637, 22.948))
+assert t["name"] == "BUTLER" and abs(t["coordinate"]["latitude"] - 40.631739) < 1e-6
+assert "srsName=EPSG:3857" in asked[0] and "adeiestrap IS NOT NULL AND BBOX(geom,22.94,40.63,22.948,40.637" in asked[0]
+make_tiles.get = real_get
+# The ArcGIS rows' height rules: Zagreb metres, San José floors × 3.5 m on the ground-floor slab, San Jose feet.
+rule = lambda city: [b["height"] for b in next(b for b in CITY_BUILDINGS if b["city"] == city)["fetch"]((0, 0, 1, 1))]
+make_tiles.arcgis = lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
+    [0, 1], [1, 1], [0, 0]]]}, "properties": {"Z_Delta": 103.5, "CantPisos": 19, "Building_H": 285.62}}]
+assert rule("Zagreb") == [103.5] and rule("San José") == [66.5] and rule("San Jose") == [87.1]
+make_tiles.arcgis = real_arcgis
+assert at(51.2263, 6.7727) == "Düsseldorf" and at(49.4539, 11.0775) == "Nuremberg" and at(45.8131, 15.9772) == "Zagreb"
+assert at(44.8160, 20.4600) == "Belgrade" and at(44.7900, 20.4600) == "OSM" and at(9.9334, -84.0770) == "San José"
+assert at(37.3377, -121.8855) == "San Jose" and at(44.4072, 8.9339) == "Genoa"
+
 # sources/: each layer writes its own field and keeps the other's; a cell's building source is what answered.
 import tempfile, make_tiles
 from make_tiles import note_sources, read, path, do_buildings
