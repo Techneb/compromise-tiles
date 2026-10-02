@@ -160,7 +160,8 @@ make_tiles.arcgis = lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geome
     [0, 1], [1, 1], [0, 0]]]}, "properties": {"sgr_text": t}} for t in ("26МСБЖ", "5МСБЖ", "МС", "-1МС", None)]
 assert rule("Sofia") == [78.0, 15.0, 3.0, 3.0, 3.0]
 make_tiles.arcgis = real_arcgis
-assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "OSM"
+assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "Bratislava" and at(48.3500, 17.1088) == "OSM"
+assert at(37.8053, -122.2724) == "Oakland"   # its cells are credited "Oakland+OSM" or "OSM": test_combine.py
 
 # sources/: each layer writes its own field and keeps the other's; a cell's building source is what answered.
 import tempfile, make_tiles
