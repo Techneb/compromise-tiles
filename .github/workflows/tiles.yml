@@ -1,7 +1,8 @@
 # Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
 # coverage feed. Weekly: venues and terraces. Yearly: buildings and communes (run it by hand too when
 # cities.json gains an area). Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
-# R2_BUCKET. Public repo, standard runners: no minutes are billed.
+# R2_BUCKET. Public repo, standard runners: no minutes are billed. Only the tiles whose bytes differ
+# from the store's (by ETag) are uploaded; dry_run builds and prints that plan without writing anything.
 name: Tiles
 
 on:
@@ -20,6 +21,10 @@ on:
       only:
         description: "Build only these cities (comma-separated city names as in cities.json); empty = all"
         default: ""
+      dry_run:
+        description: "Build and print what would be uploaded (new, changed, unchanged per layer); write nothing to R2 or the repository"
+        type: boolean
+        default: false
 
 # One run at a time: the feed job merges into the published coverage.json and must not race another run.
 concurrency:
@@ -59,8 +64,40 @@ jobs:
           print("layers=" + os.environ["LAYERS"])
           PY
 
-  build:
+  # The store's keys and ETags under every layer this run writes, listed once for all the cities
+  # (one Class A request per 1,000 keys). If the listing fails, the build jobs upload every tile.
+  remote:
     needs: plan
+    if: ${{ !inputs.repo_tiles && needs.plan.outputs.cities != '[]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: List the store
+        continue-on-error: true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          LAYERS: ${{ needs.plan.outputs.layers }}
+        run: |
+          # sources/ and communes/ are written beside the layers asked for (communes in France).
+          layers=$(echo "$LAYERS,sources,communes" | tr ',' '\n' | sort -u | tr '\n' ' ')
+          pids=""
+          for l in $layers; do
+            aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
+              --query 'Contents[].[Key,ETag]' --output text > "remote-$l.tsv" & pids="$pids $!"
+          done
+          for p in $pids; do wait "$p"; done
+          cat remote-*.tsv > remote.tsv
+          n=$(grep -c . remote.tsv || true)
+          echo "Listed $n keys under: $layers (about $(( n / 1000 + $(echo $layers | wc -w) )) list requests)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('remote.tsv') != '' }}
+        with:
+          name: remote
+          path: remote.tsv
+          retention-days: 1
+
+  build:
+    needs: [plan, remote]
     if: ${{ !inputs.repo_tiles && needs.plan.outputs.cities != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 350
@@ -92,18 +129,35 @@ jobs:
           name: fragment-${{ strategy.job-index }}
           path: fragment.json
           retention-days: 3
+      - uses: actions/download-artifact@v4
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        with:
+          name: remote
+      # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
+      # -n leaves out the name and time, so an unchanged tile gzips to the same bytes.
+      # Compared with the store's ETags: only new and changed tiles are kept for the upload.
+      - name: Compare with the store
+        if: ${{ !cancelled() }}
+        env:
+          CITY: ${{ matrix.city }}
+          PRUNE: ${{ !inputs.dry_run && '--prune' || '' }}
+        run: |
+          [ -d out ] || exit 0
+          find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
+          find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
+          echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
+          [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY"
       # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
       # there is complete, and R2 keeps last week's tile for the rest.
       - name: Upload tiles to R2
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && !inputs.dry_run }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         run: |
           [ -d out ] || exit 0
-          # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
-          find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
-          find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           # Tens of thousands of small files (Paris, 2026-09-28: over 20 min at the default 10): more in flight.
           aws configure set default.s3.max_concurrent_requests 64
           aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
@@ -112,7 +166,7 @@ jobs:
   # The tiles committed in this repository (built off GitHub), uploaded as they are, with their feed fragment.
   repo_upload:
     needs: plan
-    if: ${{ inputs.repo_tiles }}
+    if: ${{ inputs.repo_tiles && !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -135,7 +189,7 @@ jobs:
   # The coverage feed the site's map reads: every job's fragment merged into the published feed, once.
   feed:
     needs: [plan, build, repo_upload]
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
