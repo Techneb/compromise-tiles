@@ -1,0 +1,40 @@
+# What the tile store holds, on demand: lists the bucket (S3 API, read only) and writes the size and
+# object count in total, per top-level prefix, per layer and per layer × city (storage.py), as the
+# run's summary and an artifact. Changes nothing in the bucket. Secrets as tiles.yml. A listing is
+# one Class A request per 1,000 objects. Public repo, standard runner: no minutes are billed.
+name: Storage
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: List the bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        run: |
+          aws s3 ls "s3://${{ secrets.R2_BUCKET }}" --recursive \
+            --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" > listing.txt
+          wc -l listing.txt
+      - run: python3 storage.py listing.txt --cities cities.json --write storage.json --summary storage.md
+      - run: cat storage.md >> "$GITHUB_STEP_SUMMARY"
+      - run: gzip -9 listing.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: storage
+          path: |
+            storage.json
+            storage.md
+            listing.txt.gz
+          retention-days: 30
