@@ -10,6 +10,12 @@ sources/ names what built each cell ([{"permits": city|null,
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
+    make_tiles.py --cities cities.json --out ./tiles --layers sources --store https://tiles.alephb.uk/tiles/
+
+With --store (the published tiles' base URL), a sources/ tile keeps the field a run does not build:
+a run building terraces keeps the published tile's "buildings", one building buildings keeps its
+"permits". The `sources` layer writes nothing else: it finds each cell's building source the way the
+buildings layer does (its tiles not written) for the published sources tiles that lack it.
 
 OpenStreetMap comes from a Geofabrik extract (the smallest region holding
 each area, found in Geofabrik's index), cut and read with osmium-tool —
@@ -27,7 +33,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, csv, datetime, gzip, io, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
+import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -1330,7 +1336,9 @@ def next_source(source, cell):
     if source == "OSM": return None
     return "IGN" if in_france(cell.lat, cell.lon) else "OSM"
 
-def do_buildings(cells, out, failures):
+def do_buildings(cells, out, failures, published=None, tiles=True):
+    """The building tiles (with tiles=False, only each cell's source in sources/), by source."""
+    published = published if published is not None else published_sources(out, cells)
     groups = {}
     for c in cells: groups.setdefault(building_source(c), []).append(c)
     while groups:
@@ -1347,18 +1355,52 @@ def do_buildings(cells, out, failures):
             items = near_buildings(c, answer)
             if not items and next_source(source, c):
                 groups.setdefault(next_source(source, c), []).append(c); continue
-            write(path(out, "buildings", c), items)
-            note_sources(out, c, buildings=source)
+            if tiles: write(path(out, "buildings", c), items)
+            note_sources(out, c, published, buildings=source)
 
-def note_sources(out, cell, **fields):
+STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
+STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
+
+def published_source(cell):
+    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
+    url = f"{STORE}sources/{cell.key}.json"
+    error = "?"
+    for attempt in range(3):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": UA})  # the store refuses urllib's own
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response: body = response.read()
+            if body[:2] == b"\x1f\x8b": body = gzip.decompress(body)  # gzipped at rest, inflated by the CDN or not
+            items = json.loads(body)
+            return items[0] if isinstance(items, list) and items and isinstance(items[0], dict) else {}
+        except urllib.error.HTTPError as e:
+            if e.code == 404: return {}
+            error = f"HTTP {e.code}"
+        except Exception as e:  # noqa: BLE001 — resets, timeouts, a truncated body: asked again
+            error = f"{type(e).__name__}: {e}"[:200]
+        time.sleep(2 * (attempt + 1))
+    return SourceError(f"store: {error}")
+
+def published_sources(out, cells):
+    """{key: published entry or SourceError} for the cells with no sources/ tile in `out` yet
+    (a tile there already holds them); {} without a store."""
+    todo = [c for c in cells if STORE and read(path(out, "sources", c)) is None]
+    if not todo: return {}
+    with concurrent.futures.ThreadPoolExecutor(STORE_THREADS) as pool:
+        return dict(zip((c.key for c in todo), pool.map(published_source, todo)))
+
+def note_sources(out, cell, published=None, **fields):
     """sources/<key>.json, one object in an array like every layer: which permit feed
     (a PERMIT_CITIES city, or null) and which building source (a CITY_BUILDINGS city,
     "IGN" or "OSM") built the cell — what the app credits. Each field is written with
-    its own layer, so a run building one layer keeps the other's field."""
+    its own layer, over the tile already in `out`, else over the published one (`published`,
+    from published_sources), so a run building one layer keeps the other's field. A cell
+    whose published tile could not be read gets no tile: the upload leaves the published one."""
     file = path(out, "sources", cell)
-    entry = (read(file) or [{}])[0]
-    entry.update(fields)
-    write(file, [entry])
+    local = read(file)
+    base = (published or {}).get(cell.key, {}) if local is None else local[0]
+    if isinstance(base, SourceError):
+        log(f"    {cell.key}: sources/ not written, the published tile was not read ({base})"); return
+    write(file, [dict(base, **fields)])
 
 def permit_city(cell, communes):
     """The permit feed for a cell: by INSEE code when a commune answered, else by box."""
@@ -1371,7 +1413,7 @@ def do_terraces(cells, communes, out, failures):
     for c in cells:
         feed = feed_of[c.key] = permit_city(c, communes.get(c.key))
         if feed: feeds.setdefault(id(feed), (feed, []))[1].append(c)
-    found = {}
+    found, published = {}, published_sources(out, cells)
     for feed, group in feeds.values():
         found.update(gather(group, lambda r, feed=feed: permits(feed, r), TERRACE_RADIUS, feed["city"] + " permits"))
     for c in cells:
@@ -1380,7 +1422,19 @@ def do_terraces(cells, communes, out, failures):
         if errors:  # half an answer is not a tile
             failures.append((c.key, "terraces-v2", "; ".join(map(str, errors)))); continue
         write(path(out, "terraces-v2", c), near_terraces(c, [t for a in answers[1:] for t in a] + answers[0]))
-        note_sources(out, c, permits=feed_of[c.key] and feed_of[c.key]["city"])
+        note_sources(out, c, published, permits=feed_of[c.key] and feed_of[c.key]["city"])
+
+def do_sources(cells, out, failures):
+    """The `sources` layer: the published sources/ tiles that lack a building source get it, found as
+    the buildings layer finds it (the city feed, IGN, then OSM), its tiles not written. A cell without
+    a published tile was never built and is left alone; one whose tile already names its source too."""
+    if not STORE:
+        failures += [(c.key, "sources", "no --store to read the published tiles from") for c in cells]; return
+    published = published_sources(out, cells)
+    for c in cells:
+        if isinstance(published.get(c.key), SourceError): failures.append((c.key, "sources", str(published[c.key])))
+    need = [c for c in cells if isinstance(published.get(c.key), dict) and published[c.key] and "buildings" not in published[c.key]]
+    if need: do_buildings(need, out, failures, published, tiles=False)
 
 def area(entry, half_km):
     """An entry's box: its own `box` [s, w, n, e], else `half_km` around its point."""
@@ -1414,12 +1468,15 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         return len(cells), [(c.key, "all", str(e)) for c in cells]
     # A French extract means French communes; elsewhere the geo API would answer [] a cell at a time.
     french = "/europe/france" in pbf
+    sources_only = set(layers) <= {"sources", "venues"}
     if "venues" in layers:
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
     for group in blocks(cells, block):
-        communes, need_terraces, need_buildings = {}, [], []
+        communes, need_terraces, need_buildings, need_sources = {}, [], [], []
         for c in group:
+            if "sources" in layers: need_sources.append(c)
+            if sources_only: continue  # no commune needed: a cell outside the départements has no published tile
             if french and in_france(c.lat, c.lon):
                 communes[c.key] = read(path(out, "communes", c))
                 if communes[c.key] is None:
@@ -1436,9 +1493,10 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
                 if french and communes.get(c.key) is None:
                     failures.append((c.key, "terraces-v2", "commune unknown, so the permit feed is too")); continue
                 need_terraces.append(c)
-        skipped += sum(1 for c in group if c not in need_buildings and c not in need_terraces and c.key not in outside)
+        skipped += sum(1 for c in group if c not in need_buildings and c not in need_terraces and c not in need_sources and c.key not in outside)
         if need_buildings: do_buildings(need_buildings, out, failures)
         if need_terraces: do_terraces(need_terraces, communes, out, failures)
+        if need_sources: do_sources(need_sources, out, failures)
     failed = {k for k, _, _ in failures}
     log(f"{label}: {len(cells) - len(outside) - len(failed)} of {len(cells) - len(outside)} cells complete ({skipped} already there), "
         f"{len(failed)} failed, {time.monotonic() - started:.0f} s")
@@ -1452,9 +1510,13 @@ def main():
     a.add_argument("--half-km", type=float, default=0.5)
     a.add_argument("--block", type=int, default=3, help="cells per side asked of a source at once (default 3)")
     a.add_argument("--out", default="tiles")
-    a.add_argument("--layers", default=",".join(LAYERS), help="which to write (default all): " + ", ".join(LAYERS))
+    a.add_argument("--layers", default=",".join(LAYERS), help="which to write (default all): " + ", ".join(LAYERS)
+                   + "; or sources, the building source of the published sources/ tiles that lack it (needs --store)")
+    a.add_argument("--store", help="the published tiles' base URL (https://tiles.alephb.uk/tiles/): sources/ tiles keep its fields")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
+    global STORE
+    STORE = args.store and args.store.rstrip("/") + "/"
     if args.cities:
         with open(args.cities) as f: entries = json.load(f)
     elif args.city and args.lat is not None and args.lon is not None:
