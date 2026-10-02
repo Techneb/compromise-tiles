@@ -71,6 +71,8 @@ none, this says so rather than guessing.
   (licence not stated by the publisher).
 - Eindhoven: Gemeente Eindhoven, terras tekeningen (licence not stated by
   the publisher).
+- San Sebastián: © Donostiako Udala - Ayuntamiento de Donostia / San
+  Sebastián, Terrazas autorizadas (licence not stated by the publisher).
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal. "The City of Chicago makes no
   claims as to the content, accuracy, timeliness, or completeness of any
@@ -111,6 +113,12 @@ none, this says so rather than guessing.
   stated by the publisher).
 - Cape Town: City of Cape Town, 2D Building Footprints (licence not stated
   by the publisher).
+- Johannesburg: City of Johannesburg, Building Footprints (licence not
+  stated by the publisher).
+- San Sebastián: Gipuzkoa Provincial Council, INSPIRE Buildings ("may be
+  reproduced, removed and reused freely on a nonexclusive basis, in whole
+  or in part, by any person in any format and for any subsequent
+  legitimate use"; "Authorship must be indicated in any case.").
 - São Paulo: Prefeitura de São Paulo, GeoSampa Edificações (licence not
   stated by the publisher).
 - Calgary: City of Calgary, 3D Buildings. Contains information licensed
