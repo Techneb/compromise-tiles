@@ -33,7 +33,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, concurrent.futures, csv, datetime, gzip, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
+import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -151,6 +151,11 @@ PERMIT_CITIES = [
     row("San Sebastián", "", "www.donostia.eus/geozerbitzuak/rest/services", "ext/URBANISMO/MapServer/34", "IzenTe", [],
         (43.29, 43.33), (-2.02, -1.91), shape="arcgis", oid="FID"),
     row("Eindhoven", "", "data.eindhoven.nl", "terrastekeningen", "", [], (51.39, 51.50), (5.38, 5.56)),
+    # Municipality of Thessaloníki's shops of health interest (GeoServer; the licence a link to the Ministry
+    # of the Interior's "Ανοιχτή Άδεια"): only those with a terrace permit number, the 2017–2019 register.
+    # Metres asked for: its degrees come rounded to 3 decimals (~100 m). The box is the points'.
+    row("Thessaloníki", "", "sdi.thessaloniki.gr/geoserver/wfs", "KOSE:TRAP2017", "eponymia", [],
+        (40.59, 40.66), (22.92, 22.99), shape="wfs", filter="adeiestrap IS NOT NULL", geom="geom", srs="EPSG:3857"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -688,6 +693,101 @@ def gipuzkoa(rect, cap=2000):
         return [b for part in ((s, w, ms, me), (s, me, ms, e), (ms, w, n, me), (ms, me, n, e)) for b in gipuzkoa(part, cap)]
     return gipuzkoa_buildings(raw)
 
+def citygml_buildings(raw, zone=32):
+    """LoD2 CityGML in UTM (NRW's, Bavaria's): each Building's or BuildingPart's ground surface as an outline,
+    its measuredHeight (metres, ground to roof) as the height; a parent made only of parts gives none itself."""
+    out = []
+    for _, el in ET.iterparse(io.BytesIO(raw)):
+        if el.tag.rsplit("}", 1)[-1] != "Building": continue
+        for obj in [el] + el.findall(".//{*}BuildingPart"):
+            h = number(obj.findtext("{*}measuredHeight"))
+            for pos in obj.findall("{*}boundedBy/{*}GroundSurface//{*}exterior//{*}posList"):
+                v, d = [float(x) for x in pos.text.split()], int(pos.get("srsDimension") or 3)
+                ring = [vertex(*utm_to_wgs84(v[i], v[i + 1], zone)) for i in range(0, len(v) - d + 1, d)]
+                if len(ring) >= 3: out.append(building(ring, h if h and h > 0 else 15.0))
+        el.clear()
+    return out
+
+_citygml = {}  # tile URL → its buildings, each tile parsed once a run
+
+def citygml_tiles(url, km):
+    """A fetch over LoD2 CityGML tiles of `km` km in UTM 32N, named by their south-west corner in km: each
+    tile a box touches is downloaded and parsed once a run, then served from memory. A tile the publisher
+    does not have (404: no building there) is empty."""
+    def fetch(rect):
+        s, w, n, e = rect
+        corners = [wgs84_to_utm(la, lo, 32) for la in (s, n) for lo in (w, e)]
+        span = lambda i: range(int(min(c[i] for c in corners) // 1000 // km * km), int(max(c[i] for c in corners) // 1000) + 1, km)
+        out = []
+        for x in span(0):
+            for y in span(1):
+                u = url.format(e=x, n=y)
+                if u not in _citygml:
+                    try: _citygml[u] = citygml_buildings(get(u))
+                    except SourceError as err:
+                        if "HTTP 404" not in str(err): raise
+                        _citygml[u] = []
+                out += [b for b in _citygml[u] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+        return out
+    return fetch
+
+def beoland(rect):
+    """Beoland's Belgrade LoD2 multipatch, which answers no GeoJSON and leaves measuredheight empty: the
+    footprints' outer (clockwise) rings from one query, each height (the extent's top minus its bottom,
+    metres) from a second, matched by objectid."""
+    s, w, n, e = rect
+    def features(option):
+        def parse(raw):
+            root = json.loads(raw)
+            if "error" in root: raise ValueError(root["error"])
+            return root
+        out, last = [], -1
+        while True:
+            q = urllib.parse.urlencode({"where": f"objectid>{last}", "geometry": f"{w},{s},{e},{n}", "geometryType": "esriGeometryEnvelope",
+                                        "inSR": "4326", "outSR": "4326", "outFields": "objectid", "returnZ": "true",
+                                        "multipatchOption": option, "orderByFields": "objectid", "f": "json"})
+            page = get("https://gis.beoland.com/server/rest/services/Hosted/Beograd_3D_WSL1/FeatureServer/2/query?" + q, parse=parse)
+            out += page.get("features") or []
+            if not page.get("features") or not page.get("exceededTransferLimit"): return out
+            last = max(f["attributes"]["objectid"] for f in page["features"])
+    heights = {}
+    for f in features("extent"):
+        z = [p[2] for r in (f.get("geometry") or {}).get("rings") or [] for p in r if len(p) > 2 and p[2] is not None]
+        if z: heights[f["attributes"]["objectid"]] = max(z) - min(z)
+    out = []
+    for f in features("xyFootprint"):
+        for r in (f.get("geometry") or {}).get("rings") or []:
+            if len(r) >= 4 and sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(r, r[1:])) < 0:  # clockwise: outer
+                h = heights.get(f["attributes"]["objectid"])
+                out.append(building([vertex(p[1], p[0]) for p in r], h if h and h > 0 else 15.0))
+    return out
+
+LIGURIA = "https://geoservizi.regione.liguria.it/geoserver/ows"
+
+def liguria(rect):
+    """Regione Liguria's NC5 3D footprints, every vertex at the eave's elevation: the height is that minus the
+    nearest spot height measured at a building's foot ("al piede", 0301) within 40 m, else 15 m."""
+    params = {"OUTPUTFORMAT": "application/json", "SRSNAME": "EPSG:4326"}
+    feet = {}  # 0.001° buckets
+    for f in wfs(LIGURIA, {**params, "TYPENAMES": "M2052:L6911", "PROPERTYNAME": "wkb_geometry,pt_quo_q,pt_quo_sed"}, padded(rect, 50)):
+        p = f.get("properties") or {}
+        if p.get("pt_quo_sed") == "0301" and f.get("geometry") and p.get("pt_quo_q") is not None:
+            lon, lat = f["geometry"]["coordinates"][:2]
+            feet.setdefault((round(lat, 3), round(lon, 3)), []).append((lat, lon, p["pt_quo_q"]))
+    out = []
+    for f in wfs(LIGURIA, {**params, "TYPENAMES": "M2052:L6871", "PROPERTYNAME": "wkb_geometry"}, rect):
+        g = f.get("geometry") or {}
+        for polygon in [g.get("coordinates")] if g.get("type") == "Polygon" else g.get("coordinates") or []:
+            ring = [v for v in (polygon or [[]])[0] if len(v) >= 3]
+            if len(ring) < 3: continue
+            lat, lon = sum(v[1] for v in ring) / len(ring), sum(v[0] for v in ring) / len(ring)
+            near = [q for dy in (-1, 0, 1) for dx in (-1, 0, 1)
+                    for q in feet.get((round(round(lat, 3) + dy / 1000, 3), round(round(lon, 3) + dx / 1000, 3)), ())]
+            foot = min(near, key=lambda q: metres(lat, lon, q[0], q[1]), default=None)
+            h = ring[0][2] - foot[2] if foot and metres(lat, lon, foot[0], foot[1]) <= 40 else None
+            out.append(building([vertex(v[1], v[0]) for v in ring], h if h and h > 0 else 15.0))
+    return out
+
 def boundary(slug):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
 
@@ -813,6 +913,30 @@ CITY_BUILDINGS = [
         "https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/LI_BUILDING_FOOTPRINTS/FeatureServer/0",
         r, ["max_hgt", "approx_hgt"], oid="objectid"),
         lambda p: (p.get("max_hgt") or p.get("approx_hgt") or 0) * 0.3048 or None)),
+    # Wired 2026-10-02. Statewide LoD2 models (Düsseldorf: Dreischeibenhaus 93.6 m; Nuremberg: Business
+    # Tower 131.6 m), so the box is the city's cities.json area.
+    building_row("Düsseldorf", (51.179, 51.269), (6.7203, 6.8497), citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Nuremberg", (49.409, 49.491), (11.0034, 11.1366), citygml_tiles(
+        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+    # ZG3D 2022 (Otvorena dozvola): Z_Delta is metres from ground to top (the cathedral 103.5 m). The box is the layer's.
+    building_row("Zagreb", (45.622, 45.969), (15.771, 16.229), lambda r: footprints(arcgis(
+        "https://services8.arcgis.com/Usi0jGQwMmBUpFjr/arcgis/rest/services/ZG3D_2022_3d_model_GZ/FeatureServer/0", r,
+        ["Z_Delta"]), lambda p: p.get("Z_Delta"))),
+    # Beoland's central-Belgrade model (no licence stated; Beograđanka 99.8 m). The box is the layer's.
+    building_row("Belgrade", (44.797, 44.824), (20.438, 20.485), beoland),
+    # One polygon per floor slab: the ground floor's, CantPisos × 3.5 m (each slab's ALTURA). The box is the layer's.
+    building_row("San José", (9.9005, 9.9658), (-84.1499, -84.0472), lambda r: footprints(arcgis(
+        "https://services5.arcgis.com/0ZvuJDanWVJc4vYr/arcgis/rest/services/SIG_SER_3D_Edificaciones/FeatureServer/0", r,
+        ["CantPisos"], where="PISO=1"), lambda p: number(p.get("CantPisos")) * 3.5 if number(p.get("CantPisos")) else None)),
+    # Santa Clara County's 2020 lidar footprints (county-wide, no licence stated): Building_H is feet above
+    # ground (houses 10–30, City Hall 285.6). The box is San Jose's cities.json area.
+    building_row("San Jose", (37.309, 37.359), (-121.9236, -121.8544), lambda r: footprints(arcgis(
+        "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40", r, ["Building_H"]),
+        lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)),
+    # Regione Liguria's region-wide NC5 3D footprints (CC BY 4.0; Torre Piacentini 99.9 m); where NC5
+    # has nothing (Pegli, Voltri) the cell falls to OSM. The box is Genoa's cities.json area.
+    building_row("Genoa", (44.371, 44.441), (8.8399, 9.0141), liguria),
 ]
 
 
@@ -937,6 +1061,25 @@ def utm_to_wgs84(easting, northing, zone=30):
                               + (5 - 2 * c1 + 28 * t1 - 3 * c1**2 + 8 * ep2 + 24 * t1**2) * d**5 / 120) / cos1
     return math.degrees(phi), math.degrees(lon)
 
+def wgs84_to_utm(lat, lon, zone):
+    """WGS84 → UTM north (easting, northing), Snyder's forward transverse Mercator: which CityGML tiles a box needs."""
+    a, f, k0 = 6_378_137.0, 1 / 298.257223563, 0.9996
+    e2 = f * (2 - f); ep2 = e2 / (1 - e2)
+    phi = math.radians(lat)
+    n = a / math.sqrt(1 - e2 * math.sin(phi)**2)
+    t, c, A = math.tan(phi)**2, ep2 * math.cos(phi)**2, math.radians(lon - (zone * 6 - 183)) * math.cos(phi)
+    m = a * ((1 - e2 / 4 - 3 * e2**2 / 64 - 5 * e2**3 / 256) * phi - (3 * e2 / 8 + 3 * e2**2 / 32 + 45 * e2**3 / 1024) * math.sin(2 * phi)
+             + (15 * e2**2 / 256 + 45 * e2**3 / 1024) * math.sin(4 * phi) - (35 * e2**3 / 3072) * math.sin(6 * phi))
+    x = 500_000 + k0 * n * (A + (1 - t + c) * A**3 / 6 + (5 - 18 * t + t**2 + 72 * c - 58 * ep2) * A**5 / 120)
+    y = k0 * (m + n * math.tan(phi) * (A**2 / 2 + (5 - t + 9 * c + 4 * c**2) * A**4 / 24
+                                       + (61 - 58 * t + t**2 + 600 * c - 330 * ep2) * A**6 / 720))
+    return x, y
+
+def mercator_to_wgs84(x, y):
+    """Web Mercator (EPSG:3857) → (lat, lon)."""
+    r = 6_378_137.0
+    return math.degrees(2 * math.atan(math.exp(y / r)) - math.pi / 2), math.degrees(x / r)
+
 _whole = {}  # whole-file feeds, fetched once per run
 
 def madrid_all(c):
@@ -1049,13 +1192,19 @@ def permits(c, rect):
         # WFS 1.1.0: longitude first, and the
         # bbox needs its own trailing CRS or the server silently answers zero.
         params = {"service": "WFS", "version": "1.1.0", "request": "GetFeature",
-                  "typeName": c["dataset"], "outputFormat": "json", "srsName": "EPSG:4326"}
+                  "typeName": c["dataset"], "outputFormat": "json", "srsName": c.get("srs", "EPSG:4326")}
         if c.get("filter"):
             # Copenhagen's GeoServer refuses bbox alongside CQL_FILTER.
-            params["CQL_FILTER"] = f"{c['filter']} AND BBOX(wkb_geometry,{w},{s},{e},{n},'EPSG:4326')"
+            params["CQL_FILTER"] = f"{c['filter']} AND BBOX({c.get('geom', 'wkb_geometry')},{w},{s},{e},{n},'EPSG:4326')"
         else:
             params["bbox"] = f"{w},{s},{e},{n},EPSG:4326"
         features = get_json(f"https://{c['host']}?" + urllib.parse.urlencode(params)).get("features") or []
+        if c.get("srs") == "EPSG:3857":  # Thessaloníki: metres to the millimetre, where its degrees are rounded to ~100 m
+            for f in features:
+                g = f.get("geometry") or {}
+                if g.get("type") in ("Point", "MultiPoint"):
+                    pts = g["coordinates"] if g["type"] == "MultiPoint" else [g["coordinates"]]
+                    g.update(type="MultiPoint", coordinates=[mercator_to_wgs84(*p[:2])[::-1] for p in pts])
         return permit_items(features, c)   # polygons land on their mean vertex
     if c.get("shape") == "arcgis":
         fields = [f for f in [c["name"]] + c["kinds"] if f]
