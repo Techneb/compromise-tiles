@@ -6,7 +6,7 @@ cell, keyed "<int(lat*500)>,<int(lon*500)>", under buildings/,
 terraces-v2/ and communes/, and one per ~2 km cell, keyed
 "<int(lat*50)>,<int(lon*50)>", under venues/. Beside the first two,
 sources/ names what built each cell ([{"permits": city|null,
-"buildings": city|"IGN"|"OSM"}]) — what the app credits.
+"buildings": city|"IGN"|"OSM"|city+"+OSM"}]) — what the app credits.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -319,11 +319,18 @@ def download(url, folder, max_days=6):
     os.replace(file + ".tmp", file)
     return file
 
+def tag_number(tags, key):
+    try: return float(str(tags[key]).replace(" m", "").strip())
+    except (KeyError, ValueError): return None
+
+def osm_tagged(tags):
+    """Which tag gives a building its height: "height", "levels" (`building:levels`), or None (the 15 m guess)."""
+    return "height" if tag_number(tags, "height") is not None else "levels" if tag_number(tags, "building:levels") is not None else None
+
 def osm_height(tags):
     """`height`, else `building:levels` × 3 m, else 15 m."""
     for key, scale in (("height", 1), ("building:levels", 3)):
-        try: return float(str(tags[key]).replace(" m", "").strip()) * scale
-        except (KeyError, ValueError): pass
+        if tag_number(tags, key) is not None: return tag_number(tags, key) * scale
     return 15.0
 
 def buckets(s, w, n, e):
@@ -367,14 +374,15 @@ class OSM:
             for f in (box, kept):
                 if os.path.exists(f): os.remove(f)
 
-    def buildings(self, rect):
+    def buildings(self, rect, tagged=False):
         """Building ways meeting the rect. osmium keeps a way with a node in the cut, whole; a big one
         (a station hall) can reach a cell with every node outside it, hence 500 m more — the
-        in-memory index had them, and near_buildings trims the rest."""
+        in-memory index had them, and near_buildings trims the rest. With tagged=True, a building
+        whose height comes from its tags says which ("tagged": osm_tagged()), for combined()."""
         s, w, n, e = padded(rect, 500)
         cut = self.walls + ".cut.pbf"
         osmium("extract", "-b", f"{w},{s},{e},{n}", self.walls, "-o", cut, "--overwrite")
-        return [building(ring, osm_height(f["properties"])) for f in features(cut)
+        return [dict(building(ring, osm_height(f["properties"])), **({"tagged": osm_tagged(f["properties"])} if tagged and osm_tagged(f["properties"]) else {})) for f in features(cut)
                 if "building" in f["properties"] and f["geometry"]["type"] != "Point" for ring in outer_rings(f["geometry"])]
 
     def near(self, table, rect):
@@ -386,7 +394,7 @@ class OSM:
 
 _osm = None  # the current area's OSM, set by run()
 
-def osm_buildings(rect): return _osm.buildings(rect)
+def osm_buildings(rect, tagged=False): return _osm.buildings(rect, tagged)
 
 def osm_terraces(rect):
     """Outdoor seating on a bar, pub, beer garden, café or restaurant, named or not."""
@@ -437,13 +445,47 @@ def outer_rings(geometry):
         ring = [vertex(v[1], v[0]) for v in (polygon[0] if polygon else []) if len(v) >= 2]
         if len(ring) >= 3: yield ring
 
-def footprints(features, height):
-    """GeoJSON → a building: outer rings, the city's height rule, 15 m when it reads nothing sensible."""
+def footprints(features, height, default=15.0):
+    """GeoJSON → a building: outer rings, the city's height rule, `default` (15 m) when it reads nothing
+    sensible; with default=None such a footprint is left out (a combine row: OSM's own height stays)."""
     out = []
     for f in features:
         h = height(f.get("properties") or {})
+        if not (h and h > 0) and default is None: continue
         for ring in outer_rings(f.get("geometry")):
-            out.append(building(ring, h if h and h > 0 else 15.0))
+            out.append(building(ring, h if h and h > 0 else default))
+    return out
+
+COMBINE_GRID = 2000  # the city footprints' index in combined(): 1/2000°, ~50 m
+
+def combined(osm, city, metres=False):
+    """OpenStreetMap's footprints (osm_buildings(rect, tagged=True)), each taking the height of the city
+    footprint it matches, marked "city": True: each holds the other's centre (the mean of its vertices),
+    so a small OSM building inside a big city outline (an annex under an office block's footprint) matches
+    none; an OSM outline drawn round several city buildings takes the one under its centre. A `height` tag is kept: a mapper's
+    measure, which a city's floor count is coarser than (Oakland's Ordway Building: 28 floors × 3 m = 84 m,
+    tagged 123 m). `building:levels` × 3 m is kept too, unless the city's height is measured in metres
+    (metres=True): two floor counts, the mapper's is the newer (Packard Lofts: 1 floor in Oakland's 2015
+    layer, 4 levels in OSM). OSM's 15 m guess always gives way.
+    City footprints OSM lacks are not added: the two outlines of one building rarely agree, and one added
+    beside the other would double it."""
+    def centre(b): return (sum(p["latitude"] for p in b["outline"]) / len(b["outline"]),
+                           sum(p["longitude"] for p in b["outline"]) / len(b["outline"]))
+    def ring(b): return {"type": "Polygon", "coordinates": [[[p["longitude"], p["latitude"]] for p in b["outline"]]]}
+    grid = {}
+    for b in city:
+        lats, lons = [p["latitude"] for p in b["outline"]], [p["longitude"] for p in b["outline"]]
+        for y in range(math.floor(min(lats) * COMBINE_GRID), math.floor(max(lats) * COMBINE_GRID) + 1):
+            for x in range(math.floor(min(lons) * COMBINE_GRID), math.floor(max(lons) * COMBINE_GRID) + 1):
+                grid.setdefault((y, x), []).append((ring(b), centre(b), b["height"]))
+    out = []
+    for b in osm:
+        lat, lon = centre(b)
+        near = grid.get((math.floor(lat * COMBINE_GRID), math.floor(lon * COMBINE_GRID)), ())
+        mine = ring(b)
+        height = next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None)
+        kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
+        out.append(b if height is None or kept else dict(b, height=height, city=True))
     return out
 
 def unique(items):
@@ -788,11 +830,18 @@ def liguria(rect):
             out.append(building([vertex(v[1], v[0]) for v in ring], h if h and h > 0 else 15.0))
     return out
 
+def oakland(rect):
+    """Oakland's footprints: nostory × 3 m. A 20-floor footprint under 5,000 sq ft is left out: the six
+    of them are houses, a placeholder, not a count."""
+    return footprints([f for f in socrata("data.oaklandca.gov", "iqfp-6kz5", intersects("the_geom", rect), "nostory,shape_area,the_geom")
+                       if not (number(f["properties"].get("nostory")) == 20 and (number(f["properties"].get("shape_area")) or 0) < 5000)],
+                      lambda p: (number(p.get("nostory")) or 0) * 3.0, default=None)
+
 def boundary(slug):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
 
-def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None):
-    return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary)
+def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
+    return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary, combine=combine)
 
 def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None or contains(b["boundary"], lat, lon))
 
@@ -800,6 +849,10 @@ def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None 
 # municipal boundary when the feed stops there) is asked first, then IGN (France), then
 # OpenStreetMap, each only when the one before answered nothing. A boundary keeps a neighbour's
 # cells off a feed that answers only a few buildings there (Fitzroy got 73 from Melbourne's).
+# A combine row ("metres" or "floors", what its heights are) keeps OpenStreetMap's footprints and
+# takes the feed's height where it has the building (combined(), which says when OSM's own stays):
+# for a feed that lacks many buildings, whose cells it would otherwise empty of them. Its fetch
+# returns only the footprints with a height (footprints(..., default=None)).
 CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
@@ -943,6 +996,15 @@ CITY_BUILDINGS = [
     building_row("Sofia", (42.424, 42.857), (23.077, 23.639), lambda r: footprints(arcgis(
         "https://gis.sofiaplan.bg/server/rest/services/oup_2009/oup_2009/FeatureServer/98", r, ["sgr_text"], oid="objectid"),
         lambda p: int((re.match(r"\d+", p.get("sgr_text") or "") or ["1"])[0]) * 3.0)),
+    # Combined with OSM (owner, 2026-10-02): Bratislava's Pocet_obyvatelov_budovy holds residential buildings
+    # only (Vyska, metres; licence not stated by the publisher), so the office towers come from OSM.
+    # The box is the layer's extent.
+    building_row("Bratislava", (48.0059, 48.2894), (16.9578, 17.3772), combine="metres", fetch=lambda r: footprints(arcgis(
+        "https://services8.arcgis.com/pRlN1m0su5BYaFAS/arcgis/rest/services/Pocet_obyvatelov_budovy/FeatureServer/0", r,
+        ["Vyska"]), lambda p: number(p.get("Vyska")), default=None)),
+    # Oakland's 2015 BuildingFootprints (Socrata iqfp-6kz5; licence not stated by the publisher): nostory
+    # floors × 3 m, combined with OSM (complete in few cells). The box is the layer's extent.
+    building_row("Oakland", (37.7224, 37.8527), (-122.3301, -122.1622), combine="floors", fetch=oakland),
 ]
 
 
@@ -1334,7 +1396,10 @@ def building_source(cell):
     city = next((b for b in CITY_BUILDINGS if in_feed(b, cell.lat, cell.lon)), None)
     return city["city"] if city else "IGN" if in_france(cell.lat, cell.lon) else "OSM"
 
-FETCH_BUILDINGS = dict({b["city"]: b["fetch"] for b in CITY_BUILDINGS}, IGN=ign_buildings, OSM=osm_buildings)
+FETCH_BUILDINGS = dict({b["city"]: (lambda r, b=b: combined(osm_buildings(r, True), b["fetch"](r), b["combine"] == "metres"))
+                        if b["combine"] else b["fetch"]
+                        for b in CITY_BUILDINGS}, IGN=ign_buildings, OSM=osm_buildings)
+COMBINE = {b["city"] for b in CITY_BUILDINGS if b["combine"]}
 
 def next_source(source, cell):
     """A city feed or IGN answering nothing for a cell hands it on; an error does not."""
@@ -1361,8 +1426,12 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             items = near_buildings(c, answer)
             if not items and next_source(source, c):
                 groups.setdefault(next_source(source, c), []).append(c); continue
+            name = source
+            if source in COMBINE:  # "<city>+OSM" where the city gave a height, else OSM's alone
+                name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
+                items = [{"outline": b["outline"], "height": b["height"]} for b in items]
             if tiles: write(path(out, "buildings", c), items)
-            note_sources(out, c, published, buildings=source)
+            note_sources(out, c, published, buildings=name)
 
 STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
 STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
@@ -1397,7 +1466,7 @@ def published_sources(out, cells):
 def note_sources(out, cell, published=None, **fields):
     """sources/<key>.json, one object in an array like every layer: which permit feed
     (a PERMIT_CITIES city, or null) and which building source (a CITY_BUILDINGS city,
-    "IGN" or "OSM") built the cell — what the app credits. Each field is written with
+    "IGN", "OSM", or "<city>+OSM" for a combine row's cell the city gave heights to) built the cell — what the app credits. Each field is written with
     its own layer, over the tile already in `out`, else over the published one (`published`,
     from published_sources), so a run building one layer keeps the other's field. A cell
     whose published tile could not be read gets no tile: the upload leaves the published one."""
