@@ -78,9 +78,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
-          layers=$(echo "$LAYERS" | tr ',' ' ')
-          # sources/ is written beside terraces-v2 and buildings.
-          case " $layers " in *" terraces-v2 "*|*" buildings "*) layers="$layers sources";; esac
+          # sources/ and communes/ are written beside the layers asked for (communes in France).
+          layers=$(echo "$LAYERS,sources,communes" | tr ',' '\n' | sort -u | tr '\n' ' ')
           pids=""
           for l in $layers; do
             aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
