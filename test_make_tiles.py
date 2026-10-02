@@ -154,6 +154,13 @@ make_tiles.arcgis = real_arcgis
 assert at(51.2263, 6.7727) == "Düsseldorf" and at(49.4539, 11.0775) == "Nuremberg" and at(45.8131, 15.9772) == "Zagreb"
 assert at(44.8160, 20.4600) == "Belgrade" and at(44.7900, 20.4600) == "OSM" and at(9.9334, -84.0770) == "San José"
 assert at(37.3377, -121.8855) == "San Jose" and at(44.4072, 8.9339) == "Genoa"
+# Sofia: sgr_text's leading number is floors × 3 m, none one floor (real codes: Park Hotel Moskva, the NDK,
+# a massive building with no count, an underground one).
+make_tiles.arcgis = lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
+    [0, 1], [1, 1], [0, 0]]]}, "properties": {"sgr_text": t}} for t in ("26МСБЖ", "5МСБЖ", "МС", "-1МС", None)]
+assert rule("Sofia") == [78.0, 15.0, 3.0, 3.0, 3.0]
+make_tiles.arcgis = real_arcgis
+assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "OSM"
 
 # sources/: each layer writes its own field and keeps the other's; a cell's building source is what answered.
 import tempfile, make_tiles
