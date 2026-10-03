@@ -72,6 +72,15 @@ def tally(objects, cells):
                        for k, v in sorted(city.items(), key=lambda kv: (kv[0][0], -kv[1][0]))]}
 
 
+def orphans(objects, cells):
+    """The keys of the read tile layers whose cell no area builds: what `--orphans` lists for deletion."""
+    out = []
+    for key, _ in objects:
+        m = TILE.match(key)
+        if m and m[1] in READ["tiles"] and (int(m[2]), int(m[3])) not in cells[LAYER_SCALE[m[1]]]: out.append(key)
+    return out
+
+
 def unread(t):
     """Prefixes and layers no reader takes, with what they hold: the deletion candidates beside NO_AREA."""
     out = [(k, v) for k, v in t["prefixes"].items() if k != "tiles/" and k not in READ["root"]]
@@ -106,8 +115,13 @@ def main():
     a.add_argument("--cities", default="cities.json")
     a.add_argument("--write", default="storage.json")
     a.add_argument("--summary", default="storage.md")
+    a.add_argument("--orphans", help="also write the keys of tiles no area builds, one a line (storage.yml deletes them)")
     args = a.parse_args()
-    with open(args.listing) as f: t = tally(parse(f), owners(args.cities))
+    with open(args.listing) as f: objects = list(parse(f))
+    cells = owners(args.cities)
+    t = tally(objects, cells)
+    if args.orphans:
+        with open(args.orphans, "w") as f: f.writelines(k + "\n" for k in orphans(objects, cells))
     t["unread"] = [{"prefix": k, "bytes": v["bytes"], "objects": v["objects"]} for k, v in unread(t)]
     with open(args.write, "w") as f: json.dump(t, f, ensure_ascii=False, indent=1)
     with open(args.summary, "w") as f: f.write(summary(t))
