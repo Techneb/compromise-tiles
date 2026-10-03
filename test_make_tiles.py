@@ -205,4 +205,22 @@ assert [t.get("name") for t in got] == ["LE RECIF", "LE BISTROT DE MEME", "LA CO
 assert abs(got[0]["coordinate"]["latitude"] - 46.14127796782068) < 1e-9 and abs(got[0]["coordinate"]["longitude"] + 1.1708002829565918) < 1e-9
 assert permits(rochelle, (46.15, -1.18, 46.16, -1.17)) == [got[2]]   # the file is read once, then cut to the cell
 make_tiles.get = real_get
+# Barcelona: the newest CSV resource (listed first) read through CKAN's datastore API, paged by offset to the
+# total (its download URL answers a bot-detection page); a row without a point is dropped.
+asked.clear()
+def fake_get_json(url, **k):
+    asked.append(url)
+    if "package_show" in url:
+        return {"result": {"resources": [{"id": "pdf", "format": "PDF"}, {"id": "new", "format": "CSV"}, {"id": "old", "format": "CSV"}]}}
+    rows = [{"LATITUD": "41.4083712701906", "LONGITUD": "2.17453673339805"}, {"LATITUD": "", "LONGITUD": ""},
+            {"LATITUD": "41.39", "LONGITUD": "2.16"}]
+    offset = int(urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)["offset"][0])
+    return {"result": {"total": 3, "records": rows[offset:offset + 2]}}
+make_tiles.get_json, real_get_json = fake_get_json, make_tiles.get_json
+bcn = next(c for c in PERMIT_CITIES if c["city"] == "Barcelona")
+got = permits(bcn, (41.32, 2.05, 41.47, 2.23))
+assert [t["coordinate"] for t in got] == [{"latitude": 41.4083712701906, "longitude": 2.17453673339805},
+                                          {"latitude": 41.39, "longitude": 2.16}] and all(t["kind"] == "TERRASSE" for t in got)
+assert [urllib.parse.parse_qs(urllib.parse.urlsplit(u).query).get("resource_id") for u in asked[1:]] == [["new"], ["new"]]
+make_tiles.get_json = real_get_json
 print("ok")
