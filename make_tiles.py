@@ -123,7 +123,7 @@ PERMIT_CITIES = [
     # MapServer WFS, UTM 32N only: serving licences, a terrace where outdoor hours (UTE_TID) are set.
     row("Oslo", "", "od2.pbe.oslo.kommune.no/cgi-bin/wms", "skjenkebevilling_punkt", "OBJEKTNAVN", [],
         (59.81, 60.00), (10.62, 10.95), shape="oslo"),
-    # Open Data BCN (CKAN): the newest CSV of the dataset's resources, fetched whole once per run; no names.
+    # Open Data BCN (CKAN): the newest CSV of the dataset's resources, read whole through the datastore API once per run; no names.
     row("Barcelona", "", "opendata-ajuntament.barcelona.cat", "terrasses-comercos-vigents", "", [],
         (41.32, 41.47), (2.05, 2.23), shape="barcelona"),
     # Hand-refreshed snapshots in this repository (`permits/`): the feeds carry street addresses only,
@@ -1279,15 +1279,20 @@ def seville_all(c):
     return out
 
 def barcelona_all(c):
-    """Barcelona: CKAN's newest CSV resource, WGS84 LATITUD/LONGITUD, no name."""
-    package = get_json(f"https://{c['host']}/data/api/3/action/package_show?id={c['dataset']}")
-    url = next(r["url"] for r in package["result"]["resources"] if (r.get("format") or "").upper() == "CSV")
-    rows = [[cell.strip('"\ufeff') for cell in line.split(";")] for line in get(url).decode("utf-8").splitlines() if line]
-    header, out = rows[0], []
-    lat_col, lon_col = header.index("LATITUD"), header.index("LONGITUD")
-    for r in rows[1:]:
-        if len(r) != len(header): continue
-        lat, lon = number(r[lat_col]), number(r[lon_col])
+    """Barcelona: CKAN's newest CSV resource, WGS84 LATITUD/LONGITUD, no name. Read through the datastore API:
+    the CSV's download URL answers a bot-detection page since 2026-10 (302 to /challenge)."""
+    api = f"https://{c['host']}/data/api/3/action/"
+    package = get_json(api + f"package_show?id={c['dataset']}")
+    resource = next(r["id"] for r in package["result"]["resources"] if (r.get("format") or "").upper() == "CSV")
+    rows = []
+    while True:
+        page = get_json(api + "datastore_search?" + urllib.parse.urlencode(
+            {"resource_id": resource, "limit": "10000", "offset": str(len(rows))}))["result"]
+        rows += page["records"]
+        if not page["records"] or len(rows) >= page["total"]: break
+    out = []
+    for r in rows:
+        lat, lon = number(r.get("LATITUD")), number(r.get("LONGITUD"))
         if lat is None or lon is None: continue
         out.append({"kind": "TERRASSE", "coordinate": {"latitude": lat, "longitude": lon}})
     if not out: raise SourceError("Barcelona: no terrace parsed")  # as for Madrid
