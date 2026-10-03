@@ -81,6 +81,14 @@ none, this says so rather than guessing.
   at this site is being used at one's own risk."
 - San Francisco: DataSF, City and County of San Francisco, PDDL.
 
+**Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
+- Toronto: City of Toronto, Regional Municipal Boundary. Contains
+  information licensed under the Open Government Licence – Toronto.
+- Camden (London): Office for National Statistics, Local Authority
+  Districts (December 2025) Boundaries UK BFC. Source: Office for National
+  Statistics licensed under the Open Government Licence v.3.0. Contains OS
+  data © Crown copyright and database right 2025.
+
 **Building footprints and heights**
 - France: IGN BD TOPO, Licence Ouverte 2.0.
 - Amsterdam, Rotterdam, The Hague, Utrecht: © 3DBAG by tudelft3d and 3DGI
@@ -159,6 +167,14 @@ none, this says so rather than guessing.
 **Communes (France: their names and codes in `coverage.json`)**
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
+
+**City boundaries (`boundaries/`)**
+- Berlin: Geoportal Berlin, ALKIS Land Berlin, Datenlizenz Deutschland –
+  Zero 2.0.
+- New York: NYC Department of City Planning, Borough Boundaries, NYC Open
+  Data (licence not stated by the publisher).
+- Istanbul: General Command of Mapping (Türkiye), administrative
+  boundaries through OCHA (COD-AB), CC BY-IGO.
 
 **City names and points (`survey-candidates.json`)**
 - GeoNames (geonames.org), CC BY 4.0.

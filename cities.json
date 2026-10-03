@@ -78,13 +78,14 @@
   },
   {
     "city": "Berlin",
-    "district": "Berlin (densest 150 km\u00b2 of the core)",
+    "district": "Berlin (whole city)",
     "box": [
-      52.4592,
-      13.2863,
-      52.5692,
-      13.4671
-    ]
+      52.3377,
+      13.0878,
+      52.676,
+      13.7617
+    ],
+    "boundary": "boundaries/berlin.geojson"
   },
   {
     "city": "Bologna",
@@ -173,13 +174,14 @@
   },
   {
     "city": "New York",
-    "district": "New York (densest 150 km\u00b2 of the core)",
+    "district": "New York (five boroughs)",
     "box": [
-      40.673,
-      -74.0175,
-      40.783,
-      -73.8723
-    ]
+      40.4956,
+      -74.2561,
+      40.916,
+      -73.6995
+    ],
+    "boundary": "boundaries/new-york.geojson"
   },
   {
     "city": "Rotterdam",
@@ -586,13 +588,14 @@
   },
   {
     "city": "Istanbul",
-    "district": "Istanbul (densest 150 km\u00b2 of the core)",
+    "district": "Istanbul (built-up area)",
     "box": [
-      40.9772,
-      28.9015,
-      41.0873,
-      29.0474
-    ]
+      40.8022,
+      28.3904,
+      41.1599,
+      29.5062
+    ],
+    "boundary": "boundaries/istanbul.geojson"
   },
   {
     "city": "Milan",

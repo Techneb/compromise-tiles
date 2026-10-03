@@ -49,11 +49,16 @@ TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the 
 BUILDING_REACH = 200
 BUILDING_PAD = 250            # fetched around a block: some feeds select by a footprint's centre, not its outline
 
+def boundary(slug):
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
+
 # The city permit feeds, one row each. A cell picks its feed by INSEE
 # code when the commune answered (a French commune without a feed gets none, so Levallois inside
-# Paris's box is OSM only), else the first box holding the cell's centre.
-def row(name, insee, host, dataset, name_field, kinds, lat, lon, **extra):
-    return dict(city=name, insee=insee, host=host, dataset=dataset, name=name_field, kinds=kinds, lat=lat, lon=lon, **extra)
+# Paris's box is OSM only), else the first box holding the cell's centre — inside the row's municipal
+# boundary when it has one (a feed holds only its own city's permits, so a neighbour's tiled cells in
+# its box are OSM only, credited to no feed: Vaughan in Toronto's, Westminster and Islington in Camden's).
+def row(name, insee, host, dataset, name_field, kinds, lat, lon, boundary=None, **extra):
+    return dict(city=name, insee=insee, host=host, dataset=dataset, name=name_field, kinds=kinds, lat=lat, lon=lon, boundary=boundary, **extra)
 
 PERMIT_CITIES = [
     # Terrace kinds only (TERRASSE, TERRASSES, CONTRE-TERRASSE…): the feed also lists stalls (ETALAGE),
@@ -84,9 +89,10 @@ PERMIT_CITIES = [
         filter="seating_type=\"Seats - Outdoor\" and census_year>=date'2023-01-01'"),
     # Socrata: `{twoYearsAgo}` and `{today}` are resolved at run time.
     # Camden's name is a full address, cut before its first digit.
+    # Held to the borough (ONS Local Authority Districts, OGL): the box reaches 40 km² of London's other tiled cells.
     row("Camden", "", "opendata.camden.gov.uk", "8ixc-jf73", "development_address", [], (51.52, 51.58), (-0.22, -0.10),
         shape="socrata", point="location", filter="decision_type = 'Granted' AND registered_date >= '{twoYearsAgo}'",
-        clean="digit"),
+        clean="digit", boundary=boundary("camden")),
     row("New York", "", "data.cityofnewyork.us", "fpeh-f7ci", "assumed_name_s", [], (40.49, 40.92), (-74.26, -73.68),
         shape="socrata", point="location", filter="license_expiration_date >= '{today}'"),
     row("Chicago", "", "data.cityofchicago.org", "nxj5-ix6z", "doing_business_as_name", [], (41.64, 42.02), (-87.94, -87.52),
@@ -136,11 +142,12 @@ PERMIT_CITIES = [
     row("Adelaide", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/adelaide.geojson",
         "name", [], (-34.96, -34.89), (138.57, 138.63), shape="geojson"),
     # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
-    # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints.
+    # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints. Held to the
+    # City's own municipal boundary (Open Government Licence – Toronto): the box reaches Vaughan's tiled cells.
     row("Toronto", "", "ckan0.cf.opendata.inter.prod-toronto.ca",
         "dataset/3b605a2e-f3bf-4b2b-b972-c0829b2788f5/resource/aa839e97-df7f-4c65-8aba-d336bb3c8f06/download/"
         "cafe-to-locations-4326.geojson", "OPERATOR_NAME", [], (43.58, 43.86), (-79.64, -79.11),
-        shape="geojson", clean="toronto"),
+        shape="geojson", clean="toronto", boundary=boundary("toronto")),
     # ArcGIS MapServer (GEO RĪGA, no licence stated): layer 16 is the permits in force; the name is the
     # holder's company, less its legal form. The OID field is gid.
     row("Riga", "", "georiga.lv/server/rest/services", "Ara_kafejnicas_terases/MapServer/16", "nosaukums", [],
@@ -1033,9 +1040,6 @@ def lidar(rect):
     """OpenStreetMap's footprints, each with the lidar's height where it reads one (a combine row's fetch)."""
     return [building(b["outline"], h) for b in osm_buildings(rect, True) if (h := lidar_height(b["outline"])) is not None]
 
-def boundary(slug):
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
-
 def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
     return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary, combine=combine)
 
@@ -1714,9 +1718,9 @@ def note_sources(out, cell, published=None, **fields):
     write(file, [dict(base, **fields)])
 
 def permit_city(cell, communes):
-    """The permit feed for a cell: by INSEE code when a commune answered, else by box."""
+    """The permit feed for a cell: by INSEE code when a commune answered, else by box (and boundary, when the row has one)."""
     if communes: return next((c for c in PERMIT_CITIES if c["insee"] == communes[0]["code"]), None)
-    return next((c for c in PERMIT_CITIES if in_box(c, cell.lat, cell.lon)), None)
+    return next((c for c in PERMIT_CITIES if in_feed(c, cell.lat, cell.lon)), None)
 
 def do_terraces(cells, communes, out, failures):
     osm = gather(cells, osm_terraces, TERRACE_RADIUS, "OSM terraces")
