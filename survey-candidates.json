@@ -3406,7 +3406,11 @@
   "lon": 55.4478,
   "population": 155634,
   "timezone": "Indian/Reunion",
-  "insee": "97411"
+  "insee": "97411",
+  "goingOutCells": 60,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Paul",
@@ -3415,7 +3419,11 @@
   "lon": 55.2696,
   "population": 108088,
   "timezone": "Indian/Reunion",
-  "insee": "97415"
+  "insee": "97415",
+  "goingOutCells": 28,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-10-02"
  },
  {
   "city": "Argenteuil",
@@ -3424,7 +3432,11 @@
   "lon": 2.2489,
   "population": 106130,
   "timezone": "Europe/Paris",
-  "insee": "95018"
+  "insee": "95018",
+  "goingOutCells": 15,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Tourcoing",
@@ -3433,7 +3445,11 @@
   "lon": 3.161,
   "population": 98772,
   "timezone": "Europe/Paris",
-  "insee": "59599"
+  "insee": "59599",
+  "goingOutCells": 23,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Roubaix",
@@ -3442,7 +3458,11 @@
   "lon": 3.1741,
   "population": 98286,
   "timezone": "Europe/Paris",
-  "insee": "59512"
+  "insee": "59512",
+  "goingOutCells": 51,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Poitiers",
@@ -3451,7 +3471,11 @@
   "lon": 0.3412,
   "population": 89916,
   "timezone": "Europe/Paris",
-  "insee": "86194"
+  "insee": "86194",
+  "goingOutCells": 55,
+  "terraceShare": 0.109,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Dunkerque",
@@ -3460,7 +3484,11 @@
   "lon": 2.3764,
   "population": 86263,
   "timezone": "Europe/Paris",
-  "insee": "59183"
+  "insee": "59183",
+  "goingOutCells": 104,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Nouméa",
@@ -3469,7 +3497,11 @@
   "lon": 166.4076,
   "population": 85976,
   "timezone": "Pacific/Noumea",
-  "insee": "98818"
+  "insee": "98818",
+  "goingOutCells": 74,
+  "terraceShare": 0.0,
+  "extent": "24 km square",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Pierre",
@@ -3478,7 +3510,11 @@
   "lon": 55.4778,
   "population": 85038,
   "timezone": "Indian/Reunion",
-  "insee": "97416"
+  "insee": "97416",
+  "goingOutCells": 72,
+  "terraceShare": 0.014,
+  "extent": "24 km square",
+  "counted": "2026-10-02"
  },
  {
   "city": "Versailles",
@@ -3487,7 +3523,11 @@
   "lon": 2.1301,
   "population": 84095,
   "timezone": "Europe/Paris",
-  "insee": "78646"
+  "insee": "78646",
+  "goingOutCells": 75,
+  "terraceShare": 0.32,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Le Tampon",
@@ -3496,7 +3536,11 @@
   "lon": 55.5153,
   "population": 82579,
   "timezone": "Indian/Reunion",
-  "insee": "97422"
+  "insee": "97422",
+  "goingOutCells": 18,
+  "terraceShare": 0.056,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Béziers",
@@ -3505,7 +3549,11 @@
   "lon": 3.2138,
   "population": 81545,
   "timezone": "Europe/Paris",
-  "insee": "34032"
+  "insee": "34032",
+  "goingOutCells": 40,
+  "terraceShare": 0.05,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Cherbourg-en-Cotentin",
@@ -3514,7 +3562,11 @@
   "lon": -1.6244,
   "population": 78258,
   "timezone": "Europe/Paris",
-  "insee": "50129"
+  "insee": "50129",
+  "goingOutCells": 34,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Mérignac",
@@ -3523,7 +3575,11 @@
   "lon": -0.6565,
   "population": 78090,
   "timezone": "Europe/Paris",
-  "insee": "33281"
+  "insee": "33281",
+  "goingOutCells": 16,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Antibes",
@@ -3532,7 +3588,11 @@
   "lon": 7.1279,
   "population": 77637,
   "timezone": "Europe/Paris",
-  "insee": "06004"
+  "insee": "06004",
+  "goingOutCells": 60,
+  "terraceShare": 0.467,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Ajaccio",
@@ -3541,7 +3601,11 @@
   "lon": 8.7391,
   "population": 76320,
   "timezone": "Europe/Paris",
-  "insee": "2A004"
+  "insee": "2A004",
+  "goingOutCells": 36,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Fort-de-France",
@@ -3550,7 +3614,11 @@
   "lon": -61.0695,
   "population": 75506,
   "timezone": "America/Martinique",
-  "insee": "97209"
+  "insee": "97209",
+  "goingOutCells": 27,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Nazaire",
@@ -3559,7 +3627,11 @@
   "lon": -2.2139,
   "population": 74568,
   "timezone": "Europe/Paris",
-  "insee": "44184"
+  "insee": "44184",
+  "goingOutCells": 64,
+  "terraceShare": 0.141,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Cannes",
@@ -3568,7 +3640,11 @@
   "lon": 7.0126,
   "population": 74350,
   "timezone": "Europe/Paris",
-  "insee": "06029"
+  "insee": "06029",
+  "goingOutCells": 59,
+  "terraceShare": 0.271,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Mamoudzou",
@@ -3577,7 +3653,11 @@
   "lon": 45.2324,
   "population": 71437,
   "timezone": "Indian/Mayotte",
-  "insee": "97611"
+  "insee": "97611",
+  "goingOutCells": 11,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Cergy",
@@ -3586,7 +3666,11 @@
   "lon": 2.0353,
   "population": 70906,
   "timezone": "Europe/Paris",
-  "insee": "95127"
+  "insee": "95127",
+  "goingOutCells": 27,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Calais",
@@ -3595,7 +3679,11 @@
   "lon": 1.8546,
   "population": 67571,
   "timezone": "Europe/Paris",
-  "insee": "62193"
+  "insee": "62193",
+  "goingOutCells": 48,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Pessac",
@@ -3604,7 +3692,11 @@
   "lon": -0.6303,
   "population": 67339,
   "timezone": "Europe/Paris",
-  "insee": "33318"
+  "insee": "33318",
+  "goingOutCells": 14,
+  "terraceShare": 1.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Colmar",
@@ -3613,7 +3705,11 @@
   "lon": 7.3583,
   "population": 66970,
   "timezone": "Europe/Paris",
-  "insee": "68066"
+  "insee": "68066",
+  "goingOutCells": 50,
+  "terraceShare": 0.62,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Évry-Courcouronnes",
@@ -3622,7 +3718,11 @@
   "lon": 2.4295,
   "population": 66919,
   "timezone": "Europe/Paris",
-  "insee": "91228"
+  "insee": "91228",
+  "goingOutCells": 20,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Vénissieux",
@@ -3631,7 +3731,11 @@
   "lon": 4.8855,
   "population": 65502,
   "timezone": "Europe/Paris",
-  "insee": "69259"
+  "insee": "69259",
+  "goingOutCells": 6,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Valence",
@@ -3640,7 +3744,11 @@
   "lon": 4.8921,
   "population": 64458,
   "timezone": "Europe/Paris",
-  "insee": "26362"
+  "insee": "26362",
+  "goingOutCells": 39,
+  "terraceShare": 0.615,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Quimper",
@@ -3649,7 +3757,11 @@
   "lon": -4.1019,
   "population": 64385,
   "timezone": "Europe/Paris",
-  "insee": "29232"
+  "insee": "29232",
+  "goingOutCells": 73,
+  "terraceShare": 0.589,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Bourges",
@@ -3658,7 +3770,11 @@
   "lon": 2.3989,
   "population": 64186,
   "timezone": "Europe/Paris",
-  "insee": "18033"
+  "insee": "18033",
+  "goingOutCells": 49,
+  "terraceShare": 0.429,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "La Seyne-sur-Mer",
@@ -3667,7 +3783,11 @@
   "lon": 5.8811,
   "population": 63732,
   "timezone": "Europe/Paris",
-  "insee": "83126"
+  "insee": "83126",
+  "goingOutCells": 20,
+  "terraceShare": 0.4,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Montauban",
@@ -3676,7 +3796,11 @@
   "lon": 1.3526,
   "population": 62945,
   "timezone": "Europe/Paris",
-  "insee": "82121"
+  "insee": "82121",
+  "goingOutCells": 30,
+  "terraceShare": 0.233,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Villeneuve-d'Ascq",
@@ -3685,7 +3809,11 @@
   "lon": 3.1318,
   "population": 62868,
   "timezone": "Europe/Paris",
-  "insee": "59009"
+  "insee": "59009",
+  "goingOutCells": 28,
+  "terraceShare": 0.393,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Cayenne",
@@ -3694,7 +3822,11 @@
   "lon": -52.3351,
   "population": 62675,
   "timezone": "America/Cayenne",
-  "insee": "97302"
+  "insee": "97302",
+  "goingOutCells": 30,
+  "terraceShare": 0.433,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Troyes",
@@ -3703,7 +3835,11 @@
   "lon": 4.074,
   "population": 62088,
   "timezone": "Europe/Paris",
-  "insee": "10387"
+  "insee": "10387",
+  "goingOutCells": 41,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Chambéry",
@@ -3712,7 +3848,11 @@
   "lon": 5.9207,
   "population": 59964,
   "timezone": "Europe/Paris",
-  "insee": "73065"
+  "insee": "73065",
+  "goingOutCells": 56,
+  "terraceShare": 0.018,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Niort",
@@ -3721,7 +3861,11 @@
   "lon": -0.4648,
   "population": 59854,
   "timezone": "Europe/Paris",
-  "insee": "79191"
+  "insee": "79191",
+  "goingOutCells": 36,
+  "terraceShare": 0.278,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Fréjus",
@@ -3730,7 +3874,11 @@
   "lon": 6.7372,
   "population": 59719,
   "timezone": "Europe/Paris",
-  "insee": "83061"
+  "insee": "83061",
+  "goingOutCells": 31,
+  "terraceShare": 0.097,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Sarcelles",
@@ -3739,7 +3887,11 @@
   "lon": 2.3783,
   "population": 59173,
   "timezone": "Europe/Paris",
-  "insee": "95585"
+  "insee": "95585",
+  "goingOutCells": 0,
+  "terraceShare": null,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-André",
@@ -3748,7 +3900,11 @@
   "lon": 55.6505,
   "population": 58885,
   "timezone": "Indian/Reunion",
-  "insee": "97409"
+  "insee": "97409",
+  "goingOutCells": 0,
+  "terraceShare": null,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Narbonne",
@@ -3757,7 +3913,11 @@
   "lon": 3.0038,
   "population": 57587,
   "timezone": "Europe/Paris",
-  "insee": "11262"
+  "insee": "11262",
+  "goingOutCells": 39,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Meaux",
@@ -3766,7 +3926,11 @@
   "lon": 2.878,
   "population": 56905,
   "timezone": "Europe/Paris",
-  "insee": "77284"
+  "insee": "77284",
+  "goingOutCells": 18,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Hyères",
@@ -3775,7 +3939,11 @@
   "lon": 6.1301,
   "population": 55858,
   "timezone": "Europe/Paris",
-  "insee": "83069"
+  "insee": "83069",
+  "goingOutCells": 72,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Vannes",
@@ -3784,7 +3952,11 @@
   "lon": -2.7609,
   "population": 55790,
   "timezone": "Europe/Paris",
-  "insee": "56260"
+  "insee": "56260",
+  "goingOutCells": 55,
+  "terraceShare": 0.055,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Beauvais",
@@ -3793,7 +3965,11 @@
   "lon": 2.0818,
   "population": 55550,
   "timezone": "Europe/Paris",
-  "insee": "60057"
+  "insee": "60057",
+  "goingOutCells": 37,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Louis",
@@ -3802,7 +3978,11 @@
   "lon": 55.4092,
   "population": 54941,
   "timezone": "Indian/Reunion",
-  "insee": "97414"
+  "insee": "97414",
+  "goingOutCells": 9,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "La Roche-sur-Yon",
@@ -3811,7 +3991,11 @@
   "lon": -1.4291,
   "population": 54849,
   "timezone": "Europe/Paris",
-  "insee": "85191"
+  "insee": "85191",
+  "goingOutCells": 34,
+  "terraceShare": 0.735,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Chelles",
@@ -3820,7 +4004,11 @@
   "lon": 2.5901,
   "population": 54620,
   "timezone": "Europe/Paris",
-  "insee": "77108"
+  "insee": "77108",
+  "goingOutCells": 30,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Corbeil-Essonnes",
@@ -3829,7 +4017,11 @@
   "lon": 2.4821,
   "population": 54471,
   "timezone": "Europe/Paris",
-  "insee": "91174"
+  "insee": "91174",
+  "goingOutCells": 10,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Laurent-du-Maroni",
@@ -3838,7 +4030,11 @@
   "lon": -54.029,
   "population": 54429,
   "timezone": "America/Cayenne",
-  "insee": "97311"
+  "insee": "97311",
+  "goingOutCells": 4,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Cholet",
@@ -3847,7 +4043,11 @@
   "lon": -0.8793,
   "population": 54404,
   "timezone": "Europe/Paris",
-  "insee": "49099"
+  "insee": "49099",
+  "goingOutCells": 17,
+  "terraceShare": 0.706,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Cagnes-sur-Mer",
@@ -3856,7 +4056,11 @@
   "lon": 7.1488,
   "population": 53354,
   "timezone": "Europe/Paris",
-  "insee": "06027"
+  "insee": "06027",
+  "goingOutCells": 50,
+  "terraceShare": 0.26,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Vaulx-en-Velin",
@@ -3865,7 +4069,11 @@
   "lon": 4.9202,
   "population": 53069,
   "timezone": "Europe/Paris",
-  "insee": "69256"
+  "insee": "69256",
+  "goingOutCells": 3,
+  "terraceShare": 0.667,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Quentin",
@@ -3874,7 +4082,11 @@
   "lon": 3.2871,
   "population": 52813,
   "timezone": "Europe/Paris",
-  "insee": "02691"
+  "insee": "02691",
+  "goingOutCells": 38,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Sartrouville",
@@ -3883,7 +4095,11 @@
   "lon": 2.1583,
   "population": 52763,
   "timezone": "Europe/Paris",
-  "insee": "78586"
+  "insee": "78586",
+  "goingOutCells": 13,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Arles",
@@ -3892,7 +4108,11 @@
   "lon": 4.6274,
   "population": 51811,
   "timezone": "Europe/Paris",
-  "insee": "13004"
+  "insee": "13004",
+  "goingOutCells": 45,
+  "terraceShare": 0.6,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Massy",
@@ -3901,7 +4121,11 @@
   "lon": 2.2713,
   "population": 51729,
   "timezone": "Europe/Paris",
-  "insee": "91377"
+  "insee": "91377",
+  "goingOutCells": 20,
+  "terraceShare": 0.75,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Albi",
@@ -3910,7 +4134,11 @@
   "lon": 2.1464,
   "population": 51290,
   "timezone": "Europe/Paris",
-  "insee": "81004"
+  "insee": "81004",
+  "goingOutCells": 39,
+  "terraceShare": 0.0,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Les Abymes",
@@ -3919,7 +4147,11 @@
   "lon": -61.5053,
   "population": 51055,
   "timezone": "America/Guadeloupe",
-  "insee": "97101"
+  "insee": "97101",
+  "goingOutCells": 0,
+  "terraceShare": null,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Saint-Herblain",
@@ -3928,7 +4160,11 @@
   "lon": -1.6484,
   "population": 50973,
   "timezone": "Europe/Paris",
-  "insee": "44162"
+  "insee": "44162",
+  "goingOutCells": 32,
+  "terraceShare": 0.031,
+  "extent": "commune",
+  "counted": "2026-10-02"
  },
  {
   "city": "Grasse",
@@ -3937,6 +4173,10 @@
   "lon": 6.9247,
   "population": 50970,
   "timezone": "Europe/Paris",
-  "insee": "06069"
+  "insee": "06069",
+  "goingOutCells": 17,
+  "terraceShare": 0.235,
+  "extent": "commune",
+  "counted": "2026-10-02"
  }
 ]
