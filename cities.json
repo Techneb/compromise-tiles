@@ -1396,13 +1396,14 @@
   },
   {
     "city": "Marseille",
-    "district": "Marseille (going-out core + 2 km)",
+    "district": "Marseille (whole commune)",
     "box": [
-      43.247,
-      5.3243,
-      43.335,
-      5.4297
-    ]
+      43.1696,
+      5.2287,
+      43.3911,
+      5.5325
+    ],
+    "boundary": "boundaries/marseille.geojson"
   },
   {
     "city": "Lille",
@@ -1659,13 +1660,14 @@
   },
   {
     "city": "N\u00eemes",
-    "district": "N\u00eemes (going-out core + 2 km)",
+    "district": "N\u00eemes (whole commune)",
     "box": [
-      43.811,
-      4.3241,
-      43.861,
-      4.3979
-    ]
+      43.7414,
+      4.2358,
+      43.9229,
+      4.4499
+    ],
+    "boundary": "boundaries/nimes.geojson"
   },
   {
     "city": "La Rochelle",
@@ -1724,13 +1726,14 @@
   },
   {
     "city": "Aix-en-Provence",
-    "district": "Aix-en-Provence (going-out core + 2 km)",
+    "district": "Aix-en-Provence (whole commune)",
     "box": [
-      43.503,
-      5.4122,
-      43.551,
-      5.4818
-    ]
+      43.446,
+      5.2695,
+      43.626,
+      5.5063
+    ],
+    "boundary": "boundaries/aix-en-provence.geojson"
   },
   {
     "city": "Perpignan",
