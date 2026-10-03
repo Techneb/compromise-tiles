@@ -33,7 +33,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, ssl, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
+import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -845,6 +845,63 @@ def oakland(rect):
                        if not (number(f["properties"].get("nostory")) == 20 and (number(f["properties"].get("shape_area")) or 0) < 5000)],
                       lambda p: (number(p.get("nostory")) or 0) * 3.0, default=None)
 
+NRCAN_GTA = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_GTA_2023_gpkg.zip"
+_geopackages = {}  # zip URL → (its GeoPackage opened read-only, table, geometry column), unpacked once a run
+
+def wkb_polygons(raw, at=0):
+    """The polygons of an ISO WKB Polygon or MultiPolygon as [[ring of (x, y)]] (a Z or M ignored), and where it ends."""
+    order = "<" if raw[at] == 1 else ">"
+    kind, = struct.unpack_from(order + "I", raw, at + 1)
+    dims, kind, at = (2, 3, 3, 4)[kind // 1000], kind % 1000, at + 5
+    count, = struct.unpack_from(order + "I", raw, at)
+    at += 4
+    if kind == 6:
+        out = []
+        for _ in range(count):
+            polygons, at = wkb_polygons(raw, at)
+            out += polygons
+        return out, at
+    if kind != 3: raise ValueError(f"WKB type {kind}: not a polygon")
+    rings = []
+    for _ in range(count):
+        points, = struct.unpack_from(order + "I", raw, at)
+        v = struct.unpack_from(f"{order}{points * dims}d", raw, at + 4)
+        rings.append([(v[i], v[i + 1]) for i in range(0, len(v), dims)])
+        at += 4 + 8 * points * dims
+    return [rings], at
+
+def gpkg_polygons(blob):
+    """A GeoPackage geometry: the "GP" header (version, flags, SRS id, an envelope of 0, 4, 6 or 8 doubles), then WKB."""
+    return wkb_polygons(blob, 8 + (0, 32, 48, 48, 64)[(blob[3] >> 1) & 7])[0]
+
+def geopackage(url, height):
+    """A fetch over one zipped GeoPackage of footprints in lon/lat (NRCan's are NAD83(CSRS), WGS84 to a metre),
+    downloaded once (kept a year) and queried through its R-tree: each footprint whose box meets the rect,
+    its `height` column (metres above ground) as the height, 15 m when it reads none."""
+    def fetch(rect):
+        if url not in _geopackages:
+            import zipfile
+            folder = os.path.join("extracts", "geopackage")
+            archive = download(url, folder, max_days=365)
+            if not zipfile.is_zipfile(archive):
+                os.remove(archive)
+                raise SourceError(f"{url}: not a zip")
+            with zipfile.ZipFile(archive) as z:
+                member = next(m for m in z.namelist() if m.endswith(".gpkg"))
+                file = os.path.join(folder, os.path.basename(member))
+                if not os.path.exists(file) or os.path.getmtime(file) < os.path.getmtime(archive):
+                    with z.open(member) as src, open(file + ".tmp", "wb") as dst: shutil.copyfileobj(src, dst, 1 << 20)
+                    os.replace(file + ".tmp", file)
+            db = sqlite3.connect(f"file:{file}?mode=ro", uri=True)
+            _geopackages[url] = (db, *db.execute("SELECT table_name, column_name FROM gpkg_geometry_columns").fetchone())
+        db, table, column = _geopackages[url]
+        s, w, n, e = rect
+        rows = db.execute(f'SELECT t."{column}", t."{height}" FROM "{table}" t JOIN "rtree_{table}_{column}" r ON t.rowid = r.id'
+                          " WHERE r.minx <= ? AND r.maxx >= ? AND r.miny <= ? AND r.maxy >= ?", (e, w, n, s))
+        return [building([vertex(y, x) for x, y in polygon[0]], h if h and h > 0 else 15.0)
+                for blob, h in rows if blob for polygon in gpkg_polygons(blob) if polygon and len(polygon[0]) >= 3]
+    return fetch
+
 def boundary(slug):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
 
@@ -1013,6 +1070,17 @@ CITY_BUILDINGS = [
     # Oakland's 2015 BuildingFootprints (Socrata iqfp-6kz5; licence not stated by the publisher): nostory
     # floors × 3 m, combined with OSM (complete in few cells). The box is the layer's extent.
     building_row("Oakland", (37.7224, 37.8527), (-122.3301, -122.1622), combine="floors", fetch=oakland),
+    # Wired 2026-10-03. NRCan's Automatically Extracted Buildings, the GTA's 2023 lidar (Open Government Licence –
+    # Canada): heightmax, metres above ground, on every footprint. One GeoPackage for the whole GTA, cut to Vaughan's
+    # box and held to its boundary (York Region's Municipal Boundary, York Region Open Data Licence): Toronto,
+    # Brampton, Markham and King stay OSM.
+    building_row("Vaughan", (43.7498, 43.9243), (-79.7108, -79.42), boundary=boundary("vaughan"),
+                 fetch=geopackage(NRCAN_GTA, "heightmax")),
+    # City of Edmonton Rooflines as of 2019 (Socrata jpxi-a9a5; Open Government Licence – City of Edmonton):
+    # building_height, metres (roof minus ground). The box is the layer's; held to the corporate boundary (a62q-eaea),
+    # which keeps St. Albert and Sherwood Park off it.
+    building_row("Edmonton", (53.3382, 53.7158), (-113.7134, -113.2784), boundary=boundary("edmonton"), fetch=socrata_buildings(
+        "data.edmonton.ca", "jpxi-a9a5", "the_geom", "building_height", lambda h: h)),
 ]
 
 

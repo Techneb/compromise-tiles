@@ -205,4 +205,43 @@ assert [t.get("name") for t in got] == ["LE RECIF", "LE BISTROT DE MEME", "LA CO
 assert abs(got[0]["coordinate"]["latitude"] - 46.14127796782068) < 1e-9 and abs(got[0]["coordinate"]["longitude"] + 1.1708002829565918) < 1e-9
 assert permits(rochelle, (46.15, -1.18, 46.16, -1.17)) == [got[2]]   # the file is read once, then cut to the cell
 make_tiles.get = real_get
+
+# 2026-10-03 rows. Vaughan: NRCan's GTA GeoPackage (three real rows at VMC, the tallest Transit City tower and two
+# low buildings, with their R-tree), unzipped once and read through the R-tree: heightmax, metres, as the height.
+import json, os, shutil
+vaughan = next(b for b in CITY_BUILDINGS if b["city"] == "Vaughan")["fetch"]
+fixture_zip, here, real_download, fetched = os.path.abspath("fixtures/vaughan-gpkg.zip"), os.getcwd(), make_tiles.download, []
+def fake_download(url, folder, max_days=6):
+    fetched.append(url)
+    os.makedirs(folder, exist_ok=True)
+    return shutil.copy(fixture_zip, os.path.join(folder, url.rsplit("/", 1)[1]))
+with tempfile.TemporaryDirectory() as d:
+    os.chdir(d)
+    make_tiles.download = fake_download
+    try:
+        got = vaughan((43.7965, -79.5305, 43.7990, -79.5265))
+        assert sorted(b["height"] for b in got) == [6.2, 8.4, 183.6]
+        assert max(got, key=lambda b: b["height"])["outline"][0] == {"latitude": 43.797692, "longitude": -79.528824}
+        assert len(vaughan((43.7972, -79.5286, 43.7973, -79.5285))) == 1 and vaughan((43.70, -79.40, 43.71, -79.39)) == []
+        assert fetched == [make_tiles.NRCAN_GTA]   # downloaded once a run
+    finally:
+        os.chdir(here)
+        make_tiles.download = real_download
+        for db, *_ in make_tiles._geopackages.values(): db.close()
+        make_tiles._geopackages.clear()
+# Edmonton: Rooflines (real Socrata features, numbers as strings: the 146.84 m roof and two low ones), asked by intersects.
+asked.clear()
+def fake_get_json(url, data=None, waits=None):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/edmonton.json") as f: return {"features": json.load(f)["features"]}
+make_tiles.get_json = fake_get_json
+got = next(b for b in CITY_BUILDINGS if b["city"] == "Edmonton")["fetch"]((53.54, -113.50, 53.55, -113.48))
+assert [b["height"] for b in got] == [146.8, 8.4, 8.2]
+assert got[0]["outline"][0] == {"latitude": 53.541894, "longitude": -113.493936}
+assert asked[0].startswith("https://data.edmonton.ca/resource/jpxi-a9a5.geojson?") and "intersects(the_geom, 'POLYGON((-113.5 53.54" in asked[0]
+# Each held to its boundary: York University (Toronto) and Brampton sit in Vaughan's box, St. Albert and
+# Sherwood Park in Edmonton's.
+assert at(43.8540, -79.5084) == "Vaughan" and at(43.7970, -79.5290) == "Vaughan"
+assert at(43.7735, -79.5019) == "OSM" and at(43.7600, -79.6900) == "OSM"
+assert at(53.5444, -113.4909) == "Edmonton" and at(53.6305, -113.6256) == "OSM" and at(53.5400, -113.2950) == "OSM"
 print("ok")
