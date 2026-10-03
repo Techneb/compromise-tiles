@@ -262,4 +262,15 @@ assert asked[0].startswith("https://data.edmonton.ca/resource/jpxi-a9a5.geojson?
 assert at(43.8540, -79.5084) == "Vaughan" and at(43.7970, -79.5290) == "Vaughan"
 assert at(43.7735, -79.5019) == "OSM" and at(43.7600, -79.6900) == "OSM"
 assert at(53.5444, -113.4909) == "Edmonton" and at(53.6305, -113.6256) == "OSM" and at(53.5400, -113.2950) == "OSM"
+# A permit feed is held to its boundary too (2026-10-03): a Vaughan cell (the one at 43.857, -79.515, credited
+# "Toronto" before) sits in Toronto's box but not in the City of Toronto; York University and the Islands are in
+# it. Marylebone (Westminster) and Highbury and Angel (Islington) sit in Camden's box but not in the borough;
+# Camden Town, Bloomsbury and Kilburn are in it. A row without a boundary is still picked by box alone.
+from make_tiles import permit_city
+feed = lambda lat, lon: (permit_city(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0], None) or {}).get("city")
+assert feed(43.6500, -79.3800) == "Toronto" and feed(43.7735, -79.5019) == "Toronto" and feed(43.6200, -79.3800) == "Toronto"
+assert feed(43.8570, -79.5150) is None and feed(43.8000, -79.4200) is None
+assert feed(51.5390, -0.1430) == "Camden" and feed(51.5220, -0.1250) == "Camden" and feed(51.5470, -0.1950) == "Camden"
+assert feed(51.5226, -0.1571) is None and feed(51.5460, -0.1040) is None and feed(51.5322, -0.1058) is None
+assert feed(40.7580, -73.9855) == "New York" and feed(43.3127, -1.9582) == "San Sebastián"
 print("ok")
