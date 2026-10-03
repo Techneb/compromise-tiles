@@ -262,6 +262,25 @@ assert asked[0].startswith("https://data.edmonton.ca/resource/jpxi-a9a5.geojson?
 assert at(43.8540, -79.5084) == "Vaughan" and at(43.7970, -79.5290) == "Vaughan"
 assert at(43.7735, -79.5019) == "OSM" and at(43.7600, -79.6900) == "OSM"
 assert at(53.5444, -113.4909) == "Edmonton" and at(53.6305, -113.6256) == "OSM" and at(53.5400, -113.2950) == "OSM"
+
+# 2026-10-03: Berlin, New York and Istanbul tile the whole city (Istanbul its built-up area). Each
+# cities.json box holds its boundary, and Berlin's and New York's own feeds reach the boundary's every
+# vertex, so no outer cell falls back to OSM: Spandau and Marzahn; Staten Island, the Bronx, eastern Queens.
+from make_tiles import bounds, in_box, permit_city
+areas = {e["city"]: e for e in json.load(open("cities.json")) if e["city"] in ("Berlin", "New York", "Istanbul")}
+for city, e in areas.items():
+    with open(e["boundary"]) as f: shape = json.load(f)
+    s, w, n, e_ = bounds(shape)
+    assert e["box"][0] <= s and e["box"][1] <= w and n <= e["box"][2] and e_ <= e["box"][3], city
+    vertices = [v for p in ([shape["coordinates"]] if shape["type"] == "Polygon" else shape["coordinates"]) for r in p for v in r]
+    feeds = [b for b in CITY_BUILDINGS if b["city"] == city] + [c for c in PERMIT_CITIES if c["city"] == city]
+    assert len(feeds) == {"Berlin": 1, "New York": 2, "Istanbul": 0}[city], city
+    assert all(in_box(b, lat, lon) for b in feeds for lon, lat in vertices), city
+spot = lambda lat, lon: cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0]
+assert at(52.5365, 13.2040) == "Berlin" and at(52.5445, 13.5655) == "Berlin"
+for lat, lon in ((40.5110, -74.2470), (40.8610, -73.8900), (40.7440, -73.7140)):
+    assert at(lat, lon) == "New York" and permit_city(spot(lat, lon), None)["city"] == "New York"
+assert at(41.0080, 28.9780) == "OSM" and permit_city(spot(41.0080, 28.9780), None) is None
 # A permit feed is held to its boundary too (2026-10-03): a Vaughan cell (the one at 43.857, -79.515, credited
 # "Toronto" before) sits in Toronto's box but not in the City of Toronto; York University and the Islands are in
 # it. Marylebone (Westminster) and Highbury and Angel (Islington) sit in Camden's box but not in the borough;

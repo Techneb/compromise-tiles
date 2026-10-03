@@ -168,6 +168,7 @@ def disks(points, box, boundary=None):
     inside = lambda lat, lon: within(box, lat, lon) and (boundary is None or contains(boundary, lat, lon))
     reach = padded(box, RADIUS)
     near = {}  # cell key -> [named, outdoor] within RADIUS of its centre
+    kept = {}  # cell key -> inside, asked once a cell: a boundary of 20,000 vertices (New York) costs a millisecond a call
     dlat = RADIUS / 111_320
     for lat, lon, named, outdoor in points:
         if not (named or outdoor) or not within(reach, lat, lon): continue
@@ -175,7 +176,9 @@ def disks(points, box, boundary=None):
         for ky in range(index(lat - dlat) - 1, index(lat + dlat) + 2):
             for kx in range(index(lon - dlon) - 1, index(lon + dlon) + 2):
                 c = Cell(ky, kx)
-                if not inside(c.lat, c.lon) or metres(c.lat, c.lon, lat, lon) > RADIUS: continue
+                if metres(c.lat, c.lon, lat, lon) > RADIUS: continue
+                if (ky, kx) not in kept: kept[ky, kx] = inside(c.lat, c.lon)
+                if not kept[ky, kx]: continue
                 v = near.setdefault((ky, kx), [0, 0])
                 v[0] += named
                 v[1] += outdoor
