@@ -27,8 +27,10 @@ jobs:
           aws s3 ls "s3://${{ secrets.R2_BUCKET }}" --recursive \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" > listing.txt
           wc -l listing.txt
-      - run: python3 storage.py listing.txt --cities cities.json --write storage.json --summary storage.md
-      - run: cat storage.md >> "$GITHUB_STEP_SUMMARY"
+      - run: python3 storage.py listing.txt --cities cities.json --write storage.json --summary storage.md --orphans orphans.txt
+      - run: |
+          cat storage.md >> "$GITHUB_STEP_SUMMARY"
+          echo "**$(wc -l < orphans.txt) tiles no area builds** (orphans.txt in the artifact)." >> "$GITHUB_STEP_SUMMARY"
       - run: gzip -9 listing.txt
       - uses: actions/upload-artifact@v4
         with:
@@ -36,5 +38,6 @@ jobs:
           path: |
             storage.json
             storage.md
+            orphans.txt
             listing.txt.gz
           retention-days: 30

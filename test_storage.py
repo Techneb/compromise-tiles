@@ -1,6 +1,6 @@
 """python3 test_storage.py — the store's tally on a made-up listing, no bucket needed."""
 import json, os, tempfile
-from storage import NO_AREA, owners, parse, summary, tally, unread
+from storage import NO_AREA, orphans, owners, parse, summary, tally, unread
 
 d = tempfile.mkdtemp()
 cities = os.path.join(d, "cities.json")
@@ -24,4 +24,6 @@ assert rows[("venues", "Paris")] == 300, rows                                   
 flagged = {k for k, _ in unread(t)}
 assert flagged == {"old.json", "tiles/terraces/", "tiles/communes/", "tiles/buildings/ outside every area"}, flagged
 assert "| `buildings` | Paris |" in summary(t)
+# Deletion candidates: read layers only, a cell no area builds (not the unread layers, deleted as prefixes).
+assert orphans(parse(listing), owners(cities)) == ["tiles/buildings/1,1.json"]
 print("ok")
