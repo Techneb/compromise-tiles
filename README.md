@@ -7,7 +7,7 @@ Open city data used by the Compromise iOS app, one JSON file per map cell.
 The tiles are served from Cloudflare R2 at
 `https://tiles.alephb.uk`, under
 `tiles/<layer>/<key>.json` (gzipped at rest), with `config.json` at the
-root. Layers: `buildings/`, `terraces-v2/` and `communes/` per ~200 m
+root. Layers: `buildings/` and `terraces-v2/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
 point, amenity, outdoor seating, source); `sources/` per ~200 m cell
 names the permit feed and building source each cell was built from.
@@ -137,6 +137,10 @@ none, this says so rather than guessing.
   on OpenStreetMap's footprints.
 - Oakland: City of Oakland, BuildingFootprints (licence not stated by the
   publisher); heights on OpenStreetMap's footprints.
+- Vaughan: Natural Resources Canada, Automatically Extracted Buildings.
+  Contains information licensed under the Open Government Licence – Canada.
+- Edmonton: City of Edmonton, Rooflines (as of 2019). Contains information
+  licensed under the Open Government Licence – City of Edmonton.
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
@@ -144,7 +148,7 @@ none, this says so rather than guessing.
   dataset, not cadastral information; the cadastre's own files are not
   redistributed.
 
-**Communes (France)**
+**Communes (France: their names and codes in `coverage.json`)**
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
 
