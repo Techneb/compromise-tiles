@@ -3,7 +3,8 @@
 
 Writes one JSON array per ~200 m
 cell, keyed "<int(lat*500)>,<int(lon*500)>", under buildings/,
-terraces-v2/ and communes/, and one per ~2 km cell, keyed
+terraces-v2/ and communes/ (French cells: the build and the coverage feed
+read them, the upload leaves them out), and one per ~2 km cell, keyed
 "<int(lat*50)>,<int(lon*50)>", under venues/. Beside the first two,
 sources/ names what built each cell ([{"permits": city|null,
 "buildings": city|"IGN"|"OSM"|city+"+OSM"}]) — what the app credits.

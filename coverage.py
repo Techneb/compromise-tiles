@@ -14,7 +14,8 @@ Output (compact JSON):
   dates       build dates referenced by index below
   cells       [latKey, lonKey, terraces, buildings, withHeight, terracesDate, buildingsDate, communes, venues, withSeating]
               200 m cells keyed int(lat*500), int(lon*500); a date is an index into `dates`
-              (-1: layer never built); communes: space-separated INSEE codes, "" outside France
+              (-1: layer never built); communes: space-separated INSEE codes, "" outside France,
+              from the build's own communes/ files (never uploaded; a cell keeps its codes in the feed)
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
   areas       [{name, city, box: [s, w, n, e], tiled, passing, places, seats, terracesKnown, km2, goingOut, goingOutShare, lastBuilt}]

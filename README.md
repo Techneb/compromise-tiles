@@ -7,7 +7,7 @@ Open city data used by the Compromise iOS app, one JSON file per map cell.
 The tiles are served from Cloudflare R2 at
 `https://tiles.alephb.uk`, under
 `tiles/<layer>/<key>.json` (gzipped at rest), with `config.json` at the
-root. Layers: `buildings/`, `terraces-v2/` and `communes/` per ~200 m
+root. Layers: `buildings/` and `terraces-v2/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
 point, amenity, outdoor seating, source); `sources/` per ~200 m cell
 names the permit feed and building source each cell was built from.
@@ -148,7 +148,7 @@ none, this says so rather than guessing.
   dataset, not cadastral information; the cadastre's own files are not
   redistributed.
 
-**Communes (France)**
+**Communes (France: their names and codes in `coverage.json`)**
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
 
