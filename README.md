@@ -152,6 +152,14 @@ none, this says so rather than guessing.
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
   (Licence Ouverte 2.0) when the geo API does not answer.
 
+**City boundaries (`boundaries/`)**
+- Berlin: Geoportal Berlin, ALKIS Land Berlin, Datenlizenz Deutschland –
+  Zero 2.0.
+- New York: NYC Department of City Planning, Borough Boundaries, NYC Open
+  Data (licence not stated by the publisher).
+- Istanbul: General Command of Mapping (Türkiye), administrative
+  boundaries through OCHA (COD-AB), CC BY-IGO.
+
 **City names and points (`survey-candidates.json`)**
 - GeoNames (geonames.org), CC BY 4.0.
 - French communes of 50,000 and more: Etalab geo API (communes, populations,
