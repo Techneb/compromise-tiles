@@ -1802,5 +1802,35 @@
       53.575,
       -113.4528
     ]
+  },
+  {
+    "city": "Denver",
+    "district": "Denver (going-out core + 2 km)",
+    "box": [
+      39.691,
+      -105.0504,
+      39.791,
+      -104.9196
+    ]
+  },
+  {
+    "city": "Cape Town",
+    "district": "Cape Town (going-out core + 2 km)",
+    "box": [
+      -33.955,
+      18.3833,
+      -33.883,
+      18.4487
+    ]
+  },
+  {
+    "city": "São Paulo",
+    "district": "São Paulo (going-out core + 2 km)",
+    "box": [
+      -23.607,
+      -46.7286,
+      -23.509,
+      -46.6074
+    ]
   }
 ]
