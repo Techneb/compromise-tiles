@@ -1,8 +1,9 @@
 # Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
-# coverage feed. Weekly: venues and terraces. Yearly: buildings and communes (run it by hand too when
-# cities.json gains an area). Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY,
-# R2_BUCKET. Public repo, standard runners: no minutes are billed. Only the tiles whose bytes differ
-# from the store's (by ETag) are uploaded; dry_run builds and prints that plan without writing anything.
+# coverage feed. Weekly: venues and terraces. Yearly: buildings (run it by hand too when cities.json
+# gains an area). French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
+# to name the feed's areas; they are never uploaded (2026-10-03: the app credits from sources/).
+# Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET. Public repo, standard
+# runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are uploaded; dry_run builds and prints that plan without writing anything.
 name: Tiles
 
 on:
@@ -52,7 +53,7 @@ jobs:
       - id: plan
         env:
           ONLY: ${{ inputs.only }}
-          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,communes' || 'terraces-v2,venues') }}
+          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings' || 'terraces-v2,venues') }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
@@ -78,8 +79,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
-          # sources/ and communes/ are written beside the layers asked for (communes in France).
-          layers=$(echo "$LAYERS,sources,communes" | tr ',' '\n' | sort -u | tr '\n' ' ')
+          # sources/ is written beside the layers asked for; communes/ is never uploaded, so not listed.
+          layers=$(echo "$LAYERS,sources" | tr ',' '\n' | grep -vx communes | sort -u | tr '\n' ' ')
           pids=""
           for l in $layers; do
             aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
@@ -140,6 +141,7 @@ jobs:
       # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
       # -n leaves out the name and time, so an unchanged tile gzips to the same bytes.
       # Compared with the store's ETags: only new and changed tiles are kept for the upload.
+      # communes/ leaves out/ first: the coverage fragment above has read it, and it is never uploaded.
       - name: Compare with the store
         if: ${{ !cancelled() }}
         env:
@@ -147,6 +149,7 @@ jobs:
           PRUNE: ${{ !inputs.dry_run && '--prune' || '' }}
         run: |
           [ -d out ] || exit 0
+          rm -rf out/communes
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
@@ -184,6 +187,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         run: |
           cp -R tiles out
+          rm -rf out/communes   # read by the fragment above, never uploaded
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
