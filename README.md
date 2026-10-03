@@ -81,6 +81,14 @@ none, this says so rather than guessing.
   at this site is being used at one's own risk."
 - San Francisco: DataSF, City and County of San Francisco, PDDL.
 
+**Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
+- Toronto: City of Toronto, Regional Municipal Boundary. Contains
+  information licensed under the Open Government Licence – Toronto.
+- Camden (London): Office for National Statistics, Local Authority
+  Districts (December 2025) Boundaries UK BFC. Source: Office for National
+  Statistics licensed under the Open Government Licence v.3.0. Contains OS
+  data © Crown copyright and database right 2025.
+
 **Building footprints and heights**
 - France: IGN BD TOPO, Licence Ouverte 2.0.
 - Amsterdam, Rotterdam, The Hague, Utrecht: © 3DBAG by tudelft3d and 3DGI
