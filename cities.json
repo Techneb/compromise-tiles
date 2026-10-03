@@ -1778,5 +1778,25 @@
       7.3686
     ],
     "boundary": "boundaries/mulhouse.geojson"
+  },
+  {
+    "city": "Vaughan",
+    "district": "Vaughan (going-out core + 2 km)",
+    "box": [
+      43.839,
+      -79.5399,
+      43.875,
+      -79.4901
+    ]
+  },
+  {
+    "city": "Edmonton",
+    "district": "Edmonton (going-out core + 2 km)",
+    "box": [
+      53.519,
+      -113.5472,
+      53.575,
+      -113.4528
+    ]
   }
 ]

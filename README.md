@@ -137,6 +137,10 @@ none, this says so rather than guessing.
   on OpenStreetMap's footprints.
 - Oakland: City of Oakland, BuildingFootprints (licence not stated by the
   publisher); heights on OpenStreetMap's footprints.
+- Vaughan: Natural Resources Canada, Automatically Extracted Buildings.
+  Contains information licensed under the Open Government Licence – Canada.
+- Edmonton: City of Edmonton, Rooflines (as of 2019). Contains information
+  licensed under the Open Government Licence – City of Edmonton.
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
