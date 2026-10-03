@@ -163,6 +163,10 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          # R2 answers ServiceUnavailable ("Reduce your concurrent request rate") to a few PUTs of a big city
+          # (New York 1, Istanbul 2 of ~60,000 on 2026-10-03): adaptive retries back off instead of failing them.
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: "10"
         run: |
           [ -d out ] || exit 0
           # Tens of thousands of small files (Paris, 2026-09-28: over 20 min at the default 10): more in flight.
