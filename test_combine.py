@@ -1,8 +1,9 @@
-"""python3 test_combine.py — combine rows (Bratislava, Oakland) on samples of the real feeds; no network.
+"""python3 test_combine.py — combine rows (Bratislava, Oakland, London) on samples of the real feeds; no network.
 
 fixtures/<city>.json: OpenStreetMap's buildings (osm_buildings(rect, tagged=True)) and the city layer's raw
 features, fetched 2026-10-02 in three small boxes each: Bratislava's Old Town Hall, the Manderla block,
-Nivy Tower; Oakland's City Hall, the Laconia Apartments, the Ordway Building."""
+Nivy Tower; Oakland's City Hall, the Laconia Apartments, the Ordway Building. fixtures/london.json: OSM's buildings
+in one 64 m lidar chunk of a Walthamstow terrace, beside the WCS's answers for it and for 30 St Mary Axe."""
 import json, os, tempfile
 import make_tiles as mt
 from make_tiles import cells_in, path, read
@@ -76,4 +77,37 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "sources", at_nivy)) == [{"buildings": "OSM"}]
     tile = read(path(out, "buildings", at_manderla))
     assert all(list(b) == ["outline", "height"] for b in tile) and 47.7 in [b["height"] for b in tile]
+# London (the Environment Agency's lidar on OSM's footprints, chunks cut to 64 m to keep the fixtures small): the
+# Walthamstow terrace's 19 houses, untagged so 15 m in OSM, take 8.2 to 9.1 m from one DSM and one DTM request.
+asked = []
+def lidar_tiff(kind, e0, n0, e1, n1):
+    asked.append((kind, e0, n0, e1, n1))
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", f"london-{e0}-{n0}-{kind}.tif"), "rb") as f:
+        return mt.geotiff(f.read())
+mt.LIDAR_CHUNK, mt.lidar_tiff = 64, lidar_tiff
+london = fixture("london")
+terrace = run("London", london)
+assert sorted(b["height"] for b in terrace) == [8.2, 8.3, 8.3, 8.4, 8.5, 8.5, 8.6, 8.6, 8.7, 8.7, 8.8, 8.8, 8.8, 8.8, 8.9, 8.9,
+                                                9.0, 9.0, 9.1] and all(b["city"] for b in terrace)
+assert sorted(asked) == [("dsm", 537280, 188864, 537344, 188928), ("dtm", 537280, 188864, 537344, 188928)]  # once a run
+# A height tag stays; building:levels gives way to the lidar's metres.
+by_height = dict(london["osm"][0], height=12.0, tagged="height")
+by_levels = dict(london["osm"][1], height=6.0, tagged="levels")
+mt.osm_buildings = lambda rect, tagged=False: [by_height, by_levels]
+assert [b["height"] for b in mt.FETCH_BUILDINGS["London"]((0, 0, 1, 1))] == [12.0, 8.4]
+# 30 St Mary Axe: dark glass the composite filled from the DTM. A footprint inside the void reads no height (OSM's
+# stays), though the chunk holds the tower's 180.6 m top.
+inside = [mt.vertex(51.51468 + a, -0.08045 + o) for a, o in ((-7e-5, -1e-4), (-7e-5, 1e-4), (7e-5, 1e-4), (7e-5, -1e-4))]
+assert mt.lidar_height(inside) is None and max(mt.lidar_chunk(533248, 181248)) == 1806
+# The same outline on both sides matches whatever its shape: an L whose centre lies outside it.
+ell = {"outline": [{"latitude": a / 1e4, "longitude": o / 1e4} for a, o in ((0, 0), (0, 3), (1, 3), (1, 1), (3, 1), (3, 0))],
+       "height": 15.0}
+assert not mt.contains({"type": "Polygon", "coordinates": [[[p["longitude"], p["latitude"]] for p in ell["outline"]]]}, *centre(ell))
+assert mt.combined([ell], [dict(ell, height=30.0)])[0]["height"] == 30.0
+# Held to Greater London's boundary: Croydon and the Thames at Westminster Bridge in, Watford (inside the box) out.
+at = lambda lat, lon: mt.building_source(cells_in(lat, lon, lat, lon)[0])
+assert at(51.3762, -0.0982) == "London" == at(51.5008, -0.1218) and at(51.6565, -0.3960) == "OSM"
+# British National Grid, stdlib: the Shard within 0.4 m of OSTN15's 532901.41 E, 180131.53 N.
+east, north = mt.bng(51.5045, -0.0865)
+assert abs(east - 532901.41) < 0.4 and abs(north - 180131.53) < 0.4
 print("ok")

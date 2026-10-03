@@ -142,13 +142,14 @@
   },
   {
     "city": "London",
-    "district": "London (densest 150 km\u00b2 of the core)",
+    "district": "Greater London (the 32 boroughs and the City)",
     "box": [
-      51.4548,
-      -0.2157,
-      51.5649,
-      -0.0389
-    ]
+      51.2868,
+      -0.5102,
+      51.6919,
+      0.334
+    ],
+    "boundary": "boundaries/london.geojson"
   },
   {
     "city": "Madrid",

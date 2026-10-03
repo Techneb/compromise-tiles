@@ -34,7 +34,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zoneinfo
+import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -369,7 +369,7 @@ class OSM:
     peaked at 3.5 GB held; the petite couronne is ten times the area)."""
     def __init__(self, pbf, rect):
         s, w, n, e = rect
-        self.venues, self.walls = {}, pbf + ".buildings.pbf"
+        self.venues, self.walls, self.last = {}, pbf + ".buildings.pbf", None
         box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
         try:
             osmium("extract", "-b", f"{w},{s},{e},{n}", pbf, "-o", box, "--overwrite")
@@ -394,12 +394,16 @@ class OSM:
         """Building ways meeting the rect. osmium keeps a way with a node in the cut, whole; a big one
         (a station hall) can reach a cell with every node outside it, hence 500 m more — the
         in-memory index had them, and near_buildings trims the rest. With tagged=True, a building
-        whose height comes from its tags says which ("tagged": osm_tagged()), for combined()."""
+        whose height comes from its tags says which ("tagged": osm_tagged()), for combined(). The last
+        answer is kept: London's lidar is measured on OSM's own footprints, so its block asks twice."""
+        if self.last and self.last[0] == (rect, tagged): return self.last[1]
         s, w, n, e = padded(rect, 500)
         cut = self.walls + ".cut.pbf"
         osmium("extract", "-b", f"{w},{s},{e},{n}", self.walls, "-o", cut, "--overwrite")
-        return [dict(building(ring, osm_height(f["properties"])), **({"tagged": osm_tagged(f["properties"])} if tagged and osm_tagged(f["properties"]) else {})) for f in features(cut)
-                if "building" in f["properties"] and f["geometry"]["type"] != "Point" for ring in outer_rings(f["geometry"])]
+        out = [dict(building(ring, osm_height(f["properties"])), **({"tagged": osm_tagged(f["properties"])} if tagged and osm_tagged(f["properties"]) else {})) for f in features(cut)
+               if "building" in f["properties"] and f["geometry"]["type"] != "Point" for ring in outer_rings(f["geometry"])]
+        self.last = ((rect, tagged), out)
+        return out
 
     def near(self, table, rect):
         """Everything in the buckets the rect touches, once each: callers keep what is near enough."""
@@ -484,10 +488,13 @@ def combined(osm, city, metres=False):
     (metres=True): two floor counts, the mapper's is the newer (Packard Lofts: 1 floor in Oakland's 2015
     layer, 4 levels in OSM). OSM's 15 m guess always gives way.
     City footprints OSM lacks are not added: the two outlines of one building rarely agree, and one added
-    beside the other would double it."""
+    beside the other would double it. A city footprint identical to OSM's (London's lidar, measured on
+    OSM's own outlines) matches it whatever its shape: a courtyard block's centre lies outside it."""
     def centre(b): return (sum(p["latitude"] for p in b["outline"]) / len(b["outline"]),
                            sum(p["longitude"] for p in b["outline"]) / len(b["outline"]))
     def ring(b): return {"type": "Polygon", "coordinates": [[[p["longitude"], p["latitude"]] for p in b["outline"]]]}
+    def key(b): return tuple((p["latitude"], p["longitude"]) for p in b["outline"])
+    same = {key(b): b["height"] for b in city}
     grid = {}
     for b in city:
         lats, lons = [p["latitude"] for p in b["outline"]], [p["longitude"] for p in b["outline"]]
@@ -499,7 +506,7 @@ def combined(osm, city, metres=False):
         lat, lon = centre(b)
         near = grid.get((math.floor(lat * COMBINE_GRID), math.floor(lon * COMBINE_GRID)), ())
         mine = ring(b)
-        height = next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None)
+        height = same.get(key(b), next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None))
         kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
         out.append(b if height is None or kept else dict(b, height=height, city=True))
     return out
@@ -910,6 +917,129 @@ def geopackage(url, height):
                 for blob, h in rows if blob for polygon in gpkg_polygons(blob) if polygon and len(polygon[0]) >= 3]
     return fetch
 
+# The Environment Agency's LIDAR Composite, 1 m (England; London from the National LIDAR Programme's 2018–2021
+# surveys), read through its WCS: no key, a DEFLATE GeoTIFF in British National Grid metres for any window.
+LIDAR_WCS = "https://environment.data.gov.uk/spatialdata/{}/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId={}" \
+            "&format=image/tiff&subset=E({},{})&subset=N({},{})&geotiff:compression=DEFLATE"
+LIDAR = {"dsm": ("lidar-composite-digital-surface-model-first-return-dsm-1m", "df4e3ec3-315e-48aa-aaaf-b5ae74d7b2bb__Lidar_Composite_Elevation_FZ_DSM_1m"),
+         "dtm": ("lidar-composite-digital-terrain-model-dtm-1m", "13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m")}
+LIDAR_CHUNK = 2000   # metres a side, on the grid: one DSM and one DTM request each (~8 MB apiece, 3–6 s)
+LIDAR_KEPT = 64      # chunks held (8 MB each): two rows of blocks across Greater London, so each is asked once a run
+LIDAR_PERCENTILE = 0.9
+VOID = -32768        # a chunk's no-height pixel
+_lidar = {}          # (east, north) of a chunk's south-west corner → array('h') of heights in decimetres, row 0 north
+
+def bng(lat, lon):
+    """WGS84 to British National Grid (OSGB36 Transverse Mercator) metres, through Ordnance Survey's 7-parameter
+    Helmert transformation, less its mean offset from OSTN15 over Greater London (1.7 m east, 0.2 m north at six
+    points from Harefield to Rainham, 2026-10-03): within 0.4 m of OSTN15 there."""
+    a, b = 6378137.0, 6356752.3141  # GRS80
+    e2, p, l = 1 - b * b / (a * a), math.radians(lat), math.radians(lon)
+    nu = a / math.sqrt(1 - e2 * math.sin(p) ** 2)
+    x, y, z = nu * math.cos(p) * math.cos(l), nu * math.cos(p) * math.sin(l), (1 - e2) * nu * math.sin(p)
+    s, (rx, ry, rz) = 20.4894e-6, (math.radians(r / 3600) for r in (-0.1502, -0.2470, -0.8421))
+    x, y, z = -446.448 + (1 + s) * x - rz * y + ry * z, 125.157 + rz * x + (1 + s) * y - rx * z, -542.060 - ry * x + rx * y + (1 + s) * z
+    a, b = 6377563.396, 6356256.909  # Airy 1830
+    e2, q = 1 - b * b / (a * a), math.hypot(x, y)
+    p = math.atan2(z, q * (1 - e2))
+    for _ in range(6): p = math.atan2(z + e2 * a / math.sqrt(1 - e2 * math.sin(p) ** 2) * math.sin(p), q)
+    l, f0, p0, n = math.atan2(y, x) - math.radians(-2), 0.9996012717, math.radians(49), (a - b) / (a + b)
+    sp, cp, t = math.sin(p), math.cos(p), math.tan(p)
+    nu = a * f0 / math.sqrt(1 - e2 * sp * sp)
+    rho = a * f0 * (1 - e2) / (1 - e2 * sp * sp) ** 1.5
+    eta2 = nu / rho - 1
+    m = b * f0 * ((1 + n + 5 / 4 * n ** 2 + 5 / 4 * n ** 3) * (p - p0) - (3 * n + 3 * n ** 2 + 21 / 8 * n ** 3) * math.sin(p - p0) * math.cos(p + p0)
+                  + (15 / 8 * n ** 2 + 15 / 8 * n ** 3) * math.sin(2 * (p - p0)) * math.cos(2 * (p + p0))
+                  - 35 / 24 * n ** 3 * math.sin(3 * (p - p0)) * math.cos(3 * (p + p0)))
+    north = (m - 100000 + nu / 2 * sp * cp * l ** 2 + nu / 24 * sp * cp ** 3 * (5 - t * t + 9 * eta2) * l ** 4
+             + nu / 720 * sp * cp ** 5 * (61 - 58 * t * t + t ** 4) * l ** 6)
+    east = (400000 + nu * cp * l + nu / 6 * cp ** 3 * (nu / rho - t * t) * l ** 3
+            + nu / 120 * cp ** 5 * (5 - 18 * t * t + t ** 4 + 14 * eta2 - 58 * t * t * eta2) * l ** 5)
+    return east - 1.7, north - 0.2
+
+def geotiff(raw):
+    """A one-band float32 GeoTIFF, tiled or in strips, uncompressed or DEFLATE, no predictor (what the WCS sends):
+    (west, north, width, height, array('f') row by row from the north)."""
+    order = {b"II": "<", b"MM": ">"}.get(raw[:2])
+    if not order or struct.unpack_from(order + "H", raw, 2)[0] != 42: raise SourceError("not a classic TIFF")
+    at, = struct.unpack_from(order + "I", raw, 4)
+    count, = struct.unpack_from(order + "H", raw, at)
+    tags = {}
+    for k in range(count):
+        tag, kind, n, value = struct.unpack_from(order + "HHI4s", raw, at + 2 + 12 * k)
+        code, size = {1: ("B", 1), 3: ("H", 2), 4: ("I", 4), 12: ("d", 8)}.get(kind, (None, 0))
+        if code is None: continue
+        data = value if n * size <= 4 else raw[struct.unpack(order + "I", value)[0]:][:n * size]
+        tags[tag] = struct.unpack(order + code * n, data[:n * size])
+    width, height = tags[256][0], tags[257][0]
+    if tags.get(258, (32,))[0] != 32 or tags.get(339, (1,))[0] != 3 or tags.get(317, (1,))[0] != 1 or tags.get(277, (1,))[0] != 1:
+        raise SourceError("not a one-band float32 GeoTIFF without predictor")
+    compression = tags.get(259, (1,))[0]
+    if compression not in (1, 8, 32946): raise SourceError(f"TIFF compression {compression}")
+    if 34264 in tags: west, north = tags[34264][3], tags[34264][7]          # ModelTransformation
+    else: west, north = tags[33922][3], tags[33922][4]                     # ModelTiepoint, pixel (0, 0)
+    if 322 in tags: tw, th, offsets, sizes = tags[322][0], tags[323][0], tags[324], tags[325]
+    else: tw, th, offsets, sizes = width, tags.get(278, (height,))[0], tags[273], tags[279]
+    across = -(-width // tw)
+    out = array.array("f", bytes(4 * width * height))
+    for k, (start, size) in enumerate(zip(offsets, sizes)):
+        block = raw[start:start + size]
+        if compression != 1: block = zlib.decompress(block)
+        values = array.array("f", block)
+        if order != ("<" if sys.byteorder == "little" else ">"): values.byteswap()
+        x0, y0 = (k % across) * tw, (k // across) * th
+        w = min(tw, width - x0)
+        for r in range(min(th, height - y0, len(values) // tw)):
+            out[(y0 + r) * width + x0:(y0 + r) * width + x0 + w] = values[r * tw:r * tw + w]
+    return west, north, width, height, out
+
+def lidar_tiff(kind, e0, n0, e1, n1):
+    """One window of the DSM or the DTM, parsed inside the retry: a truncated or XML answer is asked again."""
+    return get(LIDAR_WCS.format(*LIDAR[kind], e0, e1, n0, n1), parse=geotiff)
+
+def lidar_chunk(e0, n0):
+    """Heights above ground in one chunk, decimetres: DSM (first return) minus DTM. VOID where either has no data or
+    the two are within 0.5 m: ground, or a void the composite filled from the DTM — dark glass returns nothing, and
+    30 St Mary Axe reads under 0.5 m over most of its footprint (its 90th percentile 180.3 m with them left out)."""
+    if (e0, n0) in _lidar:
+        _lidar[(e0, n0)] = _lidar.pop((e0, n0))  # the most recent last
+        return _lidar[(e0, n0)]
+    surface, ground = (lidar_tiff(k, e0, n0, e0 + LIDAR_CHUNK, n0 + LIDAR_CHUNK) for k in ("dsm", "dtm"))
+    if surface[:4] != ground[:4] or surface[:4] != (e0, n0 + LIDAR_CHUNK, LIDAR_CHUNK, LIDAR_CHUNK):
+        raise SourceError(f"lidar: chunk {e0},{n0} came back on another grid ({surface[:4]}, {ground[:4]})")
+    heights = array.array("h", (VOID if a < -1e30 or g < -1e30 or abs(a - g) < 0.5 else max(-32767, min(32767, round((a - g) * 10)))
+                          for a, g in zip(surface[4], ground[4])))
+    _lidar[(e0, n0)] = heights
+    while len(_lidar) > LIDAR_KEPT: del _lidar[next(iter(_lidar))]
+    return heights
+
+def lidar_height(outline):
+    """The lidar's height for one footprint: the 90th percentile of the heights of the 1 m pixels whose centre it
+    holds (the maximum is a mast or a spire, the median half a pitched roof), ground and void pixels left out. None
+    under 4 pixels, or under 2 m: a building the survey saw as ground was built after it."""
+    ring = [bng(p["latitude"], p["longitude"]) for p in outline]
+    edges = list(zip(ring, ring[1:] + ring[:1]))
+    heights, at, chunk = [], None, None
+    for north in range(math.floor(min(y for _, y in ring)), math.ceil(max(y for _, y in ring))):
+        y = north + 0.5
+        xs = sorted(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]) for a, b in edges if (a[1] > y) != (b[1] > y))
+        for x0, x1 in zip(xs[::2], xs[1::2]):
+            for east in range(math.ceil(x0 - 0.5), math.floor(x1 - 0.5) + 1):
+                e0, n0 = east // LIDAR_CHUNK * LIDAR_CHUNK, north // LIDAR_CHUNK * LIDAR_CHUNK
+                if at != (e0, n0): at, chunk = (e0, n0), lidar_chunk(e0, n0)
+                h = chunk[(n0 + LIDAR_CHUNK - 1 - north) * LIDAR_CHUNK + east - e0]
+                if h != VOID: heights.append(h)
+    if len(heights) < 4: return None
+    heights.sort()
+    rank = LIDAR_PERCENTILE * (len(heights) - 1)
+    lo = int(rank)
+    h = (heights[lo] + (heights[min(lo + 1, len(heights) - 1)] - heights[lo]) * (rank - lo)) / 10
+    return h if h >= 2 else None
+
+def lidar(rect):
+    """OpenStreetMap's footprints, each with the lidar's height where it reads one (a combine row's fetch)."""
+    return [building(b["outline"], h) for b in osm_buildings(rect, True) if (h := lidar_height(b["outline"])) is not None]
+
 def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
     return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary, combine=combine)
 
@@ -1086,6 +1216,13 @@ CITY_BUILDINGS = [
     # which keeps St. Albert and Sherwood Park off it.
     building_row("Edmonton", (53.3382, 53.7158), (-113.7134, -113.2784), boundary=boundary("edmonton"), fetch=socrata_buildings(
         "data.edmonton.ca", "jpxi-a9a5", "the_geom", "building_height", lambda h: h)),
+    # Wired 2026-10-03. The Environment Agency's LIDAR Composite DSM and DTM, 1 m (Open Government Licence; "© Environment
+    # Agency copyright and/or database right 2022. All rights reserved."), on OSM's footprints: each takes the 90th
+    # percentile of DSM minus DTM inside it (lidar() above). Against OSM's height tags, within 2 m on 16 of 21 ordinary
+    # buildings (median error 1.0 m); against 22 towers' published heights, a median error of 4 m. Held to Greater
+    # London: ONS Regions (December 2024) BFE, the tidal Thames included (Open Government Licence v3.0; contains OS
+    # data © Crown copyright and database right 2024).
+    building_row("London", (51.2868, 51.6919), (-0.5102, 0.334), boundary=boundary("london"), combine="metres", fetch=lidar),
 ]
 
 
