@@ -195,4 +195,14 @@ make_tiles.get_json = lambda url: {"transform": {"scale": [1, 1, 1], "translate"
         "semantics": {"surfaces": [{"type": "GroundSurface"}, {"type": "RoofSurface"}], "values": [[0, 1]]}}]}}}
 b, = hamburg((53.5, 10.0, 53.6, 10.1))
 assert b["height"] == 20.5 and len(b["outline"]) == 3 and abs(b["outline"][0]["latitude"] - 53.55) < 0.01
+# La Rochelle: one whole CSV (real rows, trimmed), the point its "lat,lon" column; only the three terrace kinds,
+# furniture and untyped rows dropped, a terrace with no sign kept unnamed.
+make_tiles.get = lambda url, **k: open("fixtures/la-rochelle.csv", "rb").read()
+rochelle = next(c for c in PERMIT_CITIES if c["city"] == "La Rochelle")
+got = permits(rochelle, (46.14, -1.22, 46.18, -1.12))
+assert [t["kind"] for t in got] == ["Terrasse - extension saisonnière", "Terrasse couverte", "Terrasse", "Terrasse"]
+assert [t.get("name") for t in got] == ["LE RECIF", "LE BISTROT DE MEME", "LA CORNICHE", None]
+assert abs(got[0]["coordinate"]["latitude"] - 46.14127796782068) < 1e-9 and abs(got[0]["coordinate"]["longitude"] + 1.1708002829565918) < 1e-9
+assert permits(rochelle, (46.15, -1.18, 46.16, -1.17)) == [got[2]]   # the file is read once, then cut to the cell
+make_tiles.get = real_get
 print("ok")

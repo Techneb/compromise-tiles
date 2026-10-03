@@ -156,6 +156,14 @@ PERMIT_CITIES = [
     # Metres asked for: its degrees come rounded to 3 decimals (~100 m). The box is the points'.
     row("Thessaloníki", "", "sdi.thessaloniki.gr/geoserver/wfs", "KOSE:TRAP2017", "eponymia", [],
         (40.59, 40.66), (22.92, 22.99), shape="wfs", filter="adeiestrap IS NOT NULL", geom="geom", srs="EPSG:3857"),
+    # Ville de La Rochelle's public-space permits ("Licence ouverte / Open Licence"): one CSV, updated daily, no
+    # query API, fetched whole once per run. The point is the `coordinates` column ("lat,lon"); the feed also lists
+    # furniture, decking and kiosks, so only the three terrace kinds are kept (580 of 806 rows, 2026-10-03).
+    # The box is the terraces'.
+    row("La Rochelle", "17300", "opendata.agglo-larochelle.fr",
+        "sites/default/files/dataset/143/e9172-661e-4c90-bd87-99c8a79c551b/b_commerces_marches_vlr_aot_surfaces.csv",
+        "enseigne_etablissement", ["type_surface"], (46.14, 46.18), (-1.22, -1.12), shape="csv", point="coordinates",
+        keep=["Terrasse", "Terrasse - extension saisonnière", "Terrasse couverte"]),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -1216,6 +1224,22 @@ def barcelona_all(c):
     if not out: raise SourceError("Barcelona: no terrace parsed")  # as for Madrid
     return out
 
+def csv_all(c):
+    """A whole CSV (La Rochelle): comma-separated, quoted, a BOM; the point a "lat,lon" column, the kind a
+    column kept only for the values in `keep`."""
+    text = get(f"https://{c['host']}/{c['dataset']}").decode("utf-8-sig")
+    kind, out = c["kinds"][0], []
+    for r in csv.DictReader(io.StringIO(text)):
+        if r[kind] not in c["keep"]: continue
+        lat, _, lon = (r[c["point"]] or "").partition(",")
+        lat, lon = number(lat.strip()), number(lon.strip())
+        if lat is None or lon is None: continue
+        item = {"kind": r[kind], "coordinate": {"latitude": lat, "longitude": lon}}
+        if r[c["name"]]: item["name"] = r[c["name"]]
+        out.append(item)
+    if not out: raise SourceError(f"{c['city']}: no terrace parsed")  # as for Madrid
+    return out
+
 def whole_file(c, rect, load):
     if c["city"] not in _whole:
         try:
@@ -1251,6 +1275,7 @@ def permits(c, rect):
     if c.get("shape") == "madrid": return whole_file(c, rect, madrid_all)
     if c.get("shape") == "seville": return whole_file(c, rect, seville_all)
     if c.get("shape") == "barcelona": return whole_file(c, rect, barcelona_all)
+    if c.get("shape") == "csv": return whole_file(c, rect, csv_all)
     if c.get("shape") == "geojson":  # a static GeoJSON of points, fetched whole once per run (Toronto)
         return whole_file(c, rect, lambda c: permit_items(get_json(f"https://{c['host']}/{c['dataset']}").get("features") or [], c))
     if c.get("shape") == "socrata":
