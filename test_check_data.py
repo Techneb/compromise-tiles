@@ -105,8 +105,8 @@ checked, bad, missing = feed_mismatches(feed, lambda k: store[k], per_area=3, se
 assert checked == 3 and missing == ["2,2"] and [m["key"] for m in bad] == ["3,3"] and bad[0]["feed"] == [40, 7] and bad[0]["tiles"] == [40, 6]
 # The same seed samples the same cells; a different one may not.
 random.seed(1); first = random.sample(range(100), 3); random.seed(1); assert random.sample(range(100), 3) == first
-# terracesKnown: cell 1,1 has 5 terraces, the venue tile over it spreads 100 venues over 100 cells (9 cells: 9 near), 5 ≥ 30 % × 9.
-assert feed_known(feed) == [("A / A", 1, 1)]
+# terracesKnown: the venue tile spreads 100 venues over 100 cells (9 near each cell); 5 and 7 terraces pass (≥ 5, ≥ 30 % × 9), 0 does not.
+assert feed_known(feed) == [("A / A", 1, 2)]
 
 # The report: flags first, one line per row of make_tiles.py, the feed's verdict last.
 run = {"run": "2026-10-05", "rows": {"permits/Paris": dict(now, key="24430,1174")}}

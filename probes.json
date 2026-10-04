@@ -1,0 +1,510 @@
+{
+ "permits/Paris": {
+  "key": "24430,1174",
+  "picked": "2026-10-04"
+ },
+ "permits/Toulouse": {
+  "key": "21802,722",
+  "picked": "2026-10-04"
+ },
+ "permits/Strasbourg": {
+  "key": "24290,3872",
+  "picked": "2026-10-04"
+ },
+ "permits/Anglet": {
+  "key": "21749,-770",
+  "picked": "2026-10-04"
+ },
+ "permits/Rouen": {
+  "key": "24720,546",
+  "picked": "2026-10-04"
+ },
+ "permits/Lorient": {
+  "key": "23873,-1681",
+  "picked": "2026-10-04"
+ },
+ "permits/Issy-les-Moulineaux": {
+  "key": "24413,1134",
+  "picked": "2026-10-04"
+ },
+ "permits/Boulogne-Billancourt": {
+  "key": "24420,1117",
+  "picked": "2026-10-04"
+ },
+ "permits/Melbourne": {
+  "key": "-18907,72481",
+  "picked": "2026-10-04"
+ },
+ "permits/Camden": {
+  "key": "25760,-69",
+  "picked": "2026-10-04"
+ },
+ "permits/New York": {
+  "key": "20365,-37000",
+  "picked": "2026-10-04"
+ },
+ "permits/Chicago": {
+  "key": "20945,-43815",
+  "picked": "2026-10-04"
+ },
+ "permits/San Francisco": {
+  "key": "18899,-61219",
+  "picked": "2026-10-04"
+ },
+ "permits/Amsterdam": {
+  "key": "26187,2448",
+  "picked": "2026-10-04"
+ },
+ "permits/Vienna": {
+  "key": "24104,8186",
+  "picked": "2026-10-04"
+ },
+ "permits/Copenhagen": {
+  "key": "27839,6287",
+  "picked": "2026-10-04"
+ },
+ "permits/Madrid": {
+  "key": "20208,-1852",
+  "picked": "2026-10-04"
+ },
+ "permits/Basel": {
+  "key": "23777,3793",
+  "picked": "2026-10-04"
+ },
+ "permits/Geneva": {
+  "key": "23104,3072",
+  "picked": "2026-10-04"
+ },
+ "permits/Seville": {
+  "key": "18693,-2996",
+  "picked": "2026-10-04"
+ },
+ "permits/Vilnius": {
+  "key": "27341,12641",
+  "picked": "2026-10-04"
+ },
+ "permits/Oslo": {
+  "key": "29957,5374",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://od2.pbe.oslo.kommune.no/cgi-bin/wms?map=AAPNING&service=WFS&request=GetCapabilities"
+  }
+ },
+ "permits/Barcelona": {
+  "key": "20695,1079",
+  "picked": "2026-10-04"
+ },
+ "permits/Buenos Aires": {
+  "key": "-17293,-29212",
+  "picked": "2026-10-04"
+ },
+ "permits/Adelaide": {
+  "key": "-17462,69299",
+  "picked": "2026-10-04"
+ },
+ "permits/Toronto": {
+  "key": "21822,-39698",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "ckan",
+   "url": "https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/package_show?id=3b605a2e-f3bf-4b2b-b972-c0829b2788f5"
+  }
+ },
+ "permits/Riga": {
+  "key": "28474,12054",
+  "picked": "2026-10-04"
+ },
+ "permits/San Sebastián": {
+  "key": "21661,-990",
+  "picked": "2026-10-04"
+ },
+ "permits/Eindhoven": {
+  "key": "25719,2739",
+  "picked": "2026-10-04"
+ },
+ "permits/Thessaloníki": {
+  "key": "20317,11470",
+  "picked": "2026-10-04"
+ },
+ "permits/La Rochelle": {
+  "key": "23079,-575",
+  "picked": "2026-10-04"
+ },
+ "buildings/Melbourne": {
+  "key": "-18896,72461",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "opendatasoft",
+   "url": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/2023-building-footprints"
+  }
+ },
+ "buildings/Amsterdam": {
+  "key": "26170,2472",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://data.3dbag.nl/api/BAG3D/wfs?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Rotterdam": {
+  "key": "25945,2251",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://data.3dbag.nl/api/BAG3D/wfs?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/The Hague": {
+  "key": "26026,2157",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://data.3dbag.nl/api/BAG3D/wfs?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Utrecht": {
+  "key": "26055,2543",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://data.3dbag.nl/api/BAG3D/wfs?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Berlin": {
+  "key": "26209,6639",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://gdi.berlin.de/services/wfs/ua_gebaeudehoehen?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Geneva": {
+  "key": "23101,3079",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://vector.sitg.ge.ch/arcgis/rest/services/CAD_BATIMENT_HORSOL/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Denver": {
+  "key": "19853,-52491",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_PROP_BUILDINGOUTLINES_A/FeatureServer/111?f=json"
+  }
+ },
+ "buildings/Cape Town": {
+  "key": "-16965,9224",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://esapqa.capetown.gov.za/agsext/rest/services/Theme_Based/ODP_SPLIT_6/FeatureServer/2?f=json"
+  }
+ },
+ "buildings/São Paulo": {
+  "key": "-11803,-23321",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/ows?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Wrocław": {
+  "key": "25570,8523",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://gis.um.wroc.pl/portal_srv/rest/services/SMH_2022_Budynki/MapServer/0?f=json"
+  }
+ },
+ "buildings/Ramat Gan": {
+  "key": "16036,17411",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services8.arcgis.com/MdnyDq2GlaTWezhQ/arcgis/rest/services/building_23_02_2025/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Holon": {
+  "key": "16012,17383",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services2.arcgis.com/cjDo9oPmimdHxumn/arcgis/rest/services/Buildings_shp/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Herzliya": {
+  "key": "16083,17429",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services3.arcgis.com/9qGhZGtb39XMVQyR/arcgis/rest/services/herzliya_reka_2023/FeatureServer/3?f=json"
+  }
+ },
+ "buildings/Tel Aviv": {
+  "key": "16025,17395",
+  "picked": "2026-10-04",
+  "skip": "answers only from Israel (HTTP 571 elsewhere), as make_tiles.py notes"
+ },
+ "buildings/Jerusalem": {
+  "key": "15889,17615",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services3.arcgis.com/jeqc1A7OfE9m4EPO/arcgis/rest/services/bldg2020/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Madrid": {
+  "key": "20231,-1851",
+  "picked": "2026-10-04"
+ },
+ "buildings/Seville": {
+  "key": "18694,-2996",
+  "picked": "2026-10-04"
+ },
+ "buildings/Barcelona": {
+  "key": "20687,1061",
+  "picked": "2026-10-04"
+ },
+ "buildings/Valencia": {
+  "key": "19736,-187",
+  "picked": "2026-10-04"
+ },
+ "buildings/Zaragoza": {
+  "key": "20825,-452",
+  "picked": "2026-10-04"
+ },
+ "buildings/Málaga": {
+  "key": "18361,-2216",
+  "picked": "2026-10-04"
+ },
+ "buildings/Palma": {
+  "key": "19785,1325",
+  "picked": "2026-10-04"
+ },
+ "buildings/Las Palmas": {
+  "key": "14075,-7713",
+  "picked": "2026-10-04"
+ },
+ "buildings/Murcia": {
+  "key": "18992,-563",
+  "picked": "2026-10-04"
+ },
+ "buildings/Alicante": {
+  "key": "19178,-240",
+  "picked": "2026-10-04"
+ },
+ "buildings/Córdoba": {
+  "key": "18934,-2386",
+  "picked": "2026-10-04"
+ },
+ "buildings/Valladolid": {
+  "key": "20825,-2363",
+  "picked": "2026-10-04"
+ },
+ "buildings/Vigo": {
+  "key": "21115,-4353",
+  "picked": "2026-10-04"
+ },
+ "buildings/Gijón": {
+  "key": "21770,-2831",
+  "picked": "2026-10-04"
+ },
+ "buildings/San Sebastián": {
+  "key": "21658,-991",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://b5m.gipuzkoa.eus/inspire/wfs/gipuzkoa_wfs_bu?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Johannesburg": {
+  "key": "-13097,14008",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://ags.joburg.org.za/server/rest/services/Property/MapServer/1?f=json"
+  }
+ },
+ "buildings/Bologna": {
+  "key": "22246,5675",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "opendatasoft",
+   "url": "https://opendata.comune.bologna.it/api/explore/v2.1/catalog/datasets/c_a944ctc_edifici_pl"
+  }
+ },
+ "buildings/Turin": {
+  "key": "22535,3804",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://geoservices.csi.it/ms/wfs/taims/rp-01/taimswfs/bdtre_imm?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/New York": {
+  "key": "20342,-36909",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.cityofnewyork.us/api/views/5zhs-2jue.json"
+  }
+ },
+ "buildings/Chicago": {
+  "key": "20973,-43840",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.cityofchicago.org/api/views/syp8-uezg.json"
+  }
+ },
+ "buildings/San Francisco": {
+  "key": "18869,-61207",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.sf.gov/api/views/ynuv-fyni.json"
+  }
+ },
+ "buildings/Calgary": {
+  "key": "25506,-57054",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.calgary.ca/api/views/cchr-krqg.json"
+  }
+ },
+ "buildings/Vancouver": {
+  "key": "24614,-61531",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "opendatasoft",
+   "url": "https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/building-footprints-2009"
+  }
+ },
+ "buildings/Zurich": {
+  "key": "23685,4271",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Bauten___Blockmodell?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Austin": {
+  "key": "15114,-48847",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.austintexas.gov/api/views/3qcc-8uhz.json"
+  }
+ },
+ "buildings/Los Angeles": {
+  "key": "17042,-59134",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/Building_Footprints/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Hamburg": {
+  "key": "26796,5035",
+  "picked": "2026-10-04"
+ },
+ "buildings/Philadelphia": {
+  "key": "19959,-37581",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/LI_BUILDING_FOOTPRINTS/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Düsseldorf": {
+  "key": "25608,3423",
+  "picked": "2026-10-04"
+ },
+ "buildings/Nuremberg": {
+  "key": "24739,5533",
+  "picked": "2026-10-04"
+ },
+ "buildings/Zagreb": {
+  "key": "22898,7965",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services8.arcgis.com/Usi0jGQwMmBUpFjr/arcgis/rest/services/ZG3D_2022_3d_model_GZ/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Belgrade": {
+  "key": "22400,10237",
+  "picked": "2026-10-04"
+ },
+ "buildings/San José": {
+  "key": "4960,-42037",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services5.arcgis.com/0ZvuJDanWVJc4vYr/arcgis/rest/services/SIG_SER_3D_Edificaciones/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/San Jose": {
+  "key": "18674,-60939",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40?f=json"
+  }
+ },
+ "buildings/Genoa": {
+  "key": "22215,4447",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "wfs",
+   "url": "https://geoservizi.regione.liguria.it/geoserver/ows?service=WFS&request=GetCapabilities"
+  }
+ },
+ "buildings/Sofia": {
+  "key": "21347,11635",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://gis.sofiaplan.bg/server/rest/services/oup_2009/oup_2009/FeatureServer/98?f=json"
+  }
+ },
+ "buildings/Bratislava": {
+  "key": "24085,8567",
+  "picked": "2026-10-04",
+  "combine": true,
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://services8.arcgis.com/pRlN1m0su5BYaFAS/arcgis/rest/services/Pocet_obyvatelov_budovy/FeatureServer/0?f=json"
+  }
+ },
+ "buildings/Oakland": {
+  "key": "18896,-61124",
+  "picked": "2026-10-04",
+  "combine": true,
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.oaklandca.gov/api/views/iqfp-6kz5.json"
+  }
+ },
+ "buildings/Vaughan": {
+  "key": "21922,-39758",
+  "picked": "2026-10-04"
+ },
+ "buildings/Edmonton": {
+  "key": "26782,-56740",
+  "picked": "2026-10-04",
+  "licence": {
+   "kind": "socrata",
+   "url": "https://data.edmonton.ca/api/views/jpxi-a9a5.json"
+  }
+ },
+ "buildings/London": {
+  "key": "25668,-2",
+  "picked": "2026-10-04",
+  "combine": true
+ }
+}
