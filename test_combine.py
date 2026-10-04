@@ -64,7 +64,8 @@ halves = [{"outline": square(0, 0, 1, 1.2), "height": 30.0}, {"outline": square(
 assert mt.combined([block], halves)[0]["height"] == 30.0
 
 # do_buildings: a cell the city gave a height to is credited "<city>+OSM", one it gave none "OSM";
-# the tile holds only outline and height, as every other row's.
+# the tile holds only outline and height, as every other row's (the fixture's OSM sample predates the
+# guessed flag, so none carries it).
 run("Bratislava", fixture("bratislava"))   # the fetches answer Bratislava's sample again
 mt.near_buildings = lambda cell, items: [b for b in items if mt.metres(cell.lat, cell.lon, *centre(b)) < 300]
 mt.STORE = None
@@ -77,6 +78,12 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "sources", at_nivy)) == [{"buildings": "OSM"}]
     tile = read(path(out, "buildings", at_manderla))
     assert all(list(b) == ["outline", "height"] for b in tile) and 47.7 in [b["height"] for b in tile]
+    # An OSM footprint of guessed height the city has no building for keeps its flag through the combine
+    # row's tile; the "tagged" and "city" working keys never reach it (2026-10-04).
+    guess = mt.building([{"latitude": at_nivy.lat, "longitude": at_nivy.lon}] * 3)
+    mt.osm_buildings = lambda rect, tagged=False: [guess, dict(mt.building(guess["outline"], 20), tagged="height")]
+    mt.do_buildings([at_nivy], out, failures := [])
+    assert failures == [] and read(path(out, "buildings", at_nivy)) == [guess, {"outline": guess["outline"], "height": 20.0}]
 # London (the Environment Agency's lidar on OSM's footprints, chunks cut to 64 m to keep the fixtures small): the
 # Walthamstow terrace's 19 houses, untagged so 15 m in OSM, take 8.2 to 9.1 m from one DSM and one DTM request.
 asked = []

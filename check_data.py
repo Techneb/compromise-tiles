@@ -40,7 +40,7 @@ PROBES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "probes.json")
 HALF = 0.5                 # a count or share under this fraction of its reference is a fall
 ROW_TIMEOUT = 25 * 60      # seconds one row may take: Catastro parses a whole municipality for its first cell
 OSM_KIND = "TERRASSE (OSM)"  # the kind osm_terraces() writes: the other entries of a terraces tile are the feed's
-NO_HEIGHT = 15.0           # the height written when a source gives none (coverage.py's FALLBACK_HEIGHT)
+NO_HEIGHT = 15.0           # the height written when a source gives none; flagged "guessed" since 2026-10-04 (coverage.py's FALLBACK_HEIGHT)
 UA = {"User-Agent": "compromise-tiles-check (+https://github.com/Techneb/compromise-tiles)"}
 FLOOR, RATIO, MINIMUM = 20, 0.30, 5  # the feed's terracesKnown rule, as check_feed.py restates it
 
@@ -136,7 +136,14 @@ def share(items, has):
 
 
 def named(items): return share(items, lambda t: bool(t.get("name")))
-def with_height(items): return share(items, lambda b: b.get("height") != NO_HEIGHT)
+def guessed(b, flagged):
+    """Whether a building's height is the generator's guess: its flag where the tile carries any; else, in a
+    tile built before the flag, the 15 m it wrote (a measured 15 m counts as a guess there, as before)."""
+    return bool(b.get("guessed")) if flagged else b.get("height") == NO_HEIGHT
+
+def with_height(items):
+    flagged = any("guessed" in b for b in items)
+    return share(items, lambda b: not guessed(b, flagged))
 
 
 def published(layer, key):
@@ -151,7 +158,8 @@ def published(layer, key):
             own = [t for t in items if t.get("kind") != OSM_KIND]
             out.update(status="ok", count=len(own), named=named(own))
         else:
-            out.update(status="ok", count=len(items), height=with_height(items), with_height=sum(1 for b in items if b.get("height") != NO_HEIGHT))
+            flagged = any("guessed" in b for b in items)
+            out.update(status="ok", count=len(items), height=with_height(items), with_height=sum(1 for b in items if not guessed(b, flagged)))
     body, code = fetch_store(f"{STORE}sources/{key}.json")
     if body is not None:
         entry = json.loads(body)

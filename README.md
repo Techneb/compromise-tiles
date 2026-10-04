@@ -10,7 +10,10 @@ The tiles are served from Cloudflare R2 at
 root. Layers: `buildings/` and `terraces-v2/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
 point, amenity, outdoor seating, source); `sources/` per ~200 m cell
-names the permit feed and building source each cell was built from.
+names the permit feed and building source each cell was built from. A
+building whose source gives no height is written at 15 m with
+`"guessed": true` (builds since 2026-10-04; a tile built before carries
+no flag).
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the

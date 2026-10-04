@@ -69,6 +69,7 @@ gml = ('<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:
        + member(20, 5, ring) + member(0, 4, ring) + member(0, "", ring) + "</wfs:FeatureCollection>").encode()
 built = gipuzkoa_buildings(gml)
 assert [b["height"] for b in built] == [20.0, 12.0, 15.0]
+assert [b.get("guessed") for b in built] == [None, None, True]   # only the 15 m guess carries the flag
 assert built[0]["outline"][0] == {"latitude": 43.323921, "longitude": -1.986071} and len(built[0]["outline"]) == 4
 # Johannesburg's ELEVATION is already metres above ground (Carlton Centre 204.1); San Sebastián's cells are Gipuzkoa's, not Catastro's.
 from make_tiles import building_source, CITY_BUILDINGS
@@ -100,6 +101,7 @@ gml = ('<core:CityModel xmlns:core="http://www.opengis.net/citygml/1.0" xmlns:bl
        + part(8.934, ring) + part(0, ring) + "</bldg:Building></core:cityObjectMember></core:CityModel>").encode()
 built = citygml_buildings(gml)
 assert [b["height"] for b in built] == [8.9, 15.0] and len(built[0]["outline"]) == 7
+assert [b.get("guessed") for b in built] == [None, True]
 assert abs(built[0]["outline"][0]["latitude"] - 51.2251) < 0.0001 and abs(built[0]["outline"][0]["longitude"] - 6.7750) < 0.001
 # The tiles a box touches, by their south-west corner in km (Bavaria: 2 km, even); a missing tile (404) is empty.
 asked = []
@@ -120,7 +122,7 @@ def fake_get(url, data=None, parse=None, **k):
     return {"features": [{"attributes": {"objectid": 41}, "geometry": {"rings": [cw, cw[::-1]]}},
                          {"attributes": {"objectid": 42}, "geometry": {"rings": [cw]}}]}
 make_tiles.get = fake_get
-assert [b["height"] for b in beoland((44.81, 20.45, 44.82, 20.46))] == [26.5, 15.0]
+assert [(b["height"], b.get("guessed")) for b in beoland((44.81, 20.45, 44.82, 20.46))] == [(26.5, None), (15.0, True)]
 # Genoa: eave elevation minus the nearest foot spot height (0301) within 40 m; an eave spot (0302) is no foot.
 real_wfs = make_tiles.wfs
 make_tiles.wfs = lambda url, params, rect, **k: ([{"geometry": {"type": "Point", "coordinates": [8.93235, 44.40763, 18.11]},
@@ -130,7 +132,7 @@ make_tiles.wfs = lambda url, params, rect, **k: ([{"geometry": {"type": "Point",
     [{"geometry": {"type": "Polygon", "coordinates": [[[8.9322, 44.4076, 69.11], [8.9324, 44.4076, 69.11], [8.9324, 44.4077, 69.11],
         [8.9322, 44.4076, 69.11]]]}}, {"geometry": {"type": "Polygon", "coordinates": [[[8.95, 44.42, 50], [8.951, 44.42, 50],
         [8.951, 44.421, 50], [8.95, 44.42, 50]]]}}])
-assert [b["height"] for b in liguria((44.40, 8.93, 44.41, 8.94))] == [51.0, 15.0]
+assert [(b["height"], b.get("guessed")) for b in liguria((44.40, 8.93, 44.41, 8.94))] == [(51.0, None), (15.0, True)]
 make_tiles.wfs = real_wfs
 # Thessaloníki's permits come in Web Mercator (its degrees are rounded to ~100 m), filtered on a permit number.
 lat, lon = mercator_to_wgs84(2553970.46, 4958174.064)
@@ -159,6 +161,8 @@ assert at(37.3377, -121.8855) == "San Jose" and at(44.4072, 8.9339) == "Genoa"
 make_tiles.arcgis = lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
     [0, 1], [1, 1], [0, 0]]]}, "properties": {"sgr_text": t}} for t in ("26МСБЖ", "5МСБЖ", "МС", "-1МС", None)]
 assert rule("Sofia") == [78.0, 15.0, 3.0, 3.0, 3.0]
+flagged = lambda city: [b.get("guessed") for b in next(b for b in CITY_BUILDINGS if b["city"] == city)["fetch"]((0, 0, 1, 1))]
+assert flagged("Sofia") == [None] * 5   # 5 floors is a measured 15 m; "none is one floor" is the row's rule, not the guess
 make_tiles.arcgis = real_arcgis
 assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "Bratislava" and at(48.3500, 17.1088) == "OSM"
 assert at(37.8053, -122.2724) == "Oakland"   # its cells are credited "Oakland+OSM" or "OSM": test_combine.py
@@ -175,6 +179,27 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
     note_sources(out, cell, permits="Paris")
     assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM"}]
+    # The 15 m guess reaches the tile flagged, a measured height bare (2026-10-04); the key order is the tile's.
+    from make_tiles import building, footprints, osm_height, DEFAULT_HEIGHT
+    ring = [{"latitude": cell.lat, "longitude": cell.lon}] * 3
+    assert building(ring) == {"outline": ring, "height": 15.0, "guessed": True} and DEFAULT_HEIGHT == 15.0
+    assert building(ring, 15) == {"outline": ring, "height": 15.0}   # a measured 15 m is not a guess
+    assert osm_height({}) is None and osm_height({"building:levels": "4"}) == 12.0 and osm_height({"height": "15 m"}) == 15.0
+    make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [building(ring, 9), building(ring)]
+    do_buildings([cell], out, [])
+    assert read(path(out, "buildings", cell)) == [{"outline": ring, "height": 9.0}, {"outline": ring, "height": 15.0, "guessed": True}]
+# footprints(): a feature its rule reads nothing from is the flagged guess, or left out with guess=False.
+feature = lambda h: {"geometry": {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [0, 0]]]}, "properties": {"h": h}}
+assert [(b["height"], b.get("guessed")) for b in footprints([feature(30), feature(None), feature(0)], lambda p: p.get("h"))] == \
+    [(30.0, None), (15.0, True), (15.0, True)]
+assert [b["height"] for b in footprints([feature(30), feature(None)], lambda p: p.get("h"), guess=False)] == [30.0]
+# combined(): a guessed OSM footprint takes the city's height and drops the flag; one the city lacks keeps it.
+from make_tiles import combined
+sq = lambda s, w, n, e: [{"latitude": a / 1e4, "longitude": o / 1e4} for a, o in ((s, w), (s, e), (n, e), (n, w))]
+osm_guess, osm_far = building(sq(0, 0, 1, 1)), building(sq(5, 5, 6, 6))
+assert combined([osm_guess, osm_far], [building(sq(0, 0, 1, 1), 33)]) == \
+    [{"outline": sq(0, 0, 1, 1), "height": 33.0, "city": True}, osm_far]
+assert combined([osm_guess], [building(sq(0, 0, 1, 1), 33)], metres=True)[0].get("guessed") is None
 
 # A building source is held to its municipal boundary: Fitzroy sits in Melbourne's box but not in
 # the City of Melbourne, Bitsaron (Tel Aviv) in Ramat Gan's box but not in Ramat Gan.
@@ -187,7 +212,7 @@ assert at(32.0150, 34.7800) == "Holon" and at(32.1650, 34.8400) == "Herzliya" an
 floors = next(b for b in CITY_BUILDINGS if b["city"] == "Holon")["fetch"]
 ring = {"type": "Polygon", "coordinates": [[[34.78, 32.01], [34.781, 32.01], [34.781, 32.011], [34.78, 32.01]]]}
 make_tiles.arcgis = lambda *a, **k: [{"geometry": ring, "properties": {"NUM_FLOORS": "4"}}, {"geometry": ring, "properties": {"NUM_FLOORS": " "}}]
-assert [b["height"] for b in floors((0, 0, 1, 1))] == [12.0, 15.0]
+assert [(b["height"], b.get("guessed")) for b in floors((0, 0, 1, 1))] == [(12.0, None), (15.0, True)]
 # Hamburg's CityJSON: the ground surface in UTM 32N, measuredHeight.
 make_tiles.get_json = lambda url: {"transform": {"scale": [1, 1, 1], "translate": [566000, 5935000, 0]},
     "vertices": [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 0, 20]],
