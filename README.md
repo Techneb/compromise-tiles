@@ -149,9 +149,10 @@ none, this says so rather than guessing.
   Contains information licensed under the Open Government Licence – Canada.
 - Edmonton: City of Edmonton, Rooflines (as of 2019). Contains information
   licensed under the Open Government Licence – City of Edmonton.
-- London: Environment Agency, LIDAR Composite DSM and DTM, 1 m. © Environment
-  Agency copyright and/or database right 2022. All rights reserved. Open
-  Government Licence; heights on OpenStreetMap's footprints.
+- London, Birmingham, Bristol, Leeds, Liverpool, Sheffield: Environment
+  Agency, LIDAR Composite DSM and DTM, 1 m. © Environment Agency copyright
+  and/or database right 2022. All rights reserved. Open Government Licence;
+  heights on OpenStreetMap's footprints.
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
@@ -163,6 +164,11 @@ none, this says so rather than guessing.
 - Greater London: Office for National Statistics, Regions (December 2024)
   Boundaries EN BFE, Open Government Licence v3.0. Contains OS data ©
   Crown copyright and database right 2024.
+- Birmingham, Bristol, Leeds, Liverpool (`liverpool-ons.geojson`, the lidar
+  row's; `liverpool.geojson`, the tiled area's, stays OpenStreetMap's, ODbL),
+  Sheffield: Office for National Statistics, Local Authority Districts
+  (December 2025) Boundaries UK BFC, Open Government Licence v3.0. Contains
+  OS data © Crown copyright and database right 2025.
 
 **Communes (France: their names and codes in `coverage.json`)**
 - Etalab geo API, Licence Ouverte 2.0; IGN Admin Express through apicarto
