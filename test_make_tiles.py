@@ -317,4 +317,92 @@ assert feed(43.8570, -79.5150) is None and feed(43.8000, -79.4200) is None
 assert feed(51.5390, -0.1430) == "Camden" and feed(51.5220, -0.1250) == "Camden" and feed(51.5470, -0.1950) == "Camden"
 assert feed(51.5226, -0.1571) is None and feed(51.5460, -0.1040) is None and feed(51.5322, -0.1058) is None
 assert feed(40.7580, -73.9855) == "New York" and feed(43.3127, -1.9582) == "San Sebastián"
+# 2026-10-04 rows: the terrace re-survey's six registers, each on a trimmed real answer. Helsinki: the kind filter folds
+# into BBOX() on singlegeom; each polygon lands on its mean vertex, the name less "Terassialue" and a size, a bare
+# "Talviterassi" unnamed (door rule).
+from make_tiles import arcgis_filter, helsinki_venue_name, seattle_venue_name, not_applicable, unique
+import datetime
+# Hamburg's and Edmonton's get_json fakes above were left in place (and real_get_json is Hamburg's): the real one again.
+make_tiles.get_json = lambda url, data=None, waits=make_tiles.WAITS: make_tiles.get(url, data, parse=json.loads, waits=waits)
+make_tiles.arcgis = real_arcgis   # Holon's fake above was left in place too
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/helsinki.json") as f: return json.load(f)
+make_tiles.get = fake_get
+helsinki = next(c for c in PERMIT_CITIES if c["city"] == "Helsinki")
+got = permits(helsinki, (60.16, 24.93, 60.19, 24.99))
+assert [t.get("name") for t in got] == ["On The Rocks", "Chaos Bar", "Oluthuone Haavi", None] and all(t["kind"] == "TERRASSE" for t in got)
+assert abs(got[0]["coordinate"]["latitude"] - 60.17109383) < 1e-6 and abs(got[0]["coordinate"]["longitude"] - 24.9453338) < 1e-6
+assert "hakemuksen_laji IN ('Kesäterassi','Talviterassi') AND BBOX(singlegeom,24.93,60.16,24.99,60.19,'EPSG:4326')" in asked[0]
+assert "srsName=EPSG:4326" in asked[0] and "typeName=avoindata:Lyhyt_maanvuokraus_alue" in asked[0]
+assert helsinki_venue_name("Kesäterassi 12 m2 Milli Miglia -ravintolan edustalla") == "Milli Miglia -ravintolan edustalla"
+assert helsinki_venue_name("Terassi alue Cafe Berry") == "Cafe Berry" and helsinki_venue_name("Bar Llamas") == "Bar Llamas"
+assert helsinki_venue_name('Terassialue "Mon Vietnam"') == "Mon Vietnam" and helsinki_venue_name("Kesäterassi") is None
+# Gothenburg: one ';' CSV with a BOM, read whole; a terrace where Serveringstyper lists Uteservering (alone or among
+# catering and tastings) and the public is served (alone or with closed companies); no outdoor serving, a closed
+# company and a row without a point dropped.
+make_tiles.get = lambda url, **k: open("fixtures/gothenburg.csv", "rb").read()
+gothenburg = next(c for c in PERMIT_CITIES if c["city"] == "Gothenburg")
+got = permits(gothenburg, (57.57, 11.76, 57.80, 12.06))
+assert [t["name"] for t in got] == ["Werners Bistro", "DINÉ Burgers Drottninggatan", "Beerbliotek Brewery"]
+assert all(t["kind"] == "TERRASSE" for t in got) and abs(got[0]["coordinate"]["latitude"] - 57.70404059127321) < 1e-9
+assert permits(gothenburg, (57.70, 11.97, 57.71, 11.98)) == [got[0]]   # read once, cut to the cell
+# Washington DC: issued sidewalk cafés and streateries, enclosed as TERRASSE FERMEE; only OBJECTID, ApplicantCompany and
+# EventTypeDescription are asked for — never OwnerName or PermitteeName, which hold people's names — and "N/A" names
+# nobody. A renewal repeats its point: unique() (gather's) keeps one.
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/washington-dc.json") as f: return json.load(f)
+make_tiles.get = fake_get
+dc = next(c for c in PERMIT_CITIES if c["city"] == "Washington DC")
+got = permits(dc, (38.89, -77.03, 38.91, -77.00))
+assert [t["kind"] for t in got] == ["TERRASSE OUVERTE", "TERRASSE OUVERTE", "TERRASSE FERMEE", "TERRASSE OUVERTE"]
+assert [t.get("name") for t in got] == [None, None, "Gobind LLC", None] and len(unique(got)) == 3
+assert "outFields=OBJECTID,ApplicantCompany,EventTypeDescription" in asked[0] and "OwnerName" not in asked[0] and "PermitteeName" not in asked[0]
+assert "(EventTypeDescription LIKE 'New Sidewalk Cafe%' OR EventTypeDescription LIKE 'Streatery%') AND Status = 'ISSUED'" in asked[0]
+with open("fixtures/washington-dc.json") as f: assert "OwnerName" not in f.read()
+assert not_applicable("N/A") is None and not_applicable("521597097") is None and not_applicable(" Compass Coffee ") == "Compass Coffee"
+# Boston: the OID field is ObjectId (a FeatureServer's), both licence types open air.
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/boston.json") as f: return json.load(f)
+make_tiles.get = fake_get
+boston = next(c for c in PERMIT_CITIES if c["city"] == "Boston")
+got = permits(boston, (42.35, -71.08, 42.36, -71.05))
+assert [t["name"] for t in got] == ["Lily's Pizza", "75 Chestnut"] and all(t["kind"] == "TERRASSE" for t in got)
+assert "ObjectId>-1" in asked[0] and "outFields=ObjectId,doing_business_as" in asked[0] and "orderByFields=ObjectId" in asked[0]
+# Seattle: the description searched, issued in the last fifteen months (the date resolved at run time); the name only
+# from the "Venue | kind | street" form, a kind-first or free-text name dropped.
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/seattle.json") as f: return json.load(f)
+make_tiles.get = fake_get
+seattle = next(c for c in PERMIT_CITIES if c["city"] == "Seattle")
+got = permits(seattle, (47.60, -122.36, 47.68, -122.31))
+assert [t.get("name") for t in got] == ["Mecca", None, None, None] and all(t["kind"] == "TERRASSE" for t in got)
+ago = (datetime.datetime.now(datetime.timezone.utc).date() - datetime.timedelta(days=457)).isoformat()
+assert f"PERMIT_STATUS = 'Issued' AND LAST_ISSUED_DATE >= DATE '{ago}'" in asked[0] and "{fifteenMonthsAgo}" not in asked[0]
+assert arcgis_filter("a >= DATE '{today}'") == f"a >= DATE '{datetime.datetime.now(datetime.timezone.utc).date().isoformat()}'"
+assert seattle_venue_name("Till Dawn | Sidewalk Cafe | On California Ave SW") == "Till Dawn"
+assert seattle_venue_name("Fenced Sidewalk Cafe transfer ownership | 1st Ave") is None and seattle_venue_name("SIDEWALK CAFE") is None
+# Kensington and Chelsea: unexpired licences only, held to the borough — Abingdon Road, Earl's Court and Portobello are
+# in it, Hyde Park (Westminster), Shepherd's Bush (Hammersmith and Fulham) and Marylebone sit in the box and are not.
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/kensington-and-chelsea.json") as f: return json.load(f)
+make_tiles.get = fake_get
+rbkc = next(c for c in PERMIT_CITIES if c["city"] == "Kensington and Chelsea")
+got = permits(rbkc, (51.49, -0.20, 51.51, -0.19))
+assert [t["name"] for t in got] == ["Nouvelle Delicatessen", "The Abingdon", "Amorino"] and all(t["kind"] == "TERRASSE" for t in got)
+assert "(ExpiryDate >= CURRENT_TIMESTAMP) AND OBJECTID>-1" in asked[0] and "outFields=OBJECTID,TradingName" in asked[0]
+make_tiles.get = real_get
+assert feed(51.4977, -0.1958) == "Kensington and Chelsea" and feed(51.4913, -0.1950) == "Kensington and Chelsea" and feed(51.5150, -0.2050) == "Kensington and Chelsea"
+assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) is None
+assert feed(60.1711, 24.9453) == "Helsinki" and feed(57.7040, 11.9782) == "Gothenburg" and feed(38.9016, -77.0204) == "Washington DC"
+assert feed(42.3574, -71.0541) == "Boston" and feed(47.6241, -122.3564) == "Seattle"
 print("ok")

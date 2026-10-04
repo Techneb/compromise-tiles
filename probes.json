@@ -131,6 +131,30 @@
   "key": "23079,-575",
   "picked": "2026-10-04"
  },
+ "permits/Helsinki": {
+  "key": "30084,12473",
+  "picked": "2026-10-04"
+ },
+ "permits/Gothenburg": {
+  "key": "28849,5975",
+  "picked": "2026-10-04"
+ },
+ "permits/Washington DC": {
+  "key": "19452,-38521",
+  "picked": "2026-10-04"
+ },
+ "permits/Boston": {
+  "key": "21174,-35541",
+  "picked": "2026-10-04"
+ },
+ "permits/Seattle": {
+  "key": "23807,-61173",
+  "picked": "2026-10-04"
+ },
+ "permits/Kensington and Chelsea": {
+  "key": "25749,-99",
+  "picked": "2026-10-04"
+ },
  "buildings/Melbourne": {
   "key": "-18896,72461",
   "picked": "2026-10-04",

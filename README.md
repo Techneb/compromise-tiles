@@ -100,6 +100,18 @@ none, this says so rather than guessing.
   subject to change at any time. It is understood that the data provided
   at this site is being used at one's own risk."
 - San Francisco: DataSF, City and County of San Francisco, PDDL.
+- Helsinki: Helsingin kaupunki, Kaupunkiympäristön toimiala, short-term land
+  rentals (terrace areas), CC BY 4.0 through Helsinki Region Infoshare.
+- Gothenburg: Göteborgs Stad, miljöförvaltningen, Restauranger med
+  serveringstillstånd (outdoor serving), CC0 1.0.
+- Washington DC: District Department of Transportation (DDOT), Annual Public
+  Space Rental Permits, CC BY 4.0.
+- Boston: City of Boston, Outdoor Dining (Public, 2024) (licence not stated by
+  the publisher).
+- Seattle: City of Seattle, Seattle Department of Transportation, Street Use
+  Permits (licence not stated by the publisher).
+- Kensington and Chelsea (London): Royal Borough of Kensington and Chelsea,
+  Tables and Chairs licences (licence not stated by the publisher).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains

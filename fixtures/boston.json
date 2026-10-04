@@ -1,0 +1,33 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -71.054086816,
+     42.357394872
+    ]
+   },
+   "properties": {
+    "ObjectId": 1,
+    "doing_business_as": "Lily's Pizza"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -71.070980966,
+     42.35694103
+    ]
+   },
+   "properties": {
+    "ObjectId": 163,
+    "doing_business_as": "75 Chestnut"
+   }
+  }
+ ]
+}
