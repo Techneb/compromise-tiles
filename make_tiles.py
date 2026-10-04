@@ -344,10 +344,10 @@ def osm_tagged(tags):
     return "height" if tag_number(tags, "height") is not None else "levels" if tag_number(tags, "building:levels") is not None else None
 
 def osm_height(tags):
-    """`height`, else `building:levels` × 3 m, else 15 m."""
+    """`height`, else `building:levels` × 3 m, else None (building() then writes the 15 m guess, flagged)."""
     for key, scale in (("height", 1), ("building:levels", 3)):
         if tag_number(tags, key) is not None: return tag_number(tags, key) * scale
-    return 15.0
+    return None
 
 def buckets(s, w, n, e):
     return [(y, x) for y in range(math.floor(s * GRID), math.floor(n * GRID) + 1) for x in range(math.floor(w * GRID), math.floor(e * GRID) + 1)]
@@ -455,7 +455,14 @@ def vertex(lat, lon):
     """Six decimals is 0.1 m, finer than any footprint source is surveyed to; feeds send up to 15."""
     return {"latitude": round(lat, 6), "longitude": round(lon, 6)}
 
-def building(ring, height):
+DEFAULT_HEIGHT = 15.0  # a footprint whose source gives no height, flagged "guessed" (2026-10-04)
+
+def building(ring, height=None):
+    """A tile's building: the outline and its height in metres. With no height (None), the 15 m guess,
+    marked "guessed": true — the one key a reader needs to tell a measured height from the default.
+    The flag is written only on guessed buildings, so a tile built before it reads as it did: a
+    building without the key is measured, or published before 2026-10-04."""
+    if height is None: return {"outline": ring, "height": DEFAULT_HEIGHT, "guessed": True}
     return {"outline": ring, "height": round(float(height), 1)}
 
 def outer_rings(geometry):
@@ -465,15 +472,15 @@ def outer_rings(geometry):
         ring = [vertex(v[1], v[0]) for v in (polygon[0] if polygon else []) if len(v) >= 2]
         if len(ring) >= 3: yield ring
 
-def footprints(features, height, default=15.0):
-    """GeoJSON → a building: outer rings, the city's height rule, `default` (15 m) when it reads nothing
-    sensible; with default=None such a footprint is left out (a combine row: OSM's own height stays)."""
+def footprints(features, height, guess=True):
+    """GeoJSON → a building: outer rings, the city's height rule, the flagged 15 m guess when it reads
+    nothing sensible; with guess=False such a footprint is left out (a combine row: OSM's own height stays)."""
     out = []
     for f in features:
         h = height(f.get("properties") or {})
-        if not (h and h > 0) and default is None: continue
+        if not (h and h > 0) and not guess: continue
         for ring in outer_rings(f.get("geometry")):
-            out.append(building(ring, h if h and h > 0 else default))
+            out.append(building(ring, h if h and h > 0 else None))
     return out
 
 COMBINE_GRID = 2000  # the city footprints' index in combined(): 1/2000°, ~50 m
@@ -486,7 +493,7 @@ def combined(osm, city, metres=False):
     measure, which a city's floor count is coarser than (Oakland's Ordway Building: 28 floors × 3 m = 84 m,
     tagged 123 m). `building:levels` × 3 m is kept too, unless the city's height is measured in metres
     (metres=True): two floor counts, the mapper's is the newer (Packard Lofts: 1 floor in Oakland's 2015
-    layer, 4 levels in OSM). OSM's 15 m guess always gives way.
+    layer, 4 levels in OSM). OSM's 15 m guess always gives way, and loses its "guessed" flag with it.
     City footprints OSM lacks are not added: the two outlines of one building rarely agree, and one added
     beside the other would double it. A city footprint identical to OSM's (London's lidar, measured on
     OSM's own outlines) matches it whatever its shape: a courtyard block's centre lies outside it."""
@@ -508,7 +515,7 @@ def combined(osm, city, metres=False):
         mine = ring(b)
         height = same.get(key(b), next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None))
         kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
-        out.append(b if height is None or kept else dict(b, height=height, city=True))
+        out.append(b if height is None or kept else dict({k: v for k, v in b.items() if k != "guessed"}, height=height, city=True))
     return out
 
 def unique(items):
@@ -558,7 +565,7 @@ def opendatasoft(host, dataset, where, select):
 # ---------------------------------------------------------------- buildings
 
 def ign_buildings(rect):
-    """IGN BD TOPO: hauteur, else floors × 3 m, else 15 m."""
+    """IGN BD TOPO: hauteur, else floors × 3 m, else the flagged 15 m guess."""
     # Only the three fields read: half the bytes of the full record, and far quicker to answer (measured 2026-09-24).
     features = wfs("https://data.geopf.fr/wfs/ows", {"TYPENAMES": "BDTOPO_V3:batiment", "OUTPUTFORMAT": "application/json",
                                                     "PROPERTYNAME": "geometrie,hauteur,nombre_d_etages"}, rect)
@@ -568,7 +575,7 @@ def ign_buildings(rect):
         h = p.get("hauteur")
         if not isinstance(h, (int, float)):
             floors = p.get("nombre_d_etages")
-            h = floors * 3 if isinstance(floors, (int, float)) else 15
+            h = floors * 3 if isinstance(floors, (int, float)) else None
         for ring in outer_rings(f.get("geometry")):
             out.append(building(ring, h))
     return out
@@ -651,7 +658,7 @@ def _overlaps(a, b): return a[0] <= b[2] and a[2] >= b[0] and a[1] <= b[3] and a
 def catastro(rect):
     """Spain's cadastre, INSPIRE Buildings as one download per municipality (the ATOM feeds, since
     2026-09-27; the block-by-block WFS took 4 s a block and ran whole cities into the 5.5 h cap):
-    floors above ground × 3 m, a 0-floor part (a basement) skipped, 15 m when the count is missing.
+    floors above ground × 3 m, a 0-floor part (a basement) skipped, the flagged 15 m guess when the count is missing.
     A municipality is downloaded once (kept a year), its parts inside the city's box indexed by
     200 m cell; a rect is then served from memory. Coordinates come in the province's UTM zone."""
     focus = next((padded((b["lat"][0], b["lon"][0], b["lat"][1], b["lon"][1]), 300) for b in CITY_BUILDINGS
@@ -698,7 +705,7 @@ def _load_catastro(href, crs, focus, title):
                         v = [float(x) for x in ring.text.split()]
                         pts = [utm_to_wgs84(v[i], v[i + 1], zone) for i in range(0, len(v) - 1, 2)]
                         if len(pts) < 3 or not any(focus[0] <= la <= focus[2] and focus[1] <= lo <= focus[3] for la, lo in pts): continue
-                        b = building([vertex(la, lo) for la, lo in pts], floors * 3 if floors and floors > 0 else 15.0)
+                        b = building([vertex(la, lo) for la, lo in pts], floors * 3 if floors and floors > 0 else None)
                         for k in {(index(la), index(lo)) for la, lo in pts}:  # every cell a part touches
                             _catastro["grid"].setdefault(k, []).append(b)
                         kept += 1
@@ -726,7 +733,7 @@ def hamburg(rect):
                 for face, v in zip(shell, values):
                     if v is None or surfaces[v].get("type") != "GroundSurface": continue
                     ring = [vertex(*utm_to_wgs84(vertices[i][0] * sx + tx, vertices[i][1] * sy + ty, 32)) for i in face[0]]
-                    if len(ring) >= 3: out.append(building(ring, (o.get("attributes") or {}).get("measuredHeight") or 15.0))
+                    if len(ring) >= 3: out.append(building(ring, (o.get("attributes") or {}).get("measuredHeight") or None))
     return out
 
 GIPUZKOA_NS = {"gml": "http://www.opengis.net/gml/3.2", "wfs": "http://www.opengis.net/wfs/2.0",
@@ -734,13 +741,13 @@ GIPUZKOA_NS = {"gml": "http://www.opengis.net/gml/3.2", "wfs": "http://www.openg
                "bu-core2d": "http://inspire.ec.europa.eu/schemas/bu-core2d/4.0"}
 
 def gipuzkoa_buildings(raw):
-    """INSPIRE BU GML 3.2 (the only format served), lat lon: heightAboveGround (estimated), else floors × 3 m."""
+    """INSPIRE BU GML 3.2 (the only format served), lat lon: heightAboveGround (estimated), else floors × 3 m, else the guess."""
     out = []
     for b in ET.fromstring(raw).iterfind("wfs:member/*", GIPUZKOA_NS):
         h = number(b.findtext("bu-base:heightAboveGround/bu-base:HeightAboveGround/bu-base:value", namespaces=GIPUZKOA_NS))
         if not h or h <= 0:
             floors = number(b.findtext("bu-base:numberOfFloorsAboveGround", namespaces=GIPUZKOA_NS))
-            h = floors * 3 if floors and floors > 0 else 15.0
+            h = floors * 3 if floors and floors > 0 else None
         for ring in b.iterfind("bu-core2d:geometry2D//gml:exterior//gml:posList", GIPUZKOA_NS):
             v = [float(x) for x in ring.text.split()]
             if len(v) >= 6: out.append(building([vertex(v[i], v[i + 1]) for i in range(0, len(v) - 1, 2)], h))
@@ -769,7 +776,7 @@ def citygml_buildings(raw, zone=32):
             for pos in obj.findall("{*}boundedBy/{*}GroundSurface//{*}exterior//{*}posList"):
                 v, d = [float(x) for x in pos.text.split()], int(pos.get("srsDimension") or 3)
                 ring = [vertex(*utm_to_wgs84(v[i], v[i + 1], zone)) for i in range(0, len(v) - d + 1, d)]
-                if len(ring) >= 3: out.append(building(ring, h if h and h > 0 else 15.0))
+                if len(ring) >= 3: out.append(building(ring, h if h and h > 0 else None))
         el.clear()
     return out
 
@@ -824,14 +831,14 @@ def beoland(rect):
         for r in (f.get("geometry") or {}).get("rings") or []:
             if len(r) >= 4 and sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(r, r[1:])) < 0:  # clockwise: outer
                 h = heights.get(f["attributes"]["objectid"])
-                out.append(building([vertex(p[1], p[0]) for p in r], h if h and h > 0 else 15.0))
+                out.append(building([vertex(p[1], p[0]) for p in r], h if h and h > 0 else None))
     return out
 
 LIGURIA = "https://geoservizi.regione.liguria.it/geoserver/ows"
 
 def liguria(rect):
     """Regione Liguria's NC5 3D footprints, every vertex at the eave's elevation: the height is that minus the
-    nearest spot height measured at a building's foot ("al piede", 0301) within 40 m, else 15 m."""
+    nearest spot height measured at a building's foot ("al piede", 0301) within 40 m, else the flagged 15 m guess."""
     params = {"OUTPUTFORMAT": "application/json", "SRSNAME": "EPSG:4326"}
     feet = {}  # 0.001° buckets
     for f in wfs(LIGURIA, {**params, "TYPENAMES": "M2052:L6911", "PROPERTYNAME": "wkb_geometry,pt_quo_q,pt_quo_sed"}, padded(rect, 50)):
@@ -850,7 +857,7 @@ def liguria(rect):
                     for q in feet.get((round(round(lat, 3) + dy / 1000, 3), round(round(lon, 3) + dx / 1000, 3)), ())]
             foot = min(near, key=lambda q: metres(lat, lon, q[0], q[1]), default=None)
             h = ring[0][2] - foot[2] if foot and metres(lat, lon, foot[0], foot[1]) <= 40 else None
-            out.append(building([vertex(v[1], v[0]) for v in ring], h if h and h > 0 else 15.0))
+            out.append(building([vertex(v[1], v[0]) for v in ring], h if h and h > 0 else None))
     return out
 
 def oakland(rect):
@@ -858,7 +865,7 @@ def oakland(rect):
     of them are houses, a placeholder, not a count."""
     return footprints([f for f in socrata("data.oaklandca.gov", "iqfp-6kz5", intersects("the_geom", rect), "nostory,shape_area,the_geom")
                        if not (number(f["properties"].get("nostory")) == 20 and (number(f["properties"].get("shape_area")) or 0) < 5000)],
-                      lambda p: (number(p.get("nostory")) or 0) * 3.0, default=None)
+                      lambda p: (number(p.get("nostory")) or 0) * 3.0, guess=False)
 
 NRCAN_GTA = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_GTA_2023_gpkg.zip"
 _geopackages = {}  # zip URL → (its GeoPackage opened read-only, table, geometry column), unpacked once a run
@@ -892,7 +899,7 @@ def gpkg_polygons(blob):
 def geopackage(url, height):
     """A fetch over one zipped GeoPackage of footprints in lon/lat (NRCan's are NAD83(CSRS), WGS84 to a metre),
     downloaded once (kept a year) and queried through its R-tree: each footprint whose box meets the rect,
-    its `height` column (metres above ground) as the height, 15 m when it reads none."""
+    its `height` column (metres above ground) as the height, the flagged 15 m guess when it reads none."""
     def fetch(rect):
         if url not in _geopackages:
             import zipfile
@@ -913,7 +920,7 @@ def geopackage(url, height):
         s, w, n, e = rect
         rows = db.execute(f'SELECT t."{column}", t."{height}" FROM "{table}" t JOIN "rtree_{table}_{column}" r ON t.rowid = r.id'
                           " WHERE r.minx <= ? AND r.maxx >= ? AND r.miny <= ? AND r.maxy >= ?", (e, w, n, s))
-        return [building([vertex(y, x) for x, y in polygon[0]], h if h and h > 0 else 15.0)
+        return [building([vertex(y, x) for x, y in polygon[0]], h if h and h > 0 else None)
                 for blob, h in rows if blob for polygon in gpkg_polygons(blob) if polygon and len(polygon[0]) >= 3]
     return fetch
 
@@ -1059,7 +1066,9 @@ def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None 
 # A combine row ("metres" or "floors", what its heights are) keeps OpenStreetMap's footprints and
 # takes the feed's height where it has the building (combined(), which says when OSM's own stays):
 # for a feed that lacks many buildings, whose cells it would otherwise empty of them. Its fetch
-# returns only the footprints with a height (footprints(..., default=None)).
+# returns only the footprints with a height (footprints(..., guess=False)).
+# A footprint no source gave a height is written at 15 m with "guessed": true (building()), so a
+# reader can tell it from a measured one; the app's rooftop test reads the flag (2026-10-04).
 CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
@@ -1208,7 +1217,7 @@ CITY_BUILDINGS = [
     # The box is the layer's extent.
     building_row("Bratislava", (48.0059, 48.2894), (16.9578, 17.3772), combine="metres", fetch=lambda r: footprints(arcgis(
         "https://services8.arcgis.com/pRlN1m0su5BYaFAS/arcgis/rest/services/Pocet_obyvatelov_budovy/FeatureServer/0", r,
-        ["Vyska"]), lambda p: number(p.get("Vyska")), default=None)),
+        ["Vyska"]), lambda p: number(p.get("Vyska")), guess=False)),
     # Oakland's 2015 BuildingFootprints (Socrata iqfp-6kz5; licence not stated by the publisher): nostory
     # floors × 3 m, combined with OSM (complete in few cells). The box is the layer's extent.
     building_row("Oakland", (37.7224, 37.8527), (-122.3301, -122.1622), combine="floors", fetch=oakland),
@@ -1690,7 +1699,7 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             name = source
             if source in COMBINE:  # "<city>+OSM" where the city gave a height, else OSM's alone
                 name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
-                items = [{"outline": b["outline"], "height": b["height"]} for b in items]
+                items = [{k: b[k] for k in ("outline", "height", "guessed") if k in b} for b in items]
             if tiles: write(path(out, "buildings", c), items)
             note_sources(out, c, published, buildings=name)
 

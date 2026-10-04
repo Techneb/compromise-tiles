@@ -6,6 +6,12 @@ from check_data import compare, feed_known, feed_mismatches, flags, licence_sour
 ok = lambda count, measure, value, **more: dict({"status": "ok", "count": count, "fetched": count, measure: value}, **more)
 tile = lambda count, measure, value, source, **more: dict({"status": "ok", "count": count, measure: value, "source": source}, **more)
 
+# The with-a-height share: a tile built since 2026-10-04 says which footprints are the 15 m guess ("guessed"),
+# one built before only wrote 15 m for them (so a measured 15 m counts as none there, as before).
+assert cd.with_height([{"height": 15.0, "guessed": True}, {"height": 15.0}, {"height": 20.0}]) == 0.667
+assert cd.with_height([{"height": 15.0}, {"height": 15.0}, {"height": 20.0}]) == 0.333
+assert cd.with_height([]) == 0.0
+
 # A healthy row against a healthy last run and tile: no flag.
 now = ok(40, "named", 0.9, tile=tile(42, "named", 0.88, "Paris"), licence="ODbL")
 prev = ok(41, "named", 0.9, tile=tile(42, "named", 0.88, "Paris"), licence="ODbL")

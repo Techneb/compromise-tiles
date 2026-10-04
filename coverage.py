@@ -29,7 +29,8 @@ import argparse, datetime, json, math, os, re, urllib.error, urllib.request
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
 TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: terraces vs going-out venues nearby, the reader's rule
 GOING_OUT = 10    # bars, cafés and restaurants within about 400 m
-FALLBACK_HEIGHT = re.compile(rb'"height":\s*15(?:\.0+)?[,}]')  # written when a footprint has no height
+FALLBACK_HEIGHT = re.compile(rb'"height":\s*15(?:\.0+)?[,}]')  # written when a footprint has no height, in a tile built before the flag
+GUESSED = b'"guessed":true'  # the flag on such a footprint since 2026-10-04: counted instead wherever a tile carries it
 
 
 def tiles(out, layer):
@@ -108,7 +109,7 @@ def main():
     for k, raw in tiles(args.out, "buildings") if args.out else []:
         c = cells.setdefault(k, [0, 0, 0, None, None, ""])
         n = raw.count(b'"outline"')
-        c[1], c[2], c[4] = n, n - len(FALLBACK_HEIGHT.findall(raw)), today; touched.add(k)
+        c[1], c[2], c[4] = n, n - (raw.count(GUESSED) if GUESSED in raw else len(FALLBACK_HEIGHT.findall(raw))), today; touched.add(k)
     for k, raw in tiles(args.out, "communes") if args.out else []:
         if k in cells:
             found = json.loads(raw)
