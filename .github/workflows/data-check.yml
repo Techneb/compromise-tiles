@@ -1,0 +1,122 @@
+# Weekly data check (check_data.py): every permit and height feed of make_tiles.py asked for one dense
+# probe cell (probes.json), compared with the last run's record (data-check.json) and with the published
+# tile of that cell; the coverage feed sampled against the store's tiles. A flag (a dead feed, a count or
+# share fallen by half, a changed licence, a feed mismatch) opens or updates the one issue titled
+# "Weekly data check"; a clean run closes it. Reads only: no secrets, the workflow's own token writes
+# the issue and commits the record. Public repo, standard runners: no minutes are billed. Runs before
+# the Monday tiles build (03:17), so the feed and the tiles it compares with are last week's, consistent.
+name: Data check
+
+on:
+  schedule:
+    - cron: "23 1 * * 1"   # Mondays 01:23 UTC
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Probe only these rows (comma-separated city names; empty: all). A partial run writes no record and touches no issue."
+        default: ""
+
+concurrency:
+  group: data-check
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # the report job commits data-check.json, the last run's record
+  issues: write     # and opens, updates or closes the "Weekly data check" issue
+
+env:
+  PARTS: 6
+
+jobs:
+  # The rows in six shards: Catastro parses a whole municipality for its first cell, so one job over all
+  # 88 rows would run for hours; every kth row goes to one shard, which spreads the fourteen Spanish rows.
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+      # London's lidar row measures on OpenStreetMap's footprints: the extract is cut with osmium.
+      - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      - run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "${{ inputs.only }}" --write "part-${{ matrix.part }}.json"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: part-${{ matrix.part }}
+          path: part-${{ matrix.part }}.json
+          retention-days: 7
+
+  # tools/coverage/check_feed.py's check (Techneb/compromise is private, so its logic is ported into
+  # check_data.py rather than checked out with a token): two cells per area recounted from the store.
+  feed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 check_data.py feed --write feed.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: feed
+          path: feed.json
+          retention-days: 7
+
+  # Compared with the last run (data-check.json in the repository: the record survives artifact
+  # retention, diffs in git history, and the site can read it) and reported. Runs even when a shard
+  # failed: its rows are flagged as missing rather than silently left out.
+  report:
+    needs: [probe, feed]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - id: report
+        run: |
+          python3 check_data.py report --parts artifacts/part-*/part-*.json --feed artifacts/feed/feed.json \
+            --previous data-check.json --write data-check-new.json --summary report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+      # The one issue: opened when a run flags something, its body refreshed (and a comment left, so the
+      # update notifies) while the flags last, closed when a run is clean.
+      - name: Issue
+        if: ${{ inputs.only == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FLAGS: ${{ steps.report.outputs.flags }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Weekly data check"
+          number=$(gh issue list --state open --search "\"$title\" in:title" --json number,title \
+                   --jq "[.[] | select(.title == \"$title\")][0].number // empty")
+          { echo; echo "---"; echo "[Run]($RUN_URL) of $(date -u +%F)."; } >> report.md
+          if [ "${FLAGS:-0}" -gt 0 ]; then
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --body-file report.md
+              gh issue comment "$number" --body "$(date -u +%F): $FLAGS flag(s), see the updated description ($RUN_URL)."
+            else
+              gh issue create --title "$title" --body-file report.md
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "$(date -u +%F): clean run, every feed answered ($RUN_URL)."
+          fi
+      - name: Commit the record
+        if: ${{ inputs.only == '' && github.ref == 'refs/heads/master' }}
+        run: |
+          cp data-check-new.json data-check.json
+          git config user.name "compromise-tiles bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data-check.json
+          git commit -m "data-check.json $(date -u +%F) [skip ci]" || exit 0
+          git pull --rebase origin master && git push
+      - uses: actions/upload-artifact@v4
+        with:
+          name: data-check
+          path: |
+            data-check-new.json
+            report.md
+          retention-days: 90

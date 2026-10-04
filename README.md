@@ -20,6 +20,23 @@ builds the rest on a schedule and uploads it to R2; those tiles are not
 kept here. OpenStreetMap is read from Geofabrik extracts with
 osmium-tool; city and national feeds are downloaded in bulk.
 
+## Weekly data check
+
+`.github/workflows/data-check.yml` runs `check_data.py` every Monday at
+01:23 UTC (before the tiles build) and on dispatch. Each permit and
+height feed of `make_tiles.py` is asked for one dense probe cell
+(`probes.json`, chosen once with `check_data.py pick`); its status, count
+and named / with-a-height share are compared with the last run's record
+(`data-check.json`, committed by the workflow) and with the published
+tile of that cell, and the licence string is read where the publisher has
+a metadata API. The coverage feed is sampled against the store's tiles
+(the check of compromise's `tools/coverage/check_feed.py`). A dead feed, a
+count or share fallen by more than half, a changed licence or a feed
+mismatch opens or updates the issue "Weekly data check"; a clean run
+closes it. When a row is added to `make_tiles.py`, run
+`python3 check_data.py pick` to give it a probe cell
+(`test_check_data.py` fails until it has one).
+
 ## Licences and credits
 
 Each tile holds data from the sources below, depending on where it lies.
