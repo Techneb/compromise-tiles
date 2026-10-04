@@ -1,0 +1,47 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -0.1957552613442022,
+     51.49765680416623
+    ]
+   },
+   "properties": {
+    "OBJECTID": 441566,
+    "TradingName": "Nouvelle Delicatessen"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -0.19636638786385335,
+     51.497504335750605
+    ]
+   },
+   "properties": {
+    "OBJECTID": 441781,
+    "TradingName": "The Abingdon"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -0.19699421585960306,
+     51.50969903451684
+    ]
+   },
+   "properties": {
+    "OBJECTID": 441910,
+    "TradingName": "Amorino"
+   }
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.356373467472,
+     47.624117218618
+    ]
+   },
+   "properties": {
+    "OBJECTID": 35179251,
+    "PROJECT_NAME": "Mecca | Sidewalk Cafe on Queen Anne Ave N"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.354117891024,
+     47.6723009893317
+    ]
+   },
+   "properties": {
+    "OBJECTID": 35206922,
+    "PROJECT_NAME": "Outdoor Dining | Windy City Pie | Phinney & 60th"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.312938531769,
+     47.6234651388525
+    ]
+   },
+   "properties": {
+    "OBJECTID": 35321408,
+    "PROJECT_NAME": "HOPVINE PUB SIGNAGE AND SIDEWALK CAFE"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -122.3324827985,
+     47.6014636436801
+    ]
+   },
+   "properties": {
+    "OBJECTID": 35321354,
+    "PROJECT_NAME": null
+   }
+  }
+ ]
+}

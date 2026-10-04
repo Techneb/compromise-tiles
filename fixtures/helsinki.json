@@ -1,0 +1,149 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        24.945275,
+        60.17105503
+       ],
+       [
+        24.945431,
+        60.17105903
+       ],
+       [
+        24.945422,
+        60.17115203
+       ],
+       [
+        24.945266,
+        60.17114803
+       ],
+       [
+        24.945275,
+        60.17105503
+       ]
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "nimi": "Terassialue: On The Rocks",
+    "hakemuksen_laji": "Kesäterassi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        24.943037,
+        60.16372803
+       ],
+       [
+        24.942994,
+        60.16375703
+       ],
+       [
+        24.942901,
+        60.16372503
+       ],
+       [
+        24.942944,
+        60.16369603
+       ],
+       [
+        24.943037,
+        60.16372803
+       ]
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "nimi": "Terassialue  25m2 Chaos Bar",
+    "hakemuksen_laji": "Kesäterassi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        24.979632,
+        60.18633503
+       ],
+       [
+        24.97965,
+        60.18632603
+       ],
+       [
+        24.979777,
+        60.18638703
+       ],
+       [
+        24.979759,
+        60.18639603
+       ],
+       [
+        24.979632,
+        60.18633503
+       ]
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "nimi": "Terassialueet: Oluthuone Haavi",
+    "hakemuksen_laji": "Kesäterassi"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": [
+     [
+      [
+       [
+        24.93937,
+        60.16786903
+       ],
+       [
+        24.939422,
+        60.16788703
+       ],
+       [
+        24.939485,
+        60.16784603
+       ],
+       [
+        24.939431,
+        60.16783103
+       ],
+       [
+        24.93937,
+        60.16786903
+       ]
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "nimi": "Talviterassi",
+    "hakemuksen_laji": "Talviterassi"
+   }
+  }
+ ]
+}

@@ -172,6 +172,44 @@ PERMIT_CITIES = [
         "sites/default/files/dataset/143/e9172-661e-4c90-bd87-99c8a79c551b/b_commerces_marches_vlr_aot_surfaces.csv",
         "enseigne_etablissement", ["type_surface"], (46.14, 46.18), (-1.22, -1.12), shape="csv", point="coordinates",
         keep=["Terrasse", "Terrasse - extension saisonnière", "Terrasse couverte"]),
+    # The terrace re-survey's registers (2026-10-04). Helsinki: the city's short-term land rentals (GeoServer WFS,
+    # CC BY 4.0 through HRI), summer and winter terraces only — the layer also holds parklets, art and dog fields — each
+    # the terrace's polygon at its mean vertex; only current and coming rentals are served. The name is `nimi` less its
+    # "Terassialue:" prefix. The box is the terraces'.
+    row("Helsinki", "", "kartta.hel.fi/ws/geoserver/avoindata/wfs", "avoindata:Lyhyt_maanvuokraus_alue", "nimi", [],
+        (60.14, 60.28), (24.85, 25.16), shape="wfs", filter="hakemuksen_laji IN ('Kesäterassi','Talviterassi')",
+        geom="singlegeom", clean="helsinki"),
+    # Gothenburg: the serving-licence register (one ';' CSV, CC0 1.0, daily), read whole once per run: a terrace where
+    # Serveringstyper lists Uteservering and the premises serve the public. Alcohol-licensed premises only, so a
+    # complement to OSM's terraces, not a replacement. The box is the rows'.
+    row("Gothenburg", "", "catalog.goteborg.se", "store/6/resource/49543", "Namn", [], (57.57, 57.80), (11.76, 12.06),
+        shape="gothenburg"),
+    # Washington DC: DDOT's public-space rental permits (MapServer, CC BY 4.0), issued sidewalk cafés and streateries;
+    # an enclosed café is TERRASSE FERMEE. The amendments (name change, furniture, hours) are other event types, so the
+    # filter leaves them out; a renewal repeats its point and gather() drops the repeat. Only ApplicantCompany is asked
+    # for: OwnerName and PermitteeName hold people's names and never reach a tile. It reads "N/A" on most rows (no name,
+    # so the door rule) and a permit expediter's firm on many of the rest. The box is the permits'.
+    row("Washington DC", "", "maps2.dcgis.dc.gov/dcgis/rest/services", "DDOT/TOPS/MapServer/3", "ApplicantCompany",
+        ["EventTypeDescription"], (38.86, 38.98), (-77.11, -76.92), shape="arcgis", enclosed=" Enclosed", clean="n/a",
+        filter="(EventTypeDescription LIKE 'New Sidewalk Cafe%' OR EventTypeDescription LIKE 'Streatery%') AND Status = 'ISSUED'"),
+    # Boston: the Outdoor Dining Program's public view (ArcGIS Online, no licence stated): active outdoor dining permits
+    # and dog-friendly patios, both open air, no dates. The OID field is ObjectId. The box is the points'.
+    row("Boston", "", "services.arcgis.com/sFnw0xNflSi8J0uh/arcgis/rest/services",
+        "Outdoor_Dining_2023_Public_View/FeatureServer/0", "doing_business_as", [], (42.24, 42.39), (-71.17, -71.00),
+        shape="arcgis", oid="ObjectId"),
+    # Seattle: SDOT's street-use permits (ArcGIS Online, no licence stated) have no café type, so the description is
+    # searched: issued, in the last fifteen months (an annual review; the expiry is blank on most, and an enforcement
+    # case has no issue date). The name is PROJECT_NAME's "Venue | kind | street" form, else none. The box is the cafés'.
+    row("Seattle", "", "services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services",
+        "SU_Permit_Data_Model_Relationships/FeatureServer/0", "PROJECT_NAME", [], (47.52, 47.70), (-122.42, -122.27),
+        shape="arcgis", clean="seattle", filter="UPPER(PROJECT_DESCRIPTION) LIKE '%SIDEWALK CAF%' AND PERMIT_STATUS = 'Issued'"
+        " AND LAST_ISSUED_DATE >= DATE '{fifteenMonthsAgo}'"),
+    # Kensington and Chelsea (London): RBKC's tables-and-chairs licences (an ArcGIS MapServer, no licence stated), the
+    # unexpired ones of a 2025-11 extract. Held to the borough (ONS Local Authority Districts, OGL), as Camden is: the box
+    # reaches Westminster's and Hammersmith and Fulham's tiled cells.
+    row("Kensington and Chelsea", "", "utility.arcgis.com/usrsvcs/servers/d70af383b66642a59ffae23125511dfc/rest/services",
+        "RBKC/EnvironmentalHealth/MapServer/6", "TradingName", [], (51.47, 51.53), (-0.23, -0.15), shape="arcgis",
+        filter="ExpiryDate >= CURRENT_TIMESTAMP", boundary=boundary("kensington-and-chelsea")),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -1271,6 +1309,8 @@ def permit_items(features, c, point="geo_point_2d"):
             if isinstance(v, str): kind = v; break
             if isinstance(v, (int, float)) and v > 0: kind = "TERRASSE FERMEE" if "ferm" in field else "TERRASSE OUVERTE"; break
         if not c["kinds"]: kind = "TERRASSE"
+        # Washington DC: the kind text says enclosed ("New Sidewalk Cafe Enclosed", not "Un-Enclosed") or not.
+        elif c.get("enclosed"): kind = "TERRASSE FERMEE" if c["enclosed"] in kind else "TERRASSE OUVERTE"
         item = {"kind": kind, "coordinate": {"latitude": lat, "longitude": lon}}
         name = p.get(c["name"]) if c["name"] else None
         if isinstance(name, str) and c.get("clean"): name = CLEAN[c["clean"]](name)
@@ -1307,8 +1347,34 @@ def toronto_name(text):
     """CaféTO's OPERATOR_NAME: "None" and "PUBLIC PARKLET" name no venue."""
     return None if text.strip().upper() in ("NONE", "PUBLIC PARKLET") else text.strip()
 
+def helsinki_venue_name(text):
+    """Helsinki's nimi: "Terassialue: On The Rocks", "Terassialue  25m2 Chaos Bar", "Terassialueet: Oluthuone Haavi",
+    "Kesäterassi Kallionhovi" — the venue after the area word and any size; a bare "Talviterassi" names none."""
+    name = re.sub(r"^\s*(Terassi\s?alue(et)?|Terassalue|Kesäterassi|Talviterassi)\s*:?\s*(\d+\s*m2\s*)?", "", text, flags=re.I)
+    return name.strip(" \t\"'“”„:") or None
+
+def seattle_venue_name(text):
+    """Seattle's PROJECT_NAME: "Mecca | Sidewalk Cafe on Queen Anne Ave N" names the venue before the pipe. The free-text
+    forms ("SIDEWALK CAFE", "HOPVINE PUB SIGNAGE AND SIDEWALK CAFE") and a first part that is a kind ("Outdoor Dining |…")
+    name none — a wrong name would block the door rule."""
+    if "|" not in text: return None
+    venue = text.split("|", 1)[0].strip(" \t\"'")
+    if not re.search(r"[A-Za-z]", venue) or re.search(r"cafe|dining|sign|streatery|transfer|ownership|street use", venue, re.I): return None
+    return venue
+
+def not_applicable(text):
+    """"N/A", a blank or a bare number names no company (Washington DC's ApplicantCompany on most rows)."""
+    name = text.strip()
+    return None if name.upper() in ("N/A", "NA", "NONE") or not re.search(r"[A-Za-z]", name) else name
+
 CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name,
-         "riga": riga_venue_name, "toronto": toronto_name}
+         "riga": riga_venue_name, "toronto": toronto_name, "helsinki": helsinki_venue_name, "seattle": seattle_venue_name,
+         "n/a": not_applicable}
+
+def arcgis_filter(text):
+    """ArcGIS dates: `DATE 'YYYY-MM-DD'` in the where clause; {today} and {fifteenMonthsAgo} (Seattle) resolved at run time."""
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    return text.replace("{fifteenMonthsAgo}", (today - datetime.timedelta(days=457)).isoformat()).replace("{today}", today.isoformat())
 
 def socrata_filter(text):
     """Socrata dates: a floating timestamp, no zone."""
@@ -1476,6 +1542,23 @@ def csv_all(c):
     if not out: raise SourceError(f"{c['city']}: no terrace parsed")  # as for Madrid
     return out
 
+def gothenburg_all(c):
+    """Gothenburg's serving licences: one ';'-separated CSV with a BOM, read whole. A terrace where Serveringstyper lists
+    Uteservering and the premises serve the public (ServeringTill names Allmänheten, alone or with closed companies);
+    the point the WGS84 lat/long columns (a few rows have none), the name Namn (the premises, never the holder)."""
+    text = get(f"https://{c['host']}/{c['dataset']}").decode("utf-8-sig")
+    out = []
+    for r in csv.DictReader(io.StringIO(text), delimiter=";"):
+        if "Uteservering" not in [v.strip() for v in (r.get("Serveringstyper") or "").split(",")]: continue
+        if "Allmänheten" not in (r.get("ServeringTill") or ""): continue
+        lat, lon = number(r.get("lat")), number(r.get("long"))
+        if lat is None or lon is None: continue
+        item = {"kind": "TERRASSE", "coordinate": {"latitude": lat, "longitude": lon}}
+        if (r.get(c["name"]) or "").strip(): item["name"] = r[c["name"]].strip()
+        out.append(item)
+    if not out: raise SourceError("Gothenburg: no terrace parsed")  # as for Madrid
+    return out
+
 def whole_file(c, rect, load):
     if c["city"] not in _whole:
         try:
@@ -1512,6 +1595,7 @@ def permits(c, rect):
     if c.get("shape") == "seville": return whole_file(c, rect, seville_all)
     if c.get("shape") == "barcelona": return whole_file(c, rect, barcelona_all)
     if c.get("shape") == "csv": return whole_file(c, rect, csv_all)
+    if c.get("shape") == "gothenburg": return whole_file(c, rect, gothenburg_all)
     if c.get("shape") == "geojson":  # a static GeoJSON of points, fetched whole once per run (Toronto)
         return whole_file(c, rect, lambda c: permit_items(get_json(f"https://{c['host']}/{c['dataset']}").get("features") or [], c))
     if c.get("shape") == "socrata":
@@ -1537,7 +1621,7 @@ def permits(c, rect):
         return permit_items(features, c)   # polygons land on their mean vertex
     if c.get("shape") == "arcgis":
         fields = [f for f in [c["name"]] + c["kinds"] if f]
-        return permit_items(arcgis(f"https://{c['host']}/{c['dataset']}", rect, fields, c.get("filter") or "1=1",
+        return permit_items(arcgis(f"https://{c['host']}/{c['dataset']}", rect, fields, arcgis_filter(c.get("filter") or "1=1"),
                                    c.get("oid", "OBJECTID")), c)
     point = c.get("point", "geo_point_2d")
     where = in_bbox(point, rect) + (f" and {c['filter']}" if c.get("filter") else "")

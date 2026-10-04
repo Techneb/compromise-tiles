@@ -1,0 +1,65 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -77.02035462614667,
+     38.9016325972159
+    ]
+   },
+   "properties": {
+    "OBJECTID": 1749,
+    "EventTypeDescription": "New Sidewalk Cafe Un-Enclosed",
+    "ApplicantCompany": "N/A"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -77.02035462614667,
+     38.9016325972159
+    ]
+   },
+   "properties": {
+    "OBJECTID": 1750,
+    "EventTypeDescription": "New Sidewalk Cafe Un-Enclosed",
+    "ApplicantCompany": "N/A"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -77.00351153347135,
+     38.89734485273866
+    ]
+   },
+   "properties": {
+    "OBJECTID": 1111,
+    "EventTypeDescription": "New Sidewalk Cafe Enclosed",
+    "ApplicantCompany": "Gobind LLC"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -77.02397190643721,
+     38.89699938399228
+    ]
+   },
+   "properties": {
+    "OBJECTID": 18234,
+    "EventTypeDescription": "Streatery Design Permit ",
+    "ApplicantCompany": "N/A"
+   }
+  }
+ ]
+}
