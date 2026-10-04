@@ -506,5 +506,30 @@
   "key": "25668,-2",
   "picked": "2026-10-04",
   "combine": true
+ },
+ "buildings/Birmingham": {
+  "key": "26239,-951",
+  "picked": "2026-10-04",
+  "combine": true
+ },
+ "buildings/Bristol": {
+  "key": "25727,-1293",
+  "picked": "2026-10-04",
+  "combine": true
+ },
+ "buildings/Leeds": {
+  "key": "26899,-774",
+  "picked": "2026-10-04",
+  "combine": true
+ },
+ "buildings/Liverpool": {
+  "key": "26702,-1495",
+  "picked": "2026-10-04",
+  "combine": true
+ },
+ "buildings/Sheffield": {
+  "key": "26690,-735",
+  "picked": "2026-10-04",
+  "combine": true
  }
 }
