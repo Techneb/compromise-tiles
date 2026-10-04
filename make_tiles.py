@@ -929,10 +929,16 @@ LIDAR_PERCENTILE = 0.9
 VOID = -32768        # a chunk's no-height pixel
 _lidar = {}          # (east, north) of a chunk's south-west corner → array('h') of heights in decimetres, row 0 north
 
+# The Helmert transformation's mean offset from OSTN15 (east, north, metres) over each lidar city, by its centre; the
+# nearest applies. London at six points from Harefield to Rainham (2026-10-03); the five others on a grid of 6–9 points
+# inside each district against PROJ's OSTN15 grid (2026-10-04, each within 0.15 m of its mean across the district).
+BNG_OFFSETS = {(51.49, -0.09): (1.7, 0.2), (52.49, -1.88): (0.4, 1.6), (51.47, -2.63): (-0.2, -0.2),
+               (53.82, -1.55): (-0.3, 1.8), (53.40, -2.91): (0.0, 1.8), (53.40, -1.56): (0.0, 1.9)}
+
 def bng(lat, lon):
     """WGS84 to British National Grid (OSGB36 Transverse Mercator) metres, through Ordnance Survey's 7-parameter
-    Helmert transformation, less its mean offset from OSTN15 over Greater London (1.7 m east, 0.2 m north at six
-    points from Harefield to Rainham, 2026-10-03): within 0.4 m of OSTN15 there."""
+    Helmert transformation, less its mean offset from OSTN15 over the nearest lidar city (BNG_OFFSETS: 1.7 m east,
+    0.2 m north over Greater London, up to 1.9 m north over the northern cities): within 0.4 m of OSTN15 in each."""
     a, b = 6378137.0, 6356752.3141  # GRS80
     e2, p, l = 1 - b * b / (a * a), math.radians(lat), math.radians(lon)
     nu = a / math.sqrt(1 - e2 * math.sin(p) ** 2)
@@ -955,7 +961,8 @@ def bng(lat, lon):
              + nu / 720 * sp * cp ** 5 * (61 - 58 * t * t + t ** 4) * l ** 6)
     east = (400000 + nu * cp * l + nu / 6 * cp ** 3 * (nu / rho - t * t) * l ** 3
             + nu / 120 * cp ** 5 * (5 - 18 * t * t + t ** 4 + 14 * eta2 - 58 * t * t * eta2) * l ** 5)
-    return east - 1.7, north - 0.2
+    de, dn = BNG_OFFSETS[min(BNG_OFFSETS, key=lambda c: (c[0] - lat) ** 2 + ((c[1] - lon) * 0.6) ** 2)]
+    return east - de, north - dn
 
 def geotiff(raw):
     """A one-band float32 GeoTIFF, tiled or in strips, uncompressed or DEFLATE, no predictor (what the WCS sends):
@@ -1223,6 +1230,20 @@ CITY_BUILDINGS = [
     # London: ONS Regions (December 2024) BFE, the tidal Thames included (Open Government Licence v3.0; contains OS
     # data © Crown copyright and database right 2024).
     building_row("London", (51.2868, 51.6919), (-0.5102, 0.334), boundary=boundary("london"), combine="metres", fetch=lidar),
+    # Wired 2026-10-04: London's lidar fetch for five more English cities (the composite is England-wide: no void over
+    # any of the five centres, and every footprint of a central cell read a height in Birmingham, Leeds, Liverpool and
+    # Sheffield, 9 of 12 in Bristol's Castle Park, the three others built after the survey). Flat-topped towers read
+    # within 2 m of their published heights (BT Tower 139.8 for 140, Altus House 113.4 for 114, St Paul's Tower 99.9
+    # for 101, Arts Tower 78.5 for 78, Beetham Tower 93.1 for 90); a clock tower or a spire on a wide footprint reads
+    # the main roof (the 90th percentile), as in London. Each row is held to its own Local Authority District: ONS
+    # Local Authority Districts (December 2025) BFC (Open Government Licence v3.0; contains OS data © Crown copyright
+    # and database right 2025), simplified to 2 m. The cities.json areas are unchanged; Liverpool's tiled area keeps
+    # OpenStreetMap's boundary (liverpool.geojson, the estuary included), the lidar row the ONS one.
+    building_row("Birmingham", (52.381, 52.6088), (-2.0337, -1.7288), boundary=boundary("birmingham"), combine="metres", fetch=lidar),
+    building_row("Bristol", (51.3972, 51.5445), (-2.7559, -2.5104), boundary=boundary("bristol"), combine="metres", fetch=lidar),
+    building_row("Leeds", (53.6989, 53.9459), (-1.8005, -1.2903), boundary=boundary("leeds"), combine="metres", fetch=lidar),
+    building_row("Liverpool", (53.3268, 53.475), (-3.0088, -2.818), boundary=boundary("liverpool-ons"), combine="metres", fetch=lidar),
+    building_row("Sheffield", (53.3045, 53.5032), (-1.8015, -1.3245), boundary=boundary("sheffield"), combine="metres", fetch=lidar),
 ]
 
 

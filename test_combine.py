@@ -110,4 +110,20 @@ assert at(51.3762, -0.0982) == "London" == at(51.5008, -0.1218) and at(51.6565, 
 # British National Grid, stdlib: the Shard within 0.4 m of OSTN15's 532901.41 E, 180131.53 N.
 east, north = mt.bng(51.5045, -0.0865)
 assert abs(east - 532901.41) < 0.4 and abs(north - 180131.53) < 0.4
+# The five other lidar cities (2026-10-04), each the same fetch and combine as London's, held to its Local Authority
+# District: the centre in; a tiled cell outside the district (Bristol's box reaches North Somerset at Long Ashton,
+# Liverpool's the Mersey off Garston, Sheffield's Rotherham's edge) stays OSM, and Solihull and Bradford, inside
+# the Birmingham and Leeds row boxes, too.
+for city, lat, lon in (("Birmingham", 52.4797, -1.9027), ("Bristol", 51.4545, -2.5879), ("Leeds", 53.7997, -1.5492),
+                       ("Liverpool", 53.4084, -2.9916), ("Sheffield", 53.3811, -1.4701)):
+    assert at(lat, lon) == city, (city, at(lat, lon))
+    row = next(b for b in mt.CITY_BUILDINGS if b["city"] == city)
+    assert row["fetch"] is mt.lidar and row["combine"] == "metres" and city in mt.COMBINE
+assert at(51.419, -2.655) == "OSM" and at(53.311, -3.019) == "OSM" and at(53.335, -1.445) == "OSM"
+assert at(52.4130, -1.7780) == "OSM" and at(53.7940, -1.7520) == "OSM"
+# Each city's centre within 0.4 m of OSTN15 (PROJ's grid, 2026-10-04): the Helmert's own offset there reaches 2 m north.
+for lat, lon, e, n in ((52.4797, -1.9027, 406704.95, 286866.63), (51.4545, -2.5879, 359247.32, 172999.69), (53.7997, -1.5492, 429790.07, 433803.12),
+                       (53.4084, -2.9916, 334179.37, 390632.47), (53.3811, -1.4701, 435346.13, 387267.63)):
+    east, north = mt.bng(lat, lon)
+    assert abs(east - e) < 0.4 and abs(north - n) < 0.4, (lat, lon, east - e, north - n)
 print("ok")
