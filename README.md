@@ -200,6 +200,11 @@ none, this says so rather than guessing.
   Tourism (MLIT), processed into footprints and heights. Public Data
   License 1.0 (compatible with CC BY 4.0). 「3D都市モデル（Project
   PLATEAU）東京都23区・大阪市（2025年度）」（国土交通省）を加工して作成。
+- Buenos Aires: Gobierno de la Ciudad de Buenos Aires, Tejido Urbano
+  (Subsecretaría de Planeamiento), CC BY 2.5 AR.
+- Milan: Comune di Milano, Database Topografico (DBT) 2020, CC BY 4.0.
+- Rome: Regione Lazio, Database Geotopografico (DBGT) 2020, Roma. Fonte:
+  Regione Lazio.
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
@@ -228,6 +233,12 @@ none, this says so rather than guessing.
   Data (licence not stated by the publisher).
 - Istanbul: General Command of Mapping (Türkiye), administrative
   boundaries through OCHA (COD-AB), CC BY-IGO.
+- Buenos Aires: Gobierno de la Ciudad de Buenos Aires, Perímetro,
+  CC BY 2.5 AR.
+- Milan: Comune di Milano, Confini amministrativi del Comune di Milano,
+  CC BY 4.0.
+- Rome (Roma Capitale, the Vatican left out): ISTAT, Confini delle unità
+  amministrative a fini statistici al 1° gennaio 2025, CC BY 4.0.
 - Montréal (the agglomeration, `montreal.geojson`): Ville de Montréal,
   Limites administratives de l'agglomération de Montréal (arrondissements
   et villes liées), CC BY 4.0; its 34 polygons dissolved into one.
