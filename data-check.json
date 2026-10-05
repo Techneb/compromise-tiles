@@ -1,0 +1,1577 @@
+{
+ "run": "2026-10-05",
+ "rows": {
+  "permits/Paris": {
+   "key": "24430,1174",
+   "status": "ok",
+   "count": 675,
+   "fetched": 967,
+   "named": 0.941,
+   "seconds": 0.7,
+   "tile": {
+    "status": "ok",
+    "count": 672,
+    "named": 0.94,
+    "source": "Paris"
+   },
+   "licence": "Open Database License (ODbL)"
+  },
+  "permits/Issy-les-Moulineaux": {
+   "key": "24413,1134",
+   "status": "ok",
+   "count": 55,
+   "fetched": 64,
+   "named": 1.0,
+   "seconds": 0.6,
+   "tile": {
+    "status": "ok",
+    "count": 55,
+    "named": 1.0,
+    "source": "Issy-les-Moulineaux"
+   },
+   "licence": null
+  },
+  "permits/San Francisco": {
+   "key": "18899,-61219",
+   "status": "ok",
+   "count": 46,
+   "fetched": 50,
+   "named": 1.0,
+   "seconds": 0.5,
+   "tile": {
+    "status": "ok",
+    "count": 46,
+    "named": 1.0,
+    "source": "San Francisco"
+   },
+   "licence": "Open Data Commons Public Domain Dedication and License"
+  },
+  "permits/Geneva": {
+   "key": "23104,3072",
+   "status": "ok",
+   "count": 542,
+   "fetched": 750,
+   "named": 1.0,
+   "seconds": 1.6,
+   "tile": {
+    "status": "ok",
+    "count": 540,
+    "named": 1.0,
+    "source": "Geneva"
+   },
+   "licence": null
+  },
+  "permits/Adelaide": {
+   "key": "-17462,69299",
+   "status": "ok",
+   "count": 112,
+   "fetched": 163,
+   "named": 1.0,
+   "total": 442,
+   "seconds": 0.1,
+   "tile": {
+    "status": "ok",
+    "count": 112,
+    "named": 1.0,
+    "source": "Adelaide"
+   }
+  },
+  "permits/La Rochelle": {
+   "key": "23079,-575",
+   "status": "ok",
+   "count": 323,
+   "fetched": 462,
+   "named": 0.988,
+   "total": 580,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 323,
+    "named": 0.988,
+    "source": "La Rochelle"
+   }
+  },
+  "permits/Kensington and Chelsea": {
+   "key": "25749,-99",
+   "status": "ok",
+   "count": 8,
+   "fetched": 8,
+   "named": 1.0,
+   "seconds": 0.8,
+   "tile": {
+    "status": "ok",
+    "count": 8,
+    "named": 1.0,
+    "source": "Kensington and Chelsea"
+   },
+   "licence": null
+  },
+  "buildings/Berlin": {
+   "key": "26209,6639",
+   "status": "ok",
+   "count": 1910,
+   "fetched": 2299,
+   "height": 1.0,
+   "seconds": 1.2,
+   "tile": {
+    "status": "ok",
+    "count": 1910,
+    "height": 1.0,
+    "with_height": 1910,
+    "source": "Berlin"
+   },
+   "licence": "Für die Nutzung der Daten ist die Datenlizenz Deutschland - Zero - Version 2.0 anzuwenden. Die Lizenz ist über https://www.govdata.de/dl-de/zero-2-0 abrufbar. / Es gelten keine Zugriffsbeschränkungen."
+  },
+  "buildings/Ramat Gan": {
+   "key": "16036,17411",
+   "status": "ok",
+   "count": 552,
+   "fetched": 741,
+   "height": 0.996,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 552,
+    "height": 0.996,
+    "with_height": 550,
+    "source": "Ramat Gan"
+   },
+   "licence": null
+  },
+  "buildings/Seville": {
+   "key": "18694,-2996",
+   "status": "ok",
+   "count": 5831,
+   "fetched": 7567,
+   "height": 0.887,
+   "seconds": 231.4,
+   "tile": {
+    "status": "ok",
+    "count": 5831,
+    "height": 0.887,
+    "with_height": 5171,
+    "source": "Seville"
+   }
+  },
+  "buildings/Las Palmas": {
+   "key": "14075,-7713",
+   "status": "ok",
+   "count": 6001,
+   "fetched": 7732,
+   "height": 0.943,
+   "seconds": 58.5,
+   "tile": {
+    "status": "ok",
+    "count": 6001,
+    "height": 0.943,
+    "with_height": 5659,
+    "source": "Las Palmas"
+   }
+  },
+  "buildings/Gijón": {
+   "key": "21770,-2831",
+   "status": "ok",
+   "count": 4453,
+   "fetched": 5361,
+   "height": 0.792,
+   "seconds": 47.9,
+   "tile": {
+    "status": "ok",
+    "count": 4453,
+    "height": 0.792,
+    "with_height": 3526,
+    "source": "Gijón"
+   }
+  },
+  "buildings/Chicago": {
+   "key": "20973,-43840",
+   "status": "ok",
+   "count": 1361,
+   "fetched": 1872,
+   "height": 0.477,
+   "seconds": 5.5,
+   "tile": {
+    "status": "ok",
+    "count": 1361,
+    "height": 0.477,
+    "with_height": 649,
+    "source": "Chicago"
+   },
+   "licence": "See Terms of Use"
+  },
+  "buildings/Los Angeles": {
+   "key": "17042,-59134",
+   "status": "ok",
+   "count": 981,
+   "fetched": 1258,
+   "height": 0.997,
+   "seconds": 1.6,
+   "tile": {
+    "status": "ok",
+    "count": 981,
+    "height": 0.997,
+    "with_height": 978,
+    "source": "Los Angeles"
+   },
+   "licence": null
+  },
+  "buildings/Belgrade": {
+   "key": "22400,10237",
+   "status": "ok",
+   "count": 1018,
+   "fetched": 1368,
+   "height": 0.999,
+   "seconds": 15.1,
+   "tile": {
+    "status": "ok",
+    "count": 1018,
+    "height": 0.999,
+    "with_height": 1017,
+    "source": "Belgrade"
+   }
+  },
+  "buildings/Oakland": {
+   "key": "18896,-61124",
+   "status": "ok",
+   "count": 347,
+   "fetched": 422,
+   "height": 1.0,
+   "seconds": 0.7,
+   "tile": {
+    "status": "ok",
+    "count": 700,
+    "height": 0.393,
+    "with_height": 275,
+    "source": "Oakland+OSM"
+   },
+   "licence": null
+  },
+  "buildings/Leeds": {
+   "key": "26899,-774",
+   "status": "ok",
+   "count": 272,
+   "fetched": 1204,
+   "height": 0.989,
+   "seconds": 55.5,
+   "tile": {
+    "status": "ok",
+    "count": 272,
+    "height": 0.989,
+    "with_height": 269,
+    "source": "Leeds+OSM"
+   }
+  },
+  "permits/Toulouse": {
+   "key": "21802,722",
+   "status": "ok",
+   "count": 258,
+   "fetched": 390,
+   "named": 1.0,
+   "seconds": 1.3,
+   "tile": {
+    "status": "ok",
+    "count": 259,
+    "named": 1.0,
+    "source": "Toulouse"
+   },
+   "licence": null
+  },
+  "permits/Boulogne-Billancourt": {
+   "key": "24420,1117",
+   "status": "ok",
+   "count": 68,
+   "fetched": 100,
+   "named": 1.0,
+   "seconds": 1.6,
+   "tile": {
+    "status": "ok",
+    "count": 68,
+    "named": 1.0,
+    "source": "Boulogne-Billancourt"
+   },
+   "licence": null
+  },
+  "permits/Amsterdam": {
+   "key": "26187,2448",
+   "status": "ok",
+   "count": 205,
+   "fetched": 297,
+   "named": 0.995,
+   "seconds": 0.9,
+   "tile": {
+    "status": "ok",
+    "count": 206,
+    "named": 0.995,
+    "source": "Amsterdam"
+   }
+  },
+  "permits/Seville": {
+   "key": "18693,-2996",
+   "status": "ok",
+   "count": 160,
+   "fetched": 221,
+   "named": 0.994,
+   "total": 1564,
+   "seconds": 2.5,
+   "tile": {
+    "status": "ok",
+    "count": 162,
+    "named": 0.994,
+    "source": "Seville"
+   }
+  },
+  "permits/Toronto": {
+   "key": "21822,-39698",
+   "status": "ok",
+   "count": 73,
+   "fetched": 98,
+   "named": 1.0,
+   "total": 1636,
+   "seconds": 0.3,
+   "tile": {
+    "status": "ok",
+    "count": 73,
+    "named": 1.0,
+    "source": "Toronto"
+   },
+   "licence": "License not specified"
+  },
+  "permits/Helsinki": {
+   "key": "30084,12473",
+   "status": "ok",
+   "count": 60,
+   "fetched": 80,
+   "named": 1.0,
+   "seconds": 3.6,
+   "tile": {
+    "status": "ok",
+    "count": 60,
+    "named": 1.0,
+    "source": "Helsinki"
+   },
+   "licence": "NONE"
+  },
+  "buildings/Melbourne": {
+   "key": "-18896,72461",
+   "status": "ok",
+   "count": 2144,
+   "fetched": 2660,
+   "height": 1.0,
+   "seconds": 2.1,
+   "tile": {
+    "status": "ok",
+    "count": 2144,
+    "height": 1.0,
+    "with_height": 2144,
+    "source": "Melbourne"
+   },
+   "licence": "CC BY"
+  },
+  "buildings/Geneva": {
+   "key": "23101,3079",
+   "status": "ok",
+   "count": 660,
+   "fetched": 820,
+   "height": 0.988,
+   "seconds": 1.5,
+   "tile": {
+    "status": "ok",
+    "count": 660,
+    "height": 0.988,
+    "with_height": 652,
+    "source": "Geneva"
+   },
+   "licence": null
+  },
+  "buildings/Holon": {
+   "key": "16012,17383",
+   "status": "ok",
+   "count": 787,
+   "fetched": 1046,
+   "height": 0.986,
+   "seconds": 1.2,
+   "tile": {
+    "status": "ok",
+    "count": 787,
+    "height": 0.986,
+    "with_height": 776,
+    "source": "Holon"
+   },
+   "licence": null
+  },
+  "buildings/Barcelona": {
+   "key": "20687,1061",
+   "status": "ok",
+   "count": 4422,
+   "fetched": 6017,
+   "height": 0.885,
+   "seconds": 293.1,
+   "tile": {
+    "status": "ok",
+    "count": 4422,
+    "height": 0.885,
+    "with_height": 3912,
+    "source": "Barcelona"
+   }
+  },
+  "buildings/Murcia": {
+   "key": "18992,-563",
+   "status": "ok",
+   "count": 3048,
+   "fetched": 3669,
+   "height": 0.803,
+   "seconds": 117.5,
+   "tile": {
+    "status": "ok",
+    "count": 3048,
+    "height": 0.803,
+    "with_height": 2447,
+    "source": "Murcia"
+   }
+  },
+  "buildings/San Sebastián": {
+   "key": "21658,-991",
+   "status": "ok",
+   "count": 587,
+   "fetched": 704,
+   "height": 0.942,
+   "seconds": 11.9,
+   "tile": {
+    "status": "ok",
+    "count": 587,
+    "height": 0.913,
+    "with_height": 536,
+    "source": "San Sebastián"
+   },
+   "licence": "free access / The content geographic information corresponding to the Gipuzkoa Provincial Council may be reproduced, removed and reused freely on a nonexclusive basis, in whole or in part, by any person in any format and for any subsequent legitimate use under the following terms:\n1. Authorship must be indicated in any case.\n2. Gipuzkoa Provincial Council disclaims any warranty for the errors in the access to its contents or accuracy, but the effort to avoid and, if necessary, correct or update them as soon as possible.\n3. Gipuzkoa Provincial Council is not responsible for any damages from the use of any content, services and information by users, or the infringement of any rule."
+  },
+  "buildings/San Francisco": {
+   "key": "18869,-61207",
+   "status": "ok",
+   "count": 1465,
+   "fetched": 1910,
+   "height": 1.0,
+   "seconds": 4.4,
+   "tile": {
+    "status": "ok",
+    "count": 1465,
+    "height": 1.0,
+    "with_height": 1465,
+    "source": "San Francisco"
+   },
+   "licence": "Open Data Commons Public Domain Dedication and License"
+  },
+  "buildings/Hamburg": {
+   "key": "26796,5035",
+   "status": "ok",
+   "count": 684,
+   "fetched": 869,
+   "height": 1.0,
+   "seconds": 8.8,
+   "tile": {
+    "status": "ok",
+    "count": 684,
+    "height": 1.0,
+    "with_height": 684,
+    "source": "Hamburg"
+   }
+  },
+  "buildings/San José": {
+   "key": "4960,-42037",
+   "status": "ok",
+   "count": 2228,
+   "fetched": 2878,
+   "height": 1.0,
+   "seconds": 3.1,
+   "tile": {
+    "status": "ok",
+    "count": 2228,
+    "height": 1.0,
+    "with_height": 2228,
+    "source": "San José"
+   },
+   "licence": "Municipalidad de San José de Costa Rica"
+  },
+  "buildings/Vaughan": {
+   "key": "21922,-39758",
+   "status": "ok",
+   "count": 450,
+   "fetched": 565,
+   "height": 1.0,
+   "seconds": 8.5,
+   "tile": {
+    "status": "ok",
+    "count": 450,
+    "height": 1.0,
+    "with_height": 450,
+    "source": "Vaughan"
+   }
+  },
+  "buildings/Liverpool": {
+   "key": "26702,-1495",
+   "status": "ok",
+   "count": 186,
+   "fetched": 1260,
+   "height": 0.989,
+   "seconds": 50.2,
+   "tile": {
+    "status": "ok",
+    "count": 188,
+    "height": 0.979,
+    "with_height": 184,
+    "source": "Liverpool+OSM"
+   }
+  },
+  "permits/Strasbourg": {
+   "key": "24290,3872",
+   "status": "ok",
+   "count": 231,
+   "fetched": 306,
+   "named": 1.0,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 231,
+    "named": 1.0,
+    "source": "Strasbourg"
+   },
+   "licence": "Licence Ouverte v2.0 (Etalab)"
+  },
+  "permits/Melbourne": {
+   "key": "-18907,72481",
+   "status": "ok",
+   "count": 306,
+   "fetched": 471,
+   "named": 1.0,
+   "seconds": 0.9,
+   "tile": {
+    "status": "ok",
+    "count": 306,
+    "named": 1.0,
+    "source": "Melbourne"
+   },
+   "licence": "CC BY"
+  },
+  "permits/Vienna": {
+   "key": "24104,8186",
+   "status": "ok",
+   "count": 167,
+   "fetched": 253,
+   "named": 0.0,
+   "seconds": 0.9,
+   "tile": {
+    "status": "ok",
+    "count": 170,
+    "named": 0.0,
+    "source": "Vienna"
+   },
+   "licence": "https://creativecommons.org/licenses/by/3.0/at/deed.de / https://data.wien.gv.at/nutzungsbedingungen"
+  },
+  "permits/Vilnius": {
+   "key": "27341,12641",
+   "status": "ok",
+   "count": 79,
+   "fetched": 141,
+   "named": 1.0,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 127,
+    "named": 1.0,
+    "source": "Vilnius"
+   },
+   "licence": null
+  },
+  "permits/Riga": {
+   "key": "28474,12054",
+   "status": "ok",
+   "count": 76,
+   "fetched": 83,
+   "named": 1.0,
+   "seconds": 0.9,
+   "tile": {
+    "status": "ok",
+    "count": 102,
+    "named": 1.0,
+    "source": "Riga"
+   },
+   "licence": null
+  },
+  "permits/Gothenburg": {
+   "key": "28849,5975",
+   "status": "ok",
+   "count": 36,
+   "fetched": 47,
+   "named": 1.0,
+   "total": 448,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 36,
+    "named": 1.0,
+    "source": "Gothenburg"
+   }
+  },
+  "buildings/Amsterdam": {
+   "key": "26170,2472",
+   "status": "ok",
+   "count": 2614,
+   "fetched": 2960,
+   "height": 1.0,
+   "seconds": 1.4,
+   "tile": {
+    "status": "ok",
+    "count": 2614,
+    "height": 1.0,
+    "with_height": 2614,
+    "source": "Amsterdam"
+   },
+   "licence": null
+  },
+  "buildings/Denver": {
+   "key": "19853,-52491",
+   "status": "ok",
+   "count": 1114,
+   "fetched": 1438,
+   "height": 0.999,
+   "seconds": 1.5,
+   "tile": {
+    "status": "ok",
+    "count": 1114,
+    "height": 0.999,
+    "with_height": 1113,
+    "source": "Denver"
+   },
+   "licence": null
+  },
+  "buildings/Herzliya": {
+   "key": "16083,17429",
+   "status": "ok",
+   "count": 741,
+   "fetched": 952,
+   "height": 0.999,
+   "seconds": 0.7,
+   "tile": {
+    "status": "ok",
+    "count": 741,
+    "height": 0.999,
+    "with_height": 740,
+    "source": "Herzliya"
+   },
+   "licence": null
+  },
+  "buildings/Valencia": {
+   "key": "19736,-187",
+   "status": "ok",
+   "count": 5363,
+   "fetched": 6800,
+   "height": 0.791,
+   "seconds": 171.7,
+   "tile": {
+    "status": "ok",
+    "count": 5363,
+    "height": 0.791,
+    "with_height": 4242,
+    "source": "Valencia"
+   }
+  },
+  "buildings/Alicante": {
+   "key": "19178,-240",
+   "status": "ok",
+   "count": 6096,
+   "fetched": 7938,
+   "height": 0.835,
+   "seconds": 119.6,
+   "tile": {
+    "status": "ok",
+    "count": 6096,
+    "height": 0.835,
+    "with_height": 5090,
+    "source": "Alicante"
+   }
+  },
+  "buildings/Johannesburg": {
+   "key": "-13097,14008",
+   "status": "ok",
+   "count": 1214,
+   "fetched": 1393,
+   "height": 1.0,
+   "seconds": 6.0,
+   "tile": {
+    "status": "ok",
+    "count": 1214,
+    "height": 1.0,
+    "with_height": 1214,
+    "source": "Johannesburg"
+   },
+   "licence": null
+  },
+  "buildings/Calgary": {
+   "key": "25506,-57054",
+   "status": "ok",
+   "count": 934,
+   "fetched": 1182,
+   "height": 1.0,
+   "seconds": 0.9,
+   "tile": {
+    "status": "ok",
+    "count": 934,
+    "height": 1.0,
+    "with_height": 934,
+    "source": "Calgary"
+   },
+   "licence": "See Terms of Use"
+  },
+  "buildings/Philadelphia": {
+   "key": "19959,-37581",
+   "status": "ok",
+   "count": 2909,
+   "fetched": 3867,
+   "height": 1.0,
+   "seconds": 28.2,
+   "tile": {
+    "status": "ok",
+    "count": 2909,
+    "height": 1.0,
+    "with_height": 2909,
+    "source": "Philadelphia"
+   },
+   "licence": null
+  },
+  "buildings/San Jose": {
+   "key": "18674,-60939",
+   "status": "ok",
+   "count": 876,
+   "fetched": 1215,
+   "height": 1.0,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 876,
+    "height": 1.0,
+    "with_height": 876,
+    "source": "San Jose"
+   },
+   "licence": "County of Santa Clara; Sanborn Map Co."
+  },
+  "buildings/Edmonton": {
+   "key": "26782,-56740",
+   "status": "ok",
+   "count": 1097,
+   "fetched": 1449,
+   "height": 1.0,
+   "seconds": 3.8,
+   "tile": {
+    "status": "ok",
+    "count": 1097,
+    "height": 1.0,
+    "with_height": 1097,
+    "source": "Edmonton"
+   },
+   "licence": "See Terms of Use"
+  },
+  "buildings/Sheffield": {
+   "key": "26690,-735",
+   "status": "ok",
+   "count": 279,
+   "fetched": 1569,
+   "height": 1.0,
+   "seconds": 53.9,
+   "tile": {
+    "status": "ok",
+    "count": 279,
+    "height": 1.0,
+    "with_height": 279,
+    "source": "Sheffield+OSM"
+   }
+  },
+  "permits/Anglet": {
+   "key": "21749,-770",
+   "status": "ok",
+   "count": 28,
+   "fetched": 28,
+   "named": 1.0,
+   "seconds": 0.7,
+   "tile": {
+    "status": "ok",
+    "count": 28,
+    "named": 1.0,
+    "source": "Anglet"
+   },
+   "licence": "Licence Ouverte v2.0 (Etalab)"
+  },
+  "permits/Camden": {
+   "key": "25760,-69",
+   "status": "ok",
+   "count": 42,
+   "fetched": 48,
+   "named": 0.905,
+   "seconds": 1.2,
+   "tile": {
+    "status": "ok",
+    "count": 42,
+    "named": 0.905,
+    "source": "Camden"
+   },
+   "licence": "UK Open Government Licence v3"
+  },
+  "permits/Copenhagen": {
+   "key": "27839,6287",
+   "status": "ok",
+   "count": 442,
+   "fetched": 646,
+   "named": 1.0,
+   "seconds": 0.8,
+   "tile": {
+    "status": "ok",
+    "count": 473,
+    "named": 1.0,
+    "source": "Copenhagen"
+   },
+   "licence": "NONE"
+  },
+  "permits/Oslo": {
+   "key": "29957,5374",
+   "status": "ok",
+   "count": 126,
+   "fetched": 177,
+   "named": 1.0,
+   "seconds": 1.5,
+   "tile": {
+    "status": "ok",
+    "count": 126,
+    "named": 1.0,
+    "source": "Oslo"
+   },
+   "licence": "Copyright Plan- og bygningsetaten i Oslo kommune"
+  },
+  "permits/San Sebastián": {
+   "key": "21661,-990",
+   "status": "ok",
+   "count": 155,
+   "fetched": 195,
+   "named": 1.0,
+   "seconds": 0.7,
+   "tile": {
+    "status": "ok",
+    "count": 155,
+    "named": 1.0,
+    "source": "San Sebastián"
+   },
+   "licence": null
+  },
+  "permits/Washington DC": {
+   "key": "19452,-38521",
+   "status": "ok",
+   "count": 56,
+   "fetched": 95,
+   "named": 0.196,
+   "seconds": 0.2,
+   "tile": {
+    "status": "ok",
+    "count": 56,
+    "named": 0.196,
+    "source": "Washington DC"
+   },
+   "licence": "DDOT"
+  },
+  "buildings/Rotterdam": {
+   "key": "25945,2251",
+   "status": "ok",
+   "count": 3132,
+   "fetched": 3996,
+   "height": 1.0,
+   "seconds": 1.2,
+   "tile": {
+    "status": "ok",
+    "count": 3132,
+    "height": 1.0,
+    "with_height": 3132,
+    "source": "Rotterdam"
+   },
+   "licence": null
+  },
+  "buildings/Cape Town": {
+   "key": "-16965,9224",
+   "status": "ok",
+   "count": 981,
+   "fetched": 1372,
+   "height": 0.971,
+   "seconds": 10.7,
+   "tile": {
+    "status": "ok",
+    "count": 981,
+    "height": 0.971,
+    "with_height": 953,
+    "source": "Cape Town"
+   },
+   "licence": "Information & Knowledge Management Dept., Geospatial Section, 1st Floor, Keller House, 121 Loop Street, Cape Town. \nContact: Ms. Lara Röttcher, Tel. 021 487 2599, email: lara.rottcher@capetown.gov.za. \nData distributed by City Maps public counter, 7th Floor, Keller House, 121 Loop Street, Cape Town."
+  },
+  "buildings/Tel Aviv": {
+   "key": "16025,17395",
+   "status": "skipped",
+   "error": "answers only from Israel (HTTP 571 elsewhere), as make_tiles.py notes",
+   "tile": {
+    "status": "ok",
+    "count": 1780,
+    "height": 0.999,
+    "with_height": 1779,
+    "source": "Tel Aviv"
+   }
+  },
+  "buildings/Zaragoza": {
+   "key": "20825,-452",
+   "status": "ok",
+   "count": 4525,
+   "fetched": 5902,
+   "height": 0.798,
+   "seconds": 76.1,
+   "tile": {
+    "status": "ok",
+    "count": 4525,
+    "height": 0.798,
+    "with_height": 3612,
+    "source": "Zaragoza"
+   }
+  },
+  "buildings/Córdoba": {
+   "key": "18934,-2386",
+   "status": "ok",
+   "count": 3674,
+   "fetched": 4310,
+   "height": 0.983,
+   "seconds": 56.5,
+   "tile": {
+    "status": "ok",
+    "count": 3674,
+    "height": 0.983,
+    "with_height": 3613,
+    "source": "Córdoba"
+   }
+  },
+  "buildings/Bologna": {
+   "key": "22246,5675",
+   "status": "ok",
+   "count": 1574,
+   "fetched": 1993,
+   "height": 0.985,
+   "seconds": 2.8,
+   "tile": {
+    "status": "ok",
+    "count": 1574,
+    "height": 0.985,
+    "with_height": 1551,
+    "source": "Bologna"
+   },
+   "licence": "CC BY 4.0"
+  },
+  "buildings/Vancouver": {
+   "key": "24614,-61531",
+   "status": "ok",
+   "count": 788,
+   "fetched": 948,
+   "height": 1.0,
+   "seconds": 0.5,
+   "tile": {
+    "status": "ok",
+    "count": 788,
+    "height": 1.0,
+    "with_height": 788,
+    "source": "Vancouver"
+   },
+   "licence": "Open Government Licence - Vancouver"
+  },
+  "buildings/Düsseldorf": {
+   "key": "25608,3423",
+   "status": "ok",
+   "count": 2200,
+   "fetched": 2764,
+   "height": 1.0,
+   "seconds": 9.2,
+   "tile": {
+    "status": "ok",
+    "count": 2200,
+    "height": 1.0,
+    "with_height": 2200,
+    "source": "Düsseldorf"
+   }
+  },
+  "buildings/Genoa": {
+   "key": "22215,4447",
+   "status": "ok",
+   "count": 707,
+   "fetched": 839,
+   "height": 0.99,
+   "seconds": 4.8,
+   "tile": {
+    "status": "ok",
+    "count": 707,
+    "height": 0.99,
+    "with_height": 700,
+    "source": "Genoa"
+   },
+   "licence": "NONE"
+  },
+  "buildings/London": {
+   "key": "25668,-2",
+   "status": "ok",
+   "count": 2036,
+   "fetched": 5817,
+   "height": 1.0,
+   "seconds": 45.7,
+   "tile": {
+    "status": "ok",
+    "count": 2352,
+    "height": 0.866,
+    "with_height": 2036,
+    "source": "London+OSM"
+   }
+  },
+  "buildings/Toronto": {
+   "key": "21841,-39724",
+   "status": "ok",
+   "count": 327,
+   "fetched": 416,
+   "height": 1.0,
+   "seconds": 7.5,
+   "tile": {
+    "status": "ok",
+    "count": 1986,
+    "height": 0.009,
+    "with_height": 17,
+    "source": "OSM"
+   }
+  },
+  "permits/Rouen": {
+   "key": "24720,546",
+   "status": "ok",
+   "count": 181,
+   "fetched": 267,
+   "named": 1.0,
+   "seconds": 0.8,
+   "tile": {
+    "status": "ok",
+    "count": 181,
+    "named": 1.0,
+    "source": "Rouen"
+   },
+   "licence": "Licence Ouverte v2.0"
+  },
+  "permits/New York": {
+   "key": "20365,-37000",
+   "status": "ok",
+   "count": 94,
+   "fetched": 138,
+   "named": 1.0,
+   "seconds": 0.6,
+   "tile": {
+    "status": "ok",
+    "count": 94,
+    "named": 1.0,
+    "source": "New York"
+   },
+   "licence": null
+  },
+  "permits/Madrid": {
+   "key": "20208,-1852",
+   "status": "ok",
+   "count": 221,
+   "fetched": 333,
+   "named": 1.0,
+   "total": 6570,
+   "seconds": 1.2,
+   "tile": {
+    "status": "ok",
+    "count": 221,
+    "named": 1.0,
+    "source": "Madrid"
+   }
+  },
+  "permits/Barcelona": {
+   "key": "20695,1079",
+   "status": "ok",
+   "count": 213,
+   "fetched": 351,
+   "named": 0.0,
+   "total": 6942,
+   "seconds": 4.6,
+   "tile": {
+    "status": "ok",
+    "count": 213,
+    "named": 0.0,
+    "source": "Barcelona"
+   },
+   "licence": "Creative Commons Attribution 4.0"
+  },
+  "permits/Eindhoven": {
+   "key": "25719,2739",
+   "status": "ok",
+   "count": 315,
+   "fetched": 397,
+   "named": 0.0,
+   "seconds": 0.8,
+   "tile": {
+    "status": "ok",
+    "count": 315,
+    "named": 0.0,
+    "source": "Eindhoven"
+   },
+   "licence": null
+  },
+  "permits/Boston": {
+   "key": "21174,-35541",
+   "status": "ok",
+   "count": 17,
+   "fetched": 21,
+   "named": 1.0,
+   "seconds": 0.3,
+   "tile": {
+    "status": "ok",
+    "count": 17,
+    "named": 1.0,
+    "source": "Boston"
+   },
+   "licence": null
+  },
+  "buildings/The Hague": {
+   "key": "26026,2157",
+   "status": "ok",
+   "count": 2417,
+   "fetched": 2952,
+   "height": 1.0,
+   "seconds": 1.4,
+   "tile": {
+    "status": "ok",
+    "count": 2417,
+    "height": 1.0,
+    "with_height": 2417,
+    "source": "The Hague"
+   },
+   "licence": null
+  },
+  "buildings/São Paulo": {
+   "key": "-11803,-23321",
+   "status": "ok",
+   "count": 2259,
+   "fetched": 2851,
+   "height": 0.99,
+   "seconds": 2.5,
+   "tile": {
+    "status": "ok",
+    "count": 2259,
+    "height": 0.989,
+    "with_height": 2235,
+    "source": "São Paulo"
+   },
+   "licence": "NONE"
+  },
+  "buildings/Jerusalem": {
+   "key": "15889,17615",
+   "status": "ok",
+   "count": 2160,
+   "fetched": 2544,
+   "height": 1.0,
+   "seconds": 2.6,
+   "tile": {
+    "status": "ok",
+    "count": 2160,
+    "height": 1.0,
+    "with_height": 2159,
+    "source": "Jerusalem"
+   },
+   "licence": null
+  },
+  "buildings/Málaga": {
+   "key": "18361,-2216",
+   "status": "ok",
+   "count": 3681,
+   "fetched": 4599,
+   "height": 0.922,
+   "seconds": 88.6,
+   "tile": {
+    "status": "ok",
+    "count": 3681,
+    "height": 0.922,
+    "with_height": 3393,
+    "source": "Málaga"
+   }
+  },
+  "buildings/Valladolid": {
+   "key": "20825,-2363",
+   "status": "ok",
+   "count": 4338,
+   "fetched": 5406,
+   "height": 0.809,
+   "seconds": 64.9,
+   "tile": {
+    "status": "ok",
+    "count": 4338,
+    "height": 0.809,
+    "with_height": 3511,
+    "source": "Valladolid"
+   }
+  },
+  "buildings/Turin": {
+   "key": "22535,3804",
+   "status": "ok",
+   "count": 560,
+   "fetched": 692,
+   "height": 0.995,
+   "seconds": 1.8,
+   "tile": {
+    "status": "ok",
+    "count": 556,
+    "height": 0.942,
+    "with_height": 524,
+    "source": "Turin"
+   },
+   "licence": null
+  },
+  "buildings/Zurich": {
+   "key": "23685,4271",
+   "status": "ok",
+   "count": 1053,
+   "fetched": 1271,
+   "height": 0.993,
+   "seconds": 1.7,
+   "tile": {
+    "status": "ok",
+    "count": 1053,
+    "height": 0.993,
+    "with_height": 1046,
+    "source": "Zurich"
+   },
+   "licence": "None"
+  },
+  "buildings/Nuremberg": {
+   "key": "24739,5533",
+   "status": "ok",
+   "count": 1464,
+   "fetched": 1863,
+   "height": 0.999,
+   "seconds": 21.0,
+   "tile": {
+    "status": "ok",
+    "count": 1464,
+    "height": 0.999,
+    "with_height": 1463,
+    "source": "Nuremberg"
+   }
+  },
+  "buildings/Sofia": {
+   "key": "21347,11635",
+   "status": "ok",
+   "count": 1714,
+   "fetched": 2041,
+   "height": 1.0,
+   "seconds": 2.8,
+   "tile": {
+    "status": "ok",
+    "count": 1714,
+    "height": 1.0,
+    "with_height": 1714,
+    "source": "Sofia"
+   },
+   "licence": null
+  },
+  "buildings/Birmingham": {
+   "key": "26240,-946",
+   "status": "ok",
+   "count": 146,
+   "fetched": 1248,
+   "height": 0.986,
+   "seconds": 32.7,
+   "tile": {
+    "status": "ok",
+    "count": 147,
+    "height": 0.986,
+    "with_height": 145,
+    "source": "Birmingham+OSM"
+   }
+  },
+  "buildings/Montréal": {
+   "key": "22760,-36788",
+   "status": "ok",
+   "count": 120,
+   "fetched": 163,
+   "height": 0.975,
+   "seconds": 1.9,
+   "tile": {
+    "status": "ok",
+    "count": 1214,
+    "height": 0.029,
+    "with_height": 35,
+    "source": "OSM"
+   }
+  },
+  "permits/Lorient": {
+   "key": "23873,-1681",
+   "status": "ok",
+   "count": 77,
+   "fetched": 82,
+   "named": 0.0,
+   "seconds": 1.4,
+   "tile": {
+    "status": "ok",
+    "count": 77,
+    "named": 0.0,
+    "source": "Lorient"
+   },
+   "licence": "Licence Ouverte v2.0 (Etalab)"
+  },
+  "permits/Chicago": {
+   "key": "20945,-43815",
+   "status": "ok",
+   "count": 65,
+   "fetched": 92,
+   "named": 1.0,
+   "seconds": 1.0,
+   "tile": {
+    "status": "ok",
+    "count": 65,
+    "named": 1.0,
+    "source": "Chicago"
+   },
+   "licence": "See Terms of Use"
+  },
+  "permits/Basel": {
+   "key": "23777,3793",
+   "status": "ok",
+   "count": 207,
+   "fetched": 257,
+   "named": 1.0,
+   "seconds": 1.1,
+   "tile": {
+    "status": "ok",
+    "count": 206,
+    "named": 1.0,
+    "source": "Basel"
+   },
+   "licence": "CC BY 4.0 + OpenStreetMap"
+  },
+  "permits/Buenos Aires": {
+   "key": "-17293,-29212",
+   "status": "ok",
+   "count": 13,
+   "fetched": 17,
+   "named": 0.0,
+   "total": 417,
+   "seconds": 0.2,
+   "tile": {
+    "status": "ok",
+    "count": 13,
+    "named": 0.0,
+    "source": "Buenos Aires"
+   }
+  },
+  "permits/Thessaloníki": {
+   "key": "20317,11470",
+   "status": "ok",
+   "count": 154,
+   "fetched": 226,
+   "named": 0.981,
+   "seconds": 2.0,
+   "tile": {
+    "status": "ok",
+    "count": 154,
+    "named": 0.981,
+    "source": "Thessaloníki"
+   },
+   "licence": "NONE"
+  },
+  "permits/Seattle": {
+   "key": "23807,-61173",
+   "status": "ok",
+   "count": 16,
+   "fetched": 25,
+   "named": 0.438,
+   "seconds": 0.3,
+   "tile": {
+    "status": "ok",
+    "count": 16,
+    "named": 0.438,
+    "source": "Seattle"
+   },
+   "licence": null
+  },
+  "buildings/Utrecht": {
+   "key": "26055,2543",
+   "status": "ok",
+   "count": 2883,
+   "fetched": 3831,
+   "height": 1.0,
+   "seconds": 1.7,
+   "tile": {
+    "status": "ok",
+    "count": 2883,
+    "height": 1.0,
+    "with_height": 2883,
+    "source": "Utrecht"
+   },
+   "licence": null
+  },
+  "buildings/Wrocław": {
+   "key": "25570,8523",
+   "status": "ok",
+   "count": 688,
+   "fetched": 846,
+   "height": 1.0,
+   "seconds": 4.4,
+   "tile": {
+    "status": "ok",
+    "count": 688,
+    "height": 1.0,
+    "with_height": 688,
+    "source": "Wrocław"
+   },
+   "licence": null
+  },
+  "buildings/Madrid": {
+   "key": "20231,-1851",
+   "status": "ok",
+   "count": 5365,
+   "fetched": 6994,
+   "height": 0.884,
+   "seconds": 571.1,
+   "tile": {
+    "status": "ok",
+    "count": 5365,
+    "height": 0.884,
+    "with_height": 4740,
+    "source": "Madrid"
+   }
+  },
+  "buildings/Palma": {
+   "key": "19785,1325",
+   "status": "ok",
+   "count": 7942,
+   "fetched": 10247,
+   "height": 0.795,
+   "seconds": 149.5,
+   "tile": {
+    "status": "ok",
+    "count": 7942,
+    "height": 0.795,
+    "with_height": 6316,
+    "source": "Palma"
+   }
+  },
+  "buildings/Vigo": {
+   "key": "21115,-4353",
+   "status": "ok",
+   "count": 3936,
+   "fetched": 5176,
+   "height": 0.878,
+   "seconds": 122.3,
+   "tile": {
+    "status": "ok",
+    "count": 3936,
+    "height": 0.878,
+    "with_height": 3455,
+    "source": "Vigo"
+   }
+  },
+  "buildings/New York": {
+   "key": "20342,-36909",
+   "status": "ok",
+   "count": 2004,
+   "fetched": 2562,
+   "height": 1.0,
+   "seconds": 3.2,
+   "tile": {
+    "status": "ok",
+    "count": 2004,
+    "height": 1.0,
+    "with_height": 2004,
+    "source": "New York"
+   },
+   "licence": null
+  },
+  "buildings/Austin": {
+   "key": "15114,-48847",
+   "status": "ok",
+   "count": 711,
+   "fetched": 855,
+   "height": 0.862,
+   "seconds": 2.1,
+   "tile": {
+    "status": "ok",
+    "count": 711,
+    "height": 0.862,
+    "with_height": 613,
+    "source": "Austin"
+   },
+   "licence": null
+  },
+  "buildings/Zagreb": {
+   "key": "22898,7965",
+   "status": "ok",
+   "count": 2248,
+   "fetched": 2712,
+   "height": 1.0,
+   "seconds": 2.3,
+   "tile": {
+    "status": "ok",
+    "count": 2248,
+    "height": 1.0,
+    "with_height": 2247,
+    "source": "Zagreb"
+   },
+   "licence": null
+  },
+  "buildings/Bratislava": {
+   "key": "24085,8567",
+   "status": "ok",
+   "count": 562,
+   "fetched": 677,
+   "height": 0.998,
+   "seconds": 1.8,
+   "tile": {
+    "status": "ok",
+    "count": 1056,
+    "height": 0.491,
+    "with_height": 519,
+    "source": "Bratislava+OSM"
+   },
+   "licence": null
+  },
+  "buildings/Bristol": {
+   "key": "25727,-1293",
+   "status": "ok",
+   "count": 232,
+   "fetched": 3140,
+   "height": 0.987,
+   "seconds": 37.5,
+   "tile": {
+    "status": "ok",
+    "count": 236,
+    "height": 0.983,
+    "with_height": 232,
+    "source": "Bristol+OSM"
+   }
+  },
+  "buildings/Bogotá": {
+   "key": "2308,-37032",
+   "status": "ok",
+   "count": 3276,
+   "fetched": 3614,
+   "height": 0.989,
+   "seconds": 2.4,
+   "tile": {
+    "status": "ok",
+    "count": 995,
+    "height": 0.007,
+    "with_height": 7,
+    "source": "OSM"
+   },
+   "licence": "Unidad Administrativa Especial de Catastro Distrital - UAECD"
+  }
+ },
+ "feed": {
+  "updated": "2026-10-05",
+  "seed": 41,
+  "checked": 594,
+  "mismatches": 2,
+  "missing": 0
+ }
+}
