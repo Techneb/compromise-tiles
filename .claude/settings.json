@@ -3,7 +3,9 @@
     "allow": [
       "mcp__Claude_Code_Remote__get_session",
       "mcp__Claude_Code_Remote__set_session_tags",
-      "mcp__claude-code-remote"
+      "mcp__claude-code-remote",
+      "mcp__claude-code-remote__add_repo",
+      "mcp__claude-code-remote__register_repo_root"
     ]
   }
 }
