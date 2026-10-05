@@ -3,11 +3,16 @@
 
 Writes one JSON array per ~200 m
 cell, keyed "<int(lat*500)>,<int(lon*500)>", under buildings/,
-terraces-v2/ and communes/ (French cells: the build and the coverage feed
+terraces-v2/, streets/ and communes/ (French cells: the build and the coverage feed
 read them, the upload leaves them out), and one per ~2 km cell, keyed
 "<int(lat*50)>,<int(lon*50)>", under venues/. Beside the first two,
 sources/ names what built each cell ([{"permits": city|null,
 "buildings": city|"IGN"|"OSM"|city+"+OSM"}]) — what the app credits.
+streets/ is built only for the areas whose entry says "streets": true: each
+item is one OpenStreetMap street cut at the cell's edges, a flat array
+[kind, y0, x0, dy1, dx1, …] (kind 1 main road, 2 street, 3 pedestrian),
+coordinates in 1e-5° steps, the first from the key's corner (key / 500),
+each next from the one before.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -430,10 +435,10 @@ def osmium(*args):
     try: return subprocess.run(["osmium", *args], check=True, capture_output=True, text=True).stdout
     except subprocess.CalledProcessError as error: raise SourceError(f"osmium: {error.stderr.strip()[:200]}") from error
 
-def features(pbf):
-    """An osmium file as GeoJSON features, points and areas only: a closed way also comes out as a
+def features(pbf, kinds="point,polygon"):
+    """An osmium file as GeoJSON features, points and areas only by default: a closed way also comes out as a
     line. Points include the nodes a way needed that carry tags of their own, so callers check tags."""
-    export = osmium("export", pbf, "-f", "geojsonseq", "--geometry-types=point,polygon", "-o", "-")
+    export = osmium("export", pbf, "-f", "geojsonseq", "--geometry-types=" + kinds, "-o", "-")
     for line in export.split("\n"):  # not splitlines(): it breaks on the \x1e that opens each record
         if line.strip("\x1e"): yield json.loads(line.lstrip("\x1e"))
 
@@ -443,11 +448,12 @@ class OSM:
     peaked at 3.5 GB held; the petite couronne is ten times the area)."""
     def __init__(self, pbf, rect):
         s, w, n, e = rect
-        self.venues, self.walls, self.last = {}, pbf + ".buildings.pbf", None
+        self.venues, self.walls, self.roads, self.last = {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
         box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
         try:
             osmium("extract", "-b", f"{w},{s},{e},{n}", pbf, "-o", box, "--overwrite")
             osmium("tags-filter", box, "w/building", "-o", self.walls, "--overwrite")
+            osmium("tags-filter", box, "w/highway=" + ",".join(STREET_KINDS), "-o", self.roads, "--overwrite")
             osmium("tags-filter", box, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
             for feature in features(kept):
                 tags, geometry = feature["properties"], feature["geometry"]
@@ -479,6 +485,20 @@ class OSM:
         self.last = ((rect, tagged), out)
         return out
 
+    def streets(self, rect):
+        """The street ways meeting the rect, simplified: [(kind, [(lat, lon), …])]. osmium keeps a way
+        with a node in the cut, whole; a long straight one can cross a block with no node in it, hence
+        STREET_PAD more."""
+        s, w, n, e = padded(rect, STREET_PAD)
+        cut = self.roads + ".cut.pbf"
+        osmium("extract", "-b", f"{w},{s},{e},{n}", self.roads, "-o", cut, "--overwrite")
+        out = []
+        for f in features(cut, "linestring"):
+            kind = street_kind(f["properties"])
+            if kind and f["geometry"]["type"] == "LineString":
+                out.append((kind, simplified([(lat, lon) for lon, lat in f["geometry"]["coordinates"]])))
+        return out
+
     def near(self, table, rect):
         """Everything in the buckets the rect touches, once each: callers keep what is near enough."""
         seen = {}
@@ -489,6 +509,8 @@ class OSM:
 _osm = None  # the current area's OSM, set by run()
 
 def osm_buildings(rect, tagged=False): return _osm.buildings(rect, tagged)
+
+def osm_streets(rect): return _osm.streets(rect)
 
 def osm_terraces(rect):
     """Outdoor seating on a bar, pub, beer garden, café or restaurant, named or not."""
@@ -521,6 +543,106 @@ def osm_venues(cell):
     """The named venues of one ~2 km cell, the key's own truncation deciding the edge."""
     return [v for v in _osm.near(_osm.venues, cell.rect) if v["name"]
             and f"{index(v['coordinate']['latitude'], COARSE)},{index(v['coordinate']['longitude'], COARSE)}" == cell.key]
+
+
+# ---------------------------------------------------------------- streets
+
+# The streets one can walk or drive in a city, by the width a map would draw them: 1 a main road,
+# 2 a street, 3 a pedestrian one. No motorway, no ramp onto one, no track, path or pavement.
+STREET_KINDS = {"trunk": 1, "primary": 1, "secondary": 1, "primary_link": 1, "secondary_link": 1,
+                "tertiary": 2, "tertiary_link": 2, "unclassified": 2, "residential": 2, "service": 2,
+                "living_street": 3, "pedestrian": 3}
+STREET_SERVICE_OUT = ("driveway", "parking_aisle", "drive-through", "emergency_access")
+STREET_TOLERANCE = 3     # metres a simplified line may stray from the way (Douglas–Peucker)
+STREET_PAD = 500         # metres asked around a block: a way crossing it with no node inside still comes
+STREET_UNIT = 100_000    # coordinates written in 1e-5° steps (~1 m), 200 to a cell side
+
+def street_kind(tags):
+    """A way's kind (STREET_KINDS), or None when it is not kept: a tunnel, an area, an expressway,
+    a private way or a service way to a single door or a parking."""
+    kind = STREET_KINDS.get(tags.get("highway"))
+    if not kind or tags.get("area") == "yes" or tags.get("tunnel", "no") != "no" or tags.get("motorroad") == "yes": return None
+    if tags.get("access") in ("private", "no") and tags.get("foot") not in ("yes", "designated", "permissive"): return None
+    if tags.get("highway") == "service" and tags.get("service") in STREET_SERVICE_OUT: return None
+    return kind
+
+def simplified(points, tolerance=STREET_TOLERANCE):
+    """Douglas–Peucker on [(lat, lon)], in metres around the first point; the ends always stay."""
+    if len(points) < 3: return list(points)
+    lat0 = points[0][0]
+    k = math.cos(math.radians(lat0))
+    xy = [((lon - points[0][1]) * M * k, (lat - lat0) * M) for lat, lon in points]
+    keep, stack = {0, len(points) - 1}, [(0, len(points) - 1)]
+    while stack:
+        a, b = stack.pop()
+        (ax, ay), (bx, by) = xy[a], xy[b]
+        dx, dy = bx - ax, by - ay
+        length = math.hypot(dx, dy)
+        far, worst = None, tolerance
+        for i in range(a + 1, b):
+            px, py = xy[i]
+            d = abs(dx * (ay - py) - dy * (ax - px)) / length if length else math.hypot(px - ax, py - ay)
+            if d > worst: far, worst = i, d
+        if far is not None:
+            keep.add(far); stack += [(a, far), (far, b)]
+    return [points[i] for i in sorted(keep)]
+
+def clipped(points, rect):
+    """The pieces of a line inside a rect (s, w, n, e), each a list of (lat, lon), cut at the edges
+    (Liang–Barsky per segment). A piece runs on while segments join inside."""
+    s, w, n, e = rect
+    pieces, piece = [], []
+    for (y0, x0), (y1, x1) in zip(points, points[1:]):
+        dx, dy, t0, t1 = x1 - x0, y1 - y0, 0.0, 1.0
+        for p, q in ((-dx, x0 - w), (dx, e - x0), (-dy, y0 - s), (dy, n - y0)):
+            if p == 0:
+                if q < 0: t0, t1 = 1, 0
+            elif p < 0: t0 = max(t0, q / p)
+            else: t1 = min(t1, q / p)
+        if t0 > t1:
+            if piece: pieces.append(piece); piece = []
+            continue
+        a, b = (y0 + t0 * dy, x0 + t0 * dx), (y0 + t1 * dy, x0 + t1 * dx)
+        if piece and piece[-1] == a: piece.append(b)
+        else:
+            if piece: pieces.append(piece)
+            piece = [a, b]
+        if t1 < 1: pieces.append(piece); piece = []
+    if piece: pieces.append(piece)
+    return pieces
+
+def street_line(kind, points, cell_key):
+    """One street of a streets/ tile: [kind, y0, x0, dy1, dx1, …], every coordinate in 1e-5° steps,
+    the first from the key's own corner (key / 500) and each next from the one before. Rounded
+    absolute coordinates first, so two cells cut a street at the same point. None when nothing of
+    it is left once rounded."""
+    ky, kx = map(int, cell_key.split(","))
+    steps = []
+    for lat, lon in points:
+        q = (round(lat * STREET_UNIT), round(lon * STREET_UNIT))
+        if not steps or q != steps[-1]: steps.append(q)
+    if len(steps) < 2: return None
+    per = STREET_UNIT // FINE
+    out, (y, x) = [kind, steps[0][0] - ky * per, steps[0][1] - kx * per], steps[0]
+    for qy, qx in steps[1:]:
+        out += [qy - y, qx - x]
+        y, x = qy, qx
+    return out
+
+def street_tiles(cells, streets):
+    """{key: [street line, …]} for the cells, each street cut at the cells' edges."""
+    by_key = {c.key: c for c in cells}
+    out = {c.key: [] for c in cells}
+    for kind, points in streets:
+        lats, lons = [p[0] for p in points], [p[1] for p in points]
+        for ky in range(index(min(lats)), index(max(lats)) + 1):
+            for kx in range(index(min(lons)), index(max(lons)) + 1):
+                c = by_key.get(f"{ky},{kx}")
+                if c is None: continue
+                for piece in clipped(points, c.rect):
+                    line = street_line(kind, piece, c.key)
+                    if line: out[c.key].append(line)
+    return out
 
 
 # ---------------------------------------------------------------- shapes
@@ -2165,12 +2287,12 @@ def commune(lat, lon):
 
 # ---------------------------------------------------------------- the run
 
-LAYERS = ("communes", "buildings", "terraces-v2", "venues")
+LAYERS = ("communes", "buildings", "terraces-v2", "venues", "streets")
 # Days before a finished tile is cut again. Resuming skips a cell only while
 # its file is younger than this, so the weekly run does refresh permits
 # (they lapse) while a same-day re-run after a
-# failure still skips what is done. Buildings change yearly, communes never.
-MAX_AGE_DAYS = {"communes": None, "buildings": 360, "terraces-v2": 6, "venues": 6}
+# failure still skips what is done. Buildings and streets change yearly, communes never.
+MAX_AGE_DAYS = {"communes": None, "buildings": 360, "terraces-v2": 6, "venues": 6, "streets": 360}
 
 def path(out, layer, cell): return os.path.join(out, layer, cell.key + ".json")
 
@@ -2353,6 +2475,14 @@ def do_terraces(cells, communes, out, failures):
         write(path(out, "terraces-v2", c), near_terraces(c, [t for a in answers[1:] for t in a] + answers[0]))
         note_sources(out, c, published, permits=feed_of[c.key] and feed_of[c.key]["city"])
 
+def do_streets(cells, out, failures):
+    """The street tiles of a block: OpenStreetMap's ways asked once, cut cell by cell."""
+    try: streets = osm_streets(union(cells))
+    except SourceError as e:
+        failures += [(c.key, "streets", str(e)) for c in cells]; return
+    tiles = street_tiles(cells, streets)
+    for c in cells: write(path(out, "streets", c), tiles[c.key])
+
 def do_sources(cells, out, failures):
     """The `sources` layer: the published sources/ tiles that lack a building source get it, found as
     the buildings layer finds it (the city feed, IGN, then OSM), its tiles not written. A cell without
@@ -2402,7 +2532,7 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
     for group in blocks(cells, block):
-        communes, need_terraces, need_buildings, need_sources = {}, [], [], []
+        communes, need_terraces, need_buildings, need_sources, need_streets = {}, [], [], [], []
         for c in group:
             if "sources" in layers: need_sources.append(c)
             if sources_only: continue  # no commune needed: a cell outside the départements has no published tile
@@ -2418,12 +2548,15 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
             if departements and not any(x["code"][:2] in departements for x in communes.get(c.key) or []):
                 outside.add(c.key); continue
             if "buildings" in layers and not done(out, "buildings", c): need_buildings.append(c)
+            if "streets" in layers and not done(out, "streets", c): need_streets.append(c)
             if "terraces-v2" in layers and not done(out, "terraces-v2", c):
                 if french and communes.get(c.key) is None:
                     failures.append((c.key, "terraces-v2", "commune unknown, so the permit feed is too")); continue
                 need_terraces.append(c)
-        skipped += sum(1 for c in group if c not in need_buildings and c not in need_terraces and c not in need_sources and c.key not in outside)
+        skipped += sum(1 for c in group if c not in need_buildings and c not in need_terraces and c not in need_sources
+                       and c not in need_streets and c.key not in outside)
         if need_buildings: do_buildings(need_buildings, out, failures)
+        if need_streets: do_streets(need_streets, out, failures)
         if need_terraces: do_terraces(need_terraces, communes, out, failures)
         if need_sources: do_sources(need_sources, out, failures)
     failed = {k for k, _, _ in failures}
@@ -2431,10 +2564,16 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         f"{len(failed)} failed, {time.monotonic() - started:.0f} s")
     return len(cells) - len(outside), failures
 
+def entry_layers(entry, layers):
+    """The layers built for one area: streets/ only where its entry says "streets": true (owner,
+    2026-10-05: a few cities a country, chosen by hand), every other layer as asked."""
+    return [l for l in layers if l != "streets" or entry.get("streets") is True]
+
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    a.add_argument("--cities", help="a cities.json: [{city, district?, lat, lon, half_km}] or [{city, district?, box: [s, w, n, e], departements?, boundary?}]"
-                   " (boundary: a GeoJSON Polygon or MultiPolygon file, relative to the cities.json, whose cells alone are built)")
+    a.add_argument("--cities", help="a cities.json: [{city, district?, lat, lon, half_km}] or [{city, district?, box: [s, w, n, e], departements?, boundary?, streets?}]"
+                   " (boundary: a GeoJSON Polygon or MultiPolygon file, relative to the cities.json, whose cells alone are built;"
+                   " streets: true for an area whose streets/ tiles are built, none otherwise)")
     a.add_argument("--city", help="a label: feeds are picked per cell, by commune or box"); a.add_argument("--lat", type=float); a.add_argument("--lon", type=float)
     a.add_argument("--half-km", type=float, default=0.5)
     a.add_argument("--block", type=int, default=3, help="cells per side asked of a source at once (default 3)")
@@ -2459,7 +2598,10 @@ def main():
         if entry.get("boundary"):
             with open(os.path.join(os.path.dirname(os.path.abspath(args.cities)), entry["boundary"])) as f: boundary = json.load(f)
             boundary = boundary.get("geometry", boundary)
-        n, f = run(label, area(entry, args.half_km), args.out, args.block, args.layers.split(","), args.extracts,
+        layers = entry_layers(entry, args.layers.split(","))
+        if not layers:
+            log(f"{label}: no streets/ for this area (not flagged), nothing else asked"); continue
+        n, f = run(label, area(entry, args.half_km), args.out, args.block, layers, args.extracts,
                    entry.get("departements"), boundary)
         total += n
         failures += [(label,) + x for x in f]
