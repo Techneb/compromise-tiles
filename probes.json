@@ -571,5 +571,13 @@
    "kind": "arcgis",
    "url": "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0?f=json"
   }
+ },
+ "buildings/Tokyo": {
+  "key": "17846,69851",
+  "picked": "2026-10-05"
+ },
+ "buildings/Osaka": {
+  "key": "17352,67748",
+  "picked": "2026-10-05"
  }
 }
