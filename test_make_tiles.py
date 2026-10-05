@@ -479,6 +479,24 @@ assert at(45.5150, -73.5650) == "Montréal" and at(45.4840, -73.5960) == "Montr�
 assert at(45.5670, -73.6750) == "OSM" and at(45.5350, -73.5100) == "OSM"
 assert at(4.6670, -74.0550) == "Bogotá"
 print("ok (2026-10-05 rows)")
+# Edinburgh: the council's permits, geocoded once into permits/edinburgh.geojson (a trimmed copy in fixtures/), read
+# whole through the geojson shape — the build never calls a geocoder. Three Old Town permits in the rect, Artisan Roast
+# (Broughton Street, at its postcode's centre) outside it; the box holds Leith, not Dalkeith.
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(url)
+    with open("fixtures/edinburgh.geojson") as f: return json.load(f)
+make_tiles.get = fake_get
+edinburgh = next(c for c in PERMIT_CITIES if c["city"] == "Edinburgh")
+got = permits(edinburgh, (55.945, -3.20, 55.952, -3.18))
+assert sorted(t["name"] for t in got) == ["1505 Cafe", "Alba Bistro", "Albanach"] and all(t["kind"] == "TERRASSE" for t in got)
+assert asked == ["https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/edinburgh.geojson"]
+assert [t["name"] for t in permits(edinburgh, (55.95, -3.22, 55.96, -3.21))] == ["Artisan Roast"] and len(asked) == 1
+make_tiles.get = real_get
+assert feed(55.9520, -3.2000) == "Edinburgh" and feed(55.9750, -3.1700) == "Edinburgh" and feed(55.8940, -3.0700) is None
+with open("permits/edinburgh.geojson") as f: snapshot = json.load(f)
+assert len(snapshot["features"]) > 300 and all(f["properties"].get("name") for f in snapshot["features"])
+print("ok (Edinburgh)")
 
 # Los Angeles: the 2021 Al Fresco snapshot, kept only where a venue of today (the published venues/ tiles) stands within
 # 60 m under a matching name. The fixture is nine real rows of the feed over seven real tile cuts (2026-10-05): Dino's

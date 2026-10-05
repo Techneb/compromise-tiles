@@ -141,6 +141,11 @@ PERMIT_CITIES = [
     # Adelaide: City of Adelaide outdoor dining permits (CC BY), matched on the city's own property parcels.
     row("Adelaide", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/adelaide.geojson",
         "name", [], (-34.96, -34.89), (138.57, 138.63), shape="geojson"),
+    # Edinburgh: the council's fortnightly tables-and-chairs permits (© City of Edinburgh Council, used despite the
+    # site's terms at the owner's risk, 2026-10-05), issued and valid on the snapshot's day; geocoded by
+    # permits/geocode_edinburgh.py (Nominatim at the house, else the postcode's centre). The box is the permits'.
+    row("Edinburgh", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/edinburgh.geojson",
+        "name", [], (55.90, 55.99), (-3.31, -3.11), shape="geojson"),
     # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
     # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints. Held to the
     # City's own municipal boundary (Open Government Licence – Toronto): the box reaches Vaughan's tiled cells.
