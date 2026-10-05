@@ -679,3 +679,54 @@ assert at(-34.5851, -58.3792) == "Buenos Aires" and at(-34.5400, -58.4900) == "O
 assert at(45.4848, 9.2016) == "Milan" and at(45.5400, 9.2300) != "Milan" and at(45.4400, 9.1000) != "Milan"
 assert at(41.8986, 12.4769) == "Rome" and at(41.9029, 12.4534) == "OSM"
 print("ok (Shapefile rows)")
+# Streets: the kept ways, simplified, cut at the cells' edges, written in 1e-5° steps.
+from make_tiles import street_kind, simplified, clipped, street_line, street_tiles, entry_layers, Cell
+assert street_kind({"highway": "primary"}) == 1 and street_kind({"highway": "residential"}) == 2
+assert street_kind({"highway": "pedestrian"}) == 3 and street_kind({"highway": "living_street"}) == 3
+assert street_kind({"highway": "service"}) == 2 and street_kind({"highway": "service", "service": "alley"}) == 2
+for out in ({"highway": "motorway"}, {"highway": "motorway_link"}, {"highway": "trunk_link"}, {"highway": "footway"},
+            {"highway": "path"}, {"highway": "track"}, {"highway": "cycleway"}, {"highway": "steps"}, {"amenity": "bar"},
+            {"highway": "primary", "tunnel": "yes"}, {"highway": "secondary", "tunnel": "building_passage"},
+            {"highway": "trunk", "motorroad": "yes"}, {"highway": "pedestrian", "area": "yes"},
+            {"highway": "service", "access": "private"}, {"highway": "residential", "access": "no"},
+            {"highway": "service", "service": "driveway"}, {"highway": "service", "service": "parking_aisle"}):
+    assert street_kind(out) is None, out
+assert street_kind({"highway": "primary", "tunnel": "no"}) == 1 and street_kind({"highway": "residential", "bridge": "yes"}) == 2
+assert street_kind({"highway": "residential", "access": "private", "foot": "yes"}) == 2   # a gated street open on foot
+# Douglas–Peucker: a 1 m kink goes, a 10 m one stays, the ends always stay.
+import math
+dlon = 1 / (111_320 * math.cos(math.radians(48.87)))
+line = [(48.87, 2.33), (48.87 + 1 / 111_320, 2.33 + 50 * dlon), (48.87, 2.33 + 100 * dlon)]
+assert simplified(line) == [line[0], line[2]]
+line[1] = (48.87 + 10 / 111_320, line[1][1])
+assert simplified(line) == line and simplified(line[:2]) == line[:2]
+# Liang–Barsky: a line in and out of a rect comes back as the pieces inside, cut on the edges.
+rect = (0, 0, 1, 1)
+assert clipped([(0.5, -1), (0.5, 2)], rect) == [[(0.5, 0), (0.5, 1)]]
+assert clipped([(0.5, 0.5), (0.5, 0.8)], rect) == [[(0.5, 0.5), (0.5, 0.8)]]
+assert clipped([(2, 2), (3, 3)], rect) == []
+assert clipped([(0.5, 0.5), (0.5, 1.5), (0.6, 1.5), (0.6, 0.5)], rect) == [[(0.5, 0.5), (0.5, 1)], [(0.6, 1), (0.6, 0.5)]]   # out and back in
+assert clipped([(0.2, 0.2), (0.4, 0.4), (0.6, 0.2)], rect) == [[(0.2, 0.2), (0.4, 0.4), (0.6, 0.2)]]   # one piece while inside
+# A street's array: the first point from the key's corner, then deltas; a piece that rounds to one point is dropped.
+assert street_line(2, [(48.87, 2.32656), (48.86967, 2.32644)], "24434,1163") == [2, 200, 56, -33, -12]
+assert street_line(1, [(48.869, 2.327), (48.869000001, 2.327000001)], "24434,1163") is None
+assert street_line(2, [(-0.001, -0.001), (-0.0015, -0.001)], "0,0") == [2, -100, -100, -50, 0]   # key 0 spans both sides
+# Two cells cut a street at the same rounded point, each from its own corner, so the reader joins them exactly.
+west, east = Cell(24434, 1163), Cell(24434, 1164)
+tiles = street_tiles([west, east], [(1, [(48.8690, 2.3270), (48.8692, 2.3290)])])
+(w,), (e,) = tiles[west.key], tiles[east.key]
+def absolute(row, key):
+    ky, kx = map(int, key.split(","))
+    y, x, out = row[1] + ky * 200, row[2] + kx * 200, []
+    out.append((y, x))
+    for i in range(3, len(row), 2):
+        y += row[i]; x += row[i + 1]; out.append((y, x))
+    return out
+assert absolute(w, west.key)[-1] == absolute(e, east.key)[0] == (4886910, 232800), (w, e)
+assert absolute(w, west.key)[0] == (4886900, 232700) and absolute(e, east.key)[-1] == (4886920, 232900)
+assert street_tiles([west], []) == {west.key: []}   # a cell with no street is an empty tile, not a missing one
+# streets/ only for the areas flagged "streets": true; every other layer as asked.
+assert entry_layers({"city": "Paris", "streets": True}, ["venues", "streets"]) == ["venues", "streets"]
+assert entry_layers({"city": "Rouen"}, ["venues", "streets"]) == ["venues"]
+assert entry_layers({"city": "Rouen", "streets": "yes"}, ["streets"]) == []
+print("ok (streets)")
