@@ -602,3 +602,80 @@ with tempfile.TemporaryDirectory() as d:
 assert at(35.7015, 139.7395) == "Tokyo" and at(35.6938, 139.7034) == "Tokyo" and at(35.75, 139.70) == "OSM"
 assert at(34.7050, 135.4970) == "Osaka" and at(34.6664, 135.5003) == "Osaka" and at(34.70, 135.62) == "OSM"
 print("ok (PLATEAU rows)")
+# 2026-10-05 rows, zipped Shapefiles (Buenos Aires, Milan, Rome). The projection, against PROJ (EPSG:7791 and 25833, to a mm):
+# the Duomo and the Colosseum; a datum other than WGS84's realisations (Monte Mario, Gauss-Boaga) is refused.
+import zipfile
+from make_tiles import wkt_projection, to_tm, from_tm, SourceError, Shapefile
+prj = lambda name: zipfile.ZipFile(f"fixtures/{name}").read(next(m for m in zipfile.ZipFile(f"fixtures/{name}").namelist() if m.endswith("UN_VOL.prj"))).decode()
+milan_tm, rome_tm = wkt_projection(prj("milan-dbt.zip")), wkt_projection(prj("rome-dbgt.zip"))
+assert all(abs(a - b) < 0.001 for a, b in zip(to_tm(milan_tm, 45.4642, 9.19), (514853.496, 5034536.796)))
+assert all(abs(a - b) < 0.001 for a, b in zip(to_tm(rome_tm, 41.8902, 12.4922), (291945.994, 4640626.597)))
+assert all(abs(a - b) < 1e-8 for a, b in zip(from_tm(rome_tm, 291945.994, 4640626.597), (41.8902, 12.4922)))
+assert wkt_projection('GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]]]') is None
+try:
+    wkt_projection('PROJCS["Monte_Mario_Italy_1",GEOGCS["GCS_Monte_Mario",DATUM["D_Monte_Mario",SPHEROID["International_1924",6378388.0,297.0]]],'
+                   'PROJECTION["Transverse_Mercator"],PARAMETER["Central_Meridian",9.0],UNIT["Meter",1.0]]')
+    assert False
+except SourceError: pass
+# The rows, on a few real records of each file, zipped as served (the members in the zip's own folder, beside others):
+# Milan's DBT, the Pirelli Tower (its main volume 125.5 m; a portico volume of 122.957 m from a raised base, 127.8 m from
+# its building's ground; an underpass volume) and an underground volume far off, left out; Rome's DBGT, the Pantheon (46.1 m,
+# one volume with a hole, which is left out) and an underpass volume whose building has no ground volume in the fixture
+# (UN_VOL_AV stays); Buenos Aires' Tejido Urbano, two Retiro volumes, a sliver under 1 m², the Alvear Tower and the 830 m
+# outlier (the guess).
+served = {make_tiles.MILAN_DBT: "milan-dbt.zip", make_tiles.LAZIO_DBGT: "rome-dbgt.zip", make_tiles.BUENOS_AIRES_TEJIDO: "buenos-aires-tejido.zip"}
+served = {url: open(f"fixtures/{name}", "rb").read() for url, name in served.items()}
+ranges, tokens = [], []
+def fake_request(self, start, end):
+    ranges.append((self.url, self.headers.get("X-Auth")))
+    body = served[self.url]
+    return body[start:end + 1], f"bytes {start}-{min(end, len(body) - 1)}/{len(body)}"
+def fake_get(url, data=None, parse=None, **k):
+    tokens.append((url, data))
+    return b"eyJ.eyJ.sig\n"
+real_request, real_get = make_tiles.Ranged.request, make_tiles.get
+rows = {b["city"]: b["fetch"] for b in CITY_BUILDINGS}
+heights = lambda got: sorted((b["height"], b.get("guessed")) for b in got)
+with tempfile.TemporaryDirectory() as d:
+    os.chdir(d)
+    make_tiles.Ranged.request, make_tiles.get = fake_request, fake_get
+    try:
+        got = rows["Milan"]((45.4844, 9.2006, 45.4853, 9.2018))
+        assert heights(got) == [(10.8, None), (10.8, None), (12.6, None), (125.5, None), (127.8, None)]
+        assert max(got, key=lambda b: b["height"])["outline"][0] == {"latitude": 45.484538, "longitude": 9.200954}
+        assert rows["Milan"]((45.4555, 9.1922, 45.4562, 9.1930)) == [] and rows["Milan"]((45.50, 9.10, 45.51, 9.11)) == []
+        assert {u for u, _ in ranges} == {make_tiles.MILAN_DBT} and sorted(os.listdir("extracts/shapefile/milan")) == \
+            ["UN_VOL.dbf", "UN_VOL.prj", "UN_VOL.shp", "UN_VOL.shx"]   # the layer's members only, once a run
+        got = rows["Rome"]((41.8964, 12.4752, 41.8992, 12.4776))
+        assert heights(got) == [(18.4, None), (19.5, None), (32.2, None), (46.1, None)]   # four volumes, four outlines: no hole
+        assert tokens == [("https://geoportale.regione.lazio.it/cartografia/api/login", b"{}")]
+        assert {h for u, h in ranges if u == make_tiles.LAZIO_DBGT} == {"eyJ.eyJ.sig"}   # every range request carries the token
+        assert heights(rows["Buenos Aires"]((-34.5856, -58.3794, -34.5850, -58.3786))) == [(2.3, None), (14.2, None)]
+        assert rows["Buenos Aires"]((-34.584935, -58.378910, -34.584905, -58.378885)) == []   # a 5.5 m sliver of 0.1 m², left out
+        assert heights(rows["Buenos Aires"]((-34.6560, -58.3958, -34.6553, -58.3950))) == [(15.0, True)]   # 830 m: the guess
+        assert heights(rows["Buenos Aires"]((-34.6126, -58.3606, -34.6122, -58.3600))) == [(221.4, None)]
+        asked = len(ranges)
+        make_tiles._shapefiles.clear()   # a new run: the members kept on disk are read again, not fetched
+        assert heights(rows["Buenos Aires"]((-34.5856, -58.3794, -34.5850, -58.3786))) == [(2.3, None), (14.2, None)] and len(ranges) == asked
+    finally:
+        os.chdir(here)
+        make_tiles.Ranged.request, make_tiles.get = real_request, real_get
+        make_tiles._shapefiles.clear()
+# A server answering a range with the whole file is refused, not read as the zip's tail.
+class Whole:
+    status, headers = 200, {}
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def read(self): return b""
+real_urlopen = make_tiles.urllib.request.urlopen
+make_tiles.urllib.request.urlopen = lambda *a, **k: Whole()
+try:
+    make_tiles.Ranged("https://example.org/a.zip", {})
+    assert False
+except SourceError as e: assert "no range support" in str(e)
+finally: make_tiles.urllib.request.urlopen = real_urlopen
+# Each row held to its municipality: past General Paz (Vicente López), Sesto San Giovanni and Corsico, the Vatican.
+assert at(-34.5851, -58.3792) == "Buenos Aires" and at(-34.5400, -58.4900) == "OSM"
+assert at(45.4848, 9.2016) == "Milan" and at(45.5400, 9.2300) != "Milan" and at(45.4400, 9.1000) != "Milan"
+assert at(41.8986, 12.4769) == "Rome" and at(41.9029, 12.4534) == "OSM"
+print("ok (Shapefile rows)")

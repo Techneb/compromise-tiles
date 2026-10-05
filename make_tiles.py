@@ -1070,6 +1070,240 @@ def geopackage(url, height):
                 for blob, h in rows if blob for polygon in gpkg_polygons(blob) if polygon and len(polygon[0]) >= 3]
     return fetch
 
+# Shapefiles inside a zip (Buenos Aires, Milan, Rome): one layer's .shp, .shx, .dbf and .prj are fetched by HTTP range,
+# the zip's central directory first (Rome's volumes are 58 MB of a 1.2 GB zip, Milan's 28 MB of 597 MB), kept a year
+# under extracts/shapefile/<folder>/, and read in place: the .shx gives each record's offset, the .shp its box, so a
+# block reads only the records whose box meets it.
+RANGE_CHUNK = 8 << 20   # bytes a ranged request asks for
+SHAPE_BUCKET = 250      # metres (or 1/400°) a side of a Shapefile's in-memory index of record boxes
+MIN_RING = 1            # m²: a Shapefile ring under this is a sliver, left out
+_shapefiles = {}        # (url, layer) → its Shapefile, opened once a run
+
+class Ranged(io.RawIOBase):
+    """A remote file read by HTTP range, for zipfile: a seek is free, each read one request (retried like download())."""
+    def __init__(self, url, headers):
+        self.url, self.headers, self.at = url, headers, 0
+        self.size = int(self.request(0, 0)[1].split("/")[1])
+    def request(self, start, end):
+        for wait in (*WAITS, None):
+            try:
+                request = urllib.request.Request(self.url, headers={"User-Agent": UA, **self.headers, "Range": f"bytes={start}-{end}"})
+                with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+                    if response.status != 206: raise SourceError(f"{self.url}: no range support (HTTP {response.status})")
+                    return response.read(), response.headers.get("Content-Range", "")
+            except SourceError: raise
+            except Exception as e:  # noqa: BLE001 — resets, timeouts: worth another try
+                if wait is None: raise SourceError(f"{self.url}: {type(e).__name__}: {e}") from e
+                log(f"    {self.url.rsplit('/', 1)[1]}: {type(e).__name__}: {e}; retry in {wait} s")
+                time.sleep(wait)
+    def readable(self): return True
+    def seekable(self): return True
+    def tell(self): return self.at
+    def seek(self, offset, whence=0):
+        self.at = (offset, self.at + offset, self.size + offset)[whence]
+        return self.at
+    def readinto(self, buffer):
+        if self.at >= self.size or not len(buffer): return 0
+        body = self.request(self.at, min(self.at + len(buffer), self.size) - 1)[0]
+        buffer[:len(body)] = body
+        self.at += len(body)
+        return len(body)
+
+def zip_layer(url, layer, folder, headers=None):
+    """The path (without extension) of one Shapefile layer of a remote zip, its members fetched by range once a year:
+    the members named `layer` (any folder inside the zip) with extension .shp, .shx, .dbf, .prj or .cpg."""
+    folder = os.path.join("extracts", "shapefile", folder)
+    base = os.path.join(folder, layer)
+    if all(os.path.exists(base + x) and time.time() - os.path.getmtime(base + x) < 365 * 86_400 for x in (".shp", ".shx", ".dbf", ".prj")):
+        return base
+    import zipfile
+    os.makedirs(folder, exist_ok=True)
+    log(f"  fetching {layer} from {url}")
+    with zipfile.ZipFile(io.BufferedReader(Ranged(url, headers() if callable(headers) else headers or {}), RANGE_CHUNK)) as z:
+        members = [m for m in z.namelist() if os.path.splitext(m.rsplit("/", 1)[-1]) in
+                   ((layer, x) for x in (".shp", ".shx", ".dbf", ".prj", ".cpg"))]
+        if len({os.path.splitext(m)[1] for m in members} - {".cpg"}) < 4: raise SourceError(f"{url}: no complete layer {layer}")
+        for m in members:
+            file = base + os.path.splitext(m)[1]
+            with z.open(m) as src, open(file + ".tmp", "wb") as dst: shutil.copyfileobj(src, dst, 1 << 20)
+            os.replace(file + ".tmp", file)
+    return base
+
+def wkt_projection(prj):
+    """A .prj's coordinates: None for longitude/latitude, else its Transverse Mercator as tm_constants() gives it. The
+    datum must be within a metre of WGS84 (ETRS89, RDN2008, POSGAR, SIRGAS: realisations of the same frame, which drift
+    apart by under 1 m in 2026); any other (Monte Mario, ED50, a local datum) is refused rather than misplaced."""
+    datum = re.search(r'DATUM\["([^"]+)"', prj)
+    if not datum or not re.search(r"WGS.?(19)?84|ETRS.?(19)?89|ETRF|RDN.?2008|POSGAR|SIRGAS", datum[1], re.I):
+        raise SourceError(f"datum {datum[1] if datum else '?'}: not one within a metre of WGS84")
+    if not prj.lstrip().startswith("PROJCS"): return None
+    if not re.search(r'PROJECTION\["Transverse_Mercator"\]', prj, re.I): raise SourceError("a projection other than Transverse Mercator")
+    unit = re.findall(r'UNIT\["[^"]+",\s*([\d.]+)', prj)
+    if not unit or float(unit[-1]) != 1: raise SourceError("a projection not in metres")
+    a, inverse_f = map(float, re.search(r'SPHEROID\["[^"]*",\s*([\d.]+),\s*([\d.]+)', prj).groups())
+    p = {k.lower(): float(v) for k, v in re.findall(r'PARAMETER\["([^"]+)",\s*(-?[\d.]+)', prj)}
+    return tm_constants(a, 1 / inverse_f, p.get("central_meridian", 0), p.get("scale_factor", 1), p.get("latitude_of_origin", 0),
+                        p.get("false_easting", 0), p.get("false_northing", 0))
+
+def tm_constants(a, f, lon0, k0, lat0, east0, north0):
+    """Krüger's series to the 4th order in n (Karney 2011), a millimetre from the exact Transverse Mercator within
+    several degrees of the central meridian (Rome lies 2.5° off UTM 33N's)."""
+    n = f / (2 - f)
+    tm = dict(n=n, k=k0 * a / (1 + n) * (1 + n ** 2 / 4 + n ** 4 / 64), lon0=lon0, east0=east0, north0=north0, north_lat0=0.0,
+              alpha=(n / 2 - 2 / 3 * n ** 2 + 5 / 16 * n ** 3 + 41 / 180 * n ** 4, 13 / 48 * n ** 2 - 3 / 5 * n ** 3 + 557 / 1440 * n ** 4,
+                     61 / 240 * n ** 3 - 103 / 140 * n ** 4, 49561 / 161280 * n ** 4),
+              beta=(n / 2 - 2 / 3 * n ** 2 + 37 / 96 * n ** 3 - 1 / 360 * n ** 4, 1 / 48 * n ** 2 + 1 / 15 * n ** 3 - 437 / 1440 * n ** 4,
+                    17 / 480 * n ** 3 - 37 / 840 * n ** 4, 4397 / 161280 * n ** 4),
+              delta=(2 * n - 2 / 3 * n ** 2 - 2 * n ** 3 + 116 / 45 * n ** 4, 7 / 3 * n ** 2 - 8 / 5 * n ** 3 - 227 / 45 * n ** 4,
+                     56 / 15 * n ** 3 - 136 / 35 * n ** 4, 4279 / 630 * n ** 4))
+    tm["north_lat0"] = to_tm(tm, lat0, lon0)[1] - north0
+    return tm
+
+def to_tm(tm, lat, lon):
+    """WGS84 longitude/latitude to the projection's (east, north) metres."""
+    p, l = math.radians(lat), math.radians(lon - tm["lon0"])
+    c = 2 * math.sqrt(tm["n"]) / (1 + tm["n"])
+    t = math.sinh(math.atanh(math.sin(p)) - c * math.atanh(c * math.sin(p)))
+    xi, eta = math.atan2(t, math.cos(l)), math.atanh(math.sin(l) / math.sqrt(1 + t * t))
+    east = eta + sum(a * math.cos(2 * j * xi) * math.sinh(2 * j * eta) for j, a in enumerate(tm["alpha"], 1))
+    north = xi + sum(a * math.sin(2 * j * xi) * math.cosh(2 * j * eta) for j, a in enumerate(tm["alpha"], 1))
+    return tm["east0"] + tm["k"] * east, tm["north0"] + tm["k"] * north - tm["north_lat0"]
+
+def from_tm(tm, east, north):
+    """The projection's (east, north) metres to WGS84 (latitude, longitude)."""
+    xi, eta = (north - tm["north0"] + tm["north_lat0"]) / tm["k"], (east - tm["east0"]) / tm["k"]
+    xi, eta = (xi - sum(b * math.sin(2 * j * xi) * math.cosh(2 * j * eta) for j, b in enumerate(tm["beta"], 1)),
+               eta - sum(b * math.cos(2 * j * xi) * math.sinh(2 * j * eta) for j, b in enumerate(tm["beta"], 1)))
+    chi = math.asin(math.sin(xi) / math.cosh(eta))
+    lat = chi + sum(d * math.sin(2 * j * chi) for j, d in enumerate(tm["delta"], 1))
+    return math.degrees(lat), tm["lon0"] + math.degrees(math.atan2(math.sinh(eta), math.cos(xi)))
+
+class Shapefile:
+    """One polygon layer (.shp, .shx, .dbf, .prj; Polygon, PolygonZ or PolygonM, a Z or M ignored), read in place.
+    Opening it reads every record's box once (from the .shp at each .shx offset) into a grid of SHAPE_BUCKET cells."""
+    def __init__(self, base):
+        with open(base + ".prj", encoding="latin-1") as f: self.tm = wkt_projection(f.read())
+        encoding = "latin-1"
+        if os.path.exists(base + ".cpg"):
+            with open(base + ".cpg", encoding="ascii") as f: encoding = {"utf-8": "utf-8", "utf8": "utf-8"}.get(f.read().strip().lower(), "latin-1")
+        self.encoding, self.shp, self.dbf = encoding, open(base + ".shp", "rb"), open(base + ".dbf", "rb")
+        head = self.dbf.read(32)
+        self.count, self.header, self.length = struct.unpack_from("<IHH", head, 4)
+        self.fields, at = {}, 1
+        for k in range((self.header - 33) // 32):
+            f = self.dbf.read(32)
+            if f[0] == 0x0D: break
+            self.fields[f[:11].split(b"\0")[0].decode("latin-1")] = (at, f[16], chr(f[11]))
+            at += f[16]
+        with open(base + ".shx", "rb") as f: shx = f.read()
+        self.offsets = array.array("q", (2 * struct.unpack_from(">i", shx, 100 + 8 * k)[0] for k in range((len(shx) - 100) // 8)))
+        self.size = 1 / 400 if self.tm is None else SHAPE_BUCKET
+        self.boxes, self.grid = array.array("d"), {}
+        for k, offset in enumerate(self.offsets):
+            self.shp.seek(offset + 8)
+            kind, *box = struct.unpack("<i4d", self.shp.read(36))
+            self.boxes.extend(box if kind else (0, 0, -1, -1))
+            if not kind: continue
+            for gx in range(math.floor(box[0] / self.size), math.floor(box[2] / self.size) + 1):
+                for gy in range(math.floor(box[1] / self.size), math.floor(box[3] / self.size) + 1):
+                    self.grid.setdefault((gx, gy), []).append(k)
+
+    def box(self, rect):
+        """A lat/lon rect in the file's coordinates: (x0, y0, x1, y1) around its corners and edge midpoints."""
+        s, w, n, e = rect
+        if self.tm is None: return w, s, e, n
+        points = [to_tm(self.tm, lat, lon) for lat in (s, (s + n) / 2, n) for lon in (w, (w + e) / 2, e)]
+        return min(x for x, _ in points), min(y for _, y in points), max(x for x, _ in points), max(y for _, y in points)
+
+    def attributes(self, k, names):
+        """Record k's fields `names` from the .dbf: numbers as floats (blank: None), text stripped; None if deleted."""
+        self.dbf.seek(self.header + k * self.length)
+        raw = self.dbf.read(self.length)
+        if raw[:1] == b"*": return None
+        out = {}
+        for name in names:
+            at, size, kind = self.fields[name]
+            text = raw[at:at + size].decode(self.encoding, "replace").strip()
+            out[name] = (number(text) if text else None) if kind in "NF" else text
+        return out
+
+    def table(self, names):
+        """Every record's fields `names`, in order (a deleted one as None)."""
+        return [self.attributes(k, names) for k in range(self.count)]
+
+    def rings(self, k):
+        """Record k's outer rings (clockwise, the Shapefile's rule; holes left out) as [(latitude, longitude)]. A ring
+        under MIN_RING m² is left out: a sliver (half the volumes in Buenos Aires' densest cell, Barrio Padre Mugica)."""
+        self.shp.seek(self.offsets[k] + 8)
+        kind, = struct.unpack("<i", self.shp.read(4))
+        if kind not in (5, 15, 25): return []
+        body = self.shp.read(32 + 8)
+        parts, points = struct.unpack_from("<ii", body, 32)
+        starts = struct.unpack(f"<{parts}i", self.shp.read(4 * parts)) + (points,)
+        xy = struct.unpack(f"<{2 * points}d", self.shp.read(16 * points))
+        out = []
+        for a, b in zip(starts, starts[1:]):
+            ring = [(xy[2 * i], xy[2 * i + 1]) for i in range(a, b)]
+            twice = -sum(p[0] * q[1] - q[0] * p[1] for p, q in zip(ring, ring[1:])) if len(ring) >= 4 else 0
+            if self.tm is None: twice *= M * M * math.cos(math.radians(ring[0][1]))
+            if twice < 2 * MIN_RING: continue
+            out.append([(y, x) if self.tm is None else from_tm(self.tm, x, y) for x, y in ring[:-1]])
+        return out
+
+    def records(self, rect, names):
+        """(attributes, rings) for every record whose box meets the lat/lon rect."""
+        x0, y0, x1, y1 = self.box(rect)
+        seen = sorted({k for gx in range(math.floor(x0 / self.size), math.floor(x1 / self.size) + 1)
+                       for gy in range(math.floor(y0 / self.size), math.floor(y1 / self.size) + 1) for k in self.grid.get((gx, gy), ())})
+        for k in seen:
+            bx0, by0, bx1, by1 = self.boxes[4 * k:4 * k + 4]
+            if bx0 > x1 or bx1 < x0 or by0 > y1 or by1 < y0: continue
+            p = self.attributes(k, names)
+            if p is not None: yield p, self.rings(k)
+
+def shapefile(url, layer, folder, names, height, headers=None):
+    """A fetch over one zipped Shapefile layer (zip_layer(), opened once a run): each record whose box meets the rect,
+    `height(attributes, shapefile)` as its height (None: the flagged 15 m guess; False: left out), one building
+    per outer ring."""
+    def fetch(rect):
+        if (url, layer) not in _shapefiles: _shapefiles[(url, layer)] = Shapefile(zip_layer(url, layer, folder, headers))
+        f = _shapefiles[(url, layer)]
+        out = []
+        for p, rings in f.records(rect, names):
+            h = height(p, f)
+            if h is False: continue
+            out += [building([vertex(lat, lon) for lat, lon in ring], h if h and h > 0 else None) for ring in rings]
+        return out
+    return fetch
+
+# The Italian DBT's unità volumetriche (Milan's Comune, Regione Lazio): UN_VOL_AV is a volume's own height above its
+# base. For one al suolo (UN_VOL_POR 01) that is its height above ground. A raised one (02 overhang, 03 portico
+# ceiling, 04 underpass ceiling, 05 loggia, 09 covered passage: a tenth of Milan's) starts above the ground, so its top
+# is UN_VOL_QE, the extrusion's elevation, less its building's ground: the lowest base (QE - AV) of the building's
+# ground volumes (CEDIUV), 3.9 m more than AV at the median in Milan. Underground volumes (08) are left out.
+DBT_FIELDS = ("UN_VOL_AV", "UN_VOL_POR", "UN_VOL_QE", "CEDIUV")
+
+def dbt_height(p, f):
+    if p["UN_VOL_POR"] == "08": return False
+    if p["UN_VOL_POR"] in ("", "01") or p["UN_VOL_QE"] is None: return p["UN_VOL_AV"]
+    if not hasattr(f, "ground"):  # {building: its ground elevation}, read once a run
+        ground = f.ground = {}
+        for q in f.table(DBT_FIELDS):
+            if q and q["UN_VOL_POR"] == "01" and q["UN_VOL_QE"] is not None and q["UN_VOL_AV"] is not None:
+                ground[q["CEDIUV"]] = min(ground.get(q["CEDIUV"], math.inf), q["UN_VOL_QE"] - q["UN_VOL_AV"])
+    base = f.ground.get(p["CEDIUV"])
+    return p["UN_VOL_QE"] - base if base is not None and p["UN_VOL_QE"] - base > 0 else p["UN_VOL_AV"]
+
+MILAN_DBT = "https://gisportal.comune.milano.it/download/area_download/SIT/DBT2020/DBT_2020.zip"
+LAZIO_DBGT = "https://geoportale.regione.lazio.it/cartografia/api/raw/2020_DBGT_5K_SHP/Roma.zip"
+BUENOS_AIRES_TEJIDO = "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/secretaria-de-desarrollo-urbano/tejido-urbano/tejido.zip"
+
+def lazio_token():
+    """Regione Lazio's file browser serves its files to an anonymous session: its login endpoint hands any caller a JWT."""
+    token = get("https://geoportale.regione.lazio.it/cartografia/api/login", data=b"{}").decode().strip()
+    if token.count(".") != 2: raise SourceError("Lazio file browser: no token")
+    return {"X-Auth": token}
+
 # The Environment Agency's LIDAR Composite, 1 m (England; London from the National LIDAR Programme's 2018–2021
 # surveys), read through its WCS: no key, a DEFLATE GeoTIFF in British National Grid metres for any window.
 LIDAR_WCS = "https://environment.data.gov.uk/spatialdata/{}/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId={}" \
@@ -1426,6 +1660,24 @@ CITY_BUILDINGS = [
     # 387,528 buildings); the box's eastern sliver past the city line (Higashiōsaka, Moriguchi) has no file and falls to OSM.
     building_row("Tokyo", (35.6298, 35.7398), (139.6616, 139.7971), plateau([f"131{k:02d}" for k in range(1, 24)])),
     building_row("Osaka", (34.6394, 34.7494), (135.4664, 135.6002), plateau(["27100"])),
+    # Wired 2026-10-05 (the heights survey of 2026-10-04): three zipped Shapefiles (shapefile()), each box the city's
+    # tiled area (cities.json), held to the municipality its file covers. Buenos Aires: Tejido Urbano (Subsecretaría de
+    # Planeamiento, data to 2021, CC BY 2.5 AR; WGS84): altura, metres, on all 1,386,616 volumes; two read 280 and
+    # 830 m, over the city's tallest (Alvear Tower, 235 m): over 250 is the flagged guess. Held to CABA's perimetro
+    # (CC BY 2.5 AR): Vicente López and the partidos past General Paz stay OSM.
+    building_row("Buenos Aires", (-34.6433, -34.5332), (-58.4952, -58.3615), boundary=boundary("buenos-aires"),
+                 fetch=shapefile(BUENOS_AIRES_TEJIDO, "tejido", "buenos-aires", ("altura",),
+                                 lambda p, f: p["altura"] if p["altura"] and p["altura"] <= 250 else None)),
+    # Milan: the Comune's DBT 2020 (CC BY 4.0; RDN2008 / UTM 32N), 237,743 unità volumetriche (dbt_height). Held to the
+    # Comune's confine (CC BY 4.0): Sesto San Giovanni, Bresso, Corsico and the rest of the box stay OSM.
+    building_row("Milan", (45.435, 45.5451), (9.0903, 9.2473), boundary=boundary("milan"),
+                 fetch=shapefile(MILAN_DBT, "UN_VOL", "milan", DBT_FIELDS, dbt_height)),
+    # Rome: Regione Lazio's DBGT 2020 for Roma (ETRS89 / UTM 33N; 386,769 volumes, 78 % surveyed 2003, the rest 2014 and
+    # 2023; the licence asks that the source be named), the same rule. Monuments drawn as other classes (the Colosseum)
+    # are not volumes. Held to Roma Capitale (ISTAT's 2025 limits, CC BY 4.0): the Vatican, which the file leaves out,
+    # stays OSM.
+    building_row("Rome", (41.8417, 41.9517), (12.4256, 12.5734), boundary=boundary("rome"),
+                 fetch=shapefile(LAZIO_DBGT, "UN_VOL", "rome", DBT_FIELDS, dbt_height, headers=lazio_token)),
 ]
 
 

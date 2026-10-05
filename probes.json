@@ -591,5 +591,25 @@
  "buildings/Osaka": {
   "key": "17352,67748",
   "picked": "2026-10-05"
+ },
+ "buildings/Buenos Aires": {
+  "key": "-17292,-29189",
+  "picked": "2026-10-05",
+  "licence": {
+   "kind": "ckan",
+   "url": "https://data.buenosaires.gob.ar/api/3/action/package_show?id=tejido-urbano"
+  }
+ },
+ "buildings/Milan": {
+  "key": "22742,4615",
+  "picked": "2026-10-05",
+  "licence": {
+   "kind": "ckan",
+   "url": "https://dati.comune.milano.it/api/3/action/package_show?id=ds2889_database-topografico-dbt-2020-shp"
+  }
+ },
+ "buildings/Rome": {
+  "key": "20946,6243",
+  "picked": "2026-10-05"
  }
 }
