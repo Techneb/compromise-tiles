@@ -172,8 +172,17 @@ jobs:
           [ -d out ] || exit 0
           # Tens of thousands of small files (Paris, 2026-09-28: over 20 min at the default 10): more in flight; 32, not 64, since R2 throttled single PUTs at 64 (2026-10-03, -05).
           aws configure set default.s3.max_concurrent_requests 32
-          aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
-            --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
+          up() { aws s3 cp "$@" --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"; }
+          # Even with retries R2 still refuses a few PUTs (Edinburgh 1, Rome 1, Buenos Aires 2 on 2026-10-05):
+          # those files alone go up again, one at a time; anything else still fails the step.
+          up out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive > upload.log 2>&1 && exit 0
+          cat upload.log
+          grep -q '^upload failed: out/' upload.log || exit 1
+          grep -v '^upload failed: out/' upload.log | grep -q . && exit 1
+          sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
+            sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
+          done
 
   # The tiles committed in this repository (built off GitHub), uploaded as they are, with their feed fragment.
   repo_upload:
