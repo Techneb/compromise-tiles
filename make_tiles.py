@@ -906,6 +906,7 @@ def oakland(rect):
                       lambda p: (number(p.get("nostory")) or 0) * 3.0, guess=False)
 
 NRCAN_GTA = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_GTA_2023_gpkg.zip"
+NRCAN_MONTREAL = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_QC_VILLE_MONTREAL_gpkg.zip"
 _geopackages = {}  # zip URL → (its GeoPackage opened read-only, table, geometry column), unpacked once a run
 
 def wkb_polygons(raw, at=0):
@@ -1291,6 +1292,25 @@ CITY_BUILDINGS = [
     building_row("Leeds", (53.6989, 53.9459), (-1.8005, -1.2903), boundary=boundary("leeds"), combine="metres", fetch=lidar),
     building_row("Liverpool", (53.3268, 53.475), (-3.0088, -2.818), boundary=boundary("liverpool-ons"), combine="metres", fetch=lidar),
     building_row("Sheffield", (53.3045, 53.5032), (-1.8015, -1.3245), boundary=boundary("sheffield"), combine="metres", fetch=lidar),
+    # Wired 2026-10-05 (the heights survey of 2026-10-04). Toronto: Vaughan's GTA GeoPackage again (heightmax on all
+    # 928,813 footprints; one download serves both rows), the box the City's boundary's and held to it (toronto.geojson,
+    # the permit row's): York University is in, Mississauga, Markham and Pickering stay OSM. After Vaughan, whose box
+    # it overlaps. Both NRCan files draw attached buildings as one footprint (a Plateau block is one outline at its
+    # tallest part), so a cell holds fewer footprints than OSM's, every one with a height.
+    building_row("Toronto", (43.581, 43.8555), (-79.6393, -79.1152), boundary=boundary("toronto"),
+                 fetch=geopackage(NRCAN_GTA, "heightmax")),
+    # Montréal: NRCan's Autobuilding_QC_VILLE_MONTREAL (the 2015 municipal lidar, Open Government Licence – Canada):
+    # heightmax on 227,310 of 227,327 footprints, -1 on the rest (the flagged guess). The box is the file's extent,
+    # which reaches Pont-Viau across the Rivière des Prairies; held to the agglomeration (montreal.geojson: the island,
+    # the villes liées included, which the file covers like the arrondissements), so Laval and Longueuil stay OSM.
+    building_row("Montréal", (45.3933, 45.7044), (-73.9762, -73.4732), boundary=boundary("montreal"),
+                 fetch=geopackage(NRCAN_MONTREAL, "heightmax")),
+    # Bogotá: IDECA's Construcción (UAECD, CC BY 4.0; 2.4 M footprints, refreshed monthly, 2,000 a page): CONNPISOS
+    # floors × 3 m, 0 floors (9 of 261 at Zona T) the flagged guess; CONALTURA is not a height. The box is the layer's
+    # extent, the Distrito Capital.
+    building_row("Bogotá", (3.8214, 4.8324), (-74.3934, -73.9939), lambda r: footprints(arcgis(
+        "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0", r, ["CONNPISOS"]),
+        lambda p: number(p.get("CONNPISOS")) * 3 if number(p.get("CONNPISOS")) else None)),
 ]
 
 

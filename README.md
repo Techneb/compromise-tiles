@@ -177,8 +177,11 @@ none, this says so rather than guessing.
   on OpenStreetMap's footprints.
 - Oakland: City of Oakland, BuildingFootprints (licence not stated by the
   publisher); heights on OpenStreetMap's footprints.
-- Vaughan: Natural Resources Canada, Automatically Extracted Buildings.
-  Contains information licensed under the Open Government Licence – Canada.
+- Vaughan, Toronto, Montréal: Natural Resources Canada, Automatically
+  Extracted Buildings. Contains information licensed under the Open
+  Government Licence – Canada.
+- Bogotá: Unidad Administrativa Especial de Catastro Distrital – UAECD
+  (IDECA), Construcción, CC BY 4.0.
 - Edmonton: City of Edmonton, Rooflines (as of 2019). Contains information
   licensed under the Open Government Licence – City of Edmonton.
 - London, Birmingham, Bristol, Leeds, Liverpool, Sheffield: Environment
@@ -213,6 +216,9 @@ none, this says so rather than guessing.
   Data (licence not stated by the publisher).
 - Istanbul: General Command of Mapping (Türkiye), administrative
   boundaries through OCHA (COD-AB), CC BY-IGO.
+- Montréal (the agglomeration, `montreal.geojson`): Ville de Montréal,
+  Limites administratives de l'agglomération de Montréal (arrondissements
+  et villes liées), CC BY 4.0; its 34 polygons dissolved into one.
 
 **City names and points (`survey-candidates.json`)**
 - GeoNames (geonames.org), CC BY 4.0.

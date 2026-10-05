@@ -555,5 +555,21 @@
   "key": "26690,-735",
   "picked": "2026-10-04",
   "combine": true
+ },
+ "buildings/Toronto": {
+  "key": "21841,-39724",
+  "picked": "2026-10-05"
+ },
+ "buildings/Montréal": {
+  "key": "22760,-36788",
+  "picked": "2026-10-05"
+ },
+ "buildings/Bogotá": {
+  "key": "2308,-37032",
+  "picked": "2026-10-05",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0?f=json"
+  }
  }
 }
