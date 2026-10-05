@@ -2,7 +2,7 @@
 # coverage feed. Weekly: venues and terraces. Yearly: buildings (run it by hand too when cities.json
 # gains an area). French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
 # to name the feed's areas; they are never uploaded (2026-10-03: the app credits from sources/).
-# Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET. Public repo, standard
+# Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
 # uploaded; dry_run builds and prints that plan without writing anything.
 name: Tiles
@@ -119,6 +119,7 @@ jobs:
         env:
           CITY: ${{ matrix.city }}
           LAYERS: ${{ needs.plan.outputs.layers }}
+          STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, the row is skipped
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
           timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 \
@@ -169,8 +170,8 @@ jobs:
           AWS_MAX_ATTEMPTS: "10"
         run: |
           [ -d out ] || exit 0
-          # Tens of thousands of small files (Paris, 2026-09-28: over 20 min at the default 10): more in flight.
-          aws configure set default.s3.max_concurrent_requests 64
+          # Tens of thousands of small files (Paris, 2026-09-28: over 20 min at the default 10): more in flight; 32, not 64, since R2 throttled single PUTs at 64 (2026-10-03, -05).
+          aws configure set default.s3.max_concurrent_requests 32
           aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
 

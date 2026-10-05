@@ -34,7 +34,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zlib, zoneinfo
+import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -215,6 +215,22 @@ PERMIT_CITIES = [
     row("Kensington and Chelsea", "", "utility.arcgis.com/usrsvcs/servers/d70af383b66642a59ffae23125511dfc/rest/services",
         "RBKC/EnvironmentalHealth/MapServer/6", "TradingName", [], (51.47, 51.53), (-0.23, -0.15), shape="arcgis",
         filter="ExpiryDate >= CURRENT_TIMESTAMP", boundary=boundary("kensington-and-chelsea")),
+    # Los Angeles: DataLA's L.A. Al Fresco dining locations (ArcGIS Online, no licence stated), a January 2021 snapshot of
+    # COVID-era authorisations — 2,273 named points, no status or expiry, both types (sidewalk and private property,
+    # on-street) open air. Many of those venues are gone, so a permit is kept only where a venue of today stands under its
+    # name (`match="venues"`: the published venues/ tiles, OpenStreetMap's, within MATCH_REACH; owner, 2026-10-05). The box
+    # is the tiled area's (cities.json): the layer covers the whole city, the venue tiles only this.
+    row("Los Angeles", "", "services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services", "Al_Fresco_Dining_Locations/FeatureServer/0",
+        "Business_Name", [], (34.015, 34.087), (-118.2907, -118.2073), shape="arcgis", match="venues"),
+    # Stockholm: Trafikkontoret's markupplåtelser (public-ground leases, CC0 1.0 per the layer's metadata), a WFS
+    # behind a free API key: `key` names the environment variable holding it (an Actions secret), which goes into
+    # the URL path at fetch time and never into a log; without it the row is left out of the run, logged. Only
+    # the uteservering kind of ärendekategori is kept, and only unexpired leases; the attribute names are matched
+    # loosely (no sample without the key, 2026-10-05) and the first answer's field names are logged. No name
+    # field until that sample shows one, so the door rule. The box is the tiled area's (cities.json); no other
+    # city's cells fall in it, so no boundary.
+    row("Stockholm", "", "openstreetgs.stockholm.se/geoservice/api/{key}/wfs", "od_gis:Markupplatelse_Punkt", "", [],
+        (59.267, 59.371), (17.9638, 18.1642), shape="stockholm", key="STOCKHOLM_API_KEY"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -227,7 +243,20 @@ class SourceError(Exception):
 
 _last, _dead = {}, {}
 
-def log(message): print(message, file=sys.stderr, flush=True)
+def redact(text):
+    """The text with every keyed row's secret blanked: a key sits in its feed's URL path."""
+    for c in PERMIT_CITIES:
+        secret = c.get("key") and os.environ.get(c["key"])
+        if secret: text = text.replace(secret, "***")
+    return text
+
+def log(message): print(redact(str(message)), file=sys.stderr, flush=True)
+
+def keyed_host(c):
+    """A row's host with its API key filled in from the environment ({key}); None when the key is not set."""
+    if not c.get("key"): return c["host"]
+    secret = os.environ.get(c["key"], "").strip()
+    return c["host"].replace("{key}", urllib.parse.quote(secret, safe="")) if secret else None
 
 def get(url, data=None, parse=None, waits=WAITS, context=None):
     """One request, retried after each of `waits`: spaced per host, gzip asked
@@ -357,8 +386,10 @@ def smallest_region(regions, lat, lon):
     if not holding: raise SourceError(f"no Geofabrik extract holds {lat},{lon}")
     return max(holding, key=lambda f: (depth(f["properties"]["id"]), -size(f)))
 
-def download(url, folder, max_days=6):
-    """A whole file, kept in `folder` and fetched again once older than `max_days` (Geofabrik updates daily)."""
+def download(url, folder, max_days=6, headers=None):
+    """A whole file, kept in `folder` and fetched again once older than `max_days` (Geofabrik updates daily).
+    The bytes are kept as served: with `headers` asking for gzip, a store that holds the file gzipped
+    (PLATEAU's) sends it so, and the reader inflates it."""
     file = os.path.join(folder, url.rsplit("/", 1)[1])
     if os.path.exists(file) and time.time() - os.path.getmtime(file) < max_days * 86_400: return file
     os.makedirs(folder, exist_ok=True)
@@ -367,7 +398,7 @@ def download(url, folder, max_days=6):
     # them 504 or hangs (2026-09-27, three of three jobs, two lost); a minute later it serves them.
     for attempt, wait in enumerate((60, 120, 240, None)):
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": UA})
+            request = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response, open(file + ".tmp", "wb") as f:
                 shutil.copyfileobj(response, f, 1 << 20)
             break
@@ -846,6 +877,77 @@ def citygml_tiles(url, km):
         return out
     return fetch
 
+# MLIT's Project PLATEAU (3D都市モデル): CityGML 2.0 per city, one building file per 1 km mesh, listed by the
+# PLATEAU data catalogue's keyless API per city code (Osaka: 27100; Tokyo: each of the 23 wards, 13101–13123,
+# a mesh on a ward border having a file per ward). The store holds the files gzipped and serves them so when
+# asked (a 124 MB mesh is 16 MB on the wire).
+PLATEAU_INDEX = "https://api.plateau.reearth.io/datacatalog/citygml/{}"
+PLATEAU_KEPT = 40    # mesh files held parsed (a dense one ~3,000 buildings, ~10 MB): a row of 600 m blocks across
+                     # a 13 km box touches ~30, so a sweep parses each once
+_plateau_index = {}  # city code → {mesh code: [file URLs]}, read once a run
+_plateau = {}        # file URL → its buildings, the PLATEAU_KEPT most recently used
+
+def mesh_code(lat, lon):
+    """The Japanese standard 3rd-level mesh (JIS X 0410: 30″ × 45″, ~1 km) holding a point, as its 8-digit code:
+    the 1st mesh (lat × 1.5, lon − 100), its 8 × 8 cell, then that cell's 10 × 10 cell."""
+    p, u = lat * 1.5, lon - 100
+    q, v = (p % 1) * 8, (u % 1) * 8
+    return f"{int(p):02d}{int(u):02d}{int(q)}{int(v)}{int((q % 1) * 10)}{int((v % 1) * 10)}"
+
+def mesh_codes(rect):
+    """The 3rd-level meshes a box touches, west to east then south to north."""
+    s, w, n, e = rect
+    return [mesh_code((i + 0.5) / 120, (j + 0.5) / 80)
+            for i in range(math.floor(s * 120), math.floor(n * 120) + 1) for j in range(math.floor(w * 80), math.floor(e * 80) + 1)]
+
+def plateau_buildings(raw):
+    """A PLATEAU building file (gzipped or not): CityGML 2.0 in EPSG:6697, posLists "lat lon height" (three values
+    a point, no srsDimension on them). Each Building's or BuildingPart's outline is its LoD2 ground surface where it
+    has one (LoD2 covers 20 % of Tokyo's buildings, 2.6 % of Osaka's), else its LoD0 footprint (Osaka), else its
+    LoD0 roof edge (Tokyo); its height is measuredHeight, metres (-9999 where unmeasured: the flagged guess)."""
+    if raw[:2] == b"\x1f\x8b": raw = gzip.decompress(raw)
+    out = []
+    for _, el in ET.iterparse(io.BytesIO(raw)):
+        if el.tag.rsplit("}", 1)[-1] != "Building": continue
+        for obj in [el] + el.findall(".//{*}BuildingPart"):
+            h = number(obj.findtext("{*}measuredHeight"))
+            lists = next((found for where in ("{*}boundedBy/{*}GroundSurface", "{*}lod0FootPrint", "{*}lod0RoofEdge")
+                          if (found := obj.findall(where + "//{*}exterior//{*}posList"))), [])
+            for pos in lists:
+                v, d = [float(x) for x in pos.text.split()], int(pos.get("srsDimension") or 3)
+                ring = [vertex(v[i], v[i + 1]) for i in range(0, len(v) - d + 1, d)]
+                if len(ring) >= 3: out.append(building(ring, h if h and h > 0 else None))
+        el.clear()
+    return out
+
+def plateau(codes):
+    """A fetch over PLATEAU's building files for the cities (or wards) of `codes`: their catalogues are read once a
+    run, each mesh file a box touches is downloaded once (kept a year under extracts/plateau/<code>/, gzipped as
+    served) and parsed once a run (the PLATEAU_KEPT most recent held). A mesh no city lists has no building."""
+    def fetch(rect):
+        files = {}
+        for code in codes:
+            if code not in _plateau_index:
+                cities = sorted(get_json(PLATEAU_INDEX.format(code)).get("cities") or [], key=lambda c: c.get("year") or 0)
+                index = {}
+                for f in ((cities[-1].get("files") or {}).get("bldg") or []) if cities else []:
+                    index.setdefault(f["code"], []).append(f["url"])
+                _plateau_index[code] = index
+            for mesh in mesh_codes(rect):
+                for url in _plateau_index[code].get(mesh, ()): files[url] = code
+        s, w, n, e = rect
+        out = []
+        for url, code in files.items():
+            if url in _plateau:
+                _plateau[url] = _plateau.pop(url)  # the most recent last
+            else:
+                file = download(url, os.path.join("extracts", "plateau", code), max_days=365, headers={"Accept-Encoding": "gzip"})
+                with open(file, "rb") as f: _plateau[url] = plateau_buildings(f.read())
+                while len(_plateau) > PLATEAU_KEPT: del _plateau[next(iter(_plateau))]
+            out += [b for b in _plateau[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+        return out
+    return fetch
+
 def beoland(rect):
     """Beoland's Belgrade LoD2 multipatch, which answers no GeoJSON and leaves measuredheight empty: the
     footprints' outer (clockwise) rings from one query, each height (the extent's top minus its bottom,
@@ -1316,6 +1418,14 @@ CITY_BUILDINGS = [
     building_row("Bogotá", (3.8214, 4.8324), (-74.3934, -73.9939), lambda r: footprints(arcgis(
         "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0", r, ["CONNPISOS"]),
         lambda p: number(p.get("CONNPISOS")) * 3 if number(p.get("CONNPISOS")) else None)),
+    # Wired 2026-10-05 (the heights survey of 2026-10-04). MLIT's Project PLATEAU 3D都市モデル, the 2025 editions (PLATEAU site
+    # policy: PDL 1.0, CC BY-compatible, commercial use allowed; the credit names the model and says it was processed):
+    # bldg:measuredHeight, metres (lidar 2021 in Tokyo, 2017 in Osaka), on the LoD2 ground surface, else the LoD0 footprint or
+    # roof edge (plateau_buildings). Each box is the city's tiled area (cities.json), no other tiled city near it. Tokyo: the
+    # 23 wards' files (307 meshes, 981,053 buildings in the box), which cover the box whole. Osaka: 大阪市's (129 meshes,
+    # 387,528 buildings); the box's eastern sliver past the city line (Higashiōsaka, Moriguchi) has no file and falls to OSM.
+    building_row("Tokyo", (35.6298, 35.7398), (139.6616, 139.7971), plateau([f"131{k:02d}" for k in range(1, 24)])),
+    building_row("Osaka", (34.6394, 34.7494), (135.4664, 135.6002), plateau(["27100"])),
 ]
 
 
@@ -1404,6 +1514,60 @@ def not_applicable(text):
 CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name,
          "riga": riga_venue_name, "toronto": toronto_name, "helsinki": helsinki_venue_name, "seattle": seattle_venue_name,
          "n/a": not_applicable}
+
+# A snapshot's permit survives only where a venue of today stands under its name (Los Angeles, a January 2021 list,
+# 2026-10-05). The venues are the published venues/ tiles (OpenStreetMap's: Apple's cannot be read from a build), within
+# MATCH_REACH metres under a matching name — the app's own rule (TerraceNames.swift: normalised, namesMatch), ported so a
+# permit kept here is one the app can hand to the venue. A permit with no name, or no venue tile, is dropped.
+MATCH_REACH = 60
+_venue_tiles = {}   # {key: items} read once per run
+
+PLACE_WORDS = {
+    "BAR", "BARS", "CAFE", "CAFES", "COFFEE", "PUB", "RESTAURANT", "RESTAURANTE", "RISTORANTE", "BRASSERIE",
+    "BISTRO", "CERVECERIA", "TABERNA", "TAVERNA", "KNEIPE", "TRATTORIA", "OSTERIA", "THE", "LE", "LA", "LES",
+    "EL", "LOS", "LAS", "IL", "DE", "DU", "DES", "DEL", "DI", "DER", "DIE", "DAS", "Y", "ET", "E", "AND", "UND",
+}
+
+def normalised_name(name):
+    """Uppercased, accents and punctuation stripped, spaces collapsed: "Café Oz" and "CAFE OZ - THE AUSTRALIAN BAR" meet."""
+    if not name: return ""
+    folded = "".join(ch for ch in unicodedata.normalize("NFKD", name) if not unicodedata.combining(ch)).upper()
+    return " ".join("".join(ch if ch.isalnum() else " " for ch in folded).split())
+
+def names_match(lhs, rhs):
+    """One name contains the other, or they share their first two words, or every word of the shorter is in the longer once
+    words that name a kind of place and bare numbers are set aside — one short shared word is not a match."""
+    if not lhs or not rhs: return False
+    if rhs in lhs or lhs in rhs: return True
+    left, right = lhs.split(" ")[:2], rhs.split(" ")[:2]
+    if len(left) == 2 and left == right: return True
+    core = lambda name: {w for w in name.split(" ") if w not in PLACE_WORDS and not w.isdigit()}
+    small, big = sorted([core(lhs), core(rhs)], key=len)
+    if not (len(small) >= 2 or (len(small) == 1 and len(next(iter(small))) >= 5)): return False
+    return small <= big
+
+def venue_tiles_around(lat, lon):
+    """The keys of the published venue tiles a venue within MATCH_REACH of the point can sit in (one to four)."""
+    s, w, n, e = padded((lat, lon, lat, lon), MATCH_REACH)
+    return sorted({f"{index(a, COARSE)},{index(b, COARSE)}" for a in (s, n) for b in (w, e)})
+
+def surviving(items, city):
+    """The permits a venue of today stands under: a named one with a venue within MATCH_REACH under a matching name.
+    A venue tile that could not be read fails the feed (half an answer is not a tile), a missing one holds no venue."""
+    out = []
+    for t in items:
+        wanted = normalised_name(t.get("name"))
+        if not wanted: continue
+        lat, lon = t["coordinate"]["latitude"], t["coordinate"]["longitude"]
+        venues = []
+        for key in venue_tiles_around(lat, lon):
+            if key not in _venue_tiles: _venue_tiles[key] = published_items("venues", key, bust=True)
+            if isinstance(_venue_tiles[key], SourceError): raise SourceError(f"{city}: venues/{key}: {_venue_tiles[key]}")
+            venues += _venue_tiles[key]
+        if any(metres(lat, lon, v["coordinate"]["latitude"], v["coordinate"]["longitude"]) <= MATCH_REACH
+               and names_match(normalised_name(v.get("name")), wanted) for v in venues):
+            out.append(t)
+    return out
 
 def arcgis_filter(text):
     """ArcGIS dates: `DATE 'YYYY-MM-DD'` in the where clause; {today} and {fifteenMonthsAgo} (Seattle) resolved at run time."""
@@ -1604,6 +1768,43 @@ def whole_file(c, rect, load):
     s, w, n, e = rect
     return [t for t in _whole[c["city"]] if s <= t["coordinate"]["latitude"] <= n and w <= t["coordinate"]["longitude"] <= e]
 
+def folded(text):
+    """Lower case without diacritics: "Ärendekategori" → "arendekategori"."""
+    return "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch)).lower()
+
+_fields_logged = set()
+
+def stockholm(c, rect, today=None):
+    """Stockholm's markupplåtelser (WFS 1.1.0 behind a key in the URL path): the uteservering kind of ärendekategori,
+    unexpired. The key's absence never reaches here (permit_city leaves the row out); it is checked again for check_data."""
+    host = keyed_host(c)
+    if host is None: raise SourceError(f"{c['city']}: {c['key']} is not set")
+    s, w, n, e = rect
+    params = {"service": "WFS", "version": "1.1.0", "request": "GetFeature", "typeName": c["dataset"],
+              "outputFormat": "application/json", "srsName": "EPSG:4326", "bbox": f"{w},{s},{e},{n},EPSG:4326"}
+    try:
+        features = get_json(f"https://{host}?" + urllib.parse.urlencode(params)).get("features") or []
+    except SourceError as error:
+        raise SourceError(redact(str(error))) from None
+    if features and c["city"] not in _fields_logged:  # field names only, never values: the schema the row guessed at
+        _fields_logged.add(c["city"])
+        log(f"    {c['city']} permits: fields {sorted((features[0].get('properties') or {}).keys())}")
+    today = today or datetime.date.today().isoformat()
+    kept = []
+    for f in features:
+        p = {folded(k): v for k, v in (f.get("properties") or {}).items()}
+        if "uteservering" not in folded(str(p.get("arendekategori") or "")): continue
+        # Expired: an end date (slutdatum, tilldatum, giltig_till, datum_tom…) before today.
+        ends = [str(v)[:10] for k, v in p.items() if isinstance(v, str) and re.match(r"\d{4}-\d{2}-\d{2}", v)
+                and re.search(r"slut|till|tom$|upphor", k)]
+        if any(d < today for d in ends): continue
+        g = f.get("geometry") or {}
+        if g.get("type") == "Point" and len(g.get("coordinates") or []) >= 2 and g["coordinates"][0] > 45:
+            g = dict(g, coordinates=g["coordinates"][1::-1])  # latitude first (59, 18): an EPSG:4326 axis order
+        kept.append(dict(f, geometry=g))
+    return [t for t in permit_items(kept, c)
+            if s <= t["coordinate"]["latitude"] <= n and w <= t["coordinate"]["longitude"] <= e]
+
 def oslo(c, rect):
     """Oslo: latitude-first bbox, UTM 32N answers, outdoor hours only; the holder never asked."""
     s, w, n, e = rect
@@ -1622,8 +1823,14 @@ def oslo(c, rect):
     return out
 
 def permits(c, rect):
+    """A feed's terraces in the rect; a `match="venues"` row keeps only those a venue of today stands under."""
+    items = fetched_permits(c, rect)
+    return surviving(items, c["city"]) if c.get("match") == "venues" else items
+
+def fetched_permits(c, rect):
     s, w, n, e = rect
     if c.get("shape") == "oslo": return oslo(c, rect)
+    if c.get("shape") == "stockholm": return stockholm(c, rect)
     if c.get("shape") == "amsterdam": return amsterdam(c, rect)
     if c.get("shape") == "madrid": return whole_file(c, rect, madrid_all)
     if c.get("shape") == "seville": return whole_file(c, rect, seville_all)
@@ -1813,11 +2020,13 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             note_sources(out, c, published, buildings=name)
 
 STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
+PUBLIC_STORE = "https://tiles.alephb.uk/tiles/"   # where a venue match reads from when no --store is given
 STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
+_bust = str(int(time.time()))   # one query string per run: the CDN serves the tile as published, not as cached
 
-def published_source(cell):
-    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
-    url = f"{STORE}sources/{cell.key}.json"
+def published_items(layer, key, bust=False):
+    """A published tile's items (a list; [] when there is none, 404), or a SourceError. `bust` asks past the CDN's cache."""
+    url = f"{STORE or PUBLIC_STORE}{layer}/{key}.json" + (f"?v={_bust}" if bust else "")
     error = "?"
     for attempt in range(3):
         try:
@@ -1825,14 +2034,20 @@ def published_source(cell):
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response: body = response.read()
             if body[:2] == b"\x1f\x8b": body = gzip.decompress(body)  # gzipped at rest, inflated by the CDN or not
             items = json.loads(body)
-            return items[0] if isinstance(items, list) and items and isinstance(items[0], dict) else {}
+            return items if isinstance(items, list) else []
         except urllib.error.HTTPError as e:
-            if e.code == 404: return {}
+            if e.code == 404: return []
             error = f"HTTP {e.code}"
         except Exception as e:  # noqa: BLE001 — resets, timeouts, a truncated body: asked again
             error = f"{type(e).__name__}: {e}"[:200]
         time.sleep(2 * (attempt + 1))
     return SourceError(f"store: {error}")
+
+def published_source(cell):
+    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
+    items = published_items("sources", cell.key)
+    if isinstance(items, SourceError): return items
+    return items[0] if items and isinstance(items[0], dict) else {}
 
 def published_sources(out, cells):
     """{key: published entry or SourceError} for the cells with no sources/ tile in `out` yet
@@ -1859,7 +2074,15 @@ def note_sources(out, cell, published=None, **fields):
 def permit_city(cell, communes):
     """The permit feed for a cell: by INSEE code when a commune answered, else by box (and boundary, when the row has one)."""
     if communes: return next((c for c in PERMIT_CITIES if c["insee"] == communes[0]["code"]), None)
-    return next((c for c in PERMIT_CITIES if in_feed(c, cell.lat, cell.lon)), None)
+    feed = next((c for c in PERMIT_CITIES if in_feed(c, cell.lat, cell.lon)), None)
+    if feed and keyed_host(feed) is None:  # a keyed row without its key (a local run, a fork): OSM only, said once
+        if feed["city"] not in _keyless:
+            _keyless.add(feed["city"])
+            log(f"  {feed['city']} permits: skipped, {feed['key']} is not set (OSM terraces only)")
+        return None
+    return feed
+
+_keyless = set()
 
 def do_terraces(cells, communes, out, failures):
     osm = gather(cells, osm_terraces, TERRACE_RADIUS, "OSM terraces")

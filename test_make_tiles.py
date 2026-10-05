@@ -339,6 +339,31 @@ assert "srsName=EPSG:4326" in asked[0] and "typeName=avoindata:Lyhyt_maanvuokrau
 assert helsinki_venue_name("Kesäterassi 12 m2 Milli Miglia -ravintolan edustalla") == "Milli Miglia -ravintolan edustalla"
 assert helsinki_venue_name("Terassi alue Cafe Berry") == "Cafe Berry" and helsinki_venue_name("Bar Llamas") == "Bar Llamas"
 assert helsinki_venue_name('Terassialue "Mon Vietnam"') == "Mon Vietnam" and helsinki_venue_name("Kesäterassi") is None
+# Stockholm: a WFS behind a key in the URL path, on a fixture shaped by hand (not the live feed: no key here). The
+# uteservering kind of ärendekategori, unexpired, kept; a latitude-first point turned round; Bangolf, a building site
+# and last summer's lease dropped. Without the key the row is left out (OSM only) and nothing is asked; the key never
+# reaches a log.
+import os
+from make_tiles import Cell, permit_city, redact
+stockholm = next(c for c in PERMIT_CITIES if c["city"] == "Stockholm")
+os.environ.pop("STOCKHOLM_API_KEY", None)
+asked.clear()
+assert permit_city(Cell(29667, 9037), None) is None and asked == []
+os.environ["STOCKHOLM_API_KEY"] = "s3cr3t-key"
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/stockholm.json") as f: return json.load(f)
+make_tiles.get = fake_get
+assert permit_city(Cell(29667, 9037), None) is stockholm
+got = make_tiles.stockholm(stockholm, (59.33, 18.06, 59.34, 18.08), today="2026-10-05")
+assert [t["kind"] for t in got] == ["TERRASSE"] * 3 and not any("name" in t for t in got)
+assert [round(t["coordinate"]["latitude"], 4) for t in got] == [59.3356, 59.3349, 59.3358]
+assert [round(t["coordinate"]["longitude"], 4) for t in got] == [18.0742, 18.0731, 18.0738]
+assert asked[0].startswith("https://openstreetgs.stockholm.se/geoservice/api/s3cr3t-key/wfs?")
+assert "typeName=od_gis:Markupplatelse_Punkt" in asked[0] and "bbox=18.06,59.33,18.08,59.34,EPSG:4326" in asked[0]
+assert redact("GET https://openstreetgs.stockholm.se/geoservice/api/s3cr3t-key/wfs") == \
+    "GET https://openstreetgs.stockholm.se/geoservice/api/***/wfs"
+os.environ.pop("STOCKHOLM_API_KEY")
 # Gothenburg: one ';' CSV with a BOM, read whole; a terrace where Serveringstyper lists Uteservering (alone or among
 # catering and tastings) and the public is served (alone or with closed companies); no outdoor serving, a closed
 # company and a row without a point dropped.
@@ -472,3 +497,108 @@ assert feed(55.9520, -3.2000) == "Edinburgh" and feed(55.9750, -3.1700) == "Edin
 with open("permits/edinburgh.geojson") as f: snapshot = json.load(f)
 assert len(snapshot["features"]) > 300 and all(f["properties"].get("name") for f in snapshot["features"])
 print("ok (Edinburgh)")
+
+# Los Angeles: the 2021 Al Fresco snapshot, kept only where a venue of today (the published venues/ tiles) stands within
+# 60 m under a matching name. The fixture is nine real rows of the feed over seven real tile cuts (2026-10-05): Dino's
+# Burgers (a curly apostrophe against OSM's straight one), California Kabob Kitchen (the same name) and Little Joy
+# Cocktails LLC (OSM's "Little Joy": the core words) survive; Cafe Esquinita has no venue within 60 m, Tilda's neighbour
+# is "Tila" (another name), Spring Street Smokehouse's is "Thai", and the unnamed row cannot be matched. The feed repeats
+# Tilda and Spring Street Smokehouse: unique() drops a repeat, as a build does.
+from make_tiles import normalised_name, names_match, venue_tiles_around, surviving
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/los-angeles.json") as f: return json.load(f)
+with open("fixtures/los-angeles-venues.json") as f: venue_fixture = json.load(f)
+read_tiles = []
+def fake_published_items(layer, key, bust=False):
+    read_tiles.append((layer, key, bust))
+    return venue_fixture.get(key, [])
+make_tiles.get, make_tiles.published_items, real_published_items = fake_get, fake_published_items, make_tiles.published_items
+make_tiles._venue_tiles.clear()
+los_angeles = next(c for c in PERMIT_CITIES if c["city"] == "Los Angeles")
+got = unique(permits(los_angeles, (34.03, -118.29, 34.09, -118.21)))
+assert [t["name"] for t in got] == ["Dino’s Burgers", "California Kabob Kitchen", "Little Joy Cocktails LLC"], got
+assert all(t["kind"] == "TERRASSE" for t in got)
+assert "OBJECTID>-1" in asked[0] and "outFields=OBJECTID,Business_Name" in asked[0]
+assert read_tiles and all(layer == "venues" and bust for layer, _, bust in read_tiles)
+assert len(unique(make_tiles.fetched_permits(los_angeles, (34.03, -118.29, 34.09, -118.21)))) == 7   # 9 rows, 2 repeats, before the match
+# A venue tile the store did not give fails the feed rather than dropping its permits silently.
+make_tiles._venue_tiles.clear()
+make_tiles.published_items = lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503")
+try: surviving([{"kind": "TERRASSE", "name": "Tilda", "coordinate": {"latitude": 34.08, "longitude": -118.255}}], "Los Angeles"); raise AssertionError
+except make_tiles.SourceError as e: assert "Los Angeles: venues/" in str(e) and "HTTP 503" in str(e), e
+make_tiles.published_items = real_published_items
+make_tiles._venue_tiles.clear()
+# The name rule is the app's (TerraceNames.swift): accents and punctuation set aside, one name in the other, the first
+# two words shared, or the shorter's core words in the longer — one short shared word is not a match.
+assert normalised_name("Dino’s Burgers") == "DINO S BURGERS" and normalised_name("Café Oz - The Australian Bar") == "CAFE OZ THE AUSTRALIAN BAR"
+assert normalised_name(None) == "" and normalised_name("  ") == ""
+assert names_match(normalised_name("Bar Ama"), normalised_name("Bar Amá")) and names_match("CAFE OZ", "CAFE OZ THE AUSTRALIAN BAR")
+assert names_match(normalised_name("Little Joy Cocktails LLC"), "LITTLE JOY") and names_match("LA FONTANA", "LA FONTANA DE ORO")
+assert names_match(normalised_name("The Window; Lowboy; Bar Flores"), "LOWBOY") and names_match("BAR POSTAS", "POSTAS 15")
+assert not names_match("TILDA", "TILA") and not names_match("SOL 12", "BAR SOL Y SOMBRA") and not names_match("", "TILDA")
+# A permit's venue can sit in the next tile: the keys of the tiles its 60 m reach touches, one to four.
+assert venue_tiles_around(34.0660, -118.2122) == ["1703,-5910"]
+assert venue_tiles_around(34.0801, -118.2554) == ["1703,-5912", "1704,-5912"]   # Tilda, 11 m above a tile edge
+print("ok (Los Angeles)")
+# 2026-10-05 rows, PLATEAU (Tokyo, Osaka): a few real buildings cut from three 2025 mesh files, gzipped as the store serves
+# them. Shibuya's 53394505 (LoD1: the roof edge is the outline; a 66.2 m tower, a 14.2 m house, one at -9999: the flagged
+# guess), Chiyoda's 53394509 (LoD2: the ground surface; 6 m, and -9999), Osaka's 51357309 (the LoD0 footprint; 9.3, 6.5, -9999).
+from make_tiles import mesh_code, mesh_codes, plateau_buildings
+assert mesh_code(35.6684, 139.6889) == "53394505" and mesh_code(35.6742, 139.7406) == "53394509" and mesh_code(34.5915, 135.4991) == "51357309"
+assert mesh_code(35.6895, 139.6917) == "53394525"   # the Tokyo Metropolitan Government Building
+assert mesh_codes((35.6684, 139.6889, 35.6684, 139.6889)) == ["53394505"]
+assert mesh_codes((35.6745, 139.6995, 35.6752, 139.7005)) == ["53394505", "53394506", "53394515", "53394516"]   # a mesh corner
+# The outline's precedence: the ground surface, else the footprint, else the roof edge; a part's own.
+gml = lambda inner: f'<core:CityModel xmlns:core="http://www.opengis.net/citygml/2.0" xmlns:bldg="http://www.opengis.net/citygml/building/2.0" xmlns:gml="http://www.opengis.net/gml"><core:cityObjectMember>{inner}</core:cityObjectMember></core:CityModel>'.encode()
+ring = lambda tag, lat: f"<bldg:{tag}><gml:MultiSurface><gml:surfaceMember><gml:Polygon><gml:exterior><gml:LinearRing><gml:posList>{lat} 139.7 0 {lat} 139.701 0 {lat + 0.001} 139.701 0 {lat} 139.7 0</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></bldg:{tag}>"
+ground = lambda lat: f"<bldg:boundedBy><bldg:GroundSurface>{ring('lod2MultiSurface', lat)}</bldg:GroundSurface></bldg:boundedBy>"
+got = plateau_buildings(gml(f'<bldg:Building><bldg:measuredHeight uom="m">12.5</bldg:measuredHeight>{ring("lod0RoofEdge", 35.1)}{ring("lod0FootPrint", 35.2)}{ground(35.3)}</bldg:Building>'))
+assert [(b["height"], b["outline"][0]["latitude"]) for b in got] == [(12.5, 35.3)]
+got = plateau_buildings(gml(f'<bldg:Building><bldg:measuredHeight uom="m">12.5</bldg:measuredHeight>{ring("lod0RoofEdge", 35.1)}{ring("lod0FootPrint", 35.2)}</bldg:Building>'))
+assert [(b["height"], b["outline"][0]["latitude"]) for b in got] == [(12.5, 35.2)]
+got = plateau_buildings(gml(f'<bldg:Building><bldg:measuredHeight uom="m">0</bldg:measuredHeight>{ring("lod0RoofEdge", 35.1)}'
+                            f'<bldg:consistsOfBuildingPart><bldg:BuildingPart><bldg:measuredHeight uom="m">30</bldg:measuredHeight>{ring("lod0RoofEdge", 35.4)}</bldg:BuildingPart></bldg:consistsOfBuildingPart></bldg:Building>'))
+assert [(b["height"], b.get("guessed"), b["outline"][0]["latitude"]) for b in got] == [(15.0, True, 35.1), (30.0, None, 35.4)]
+# The rows: the catalogue read once a run per city code (Tokyo's 23 wards, Osaka's one), each mesh file downloaded once
+# (gzip asked for, kept a year under its city code), a mesh no city lists empty.
+tokyo, osaka = (next(b for b in CITY_BUILDINGS if b["city"] == c)["fetch"] for c in ("Tokyo", "Osaka"))
+plateau_files = {"13113": {"53394505": "https://assets.example/13113/udx/bldg/53394505_bldg_6697_op.gml"},
+                 "13101": {"53394509": "https://assets.example/13101/udx/bldg/53394509_bldg_6697_op.gml"},
+                 "27100": {"51357309": "https://assets.example/27100/udx/bldg/51357309_bldg_6697_op.gml"}}
+fixtures = {url: os.path.abspath(f"fixtures/plateau-{'osaka' if code == '27100' else 'tokyo'}-{mesh}.gml.gz")
+            for code, files in plateau_files.items() for mesh, url in files.items()}
+asked.clear(); fetched.clear()
+def fake_get_json(url, data=None, waits=None):
+    asked.append(url)
+    code = url.rsplit("/", 1)[1]
+    return {"cities": [{"cityCode": code, "year": 2025, "files": {"bldg": [{"code": m, "url": u} for m, u in plateau_files.get(code, {}).items()]}}]}
+def fake_download(url, folder, max_days=6, headers=None):
+    fetched.append((url, folder, max_days, (headers or {}).get("Accept-Encoding")))
+    os.makedirs(folder, exist_ok=True)
+    return shutil.copy(fixtures[url], os.path.join(folder, url.rsplit("/", 1)[1]))
+with tempfile.TemporaryDirectory() as d:
+    os.chdir(d)
+    make_tiles.get_json, make_tiles.download = fake_get_json, fake_download
+    try:
+        got = tokyo((35.668, 139.688, 35.6685, 139.6885))
+        assert [(b["height"], len(b["outline"]), b["outline"][0]) for b in got] == [(66.2, 18, {"latitude": 35.668379, "longitude": 139.688166})]
+        assert asked == [make_tiles.PLATEAU_INDEX.format(f"131{k:02d}") for k in range(1, 24)]
+        assert fetched == [(plateau_files["13113"]["53394505"], os.path.join("extracts", "plateau", "13113"), 365, "gzip")]
+        assert [(b["height"], b.get("guessed")) for b in tokyo((35.6745, 139.695, 35.6752, 139.697))] == [(14.2, None), (15.0, True)]
+        assert [(b["height"], b.get("guessed"), len(b["outline"])) for b in tokyo((35.667, 139.738, 35.6745, 139.741))] == [(6.0, None, 4), (15.0, True, 5)]
+        assert tokyo((35.70, 139.77, 35.701, 139.771)) == []   # a mesh no ward lists
+        assert len(asked) == 23 and [f[0].rsplit("/", 1)[1][:8] for f in fetched] == ["53394505", "53394509"]   # once a run each
+        got = osaka((34.5915, 135.4989, 34.5916, 135.4992))
+        assert [(b["height"], b["outline"][0]) for b in got] == [(9.3, {"latitude": 34.591532, "longitude": 135.499073})]
+        assert [(b["height"], b.get("guessed")) for b in osaka((34.5912, 135.4997, 34.5914, 135.4999))] == [(6.5, None), (15.0, True)]
+        assert asked[23:] == [make_tiles.PLATEAU_INDEX.format("27100")] and fetched[2][1:] == (os.path.join("extracts", "plateau", "27100"), 365, "gzip")
+    finally:
+        os.chdir(here)
+        make_tiles.get_json, make_tiles.download = real_get_json, real_download
+        make_tiles._plateau.clear(); make_tiles._plateau_index.clear()
+# Each box is its city's tiled area; east of Osaka's city line (Higashiōsaka) the row answers nothing and the cell falls to OSM.
+assert at(35.7015, 139.7395) == "Tokyo" and at(35.6938, 139.7034) == "Tokyo" and at(35.75, 139.70) == "OSM"
+assert at(34.7050, 135.4970) == "Osaka" and at(34.6664, 135.5003) == "Osaka" and at(34.70, 135.62) == "OSM"
+print("ok (PLATEAU rows)")

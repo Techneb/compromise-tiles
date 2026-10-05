@@ -97,6 +97,14 @@ assert metadata_url("permits", next(c for c in cd.mt.PERMIT_CITIES if c["city"] 
     ("ckan", "https://opendata-ajuntament.barcelona.cat/data/api/3/action/package_show?id=terrasses-comercos-vigents")
 assert metadata_url("permits", next(c for c in cd.mt.PERMIT_CITIES if c["city"] == "Madrid")) is None
 assert metadata_url("buildings", {}) is None
+# Stockholm's GetCapabilities needs the key in its path: none without the secret, keyed with it.
+stockholm = next(c for c in cd.mt.PERMIT_CITIES if c["city"] == "Stockholm")
+os.environ.pop("STOCKHOLM_API_KEY", None)
+assert metadata_url("permits", stockholm) is None
+os.environ["STOCKHOLM_API_KEY"] = "k"
+assert metadata_url("permits", stockholm) == \
+    ("wfs", "https://openstreetgs.stockholm.se/geoservice/api/k/wfs?service=WFS&request=GetCapabilities")
+os.environ.pop("STOCKHOLM_API_KEY")
 assert licence_source("permits", paris, {"licence": None}) is None
 assert licence_source("permits", paris, {"licence": {"kind": "wfs", "url": "https://x/?"}}) == ("wfs", "https://x/?")
 assert licence_source("permits", paris, {}) == metadata_url("permits", paris)

@@ -75,6 +75,9 @@ def metadata_url(layer, row):
     if shape == "socrata": return "socrata", f"https://{host}/api/views/{dataset}.json"
     if shape == "arcgis": return "arcgis", f"https://{host}/{dataset}?f=json"
     if shape == "wfs": return "wfs", f"https://{host}?service=WFS&request=GetCapabilities"
+    if shape == "stockholm":  # the key in the URL path: no key, no metadata
+        keyed = mt.keyed_host(row)
+        return ("wfs", f"https://{keyed}?service=WFS&request=GetCapabilities") if keyed else None
     if shape == "barcelona": return "ckan", f"https://{host}/data/api/3/action/package_show?id={dataset}"
     return None
 
@@ -214,7 +217,7 @@ def probe(layer, row, cell):
     except Timeout as e:
         out.update(status="timeout", error=str(e))
     except Exception as e:  # noqa: BLE001 — a SourceError, a changed column, a bot page: the feed did not answer
-        out.update(status="dead", error=f"{type(e).__name__}: {e}"[:300])
+        out.update(status="dead", error=mt.redact(f"{type(e).__name__}: {e}")[:300])
     finally:
         signal.alarm(0)
     out["seconds"] = round(time.monotonic() - started, 1)
@@ -234,6 +237,8 @@ def probe_rows(probes, ids, only=None):
         record = {"key": p["key"]}
         if p.get("skip"):
             record.update(status="skipped", error=p["skip"])
+        elif row.get("key") and mt.keyed_host(row) is None:  # a keyed row without its secret (a fork, a local run)
+            record.update(status="skipped", error=f"{row['key']} is not set")
         else:
             ky, kx = map(int, p["key"].split(","))
             record.update(probe(layer, row, mt.Cell(ky, kx)))

@@ -1,0 +1,152 @@
+{
+ "type": "FeatureCollection",
+ "properties": {
+  "exceededTransferLimit": false
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "id": 6,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.212232029857,
+     34.06620999503
+    ]
+   },
+   "properties": {
+    "OBJECTID": 6,
+    "Business_Name": "Dino’s Burgers",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 15,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.256901958408,
+     34.0345110206102
+    ]
+   },
+   "properties": {
+    "OBJECTID": 15,
+    "Business_Name": "Cafe Esquinita",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 18,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.259158031429,
+     34.0398880116558
+    ]
+   },
+   "properties": {
+    "OBJECTID": 18,
+    "Business_Name": "California Kabob Kitchen",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 202,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.255395981343,
+     34.0801560149505
+    ]
+   },
+   "properties": {
+    "OBJECTID": 202,
+    "Business_Name": "Tilda",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 350,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.238406031186,
+     34.0585100015332
+    ]
+   },
+   "properties": {
+    "OBJECTID": 350,
+    "Business_Name": "Spring Street Smokehouse",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 385,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.254399038227,
+     34.0756999859173
+    ]
+   },
+   "properties": {
+    "OBJECTID": 385,
+    "Business_Name": "Little Joy Cocktails LLC",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 407,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.282788041603,
+     34.0474329815148
+    ]
+   },
+   "properties": {
+    "OBJECTID": 407,
+    "Business_Name": null,
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 599,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.255395981343,
+     34.0801560149505
+    ]
+   },
+   "properties": {
+    "OBJECTID": 599,
+    "Business_Name": "Tilda",
+    "Type": "SIDEWALK AND EXPANDED OUTDOOR PRIVATE PROPERTY DINING"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 2165,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -118.238406031186,
+     34.0585100015332
+    ]
+   },
+   "properties": {
+    "OBJECTID": 2165,
+    "Business_Name": "Spring Street Smokehouse",
+    "Type": "ON-STREET DINING (CURBSIDE AND IN THE STREET)"
+   }
+  }
+ ]
+}

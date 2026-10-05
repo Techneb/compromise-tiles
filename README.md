@@ -104,6 +104,8 @@ none, this says so rather than guessing.
   rentals (terrace areas), CC BY 4.0 through Helsinki Region Infoshare.
 - Gothenburg: Göteborgs Stad, miljöförvaltningen, Restauranger med
   serveringstillstånd (outdoor serving), CC0 1.0.
+- Stockholm: Stockholms stad, Trafikkontoret, Markupplåtelse (uteservering),
+  CC0 1.0.
 - Washington DC: District Department of Transportation (DDOT), Annual Public
   Space Rental Permits, CC BY 4.0.
 - Boston: City of Boston, Outdoor Dining (Public, 2024) (licence not stated by
@@ -115,6 +117,8 @@ none, this says so rather than guessing.
 - Edinburgh: © City of Edinburgh Council, tables and chairs permits
   (2026-10-05 snapshot, geocoded with OpenStreetMap Nominatim, ODbL, and
   ONS postcode centres, OGL).
+- Los Angeles: City of Los Angeles, L.A. Al Fresco dining locations, 2021
+  (licence not stated by the publisher).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
@@ -191,6 +195,11 @@ none, this says so rather than guessing.
   Agency, LIDAR Composite DSM and DTM, 1 m. © Environment Agency copyright
   and/or database right 2022. All rights reserved. Open Government Licence;
   heights on OpenStreetMap's footprints.
+- Tokyo, Osaka: 3D City Model (Project PLATEAU), Tokyo 23 wards and Osaka
+  City, 2025 editions, Ministry of Land, Infrastructure, Transport and
+  Tourism (MLIT), processed into footprints and heights. Public Data
+  License 1.0 (compatible with CC BY 4.0). 「3D都市モデル（Project
+  PLATEAU）東京都23区・大阪市（2025年度）」（国土交通省）を加工して作成。
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's

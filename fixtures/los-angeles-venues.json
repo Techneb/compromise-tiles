@@ -1,0 +1,154 @@
+{
+ "1701,-5912": [
+  {
+   "name": "California Kabob Kitchen",
+   "coordinate": {
+    "latitude": 34.039872,
+    "longitude": -118.259142
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Cabra",
+   "coordinate": {
+    "latitude": 34.039612,
+    "longitude": -118.258729
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Moonlark's Dinette",
+   "coordinate": {
+    "latitude": 34.03974,
+    "longitude": -118.258619
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Dahlia",
+   "coordinate": {
+    "latitude": 34.039385,
+    "longitude": -118.25883
+   },
+   "amenity": "bar",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Cara Cara",
+   "coordinate": {
+    "latitude": 34.039434,
+    "longitude": -118.258914
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Caldo Verde",
+   "coordinate": {
+    "latitude": 34.039331,
+    "longitude": -118.258745
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  }
+ ],
+ "1702,-5911": [
+  {
+   "name": "Thai",
+   "coordinate": {
+    "latitude": 34.058557,
+    "longitude": -118.238829
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Placita Cafe",
+   "coordinate": {
+    "latitude": 34.058637,
+    "longitude": -118.23776
+   },
+   "amenity": "cafe",
+   "outdoor_seating": false,
+   "source": "osm"
+  }
+ ],
+ "1702,-5912": [],
+ "1702,-5914": [],
+ "1703,-5910": [
+  {
+   "name": "Burro's Breakfast Burritos",
+   "coordinate": {
+    "latitude": 34.066128,
+    "longitude": -118.212229
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Dino's Burgers",
+   "coordinate": {
+    "latitude": 34.066184,
+    "longitude": -118.212301
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  }
+ ],
+ "1703,-5912": [
+  {
+   "name": "Kien Giang Bakery",
+   "coordinate": {
+    "latitude": 34.079765,
+    "longitude": -118.255914
+   },
+   "amenity": "cafe",
+   "outdoor_seating": true,
+   "source": "osm"
+  },
+  {
+   "name": "Quarter Sheets Pizza",
+   "coordinate": {
+    "latitude": 34.075796,
+    "longitude": -118.254298
+   },
+   "amenity": "restaurant",
+   "outdoor_seating": false,
+   "source": "osm"
+  },
+  {
+   "name": "Little Joy",
+   "coordinate": {
+    "latitude": 34.075723,
+    "longitude": -118.254417
+   },
+   "amenity": "bar",
+   "outdoor_seating": false,
+   "source": "osm"
+  }
+ ],
+ "1704,-5912": [
+  {
+   "name": "Tila",
+   "coordinate": {
+    "latitude": 34.080331,
+    "longitude": -118.255363
+   },
+   "amenity": "bar",
+   "outdoor_seating": false,
+   "source": "osm"
+  }
+ ]
+}
