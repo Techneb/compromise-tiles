@@ -104,6 +104,8 @@ none, this says so rather than guessing.
   rentals (terrace areas), CC BY 4.0 through Helsinki Region Infoshare.
 - Gothenburg: Göteborgs Stad, miljöförvaltningen, Restauranger med
   serveringstillstånd (outdoor serving), CC0 1.0.
+- Stockholm: Stockholms stad, Trafikkontoret, Markupplåtelse (uteservering),
+  CC0 1.0.
 - Washington DC: District Department of Transportation (DDOT), Annual Public
   Space Rental Permits, CC BY 4.0.
 - Boston: City of Boston, Outdoor Dining (Public, 2024) (licence not stated by

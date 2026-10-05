@@ -217,6 +217,15 @@ PERMIT_CITIES = [
     # is the tiled area's (cities.json): the layer covers the whole city, the venue tiles only this.
     row("Los Angeles", "", "services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services", "Al_Fresco_Dining_Locations/FeatureServer/0",
         "Business_Name", [], (34.015, 34.087), (-118.2907, -118.2073), shape="arcgis", match="venues"),
+    # Stockholm: Trafikkontoret's markupplåtelser (public-ground leases, CC0 1.0 per the layer's metadata), a WFS
+    # behind a free API key: `key` names the environment variable holding it (an Actions secret), which goes into
+    # the URL path at fetch time and never into a log; without it the row is left out of the run, logged. Only
+    # the uteservering kind of ärendekategori is kept, and only unexpired leases; the attribute names are matched
+    # loosely (no sample without the key, 2026-10-05) and the first answer's field names are logged. No name
+    # field until that sample shows one, so the door rule. The box is the tiled area's (cities.json); no other
+    # city's cells fall in it, so no boundary.
+    row("Stockholm", "", "openstreetgs.stockholm.se/geoservice/api/{key}/wfs", "od_gis:Markupplatelse_Punkt", "", [],
+        (59.267, 59.371), (17.9638, 18.1642), shape="stockholm", key="STOCKHOLM_API_KEY"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -229,7 +238,20 @@ class SourceError(Exception):
 
 _last, _dead = {}, {}
 
-def log(message): print(message, file=sys.stderr, flush=True)
+def redact(text):
+    """The text with every keyed row's secret blanked: a key sits in its feed's URL path."""
+    for c in PERMIT_CITIES:
+        secret = c.get("key") and os.environ.get(c["key"])
+        if secret: text = text.replace(secret, "***")
+    return text
+
+def log(message): print(redact(str(message)), file=sys.stderr, flush=True)
+
+def keyed_host(c):
+    """A row's host with its API key filled in from the environment ({key}); None when the key is not set."""
+    if not c.get("key"): return c["host"]
+    secret = os.environ.get(c["key"], "").strip()
+    return c["host"].replace("{key}", urllib.parse.quote(secret, safe="")) if secret else None
 
 def get(url, data=None, parse=None, waits=WAITS, context=None):
     """One request, retried after each of `waits`: spaced per host, gzip asked
@@ -1741,6 +1763,43 @@ def whole_file(c, rect, load):
     s, w, n, e = rect
     return [t for t in _whole[c["city"]] if s <= t["coordinate"]["latitude"] <= n and w <= t["coordinate"]["longitude"] <= e]
 
+def folded(text):
+    """Lower case without diacritics: "Ärendekategori" → "arendekategori"."""
+    return "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch)).lower()
+
+_fields_logged = set()
+
+def stockholm(c, rect, today=None):
+    """Stockholm's markupplåtelser (WFS 1.1.0 behind a key in the URL path): the uteservering kind of ärendekategori,
+    unexpired. The key's absence never reaches here (permit_city leaves the row out); it is checked again for check_data."""
+    host = keyed_host(c)
+    if host is None: raise SourceError(f"{c['city']}: {c['key']} is not set")
+    s, w, n, e = rect
+    params = {"service": "WFS", "version": "1.1.0", "request": "GetFeature", "typeName": c["dataset"],
+              "outputFormat": "application/json", "srsName": "EPSG:4326", "bbox": f"{w},{s},{e},{n},EPSG:4326"}
+    try:
+        features = get_json(f"https://{host}?" + urllib.parse.urlencode(params)).get("features") or []
+    except SourceError as error:
+        raise SourceError(redact(str(error))) from None
+    if features and c["city"] not in _fields_logged:  # field names only, never values: the schema the row guessed at
+        _fields_logged.add(c["city"])
+        log(f"    {c['city']} permits: fields {sorted((features[0].get('properties') or {}).keys())}")
+    today = today or datetime.date.today().isoformat()
+    kept = []
+    for f in features:
+        p = {folded(k): v for k, v in (f.get("properties") or {}).items()}
+        if "uteservering" not in folded(str(p.get("arendekategori") or "")): continue
+        # Expired: an end date (slutdatum, tilldatum, giltig_till, datum_tom…) before today.
+        ends = [str(v)[:10] for k, v in p.items() if isinstance(v, str) and re.match(r"\d{4}-\d{2}-\d{2}", v)
+                and re.search(r"slut|till|tom$|upphor", k)]
+        if any(d < today for d in ends): continue
+        g = f.get("geometry") or {}
+        if g.get("type") == "Point" and len(g.get("coordinates") or []) >= 2 and g["coordinates"][0] > 45:
+            g = dict(g, coordinates=g["coordinates"][1::-1])  # latitude first (59, 18): an EPSG:4326 axis order
+        kept.append(dict(f, geometry=g))
+    return [t for t in permit_items(kept, c)
+            if s <= t["coordinate"]["latitude"] <= n and w <= t["coordinate"]["longitude"] <= e]
+
 def oslo(c, rect):
     """Oslo: latitude-first bbox, UTM 32N answers, outdoor hours only; the holder never asked."""
     s, w, n, e = rect
@@ -1766,6 +1825,7 @@ def permits(c, rect):
 def fetched_permits(c, rect):
     s, w, n, e = rect
     if c.get("shape") == "oslo": return oslo(c, rect)
+    if c.get("shape") == "stockholm": return stockholm(c, rect)
     if c.get("shape") == "amsterdam": return amsterdam(c, rect)
     if c.get("shape") == "madrid": return whole_file(c, rect, madrid_all)
     if c.get("shape") == "seville": return whole_file(c, rect, seville_all)
@@ -2009,7 +2069,15 @@ def note_sources(out, cell, published=None, **fields):
 def permit_city(cell, communes):
     """The permit feed for a cell: by INSEE code when a commune answered, else by box (and boundary, when the row has one)."""
     if communes: return next((c for c in PERMIT_CITIES if c["insee"] == communes[0]["code"]), None)
-    return next((c for c in PERMIT_CITIES if in_feed(c, cell.lat, cell.lon)), None)
+    feed = next((c for c in PERMIT_CITIES if in_feed(c, cell.lat, cell.lon)), None)
+    if feed and keyed_host(feed) is None:  # a keyed row without its key (a local run, a fork): OSM only, said once
+        if feed["city"] not in _keyless:
+            _keyless.add(feed["city"])
+            log(f"  {feed['city']} permits: skipped, {feed['key']} is not set (OSM terraces only)")
+        return None
+    return feed
+
+_keyless = set()
 
 def do_terraces(cells, communes, out, failures):
     osm = gather(cells, osm_terraces, TERRACE_RADIUS, "OSM terraces")
