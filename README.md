@@ -112,6 +112,8 @@ none, this says so rather than guessing.
   Permits (licence not stated by the publisher).
 - Kensington and Chelsea (London): Royal Borough of Kensington and Chelsea,
   Tables and Chairs licences (licence not stated by the publisher).
+- Los Angeles: City of Los Angeles, L.A. Al Fresco dining locations, 2021
+  (licence not stated by the publisher).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
