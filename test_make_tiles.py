@@ -339,6 +339,31 @@ assert "srsName=EPSG:4326" in asked[0] and "typeName=avoindata:Lyhyt_maanvuokrau
 assert helsinki_venue_name("Kesäterassi 12 m2 Milli Miglia -ravintolan edustalla") == "Milli Miglia -ravintolan edustalla"
 assert helsinki_venue_name("Terassi alue Cafe Berry") == "Cafe Berry" and helsinki_venue_name("Bar Llamas") == "Bar Llamas"
 assert helsinki_venue_name('Terassialue "Mon Vietnam"') == "Mon Vietnam" and helsinki_venue_name("Kesäterassi") is None
+# Stockholm: a WFS behind a key in the URL path, on a fixture shaped by hand (not the live feed: no key here). The
+# uteservering kind of ärendekategori, unexpired, kept; a latitude-first point turned round; Bangolf, a building site
+# and last summer's lease dropped. Without the key the row is left out (OSM only) and nothing is asked; the key never
+# reaches a log.
+import os
+from make_tiles import Cell, permit_city, redact
+stockholm = next(c for c in PERMIT_CITIES if c["city"] == "Stockholm")
+os.environ.pop("STOCKHOLM_API_KEY", None)
+asked.clear()
+assert permit_city(Cell(29667, 9037), None) is None and asked == []
+os.environ["STOCKHOLM_API_KEY"] = "s3cr3t-key"
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/stockholm.json") as f: return json.load(f)
+make_tiles.get = fake_get
+assert permit_city(Cell(29667, 9037), None) is stockholm
+got = make_tiles.stockholm(stockholm, (59.33, 18.06, 59.34, 18.08), today="2026-10-05")
+assert [t["kind"] for t in got] == ["TERRASSE"] * 3 and not any("name" in t for t in got)
+assert [round(t["coordinate"]["latitude"], 4) for t in got] == [59.3356, 59.3349, 59.3358]
+assert [round(t["coordinate"]["longitude"], 4) for t in got] == [18.0742, 18.0731, 18.0738]
+assert asked[0].startswith("https://openstreetgs.stockholm.se/geoservice/api/s3cr3t-key/wfs?")
+assert "typeName=od_gis:Markupplatelse_Punkt" in asked[0] and "bbox=18.06,59.33,18.08,59.34,EPSG:4326" in asked[0]
+assert redact("GET https://openstreetgs.stockholm.se/geoservice/api/s3cr3t-key/wfs") == \
+    "GET https://openstreetgs.stockholm.se/geoservice/api/***/wfs"
+os.environ.pop("STOCKHOLM_API_KEY")
 # Gothenburg: one ';' CSV with a BOM, read whole; a terrace where Serveringstyper lists Uteservering (alone or among
 # catering and tastings) and the public is served (alone or with closed companies); no outdoor serving, a closed
 # company and a row without a point dropped.

@@ -1,0 +1,18 @@
+{
+ "_comment": "NOT from the live feed: shaped by hand on Trafikkontoret's documented Markupplatelse_Punkt layer (ärendekategori; no API key in the session that wrote it, 2026-10-05). Replace with a trimmed real answer after the first keyed build.",
+ "type": "FeatureCollection",
+ "features": [
+  {"type": "Feature", "geometry": {"type": "Point", "coordinates": [18.0742, 59.3356]},
+   "properties": {"Ärendekategori": "Uteservering", "Startdatum": "2026-04-01", "Slutdatum": "2026-12-31"}},
+  {"type": "Feature", "geometry": {"type": "Point", "coordinates": [59.3349, 18.0731]},
+   "properties": {"Ärendekategori": "Uteservering - säsong", "Startdatum": "2026-04-01", "Slutdatum": "2027-03-31"}},
+  {"type": "Feature", "geometry": {"type": "Point", "coordinates": [18.0750, 59.3360]},
+   "properties": {"Ärendekategori": "Uteservering", "Startdatum": "2025-04-01", "Slutdatum": "2025-09-30"}},
+  {"type": "Feature", "geometry": {"type": "Point", "coordinates": [18.0745, 59.3352]},
+   "properties": {"Ärendekategori": "Byggetablering", "Startdatum": "2026-01-01", "Slutdatum": "2026-12-31"}},
+  {"type": "Feature", "geometry": {"type": "Point", "coordinates": [18.0700, 59.3340]},
+   "properties": {"Ärendekategori": "Bangolf"}},
+  {"type": "Feature", "geometry": {"type": "Point", "coordinates": [18.0738, 59.3358]},
+   "properties": {"Ärendekategori": "uteservering"}}
+ ]
+}

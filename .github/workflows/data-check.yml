@@ -2,7 +2,7 @@
 # probe cell (probes.json), compared with the last run's record (data-check.json) and with the published
 # tile of that cell; the coverage feed sampled against the store's tiles. A flag (a dead feed, a count or
 # share fallen by half, a changed licence, a feed mismatch) opens or updates the one issue titled
-# "Weekly data check"; a clean run closes it. Reads only: no secrets, the workflow's own token writes
+# "Weekly data check"; a clean run closes it. Reads only: one secret (STOCKHOLM_API_KEY, the probe's), the workflow's own token writes
 # the issue and commits the record. Public repo, standard runners: no minutes are billed. Runs before
 # the Monday tiles build (03:17), so the feed and the tiles it compares with are last week's, consistent.
 name: Data check
@@ -41,7 +41,9 @@ jobs:
       - uses: actions/checkout@v4
       # London's lidar row measures on OpenStreetMap's footprints: the extract is cut with osmium.
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
-      - run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "${{ inputs.only }}" --write "part-${{ matrix.part }}.json"
+      - env:
+          STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, its row is skipped
+        run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "${{ inputs.only }}" --write "part-${{ matrix.part }}.json"
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
