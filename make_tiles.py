@@ -359,8 +359,10 @@ def smallest_region(regions, lat, lon):
     if not holding: raise SourceError(f"no Geofabrik extract holds {lat},{lon}")
     return max(holding, key=lambda f: (depth(f["properties"]["id"]), -size(f)))
 
-def download(url, folder, max_days=6):
-    """A whole file, kept in `folder` and fetched again once older than `max_days` (Geofabrik updates daily)."""
+def download(url, folder, max_days=6, headers=None):
+    """A whole file, kept in `folder` and fetched again once older than `max_days` (Geofabrik updates daily).
+    The bytes are kept as served: with `headers` asking for gzip, a store that holds the file gzipped
+    (PLATEAU's) sends it so, and the reader inflates it."""
     file = os.path.join(folder, url.rsplit("/", 1)[1])
     if os.path.exists(file) and time.time() - os.path.getmtime(file) < max_days * 86_400: return file
     os.makedirs(folder, exist_ok=True)
@@ -369,7 +371,7 @@ def download(url, folder, max_days=6):
     # them 504 or hangs (2026-09-27, three of three jobs, two lost); a minute later it serves them.
     for attempt, wait in enumerate((60, 120, 240, None)):
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": UA})
+            request = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response, open(file + ".tmp", "wb") as f:
                 shutil.copyfileobj(response, f, 1 << 20)
             break
@@ -848,6 +850,77 @@ def citygml_tiles(url, km):
         return out
     return fetch
 
+# MLIT's Project PLATEAU (3D都市モデル): CityGML 2.0 per city, one building file per 1 km mesh, listed by the
+# PLATEAU data catalogue's keyless API per city code (Osaka: 27100; Tokyo: each of the 23 wards, 13101–13123,
+# a mesh on a ward border having a file per ward). The store holds the files gzipped and serves them so when
+# asked (a 124 MB mesh is 16 MB on the wire).
+PLATEAU_INDEX = "https://api.plateau.reearth.io/datacatalog/citygml/{}"
+PLATEAU_KEPT = 40    # mesh files held parsed (a dense one ~3,000 buildings, ~10 MB): a row of 600 m blocks across
+                     # a 13 km box touches ~30, so a sweep parses each once
+_plateau_index = {}  # city code → {mesh code: [file URLs]}, read once a run
+_plateau = {}        # file URL → its buildings, the PLATEAU_KEPT most recently used
+
+def mesh_code(lat, lon):
+    """The Japanese standard 3rd-level mesh (JIS X 0410: 30″ × 45″, ~1 km) holding a point, as its 8-digit code:
+    the 1st mesh (lat × 1.5, lon − 100), its 8 × 8 cell, then that cell's 10 × 10 cell."""
+    p, u = lat * 1.5, lon - 100
+    q, v = (p % 1) * 8, (u % 1) * 8
+    return f"{int(p):02d}{int(u):02d}{int(q)}{int(v)}{int((q % 1) * 10)}{int((v % 1) * 10)}"
+
+def mesh_codes(rect):
+    """The 3rd-level meshes a box touches, west to east then south to north."""
+    s, w, n, e = rect
+    return [mesh_code((i + 0.5) / 120, (j + 0.5) / 80)
+            for i in range(math.floor(s * 120), math.floor(n * 120) + 1) for j in range(math.floor(w * 80), math.floor(e * 80) + 1)]
+
+def plateau_buildings(raw):
+    """A PLATEAU building file (gzipped or not): CityGML 2.0 in EPSG:6697, posLists "lat lon height" (three values
+    a point, no srsDimension on them). Each Building's or BuildingPart's outline is its LoD2 ground surface where it
+    has one (LoD2 covers 20 % of Tokyo's buildings, 2.6 % of Osaka's), else its LoD0 footprint (Osaka), else its
+    LoD0 roof edge (Tokyo); its height is measuredHeight, metres (-9999 where unmeasured: the flagged guess)."""
+    if raw[:2] == b"\x1f\x8b": raw = gzip.decompress(raw)
+    out = []
+    for _, el in ET.iterparse(io.BytesIO(raw)):
+        if el.tag.rsplit("}", 1)[-1] != "Building": continue
+        for obj in [el] + el.findall(".//{*}BuildingPart"):
+            h = number(obj.findtext("{*}measuredHeight"))
+            lists = next((found for where in ("{*}boundedBy/{*}GroundSurface", "{*}lod0FootPrint", "{*}lod0RoofEdge")
+                          if (found := obj.findall(where + "//{*}exterior//{*}posList"))), [])
+            for pos in lists:
+                v, d = [float(x) for x in pos.text.split()], int(pos.get("srsDimension") or 3)
+                ring = [vertex(v[i], v[i + 1]) for i in range(0, len(v) - d + 1, d)]
+                if len(ring) >= 3: out.append(building(ring, h if h and h > 0 else None))
+        el.clear()
+    return out
+
+def plateau(codes):
+    """A fetch over PLATEAU's building files for the cities (or wards) of `codes`: their catalogues are read once a
+    run, each mesh file a box touches is downloaded once (kept a year under extracts/plateau/<code>/, gzipped as
+    served) and parsed once a run (the PLATEAU_KEPT most recent held). A mesh no city lists has no building."""
+    def fetch(rect):
+        files = {}
+        for code in codes:
+            if code not in _plateau_index:
+                cities = sorted(get_json(PLATEAU_INDEX.format(code)).get("cities") or [], key=lambda c: c.get("year") or 0)
+                index = {}
+                for f in ((cities[-1].get("files") or {}).get("bldg") or []) if cities else []:
+                    index.setdefault(f["code"], []).append(f["url"])
+                _plateau_index[code] = index
+            for mesh in mesh_codes(rect):
+                for url in _plateau_index[code].get(mesh, ()): files[url] = code
+        s, w, n, e = rect
+        out = []
+        for url, code in files.items():
+            if url in _plateau:
+                _plateau[url] = _plateau.pop(url)  # the most recent last
+            else:
+                file = download(url, os.path.join("extracts", "plateau", code), max_days=365, headers={"Accept-Encoding": "gzip"})
+                with open(file, "rb") as f: _plateau[url] = plateau_buildings(f.read())
+                while len(_plateau) > PLATEAU_KEPT: del _plateau[next(iter(_plateau))]
+            out += [b for b in _plateau[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+        return out
+    return fetch
+
 def beoland(rect):
     """Beoland's Belgrade LoD2 multipatch, which answers no GeoJSON and leaves measuredheight empty: the
     footprints' outer (clockwise) rings from one query, each height (the extent's top minus its bottom,
@@ -1318,6 +1391,14 @@ CITY_BUILDINGS = [
     building_row("Bogotá", (3.8214, 4.8324), (-74.3934, -73.9939), lambda r: footprints(arcgis(
         "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0", r, ["CONNPISOS"]),
         lambda p: number(p.get("CONNPISOS")) * 3 if number(p.get("CONNPISOS")) else None)),
+    # Wired 2026-10-05 (the heights survey of 2026-10-04). MLIT's Project PLATEAU 3D都市モデル, the 2025 editions (PLATEAU site
+    # policy: PDL 1.0, CC BY-compatible, commercial use allowed; the credit names the model and says it was processed):
+    # bldg:measuredHeight, metres (lidar 2021 in Tokyo, 2017 in Osaka), on the LoD2 ground surface, else the LoD0 footprint or
+    # roof edge (plateau_buildings). Each box is the city's tiled area (cities.json), no other tiled city near it. Tokyo: the
+    # 23 wards' files (307 meshes, 981,053 buildings in the box), which cover the box whole. Osaka: 大阪市's (129 meshes,
+    # 387,528 buildings); the box's eastern sliver past the city line (Higashiōsaka, Moriguchi) has no file and falls to OSM.
+    building_row("Tokyo", (35.6298, 35.7398), (139.6616, 139.7971), plateau([f"131{k:02d}" for k in range(1, 24)])),
+    building_row("Osaka", (34.6394, 34.7494), (135.4664, 135.6002), plateau(["27100"])),
 ]
 
 

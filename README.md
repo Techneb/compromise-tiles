@@ -190,6 +190,11 @@ none, this says so rather than guessing.
   Agency, LIDAR Composite DSM and DTM, 1 m. © Environment Agency copyright
   and/or database right 2022. All rights reserved. Open Government Licence;
   heights on OpenStreetMap's footprints.
+- Tokyo, Osaka: 3D City Model (Project PLATEAU), Tokyo 23 wards and Osaka
+  City, 2025 editions, Ministry of Land, Infrastructure, Transport and
+  Tourism (MLIT), processed into footprints and heights. Public Data
+  License 1.0 (compatible with CC BY 4.0). 「3D都市モデル（Project
+  PLATEAU）東京都23区・大阪市（2025年度）」（国土交通省）を加工して作成。
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
