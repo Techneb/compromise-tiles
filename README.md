@@ -112,6 +112,9 @@ none, this says so rather than guessing.
   Permits (licence not stated by the publisher).
 - Kensington and Chelsea (London): Royal Borough of Kensington and Chelsea,
   Tables and Chairs licences (licence not stated by the publisher).
+- Edinburgh: © City of Edinburgh Council, tables and chairs permits
+  (2026-10-05 snapshot, geocoded with OpenStreetMap Nominatim, ODbL, and
+  ONS postcode centres, OGL).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains

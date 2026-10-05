@@ -1,0 +1,75 @@
+{
+ "type": "FeatureCollection",
+ "_source": {
+  "feed": "https://www.edinburgh.gov.uk/downloads/file/25969/tables-and-chairs-permits",
+  "dataset": "https://www.edinburgh.gov.uk/licences-permits/view-existing-tables-chairs-permits",
+  "publisher": "City of Edinburgh Council",
+  "licence": "© City of Edinburgh Council (used at the owner's risk, DECISIONS.md)",
+  "downloaded": "2026-10-05",
+  "kept": "issued permits valid on the day of the snapshot; premises name only",
+  "geocoder": "OpenStreetMap Nominatim (ODbL), house number and road checked; else the postcode's centre from postcodes.io (ONS Postcode Directory, OGL), marked placed=postcode",
+  "refresh": "by hand, when the feed changes: permits/geocode_edinburgh.py"
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -3.185191,
+     55.946409
+    ]
+   },
+   "properties": {
+    "name": "1505 Cafe",
+    "kind": "TERRASSE",
+    "placed": "house"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -3.195177,
+     55.947891
+    ]
+   },
+   "properties": {
+    "name": "Alba Bistro",
+    "kind": "TERRASSE",
+    "placed": "house"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -3.188416,
+     55.950133
+    ]
+   },
+   "properties": {
+    "name": "Albanach",
+    "kind": "TERRASSE",
+    "placed": "house"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -3.213846,
+     55.959352
+    ]
+   },
+   "properties": {
+    "name": "Artisan Roast",
+    "kind": "TERRASSE",
+    "placed": "postcode"
+   }
+  }
+ ]
+}
