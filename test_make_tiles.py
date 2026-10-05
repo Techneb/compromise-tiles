@@ -454,3 +454,48 @@ assert at(45.5150, -73.5650) == "Montréal" and at(45.4840, -73.5960) == "Montr�
 assert at(45.5670, -73.6750) == "OSM" and at(45.5350, -73.5100) == "OSM"
 assert at(4.6670, -74.0550) == "Bogotá"
 print("ok (2026-10-05 rows)")
+
+# Los Angeles: the 2021 Al Fresco snapshot, kept only where a venue of today (the published venues/ tiles) stands within
+# 60 m under a matching name. The fixture is nine real rows of the feed over seven real tile cuts (2026-10-05): Dino's
+# Burgers (a curly apostrophe against OSM's straight one), California Kabob Kitchen (the same name) and Little Joy
+# Cocktails LLC (OSM's "Little Joy": the core words) survive; Cafe Esquinita has no venue within 60 m, Tilda's neighbour
+# is "Tila" (another name), Spring Street Smokehouse's is "Thai", and the unnamed row cannot be matched. The feed repeats
+# Tilda and Spring Street Smokehouse: unique() drops a repeat, as a build does.
+from make_tiles import normalised_name, names_match, venue_tiles_around, surviving
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/los-angeles.json") as f: return json.load(f)
+with open("fixtures/los-angeles-venues.json") as f: venue_fixture = json.load(f)
+read_tiles = []
+def fake_published_items(layer, key, bust=False):
+    read_tiles.append((layer, key, bust))
+    return venue_fixture.get(key, [])
+make_tiles.get, make_tiles.published_items, real_published_items = fake_get, fake_published_items, make_tiles.published_items
+make_tiles._venue_tiles.clear()
+los_angeles = next(c for c in PERMIT_CITIES if c["city"] == "Los Angeles")
+got = unique(permits(los_angeles, (34.03, -118.29, 34.09, -118.21)))
+assert [t["name"] for t in got] == ["Dino’s Burgers", "California Kabob Kitchen", "Little Joy Cocktails LLC"], got
+assert all(t["kind"] == "TERRASSE" for t in got)
+assert "OBJECTID>-1" in asked[0] and "outFields=OBJECTID,Business_Name" in asked[0]
+assert read_tiles and all(layer == "venues" and bust for layer, _, bust in read_tiles)
+assert len(unique(make_tiles.fetched_permits(los_angeles, (34.03, -118.29, 34.09, -118.21)))) == 7   # 9 rows, 2 repeats, before the match
+# A venue tile the store did not give fails the feed rather than dropping its permits silently.
+make_tiles._venue_tiles.clear()
+make_tiles.published_items = lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503")
+try: surviving([{"kind": "TERRASSE", "name": "Tilda", "coordinate": {"latitude": 34.08, "longitude": -118.255}}], "Los Angeles"); raise AssertionError
+except make_tiles.SourceError as e: assert "Los Angeles: venues/" in str(e) and "HTTP 503" in str(e), e
+make_tiles.published_items = real_published_items
+make_tiles._venue_tiles.clear()
+# The name rule is the app's (TerraceNames.swift): accents and punctuation set aside, one name in the other, the first
+# two words shared, or the shorter's core words in the longer — one short shared word is not a match.
+assert normalised_name("Dino’s Burgers") == "DINO S BURGERS" and normalised_name("Café Oz - The Australian Bar") == "CAFE OZ THE AUSTRALIAN BAR"
+assert normalised_name(None) == "" and normalised_name("  ") == ""
+assert names_match(normalised_name("Bar Ama"), normalised_name("Bar Amá")) and names_match("CAFE OZ", "CAFE OZ THE AUSTRALIAN BAR")
+assert names_match(normalised_name("Little Joy Cocktails LLC"), "LITTLE JOY") and names_match("LA FONTANA", "LA FONTANA DE ORO")
+assert names_match(normalised_name("The Window; Lowboy; Bar Flores"), "LOWBOY") and names_match("BAR POSTAS", "POSTAS 15")
+assert not names_match("TILDA", "TILA") and not names_match("SOL 12", "BAR SOL Y SOMBRA") and not names_match("", "TILDA")
+# A permit's venue can sit in the next tile: the keys of the tiles its 60 m reach touches, one to four.
+assert venue_tiles_around(34.0660, -118.2122) == ["1703,-5910"]
+assert venue_tiles_around(34.0801, -118.2554) == ["1703,-5912", "1704,-5912"]   # Tilda, 11 m above a tile edge
+print("ok (Los Angeles)")

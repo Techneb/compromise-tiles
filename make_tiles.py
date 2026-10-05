@@ -34,7 +34,7 @@ Needs Python 3 (standard library only) and osmium-tool on the PATH.
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zlib, zoneinfo
+import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -210,6 +210,13 @@ PERMIT_CITIES = [
     row("Kensington and Chelsea", "", "utility.arcgis.com/usrsvcs/servers/d70af383b66642a59ffae23125511dfc/rest/services",
         "RBKC/EnvironmentalHealth/MapServer/6", "TradingName", [], (51.47, 51.53), (-0.23, -0.15), shape="arcgis",
         filter="ExpiryDate >= CURRENT_TIMESTAMP", boundary=boundary("kensington-and-chelsea")),
+    # Los Angeles: DataLA's L.A. Al Fresco dining locations (ArcGIS Online, no licence stated), a January 2021 snapshot of
+    # COVID-era authorisations — 2,273 named points, no status or expiry, both types (sidewalk and private property,
+    # on-street) open air. Many of those venues are gone, so a permit is kept only where a venue of today stands under its
+    # name (`match="venues"`: the published venues/ tiles, OpenStreetMap's, within MATCH_REACH; owner, 2026-10-05). The box
+    # is the tiled area's (cities.json): the layer covers the whole city, the venue tiles only this.
+    row("Los Angeles", "", "services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services", "Al_Fresco_Dining_Locations/FeatureServer/0",
+        "Business_Name", [], (34.015, 34.087), (-118.2907, -118.2073), shape="arcgis", match="venues"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -1400,6 +1407,60 @@ CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius"
          "riga": riga_venue_name, "toronto": toronto_name, "helsinki": helsinki_venue_name, "seattle": seattle_venue_name,
          "n/a": not_applicable}
 
+# A snapshot's permit survives only where a venue of today stands under its name (Los Angeles, a January 2021 list,
+# 2026-10-05). The venues are the published venues/ tiles (OpenStreetMap's: Apple's cannot be read from a build), within
+# MATCH_REACH metres under a matching name — the app's own rule (TerraceNames.swift: normalised, namesMatch), ported so a
+# permit kept here is one the app can hand to the venue. A permit with no name, or no venue tile, is dropped.
+MATCH_REACH = 60
+_venue_tiles = {}   # {key: items} read once per run
+
+PLACE_WORDS = {
+    "BAR", "BARS", "CAFE", "CAFES", "COFFEE", "PUB", "RESTAURANT", "RESTAURANTE", "RISTORANTE", "BRASSERIE",
+    "BISTRO", "CERVECERIA", "TABERNA", "TAVERNA", "KNEIPE", "TRATTORIA", "OSTERIA", "THE", "LE", "LA", "LES",
+    "EL", "LOS", "LAS", "IL", "DE", "DU", "DES", "DEL", "DI", "DER", "DIE", "DAS", "Y", "ET", "E", "AND", "UND",
+}
+
+def normalised_name(name):
+    """Uppercased, accents and punctuation stripped, spaces collapsed: "Café Oz" and "CAFE OZ - THE AUSTRALIAN BAR" meet."""
+    if not name: return ""
+    folded = "".join(ch for ch in unicodedata.normalize("NFKD", name) if not unicodedata.combining(ch)).upper()
+    return " ".join("".join(ch if ch.isalnum() else " " for ch in folded).split())
+
+def names_match(lhs, rhs):
+    """One name contains the other, or they share their first two words, or every word of the shorter is in the longer once
+    words that name a kind of place and bare numbers are set aside — one short shared word is not a match."""
+    if not lhs or not rhs: return False
+    if rhs in lhs or lhs in rhs: return True
+    left, right = lhs.split(" ")[:2], rhs.split(" ")[:2]
+    if len(left) == 2 and left == right: return True
+    core = lambda name: {w for w in name.split(" ") if w not in PLACE_WORDS and not w.isdigit()}
+    small, big = sorted([core(lhs), core(rhs)], key=len)
+    if not (len(small) >= 2 or (len(small) == 1 and len(next(iter(small))) >= 5)): return False
+    return small <= big
+
+def venue_tiles_around(lat, lon):
+    """The keys of the published venue tiles a venue within MATCH_REACH of the point can sit in (one to four)."""
+    s, w, n, e = padded((lat, lon, lat, lon), MATCH_REACH)
+    return sorted({f"{index(a, COARSE)},{index(b, COARSE)}" for a in (s, n) for b in (w, e)})
+
+def surviving(items, city):
+    """The permits a venue of today stands under: a named one with a venue within MATCH_REACH under a matching name.
+    A venue tile that could not be read fails the feed (half an answer is not a tile), a missing one holds no venue."""
+    out = []
+    for t in items:
+        wanted = normalised_name(t.get("name"))
+        if not wanted: continue
+        lat, lon = t["coordinate"]["latitude"], t["coordinate"]["longitude"]
+        venues = []
+        for key in venue_tiles_around(lat, lon):
+            if key not in _venue_tiles: _venue_tiles[key] = published_items("venues", key, bust=True)
+            if isinstance(_venue_tiles[key], SourceError): raise SourceError(f"{city}: venues/{key}: {_venue_tiles[key]}")
+            venues += _venue_tiles[key]
+        if any(metres(lat, lon, v["coordinate"]["latitude"], v["coordinate"]["longitude"]) <= MATCH_REACH
+               and names_match(normalised_name(v.get("name")), wanted) for v in venues):
+            out.append(t)
+    return out
+
 def arcgis_filter(text):
     """ArcGIS dates: `DATE 'YYYY-MM-DD'` in the where clause; {today} and {fifteenMonthsAgo} (Seattle) resolved at run time."""
     today = datetime.datetime.now(datetime.timezone.utc).date()
@@ -1617,6 +1678,11 @@ def oslo(c, rect):
     return out
 
 def permits(c, rect):
+    """A feed's terraces in the rect; a `match="venues"` row keeps only those a venue of today stands under."""
+    items = fetched_permits(c, rect)
+    return surviving(items, c["city"]) if c.get("match") == "venues" else items
+
+def fetched_permits(c, rect):
     s, w, n, e = rect
     if c.get("shape") == "oslo": return oslo(c, rect)
     if c.get("shape") == "amsterdam": return amsterdam(c, rect)
@@ -1808,11 +1874,13 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             note_sources(out, c, published, buildings=name)
 
 STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
+PUBLIC_STORE = "https://tiles.alephb.uk/tiles/"   # where a venue match reads from when no --store is given
 STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
+_bust = str(int(time.time()))   # one query string per run: the CDN serves the tile as published, not as cached
 
-def published_source(cell):
-    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
-    url = f"{STORE}sources/{cell.key}.json"
+def published_items(layer, key, bust=False):
+    """A published tile's items (a list; [] when there is none, 404), or a SourceError. `bust` asks past the CDN's cache."""
+    url = f"{STORE or PUBLIC_STORE}{layer}/{key}.json" + (f"?v={_bust}" if bust else "")
     error = "?"
     for attempt in range(3):
         try:
@@ -1820,14 +1888,20 @@ def published_source(cell):
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response: body = response.read()
             if body[:2] == b"\x1f\x8b": body = gzip.decompress(body)  # gzipped at rest, inflated by the CDN or not
             items = json.loads(body)
-            return items[0] if isinstance(items, list) and items and isinstance(items[0], dict) else {}
+            return items if isinstance(items, list) else []
         except urllib.error.HTTPError as e:
-            if e.code == 404: return {}
+            if e.code == 404: return []
             error = f"HTTP {e.code}"
         except Exception as e:  # noqa: BLE001 — resets, timeouts, a truncated body: asked again
             error = f"{type(e).__name__}: {e}"[:200]
         time.sleep(2 * (attempt + 1))
     return SourceError(f"store: {error}")
+
+def published_source(cell):
+    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
+    items = published_items("sources", cell.key)
+    if isinstance(items, SourceError): return items
+    return items[0] if items and isinstance(items[0], dict) else {}
 
 def published_sources(out, cells):
     """{key: published entry or SourceError} for the cells with no sources/ tile in `out` yet
