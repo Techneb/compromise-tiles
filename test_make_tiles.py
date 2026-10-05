@@ -454,3 +454,63 @@ assert at(45.5150, -73.5650) == "Montréal" and at(45.4840, -73.5960) == "Montr�
 assert at(45.5670, -73.6750) == "OSM" and at(45.5350, -73.5100) == "OSM"
 assert at(4.6670, -74.0550) == "Bogotá"
 print("ok (2026-10-05 rows)")
+# 2026-10-05 rows, PLATEAU (Tokyo, Osaka): a few real buildings cut from three 2025 mesh files, gzipped as the store serves
+# them. Shibuya's 53394505 (LoD1: the roof edge is the outline; a 66.2 m tower, a 14.2 m house, one at -9999: the flagged
+# guess), Chiyoda's 53394509 (LoD2: the ground surface; 6 m, and -9999), Osaka's 51357309 (the LoD0 footprint; 9.3, 6.5, -9999).
+from make_tiles import mesh_code, mesh_codes, plateau_buildings
+assert mesh_code(35.6684, 139.6889) == "53394505" and mesh_code(35.6742, 139.7406) == "53394509" and mesh_code(34.5915, 135.4991) == "51357309"
+assert mesh_code(35.6895, 139.6917) == "53394525"   # the Tokyo Metropolitan Government Building
+assert mesh_codes((35.6684, 139.6889, 35.6684, 139.6889)) == ["53394505"]
+assert mesh_codes((35.6745, 139.6995, 35.6752, 139.7005)) == ["53394505", "53394506", "53394515", "53394516"]   # a mesh corner
+# The outline's precedence: the ground surface, else the footprint, else the roof edge; a part's own.
+gml = lambda inner: f'<core:CityModel xmlns:core="http://www.opengis.net/citygml/2.0" xmlns:bldg="http://www.opengis.net/citygml/building/2.0" xmlns:gml="http://www.opengis.net/gml"><core:cityObjectMember>{inner}</core:cityObjectMember></core:CityModel>'.encode()
+ring = lambda tag, lat: f"<bldg:{tag}><gml:MultiSurface><gml:surfaceMember><gml:Polygon><gml:exterior><gml:LinearRing><gml:posList>{lat} 139.7 0 {lat} 139.701 0 {lat + 0.001} 139.701 0 {lat} 139.7 0</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></bldg:{tag}>"
+ground = lambda lat: f"<bldg:boundedBy><bldg:GroundSurface>{ring('lod2MultiSurface', lat)}</bldg:GroundSurface></bldg:boundedBy>"
+got = plateau_buildings(gml(f'<bldg:Building><bldg:measuredHeight uom="m">12.5</bldg:measuredHeight>{ring("lod0RoofEdge", 35.1)}{ring("lod0FootPrint", 35.2)}{ground(35.3)}</bldg:Building>'))
+assert [(b["height"], b["outline"][0]["latitude"]) for b in got] == [(12.5, 35.3)]
+got = plateau_buildings(gml(f'<bldg:Building><bldg:measuredHeight uom="m">12.5</bldg:measuredHeight>{ring("lod0RoofEdge", 35.1)}{ring("lod0FootPrint", 35.2)}</bldg:Building>'))
+assert [(b["height"], b["outline"][0]["latitude"]) for b in got] == [(12.5, 35.2)]
+got = plateau_buildings(gml(f'<bldg:Building><bldg:measuredHeight uom="m">0</bldg:measuredHeight>{ring("lod0RoofEdge", 35.1)}'
+                            f'<bldg:consistsOfBuildingPart><bldg:BuildingPart><bldg:measuredHeight uom="m">30</bldg:measuredHeight>{ring("lod0RoofEdge", 35.4)}</bldg:BuildingPart></bldg:consistsOfBuildingPart></bldg:Building>'))
+assert [(b["height"], b.get("guessed"), b["outline"][0]["latitude"]) for b in got] == [(15.0, True, 35.1), (30.0, None, 35.4)]
+# The rows: the catalogue read once a run per city code (Tokyo's 23 wards, Osaka's one), each mesh file downloaded once
+# (gzip asked for, kept a year under its city code), a mesh no city lists empty.
+tokyo, osaka = (next(b for b in CITY_BUILDINGS if b["city"] == c)["fetch"] for c in ("Tokyo", "Osaka"))
+plateau_files = {"13113": {"53394505": "https://assets.example/13113/udx/bldg/53394505_bldg_6697_op.gml"},
+                 "13101": {"53394509": "https://assets.example/13101/udx/bldg/53394509_bldg_6697_op.gml"},
+                 "27100": {"51357309": "https://assets.example/27100/udx/bldg/51357309_bldg_6697_op.gml"}}
+fixtures = {url: os.path.abspath(f"fixtures/plateau-{'osaka' if code == '27100' else 'tokyo'}-{mesh}.gml.gz")
+            for code, files in plateau_files.items() for mesh, url in files.items()}
+asked.clear(); fetched.clear()
+def fake_get_json(url, data=None, waits=None):
+    asked.append(url)
+    code = url.rsplit("/", 1)[1]
+    return {"cities": [{"cityCode": code, "year": 2025, "files": {"bldg": [{"code": m, "url": u} for m, u in plateau_files.get(code, {}).items()]}}]}
+def fake_download(url, folder, max_days=6, headers=None):
+    fetched.append((url, folder, max_days, (headers or {}).get("Accept-Encoding")))
+    os.makedirs(folder, exist_ok=True)
+    return shutil.copy(fixtures[url], os.path.join(folder, url.rsplit("/", 1)[1]))
+with tempfile.TemporaryDirectory() as d:
+    os.chdir(d)
+    make_tiles.get_json, make_tiles.download = fake_get_json, fake_download
+    try:
+        got = tokyo((35.668, 139.688, 35.6685, 139.6885))
+        assert [(b["height"], len(b["outline"]), b["outline"][0]) for b in got] == [(66.2, 18, {"latitude": 35.668379, "longitude": 139.688166})]
+        assert asked == [make_tiles.PLATEAU_INDEX.format(f"131{k:02d}") for k in range(1, 24)]
+        assert fetched == [(plateau_files["13113"]["53394505"], os.path.join("extracts", "plateau", "13113"), 365, "gzip")]
+        assert [(b["height"], b.get("guessed")) for b in tokyo((35.6745, 139.695, 35.6752, 139.697))] == [(14.2, None), (15.0, True)]
+        assert [(b["height"], b.get("guessed"), len(b["outline"])) for b in tokyo((35.667, 139.738, 35.6745, 139.741))] == [(6.0, None, 4), (15.0, True, 5)]
+        assert tokyo((35.70, 139.77, 35.701, 139.771)) == []   # a mesh no ward lists
+        assert len(asked) == 23 and [f[0].rsplit("/", 1)[1][:8] for f in fetched] == ["53394505", "53394509"]   # once a run each
+        got = osaka((34.5915, 135.4989, 34.5916, 135.4992))
+        assert [(b["height"], b["outline"][0]) for b in got] == [(9.3, {"latitude": 34.591532, "longitude": 135.499073})]
+        assert [(b["height"], b.get("guessed")) for b in osaka((34.5912, 135.4997, 34.5914, 135.4999))] == [(6.5, None), (15.0, True)]
+        assert asked[23:] == [make_tiles.PLATEAU_INDEX.format("27100")] and fetched[2][1:] == (os.path.join("extracts", "plateau", "27100"), 365, "gzip")
+    finally:
+        os.chdir(here)
+        make_tiles.get_json, make_tiles.download = real_get_json, real_download
+        make_tiles._plateau.clear(); make_tiles._plateau_index.clear()
+# Each box is its city's tiled area; east of Osaka's city line (Higashiōsaka) the row answers nothing and the cell falls to OSM.
+assert at(35.7015, 139.7395) == "Tokyo" and at(35.6938, 139.7034) == "Tokyo" and at(35.75, 139.70) == "OSM"
+assert at(34.7050, 135.4970) == "Osaka" and at(34.6664, 135.5003) == "Osaka" and at(34.70, 135.62) == "OSM"
+print("ok (PLATEAU rows)")
