@@ -282,10 +282,10 @@ got = next(b for b in CITY_BUILDINGS if b["city"] == "Edmonton")["fetch"]((53.54
 assert [b["height"] for b in got] == [146.8, 8.4, 8.2]
 assert got[0]["outline"][0] == {"latitude": 53.541894, "longitude": -113.493936}
 assert asked[0].startswith("https://data.edmonton.ca/resource/jpxi-a9a5.geojson?") and "intersects(the_geom, 'POLYGON((-113.5 53.54" in asked[0]
-# Each held to its boundary: York University (Toronto) and Brampton sit in Vaughan's box, St. Albert and
-# Sherwood Park in Edmonton's.
+# Each held to its boundary: York University (Toronto, its own row since 2026-10-05) and Brampton sit in Vaughan's
+# box, St. Albert and Sherwood Park in Edmonton's.
 assert at(43.8540, -79.5084) == "Vaughan" and at(43.7970, -79.5290) == "Vaughan"
-assert at(43.7735, -79.5019) == "OSM" and at(43.7600, -79.6900) == "OSM"
+assert at(43.7735, -79.5019) == "Toronto" and at(43.7600, -79.6900) == "OSM"
 assert at(53.5444, -113.4909) == "Edmonton" and at(53.6305, -113.6256) == "OSM" and at(53.5400, -113.2950) == "OSM"
 
 # 2026-10-03: Berlin, New York and Istanbul tile the whole city (Istanbul its built-up area). Each
@@ -406,3 +406,51 @@ assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and fee
 assert feed(60.1711, 24.9453) == "Helsinki" and feed(57.7040, 11.9782) == "Gothenburg" and feed(38.9016, -77.0204) == "Washington DC"
 assert feed(42.3574, -71.0541) == "Boston" and feed(47.6241, -122.3564) == "Seattle"
 print("ok")
+# 2026-10-05 rows. Toronto: the GTA GeoPackage Vaughan reads, downloaded once for both rows (four real rows: the CN Tower,
+# the tallest King West footprint and two low ones); Montréal: NRCan's VILLE_MONTREAL file (three real rows at Berri-UQAM
+# and one of its 17 footprints at heightmax -1, the flagged guess).
+toronto, montreal = (next(b for b in CITY_BUILDINGS if b["city"] == c)["fetch"] for c in ("Toronto", "Montréal"))
+fixtures = {make_tiles.NRCAN_GTA: os.path.abspath("fixtures/toronto-gpkg.zip"), make_tiles.NRCAN_MONTREAL: os.path.abspath("fixtures/montreal-gpkg.zip")}
+def fake_download(url, folder, max_days=6):
+    fetched.append(url)
+    os.makedirs(folder, exist_ok=True)
+    return shutil.copy(fixtures[url], os.path.join(folder, url.rsplit("/", 1)[1]))
+fetched.clear()
+with tempfile.TemporaryDirectory() as d:
+    os.chdir(d)
+    make_tiles.download = fake_download
+    try:
+        got = toronto((43.644, -79.396, 43.646, -79.394))
+        assert sorted(b["height"] for b in got) == [5.5, 17.5, 125.8] and not any("guessed" in b for b in got)
+        assert [b["height"] for b in toronto((43.642, -79.389, 43.643, -79.388))] == [537.0]   # the CN Tower, lidar to its tip
+        assert vaughan((43.7965, -79.5305, 43.7990, -79.5265)) == [] and fetched == [make_tiles.NRCAN_GTA]   # one file, one download
+        got = montreal((45.514, -73.566, 45.516, -73.564))
+        assert sorted(b["height"] for b in got) == [5.8, 17.4, 39.5] and not any("guessed" in b for b in got)
+        assert [(b["height"], b.get("guessed")) for b in montreal((45.533, -73.699, 45.534, -73.698))] == [(15.0, True)]
+        assert fetched == [make_tiles.NRCAN_GTA, make_tiles.NRCAN_MONTREAL]
+    finally:
+        os.chdir(here)
+        make_tiles.download = real_download
+        for db, *_ in make_tiles._geopackages.values(): db.close()
+        make_tiles._geopackages.clear()
+# Bogotá: IDECA's Construcción (three real footprints at Zona T), CONNPISOS × 3 m, 0 floors the flagged guess; paged on OBJECTID.
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/bogota.json") as f: return {"type": "FeatureCollection", "features": json.load(f)["features"]}
+make_tiles.get = fake_get
+got = next(b for b in CITY_BUILDINGS if b["city"] == "Bogotá")["fetch"]((4.666, -74.056, 4.668, -74.054))
+assert [(b["height"], b.get("guessed")) for b in got] == [(21.0, None), (3.0, None), (15.0, True)]
+assert got[0]["outline"][0] == {"latitude": 4.667134, "longitude": -74.055497}
+assert asked[0].startswith("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0/query?")
+assert "OBJECTID>-1" in asked[0] and "outFields=OBJECTID,CONNPISOS" in asked[0] and "geometry=-74.056,4.666,-74.054,4.668" in asked[0]
+make_tiles.get = real_get
+# Each held to its boundary. Toronto: King West and York University are in, Mississauga sits in the box and is not, the
+# VMC stays Vaughan's (its row comes first). Montréal: Berri-UQAM and Westmount (a ville liée the file covers) are in,
+# Pont-Viau (Laval, in the file and the box) and Longueuil are not. Bogotá: Zona T.
+assert at(43.6450, -79.3950) == "Toronto" and at(43.7735, -79.5019) == "Toronto" and at(43.5940, -79.6430) == "OSM"
+assert at(43.7970, -79.5290) == "Vaughan"
+assert at(45.5150, -73.5650) == "Montréal" and at(45.4840, -73.5960) == "Montréal"
+assert at(45.5670, -73.6750) == "OSM" and at(45.5350, -73.5100) == "OSM"
+assert at(4.6670, -74.0550) == "Bogotá"
+print("ok (2026-10-05 rows)")
