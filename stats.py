@@ -26,10 +26,10 @@ import argparse, datetime, hashlib, hmac, http.client, json, os, re, threading, 
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 
-from make_tiles import COARSE, FINE
+from make_tiles import COARSE, FINE, MAIN
 from storage import FREE_GB, LAYER_SCALE, TILE, owners, tally
 
-ROWS = {FINE: 100, COARSE: 10}  # rows per range at each key scale: 0.2° of latitude either way
+ROWS = {FINE: 100, COARSE: 10, MAIN: 5}  # rows per range at each key scale: 0.2° of latitude either way
 WORKERS = 64
 AGENT = {"User-Agent": "compromise-tiles-stats"}  # the store's host refuses urllib's default User-Agent
 
@@ -155,7 +155,7 @@ def load_previous(src):
 
 
 def stats(objects, cities, cities_path, build_list, run, now):
-    t = tally(objects, {FINE: {}, COARSE: {}})
+    t = tally(objects, {FINE: {}, COARSE: {}, MAIN: {}})
     other = [v for k, v in t["prefixes"].items() if k != "tiles/"]
     # The streets cities' cells, in every layer; a layer storage.py does not know (streets/ itself) read at the fine scale.
     streets = {e["city"] for e in cities if e.get("streets") is True}

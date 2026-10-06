@@ -69,5 +69,10 @@ assert set(s["streets"]) == {"Paris"} and s["streets"]["Paris"]["buildings"] == 
 assert s["streets"]["Paris"]["venues"]["bytes"] == 300 and s["streets"]["Paris"]["streets"]["bytes"] == 90, s["streets"]
 assert stats(objects, [{"city": "Paris", "box": [48.85, 2.33, 48.86, 2.34]}], cities_path, {}, 9, "")["streets"] == {}   # no flag yet
 json.dumps(s)
+# Every layer the tiles know has a key scale here (streets-main/ and places/ broke the feed's stats on 2026-10-06).
+from storage import LAYER_SCALE
+from stats import ROWS, cuts
+assert set(LAYER_SCALE.values()) <= set(ROWS), (LAYER_SCALE, ROWS)
+assert cuts(list(LAYER_SCALE), [{"city": "Paris", "box": [48.8, 2.2, 48.9, 2.4]}])
 server.shutdown()
 print("ok")
