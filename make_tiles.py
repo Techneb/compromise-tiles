@@ -16,6 +16,9 @@ each next from the one before. streets-main/ is the same on ~4 km cells
 (1/25°, keyed "<int(lat*25)>,<int(lon*25)>"): main roads only, 1e-4° steps
 from key / 25. places/, on the same cells: [{"name", "kind" (suburb,
 quarter, neighbourhood), "coordinate"}]. Both only where streets/ is.
+With --buildings-v2, buildings-v2/ beside buildings/: the same footprints as
+[height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
+0.5 m steps (BUILDINGS.md).
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -711,6 +714,38 @@ def building(ring, height=None):
     building without the key is measured, or published before 2026-10-04."""
     if height is None: return {"outline": ring, "height": DEFAULT_HEIGHT, "guessed": True}
     return {"outline": ring, "height": round(float(height), 1)}
+
+# buildings-v2/ (--buildings-v2, 2026-10-06): the same footprints as buildings/, a third of the bytes
+# gzipped (BUILDINGS.md). Each building is a flat array [height, y0, x0, dy1, dx1, …]: the height in
+# HEIGHT_STEP metres (an integer when whole), null for the 15 m guess ("guessed": true in buildings/);
+# the ring open (its closing vertex not repeated), in BUILDING_UNIT steps, the first vertex from the
+# key's corner (key / 500), each next from the one before — streets/'s encoding, the height in the kind's place.
+BUILDING_UNIT = 100_000   # 1e-5° steps: ~1.1 m north–south, ~0.7 m east–west at Paris's latitude
+HEIGHT_STEP = 0.5         # metres
+
+def compact_building(b, cell_key):
+    """One buildings-v2/ entry from a buildings/ one, or None when its ring rounds to under 3 corners.
+    Absolute coordinates are rounded first, so two buildings sharing a wall keep sharing it."""
+    ky, kx = map(int, cell_key.split(","))
+    ring = b["outline"][:-1] if len(b["outline"]) > 3 and b["outline"][0] == b["outline"][-1] else b["outline"]
+    steps = []
+    for p in ring:
+        q = (round(p["latitude"] * BUILDING_UNIT), round(p["longitude"] * BUILDING_UNIT))
+        if not steps or q != steps[-1]: steps.append(q)
+    if len(steps) > 1 and steps[0] == steps[-1]: steps.pop()
+    if len(steps) < 3: return None
+    height = None if b.get("guessed") else round(b["height"] / HEIGHT_STEP) * HEIGHT_STEP
+    if height is not None and float(height).is_integer(): height = int(height)
+    per = BUILDING_UNIT // FINE
+    out, (y, x) = [height, steps[0][0] - ky * per, steps[0][1] - kx * per], steps[0]
+    for qy, qx in steps[1:]:
+        out += [qy - y, qx - x]
+        y, x = qy, qx
+    return out
+
+def compact_buildings(items, cell_key):
+    """A buildings-v2/ tile from a buildings/ tile's items, in their order."""
+    return [c for c in (compact_building(b, cell_key) for b in items) if c is not None]
 
 def outer_rings(geometry):
     coordinates = (geometry or {}).get("coordinates") or []
@@ -2344,7 +2379,7 @@ STREET_LAYERS = ("streets", "streets-main", "places")   # built only where an en
 # its file is younger than this, so the weekly run does refresh permits
 # (they lapse) while a same-day re-run after a
 # failure still skips what is done. Buildings and streets change yearly, communes never.
-MAX_AGE_DAYS = {"communes": None, "buildings": 360, "terraces-v2": 6, "venues": 6, "streets": 360, "streets-main": 360, "places": 360}
+MAX_AGE_DAYS = {"communes": None, "buildings": 360, "buildings-v2": 360, "terraces-v2": 6, "venues": 6, "streets": 360, "streets-main": 360, "places": 360}
 
 def path(out, layer, cell): return os.path.join(out, layer, cell.key + ".json")
 
@@ -2443,8 +2478,10 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
                 name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
                 items = [{k: b[k] for k in ("outline", "height", "guessed") if k in b} for b in items]
             if tiles: write(path(out, "buildings", c), items)
+            if tiles and BUILDINGS_V2: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))
             note_sources(out, c, published, buildings=name)
 
+BUILDINGS_V2 = False   # --buildings-v2: buildings-v2/ written beside buildings/, from the same items
 STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
 PUBLIC_STORE = "https://tiles.alephb.uk/tiles/"   # where a venue match reads from when no --store is given
 STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
@@ -2616,7 +2653,8 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
             # A box of départements (the petite couronne) keeps only their cells.
             if departements and not any(x["code"][:2] in departements for x in communes.get(c.key) or []):
                 outside.add(c.key); continue
-            if "buildings" in layers and not done(out, "buildings", c): need_buildings.append(c)
+            if "buildings" in layers and not (done(out, "buildings", c) and (not BUILDINGS_V2 or done(out, "buildings-v2", c))):
+                need_buildings.append(c)
             if "streets" in layers and not done(out, "streets", c): need_streets.append(c)
             if "terraces-v2" in layers and not done(out, "terraces-v2", c):
                 if french and communes.get(c.key) is None:
@@ -2650,10 +2688,13 @@ def main():
     a.add_argument("--layers", default=",".join(LAYERS), help="which to write (default all): " + ", ".join(LAYERS)
                    + "; or sources, the building source of the published sources/ tiles that lack it (needs --store)")
     a.add_argument("--store", help="the published tiles' base URL (https://tiles.alephb.uk/tiles/): sources/ tiles keep its fields")
+    a.add_argument("--buildings-v2", action="store_true", help="with the buildings layer, also write buildings-v2/: the same"
+                   " footprints as integer deltas in 1e-5° steps, heights in 0.5 m steps (BUILDINGS.md)")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
-    global STORE
+    global STORE, BUILDINGS_V2
     STORE = args.store and args.store.rstrip("/") + "/"
+    BUILDINGS_V2 = args.buildings_v2
     if args.cities:
         with open(args.cities) as f: entries = json.load(f)
     elif args.city and args.lat is not None and args.lon is not None:

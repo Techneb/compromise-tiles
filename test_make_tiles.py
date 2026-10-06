@@ -754,3 +754,52 @@ make_tiles._osm = real_osm
 assert entry_layers({"city": "Rouen"}, ["venues", "streets-main", "places"]) == ["venues"]
 assert entry_layers({"city": "Paris", "streets": True}, ["streets-main", "places"]) == ["streets-main", "places"]
 print("ok (streets-main, places)")
+# buildings-v2/ (--buildings-v2): integer deltas in 1e-5° steps from the key's corner, heights in 0.5 m steps, null for the guess.
+import gzip, json, os, tempfile
+from make_tiles import compact_building, compact_buildings, BUILDING_UNIT, building, Cell
+def expand(row, key):
+    """The reader's side: [height, y0, x0, dy, dx, …] back to (height, [(lat, lon)]), the ring open."""
+    ky, kx = map(int, key.split(","))
+    y, x = row[1] + ky * 200, row[2] + kx * 200
+    ring = [(y, x)]
+    for i in range(3, len(row), 2):
+        y += row[i]; x += row[i + 1]; ring.append((y, x))
+    return row[0], [(a / BUILDING_UNIT, o / BUILDING_UNIT) for a, o in ring]
+pt = lambda lat, lon: {"latitude": lat, "longitude": lon}
+square = [pt(48.871, 2.331), pt(48.871, 2.33112), pt(48.87108, 2.33112), pt(48.87108, 2.331), pt(48.871, 2.331)]
+assert compact_building(building(square, 22.4), "24435,1165") == [22.5, 100, 100, 0, 12, 8, 0, 0, -12]   # closing vertex dropped
+assert compact_building(building(square), "24435,1165")[0] is None                                       # the 15 m guess
+assert compact_building(building(square, 22.2), "24435,1165")[0] == 22 and compact_building(building(square, 22.3), "24435,1165")[0] == 22.5
+assert compact_building(building([pt(48.871, 2.331), pt(48.871000001, 2.331), pt(48.871, 2.3310004)]), "24435,1165") is None   # under a step: gone
+assert compact_building(building([pt(-33.871, 151.2), pt(-33.871, 151.2001), pt(-33.8711, 151.2001)], 9), "-16935,75600")[1:3] == [-100, 0]   # from key / 500, so a negative key's cell lies below it
+# Two buildings sharing a wall keep sharing it: absolute coordinates are rounded before the deltas.
+left = building([pt(48.8710031, 2.3310049), pt(48.8710031, 2.3311), pt(48.871077, 2.3311), pt(48.871077, 2.3310049)], 10)
+right = building([pt(48.8710031, 2.3311), pt(48.8710031, 2.33121), pt(48.871077, 2.33121), pt(48.871077, 2.3311)], 12)
+(_, l), (_, r) = (expand(compact_building(b, "24435,1165"), "24435,1165") for b in (left, right))
+assert {l[1], l[2]} == {r[0], r[3]}, (l, r)
+# A real tile (committed, built off GitHub): every vertex within half a step, every height within 0.25 m, under half the gzipped bytes.
+key = sorted(os.listdir("tiles/buildings"), key=lambda k: -os.path.getsize(os.path.join("tiles/buildings", k)))[0][:-5]
+items = json.load(open(f"tiles/buildings/{key}.json"))
+rows = compact_buildings(items, key)
+assert len(rows) >= 0.99 * len(items), (len(rows), len(items))   # Palma's cadastre slivers under a step: 0.3% of footprints, 0.002% of their area
+kept = [b for b in items if compact_building(b, key)]
+for b, row in zip(kept, rows):
+    h, ring = expand(row, key)
+    assert (h is None) == bool(b.get("guessed")) and (h is None or abs(h - b["height"]) <= 0.25)
+    original = b["outline"][:-1] if b["outline"][0] == b["outline"][-1] else b["outline"]
+    assert len(ring) <= len(original)
+    for lat, lon in ring:
+        assert any(abs(lat - p["latitude"]) <= 0.5 / BUILDING_UNIT + 1e-9 and abs(lon - p["longitude"]) <= 0.5 / BUILDING_UNIT + 1e-9 for p in original)
+dump = lambda x: gzip.compress(json.dumps(x, separators=(",", ":")).encode(), 9, mtime=0)
+assert len(dump(rows)) < len(dump(items)) / 2, (len(dump(rows)), len(dump(items)))
+# The flag: buildings-v2/ beside buildings/, from the same items; off, nothing new is written.
+with tempfile.TemporaryDirectory() as out:
+    cell = Cell(25609, 2202)   # Antwerp: OSM
+    make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [building([pt(cell.lat, cell.lon), pt(cell.lat, cell.lon + 1e-4), pt(cell.lat + 1e-4, cell.lon)], 9)]
+    do_buildings([cell], out, [])
+    assert not os.path.exists(path(out, "buildings-v2", cell))
+    make_tiles.BUILDINGS_V2 = True
+    do_buildings([cell], out, [])
+    assert read(path(out, "buildings-v2", cell)) == compact_buildings(read(path(out, "buildings", cell)), cell.key) and read(path(out, "buildings-v2", cell))
+    make_tiles.BUILDINGS_V2 = False
+print("ok (buildings-v2)")
