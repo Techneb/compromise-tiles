@@ -23,6 +23,10 @@ on:
       only:
         description: "Build only these cities (comma-separated city names as in cities.json); empty = all"
         default: ""
+      buildings_v2:
+        description: "With the buildings layer, also write buildings-v2/ (integer deltas, a third of the bytes; BUILDINGS.md). For the app's reader once it ships"
+        type: boolean
+        default: false
       dry_run:
         description: "Build and print what would be uploaded (new, changed, unchanged per layer); write nothing to R2 or the repository"
         type: boolean
@@ -83,9 +87,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           LAYERS: ${{ needs.plan.outputs.layers }}
+          V2: ${{ inputs.buildings_v2 && ',buildings-v2' || '' }}
         run: |
-          # sources/ is written beside the layers asked for; communes/ is never uploaded, so not listed.
-          layers=$(echo "$LAYERS,sources" | tr ',' '\n' | grep -vx communes | sort -u | tr '\n' ' ')
+          # sources/ is written beside the layers asked for (buildings-v2/ beside buildings/ when asked); communes/ is never uploaded, so not listed.
+          layers=$(echo "$LAYERS,sources$V2" | tr ',' '\n' | grep -vx communes | sort -u | tr '\n' ' ')
           pids=""
           for l in $layers; do
             aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
@@ -124,9 +129,10 @@ jobs:
           CITY: ${{ matrix.city }}
           LAYERS: ${{ needs.plan.outputs.layers }}
           STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, the row is skipped
+          V2: ${{ inputs.buildings_v2 && '--buildings-v2' || '' }}
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
-          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 \
+          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 $V2 \
             --store "https://tiles.alephb.uk/tiles/" || true
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
