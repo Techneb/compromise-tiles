@@ -750,6 +750,66 @@ make_tiles._osm, real_osm = FakeOSM(), make_tiles._osm
 assert [p["name"] for p in osm_places(Cell(1221, 59, MAIN))] == ["Le Marais", "Le Marais", "Belleville"]
 assert osm_places(Cell(1221, 58, MAIN)) == []
 make_tiles._osm = real_osm
+# places/ levels: each place with the admin_level of the boundary relation it is or stands for (2026-10-06).
+from make_tiles import place_key, place_levels, OSM
+assert place_key("Quartier de la Goutte-d'Or") == place_key("La Goutte d’Or") == "GOUTTE D OR"
+assert place_key("Quartier du Mail") == "MAIL" and place_key("Les Halles") == "HALLES" and place_key("Le Marais") == "MARAIS"
+assert place_key("La Défense") == "DEFENSE" and place_key("Les") == "LES"   # nothing but a lead word: kept whole
+def ring(s, w, n, e): return {"type": "Polygon", "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]]}
+def place(osm, name, kind, lat, lon): return {"name": name, "kind": kind, "coordinate": {"latitude": lat, "longitude": lon}, "osm": osm}
+def bound(id, name, level, geometry=None, labels=(), centres=(), place=None):
+    return {"id": id, "name": name, "admin_level": level, "place": place, "labels": set(labels), "centres": set(centres), "geometry": geometry}
+seventeenth = bound("r9519", "Paris 17e Arrondissement", 9, ring(48.87, 2.28, 48.90, 2.33), centres={"n1"})
+batignolles = bound("r2", "Quartier des Batignolles", 10, ring(48.88, 2.31, 48.89, 2.33))
+places = [place("n1", "17e Arrondissement", "suburb", 48.887, 2.306),          # the arrondissement's admin_centre, its name inside the relation's
+          place("n2", "Batignolles", "suburb", 48.885, 2.320),                 # inside the quartier under its name, "Quartier des" aside
+          place("n3", "Batignolles", "suburb", 45.0, 5.0),                     # the same name outside it: no level
+          place("n4", "Square des Batignolles", "neighbourhood", 48.884, 2.318)]
+out = place_levels(places, [seventeenth, batignolles])
+assert [p.get("admin_level") for p in out] == [9, 10, None, None], out
+assert all("osm" not in p for p in out) and out[0] == {"name": "17e Arrondissement", "kind": "suburb",
+                                                     "coordinate": {"latitude": 48.887, "longitude": 2.306}, "admin_level": 9}
+# An admin_centre whose name the relation's does not hold is the seat, not the unit; a label node is the unit whatever its name.
+seat = bound("r3", "Quartier X", 10, ring(0, 0, 1, 1), centres={"n5"})
+labelled = bound("r4", "Quartier du Faubourg-du-Roule", 10, ring(0, 0, 1, 1), labels={"n6"})
+out = place_levels([place("n5", "Old Town", "suburb", 0.5, 0.5), place("n6", "Faubourg Saint-Honoré", "quarter", 0.5, 0.5)], [seat, labelled])
+assert [(p["name"], p.get("admin_level")) for p in out] == [("Old Town", None), ("Faubourg Saint-Honoré", 10), ("Quartier X", 10)], out   # r4 has its place, r3 none
+# A municipality's admin_centre is its seat whatever the names: London's suburb Hackney is not the borough.
+hackney = bound("r5", "London Borough of Hackney", 8, ring(51.5, -0.1, 51.6, 0), centres={"n9"})
+assert "admin_level" not in place_levels([place("n9", "Hackney", "suburb", 51.545, -0.055)], [hackney])[0]
+# The deepest level wins when a place stands for two boundaries.
+out = place_levels([place("n7", "Centre", "suburb", 0.5, 0.5)], [bound("r5", "Centre", 9, ring(0, 0, 1, 1)), bound("r6", "Centre", 10, ring(0, 0, 1, 1))])
+assert [p["admin_level"] for p in out] == [10], out
+# A relation that is a place itself takes its own level; it gives way to its admin_centre node when that is a place too.
+r13 = bound("r9530", "Paris 13e Arrondissement", 9, ring(48.81, 2.34, 48.84, 2.39), centres={"n8"}, place="suburb")
+gaillon = bound("r2189366", "Gaillon", 10, ring(48.867, 2.332, 48.871, 2.337), place="quarter")
+out = place_levels([place("n8", "13e Arrondissement", "suburb", 48.83, 2.36), place("r9530", "Paris 13e Arrondissement", "suburb", 48.828, 2.362),
+                    place("r2189366", "Gaillon", "quarter", 48.869, 2.335)], [r13, gaillon])
+assert [(p["name"], p["admin_level"]) for p in out] == [("13e Arrondissement", 9), ("Gaillon", 10)], out
+# A boundary at admin_level 9 or 10 that no place matched is added at its ring's mean vertex, of the kind its level stands for
+# (its own place tag when it has one); not one at another level, nor one whose ring is not whole in the extract.
+out = place_levels([], [bound("r7", "Quartier de la Muette", 10, ring(48.85, 2.26, 48.87, 2.28)),
+                        bound("r8", "Paris 16e Arrondissement", 9, ring(48.83, 2.22, 48.88, 2.30)),
+                        bound("r9", "Petit Quartier", 10, ring(0, 0, 0.002, 0.002), place="neighbourhood"),
+                        bound("r10", "City of Westminster", 8, ring(51.49, -0.19, 51.53, -0.11)),
+                        bound("r11", "Quartier Notre-Dame", 10, None)])
+assert [(p["name"], p["kind"], p["admin_level"]) for p in out] == \
+    [("Quartier de la Muette", "quarter", 10), ("Paris 16e Arrondissement", "suburb", 9), ("Petit Quartier", "neighbourhood", 10)], out
+assert out[0]["coordinate"] == {"latitude": 48.858, "longitude": 2.268}   # the mean of the ring's 5 vertices, the closing one counted, as for a place's area
+# OSM.boundaries(): the relations osmium prints, their label and admin_centre nodes by role, their rings by relation id.
+real_osmium, real_features = make_tiles.osmium, make_tiles.features
+make_tiles.osmium = lambda *a: """<osm><relation id="9519"><member type="node" ref="1" role="admin_centre"/><member type="node" ref="2" role="label"/>
+  <member type="way" ref="3" role="outer"/><member type="node" ref="4" role="subarea"/>
+  <tag k="boundary" v="administrative"/><tag k="admin_level" v="9"/><tag k="name" v="Paris 17e Arrondissement"/></relation>
+  <relation id="5"><tag k="boundary" v="administrative"/><tag k="admin_level" v="9"/></relation>
+  <relation id="6"><tag k="boundary" v="administrative"/><tag k="admin_level" v="yes"/><tag k="name" v="X"/></relation>
+  <relation id="7"><tag k="boundary" v="political"/><tag k="admin_level" v="10"/><tag k="name" v="Ward"/></relation></osm>"""
+make_tiles.features = lambda pbf, kinds="point,polygon", ids=False: iter([{"properties": {"@type": "relation", "@id": 9519}, "geometry": ring(0, 0, 1, 1)},
+                                                                         {"properties": {"@type": "way", "@id": 9519}, "geometry": ring(5, 5, 6, 6)}])
+fake = OSM.__new__(OSM); fake.admin = "admin.pbf"
+assert fake.boundaries() == [{"id": "r9519", "name": "Paris 17e Arrondissement", "admin_level": 9, "place": None,
+                              "labels": {"n2"}, "centres": {"n1"}, "geometry": ring(0, 0, 1, 1)}], fake.boundaries()
+make_tiles.osmium, make_tiles.features = real_osmium, real_features
 # The three layers follow the same flag.
 assert entry_layers({"city": "Rouen"}, ["venues", "streets-main", "places"]) == ["venues"]
 assert entry_layers({"city": "Paris", "streets": True}, ["streets-main", "places"]) == ["streets-main", "places"]
