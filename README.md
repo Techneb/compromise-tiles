@@ -29,6 +29,30 @@ builds the rest on a schedule and uploads it to R2; those tiles are not
 kept here. OpenStreetMap is read from Geofabrik extracts with
 osmium-tool; city and national feeds are downloaded in bulk.
 
+### places/
+
+Each tile is an array of `{"name", "kind", "coordinate", "admin_level"?}`:
+
+- `kind` is OpenStreetMap's `place` tag: `suburb`, `quarter` or
+  `neighbourhood`.
+- `admin_level` (an integer, OpenStreetMap's) is written only when the name
+  comes from or matches an administrative boundary relation; absent
+  otherwise. In Paris, 9 is an arrondissement and 10 one of the 80 quartiers
+  administratifs. A place matches a boundary when it is the relation itself,
+  the relation's `label` node, its `admin_centre` node under a name one
+  holds the other ("17e Arrondissement" in "Paris 17e Arrondissement"), or
+  lies inside it under the same name once "Quartier" and the articles are
+  set aside ("Batignolles", "Quartier des Batignolles"). The deepest level
+  wins.
+- A boundary at admin_level 9 or 10 that no place matches is written as a
+  place of its own at its ring's mean vertex, with its own `place` tag, or
+  else `suburb` at 9 and `quarter` at 10. That is how most of Paris's
+  quartiers come in: OpenStreetMap maps them as boundaries, not as places.
+
+Added on 2026-10-06 and backward compatible: a reader of the first format
+ignores the new key, and every `kind` is still one of the three. A tile
+built before carries no `admin_level`.
+
 ## Weekly data check
 
 `.github/workflows/data-check.yml` runs `check_data.py` every Monday at
