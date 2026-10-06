@@ -15,7 +15,11 @@ coordinates in 1e-5° steps, the first from the key's corner (key / 500),
 each next from the one before. streets-main/ is the same on ~4 km cells
 (1/25°, keyed "<int(lat*25)>,<int(lon*25)>"): main roads only, 1e-4° steps
 from key / 25. places/, on the same cells: [{"name", "kind" (suburb,
-quarter, neighbourhood), "coordinate"}]. Both only where streets/ is.
+quarter, neighbourhood), "coordinate", "admin_level"?}]: "admin_level" (an
+integer, OSM's) only when the name comes from or matches an administrative
+boundary relation (Paris: 9 the arrondissements, 10 the quartiers
+administratifs), absent otherwise, so a reader of the first format reads
+it unchanged (2026-10-06). Both only where streets/ is.
 With --buildings-v2, buildings-v2/ beside buildings/: the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
 0.5 m steps (BUILDINGS.md).
@@ -442,10 +446,11 @@ def osmium(*args):
     try: return subprocess.run(["osmium", *args], check=True, capture_output=True, text=True).stdout
     except subprocess.CalledProcessError as error: raise SourceError(f"osmium: {error.stderr.strip()[:200]}") from error
 
-def features(pbf, kinds="point,polygon"):
+def features(pbf, kinds="point,polygon", ids=False):
     """An osmium file as GeoJSON features, points and areas only by default: a closed way also comes out as a
-    line. Points include the nodes a way needed that carry tags of their own, so callers check tags."""
-    export = osmium("export", pbf, "-f", "geojsonseq", "--geometry-types=" + kinds, "-o", "-")
+    line. Points include the nodes a way needed that carry tags of their own, so callers check tags. With
+    ids=True each feature's properties also hold "@type" (node, way, relation) and "@id", an area's its way's or relation's."""
+    export = osmium("export", pbf, "-f", "geojsonseq", "--geometry-types=" + kinds, *(["-a", "type,id"] if ids else []), "-o", "-")
     for line in export.split("\n"):  # not splitlines(): it breaks on the \x1e that opens each record
         if line.strip("\x1e"): yield json.loads(line.lstrip("\x1e"))
 
@@ -456,13 +461,14 @@ class OSM:
     def __init__(self, pbf, rect):
         s, w, n, e = rect
         self.venues, self.walls, self.roads, self.last = {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
-        self.named, self._places = pbf + ".places.pbf", None
+        self.named, self.admin, self._places = pbf + ".places.pbf", pbf + ".admin.pbf", None
         box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
         try:
             osmium("extract", "-b", f"{w},{s},{e},{n}", pbf, "-o", box, "--overwrite")
             osmium("tags-filter", box, "w/building", "-o", self.walls, "--overwrite")
             osmium("tags-filter", box, "w/highway=" + ",".join(STREET_KINDS), "-o", self.roads, "--overwrite")
             osmium("tags-filter", box, "nwr/place=" + ",".join(PLACE_KINDS), "-o", self.named, "--overwrite")
+            osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
             osmium("tags-filter", box, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
             for feature in features(kept):
                 tags, geometry = feature["properties"], feature["geometry"]
@@ -511,21 +517,35 @@ class OSM:
 
     def places(self):
         """The area's named places (PLACE_KINDS), read once: a node at its point, an area at its
-        outer ring's mean vertex, as the venues."""
+        outer ring's mean vertex, as the venues; each with the admin_level of the boundary it is
+        or stands for (place_levels)."""
         if self._places is None:
-            self._places = []
-            for f in features(self.named):
+            found = []
+            for f in features(self.named, ids=True):
                 tags, geometry = f["properties"], f["geometry"]
                 name = str(tags.get("name", "")).strip()
                 if tags.get("place") not in PLACE_KINDS or not name: continue
-                if geometry["type"] == "Point": lon, lat = geometry["coordinates"][:2]
-                else:
-                    ring = next(outer_rings(geometry), None)
-                    if not ring: continue
-                    lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
-                self._places.append({"name": name, "kind": tags["place"], "coordinate": vertex(lat, lon)})
-            self._places = distinct_places(self._places)
+                at = mean_point(geometry)
+                if not at: continue
+                found.append({"name": name, "kind": tags["place"], "coordinate": vertex(*at), "osm": tags["@type"][0] + str(tags["@id"])})
+            self._places = distinct_places(place_levels(found, self.boundaries()))
         return self._places
+
+    def boundaries(self):
+        """The administrative boundary relations of the area: [{"id": "r…", "name", "admin_level" (int), "place",
+        "labels", "centres" (the ids, "n…", of its label and admin_centre member nodes), "geometry" (None when its
+        ring is not whole in the extract)}]. One without a name or a numeric admin_level is left out."""
+        shapes = {"r" + str(f["properties"]["@id"]): f["geometry"] for f in features(self.admin, "polygon", ids=True)
+                  if f["properties"].get("@type") == "relation"}
+        out = []
+        for r in ET.fromstring(osmium("cat", self.admin, "-t", "relation", "-f", "osm")).iter("relation"):
+            tags = {t.get("k"): t.get("v") for t in r.iter("tag")}
+            name, level = (tags.get("name") or "").strip(), tags.get("admin_level", "")
+            if tags.get("boundary") != "administrative" or not name or not level.isdigit(): continue
+            role = lambda kind: {"n" + m.get("ref") for m in r.iter("member") if m.get("type") == "node" and m.get("role") == kind}
+            out.append({"id": "r" + r.get("id"), "name": name, "admin_level": int(level), "place": tags.get("place"),
+                        "labels": role("label"), "centres": role("admin_centre"), "geometry": shapes.get("r" + r.get("id"))})
+        return out
 
     def near(self, table, rect):
         """Everything in the buckets the rect touches, once each: callers keep what is near enough."""
@@ -554,6 +574,68 @@ def distinct_places(places):
                    for k in kept):
             kept.append(p)
     return kept
+
+def mean_point(geometry):
+    """(lat, lon): a point's own, an area's outer ring's mean vertex; None for an area with no ring."""
+    if geometry["type"] == "Point": return geometry["coordinates"][1], geometry["coordinates"][0]
+    ring = next(outer_rings(geometry), None)
+    if not ring: return None
+    return tuple(sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
+
+# Boundary relations under a municipality that no place stands for are written as places of their own,
+# the kind their admin_level stands for when they carry no place tag: Paris's 20 arrondissements (9)
+# and 80 quartiers administratifs (10), mapped as boundaries far more often than as places.
+PLACE_ADMIN_KINDS = {9: "suburb", 10: "quarter"}
+PLACE_NAME_LEADS = {"QUARTIER", "DE", "DU", "DES", "D", "LA", "LE", "LES", "L"}
+
+def place_key(name):
+    """A name as places compare it: normalised_name() without the leading "Quartier" and articles, so
+    "Quartier de la Goutte-d'Or" and "La Goutte-d'Or" meet. A name of nothing but those words stays whole."""
+    words = normalised_name(name).split(" ")
+    i = 0
+    while i < len(words) - 1 and words[i] in PLACE_NAME_LEADS: i += 1
+    return " ".join(words[i:])
+
+def place_levels(places, boundaries):
+    """The places (each with "osm": its "n…", "w…" or "r…" id) with "admin_level" when the name comes from or
+    matches an administrative boundary (OSM.boundaries()): the place is the relation itself, or is the
+    relation's label node, or its admin_centre node under a name one holds the other ("17e Arrondissement",
+    "Paris 17e Arrondissement") at a level of PLACE_ADMIN_KINDS (a municipality's admin_centre is its seat:
+    London's suburb Hackney is not the borough), or lies inside it under the same place_key(). The deepest level wins. A
+    relation that is a place itself gives way to its label or admin_centre node when that is a place too
+    (the node is the name as mapped). Then each boundary of PLACE_ADMIN_KINDS no place matched, whole in the
+    extract, is added at its mean vertex. "osm" is not written."""
+    by_id, by_node, by_key = {b["id"]: b for b in boundaries}, {}, {}
+    for b in boundaries:
+        for n in b["labels"] | b["centres"]: by_node.setdefault(n, []).append(b)
+        by_key.setdefault(place_key(b["name"]), []).append(b)
+    def stands_for(p, b):
+        if p["osm"] in b["labels"]: return True
+        if p["osm"] not in b["centres"] or b["admin_level"] not in PLACE_ADMIN_KINDS: return False
+        a, z = normalised_name(p["name"]), normalised_name(b["name"])
+        return a in z or z in a
+    places_by_id = {p["osm"]: p for p in places}
+    out, used = [], set()
+    for p in places:
+        own = by_id.get(p["osm"])
+        if own and any(stands_for(places_by_id[n], own) for n in own["labels"] | own["centres"] if n in places_by_id):
+            used.add(own["id"]); continue
+        lat, lon = p["coordinate"]["latitude"], p["coordinate"]["longitude"]
+        found = {own["id"]: own} if own else {}
+        found.update((b["id"], b) for b in by_node.get(p["osm"], ()) if stands_for(p, b))
+        found.update((b["id"], b) for b in by_key.get(place_key(p["name"]), ()) if b["geometry"] and contains(b["geometry"], lat, lon))
+        entry = {k: v for k, v in p.items() if k != "osm"}
+        if found:
+            entry["admin_level"] = max(b["admin_level"] for b in found.values())
+            used.update(found)
+        out.append(entry)
+    for b in boundaries:
+        if b["id"] in used or b["admin_level"] not in PLACE_ADMIN_KINDS or not b["geometry"]: continue
+        at = mean_point(b["geometry"])
+        if not at: continue
+        kind = b["place"] if b["place"] in PLACE_KINDS else PLACE_ADMIN_KINDS[b["admin_level"]]
+        out.append({"name": b["name"], "kind": kind, "coordinate": vertex(*at), "admin_level": b["admin_level"]})
+    return out
 
 def osm_places(cell):
     """The named places of one ~4 km cell, the key's own truncation deciding the edge."""
