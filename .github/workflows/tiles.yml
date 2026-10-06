@@ -1,6 +1,6 @@
 # Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
-# coverage feed. Weekly: venues and terraces. Yearly: buildings and streets (run it by hand too when cities.json
-# gains an area). Streets are built only for the areas whose entry says "streets": true. French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
+# coverage feed. Weekly: venues and terraces. Yearly: buildings and the street layers (run it by hand too when cities.json
+# gains an area). streets, streets-main and places are built only for the areas whose entry says "streets": true. French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
 # to name the feed's areas; they are never uploaded (2026-10-03: the app credits from sources/).
 # Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       layers:
-        description: "Layers to build (comma-separated; streets only where cities.json flags \"streets\": true); sources alone restores the building source of the published sources/ tiles that lack it"
+        description: "Layers to build (comma-separated; streets, streets-main and places only where cities.json flags \"streets\": true); sources alone restores the building source of the published sources/ tiles that lack it"
         default: "terraces-v2,venues"
       repo_tiles:
         description: "Skip the build and upload the tiles committed in this repository (built off GitHub, such as Tel Aviv, whose heights feed answers only from Israel)"
@@ -54,13 +54,13 @@ jobs:
       - id: plan
         env:
           ONLY: ${{ inputs.only }}
-          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,streets' || 'terraces-v2,venues') }}
+          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,streets,streets-main,places' || 'terraces-v2,venues') }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
           only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
-          # A streets-only run has nothing to do for a city with no flagged entry: no job for it.
-          streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} == {"streets"}
+          # A run of the street layers alone has nothing to do for a city with no flagged entry: no job for it.
+          streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places"}
           names = []
           for e in json.load(open("cities.json")):
               if streets_only and e.get("streets") is not True: continue

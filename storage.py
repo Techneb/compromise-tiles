@@ -13,9 +13,9 @@ or moved since, a deletion candidate. Root files and layers no reader takes are 
 Sizes are bytes at rest (the tiles are gzipped), in GB of 10^9 bytes as R2 bills them.
 """
 import argparse, json, os, re
-from make_tiles import COARSE, FINE, cells_in, clip, index
+from make_tiles import COARSE, FINE, MAIN, cells_in, clip, index
 
-LAYER_SCALE = {"buildings": FINE, "terraces-v2": FINE, "communes": FINE, "sources": FINE, "streets": FINE, "venues": COARSE}
+LAYER_SCALE = {"buildings": FINE, "terraces-v2": FINE, "communes": FINE, "sources": FINE, "streets": FINE, "venues": COARSE, "streets-main": MAIN, "places": MAIN}
 READ = {  # what a reader takes: the app's tile folders, then the files the app and the site read at the root
     "tiles": set(LAYER_SCALE) - {"communes"},  # communes/: no longer uploaded or read (2026-10-03), a deletion candidate
     "root": {"config.json", "coverage.json", "cities.json", "counts.json"},
@@ -34,7 +34,7 @@ def parse(lines):
 
 def owners(cities_path):
     """{scale: {(ky, kx): city}}: the cells each area of cities.json builds, the first area winning."""
-    out = {FINE: {}, COARSE: {}}
+    out = {FINE: {}, COARSE: {}, MAIN: {}}
     for e in json.load(open(cities_path)):
         cells = cells_in(*e["box"])
         if e.get("boundary"):
@@ -43,6 +43,7 @@ def owners(cities_path):
         for c in cells:
             out[FINE].setdefault(tuple(map(int, c.key.split(","))), e["city"])
             out[COARSE].setdefault((index(c.lat, COARSE), index(c.lon, COARSE)), e["city"])
+            out[MAIN].setdefault((index(c.lat, MAIN), index(c.lon, MAIN)), e["city"])
     return out
 
 
