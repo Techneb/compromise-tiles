@@ -11,8 +11,10 @@ root. Layers: `buildings/` and `terraces-v2/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
 point, amenity, outdoor seating, source); `sources/` per ~200 m cell
 names the permit feed and building source each cell was built from;
-`streets/` per ~200 m cell holds street lines, for the areas
-`cities.json` flags with `"streets": true` only. A
+`streets/` per ~200 m cell holds street lines, `streets-main/` per
+1/25° cell the main roads alone and `places/` on the same cells
+neighbourhood names and points, all three for the areas `cities.json`
+flags with `"streets": true` only. A
 building whose source gives no height is written at 15 m with
 `"guessed": true` (builds since 2026-10-04; a tile built before carries
 no flag).
@@ -51,7 +53,7 @@ Licences are given as each publisher states them; where a publisher states
 none, this says so rather than guessing.
 
 **Everywhere**
-- OpenStreetMap (venues and their outdoor seating; streets; building footprints where no
+- OpenStreetMap (venues and their outdoor seating; streets; place names; building footprints where no
   city or national source is used): © OpenStreetMap contributors, ODbL.
   Because these tiles include OpenStreetMap data, the tile set is
   published under the ODbL (share-alike).

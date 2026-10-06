@@ -730,3 +730,27 @@ assert entry_layers({"city": "Paris", "streets": True}, ["venues", "streets"]) =
 assert entry_layers({"city": "Rouen"}, ["venues", "streets"]) == ["venues"]
 assert entry_layers({"city": "Rouen", "streets": "yes"}, ["streets"]) == []
 print("ok (streets)")
+# streets-main/: the same arrays on ~4 km cells, 1e-4° steps from key / 25; the main kinds only.
+from make_tiles import MAIN, MAIN_UNIT, MAIN_STREETS, distinct_places, osm_places
+assert street_line(1, [(48.88, 2.32), (48.8812, 2.3234)], "1222,58", MAIN, MAIN_UNIT) == [1, 0, 0, 12, 34]
+west, east = Cell(1221, 57, MAIN), Cell(1221, 58, MAIN)
+tiles = street_tiles([west, east], [(1, [(48.86, 2.31), (48.862, 2.33)])], MAIN, MAIN_UNIT)
+(w,), (e,) = tiles[west.key], tiles[east.key]
+assert w == [1, 200, 300, 10, 100] and e == [1, 210, 0, 10, 100]   # they meet at 48.861°, 2.32°: the west cell's 400, the east's 0
+assert set(MAIN_STREETS) == {"trunk", "primary", "secondary", "tertiary"}
+# places/: each place once (a node and its area), by the key of its ~4 km cell.
+twins = [{"name": "Le Marais", "kind": "suburb", "coordinate": {"latitude": 48.859, "longitude": 2.360}},
+         {"name": "Le Marais", "kind": "suburb", "coordinate": {"latitude": 48.858, "longitude": 2.362}},
+         {"name": "Le Marais", "kind": "neighbourhood", "coordinate": {"latitude": 45.0, "longitude": 5.0}},   # a namesake far off
+         {"name": "Belleville", "kind": "quarter", "coordinate": {"latitude": 48.872, "longitude": 2.384}}]
+assert distinct_places(twins) == [twins[0], twins[2], twins[3]]
+class FakeOSM:
+    def places(self): return twins
+make_tiles._osm, real_osm = FakeOSM(), make_tiles._osm
+assert [p["name"] for p in osm_places(Cell(1221, 59, MAIN))] == ["Le Marais", "Le Marais", "Belleville"]
+assert osm_places(Cell(1221, 58, MAIN)) == []
+make_tiles._osm = real_osm
+# The three layers follow the same flag.
+assert entry_layers({"city": "Rouen"}, ["venues", "streets-main", "places"]) == ["venues"]
+assert entry_layers({"city": "Paris", "streets": True}, ["streets-main", "places"]) == ["streets-main", "places"]
+print("ok (streets-main, places)")
