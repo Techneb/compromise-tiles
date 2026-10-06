@@ -35,6 +35,7 @@ concurrency:
 
 permissions:
   contents: write   # the feed job commits coverage.json back, a fallback copy of the feed for the site
+  actions: read     # the feed job reads this run's build jobs for stats.json
 
 env:
   AWS_DEFAULT_REGION: auto
@@ -233,6 +234,20 @@ jobs:
           aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
           aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --cache-control "public, max-age=300"
+      # The store's numbers for the site's overview page: size and file count per layer (the bucket listed in
+      # parallel ranges, about 2,500 list requests) and this run's build durations per city. Never fails the feed.
+      - name: Stats
+        continue-on-error: true
+        timeout-minutes: 10
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 stats.py --bucket "${{ secrets.R2_BUCKET }}" --endpoint "$ENDPOINT" --cities cities.json \
+            --previous "https://tiles.alephb.uk/stats.json" --run "${{ github.run_id }}" --repo "${{ github.repository }}" --write stats.json
+          aws s3 cp stats.json "s3://${{ secrets.R2_BUCKET }}/stats.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
       # The feed also lives in this repository, a fallback for the site's page. Small file.
       - name: Commit coverage.json

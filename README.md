@@ -21,7 +21,9 @@ no flag).
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the
-coverage feed (`coverage.json`, also published on R2) and the tiles built
+coverage feed (`coverage.json`, also published on R2), the store's numbers
+(`stats.json` on R2: size and file count per layer, build time per city, written by
+`stats.py` after each build) and the tiles built
 off GitHub under `tiles/`. GitHub Actions (`.github/workflows/tiles.yml`)
 builds the rest on a schedule and uploads it to R2; those tiles are not
 kept here. OpenStreetMap is read from Geofabrik extracts with
