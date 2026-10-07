@@ -120,6 +120,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      # The store's listing, read twice: the build starts with the blocks the store lacks, the upload compares with it.
+      - uses: actions/download-artifact@v4
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        with:
+          name: remote
       # --store: a sources/ tile keeps the published tile's field this run does not build (a terraces run
       # keeps "buildings", a buildings run "permits"), read from the store's public host (no credentials).
       # Capped below the job's limit so a long build (Spain's cadastre answers slowly) still
@@ -133,7 +139,7 @@ jobs:
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
           timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 $V2 \
-            --store "https://tiles.alephb.uk/tiles/" || true
+            --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || true
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
         if: ${{ !cancelled() }}
@@ -145,11 +151,6 @@ jobs:
           name: fragment-${{ strategy.job-index }}
           path: fragment.json
           retention-days: 3
-      - uses: actions/download-artifact@v4
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        with:
-          name: remote
       # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
       # -n leaves out the name and time, so an unchanged tile gzips to the same bytes.
       # Compared with the store's ETags: only new and changed tiles are kept for the upload.

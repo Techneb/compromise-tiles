@@ -417,6 +417,10 @@ def download(url, folder, max_days=6, headers=None):
             request = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response, open(file + ".tmp", "wb") as f:
                 shutil.copyfileobj(response, f, 1 << 20)
+                # http.client ends a body cut short without an error: Gijón's extract, 2026-10-07, read
+                # "PBF error: unexpected EOF" in osmium and failed all 1,536 cells. Short is retried.
+                expected = response.headers.get("Content-Length")
+                if expected and f.tell() != int(expected): raise IOError(f"{f.tell()} of {expected} bytes")
             break
         except Exception as e:  # noqa: BLE001 — the area's OSM layers fail, not the run
             if wait is None: raise SourceError(f"{url}: {type(e).__name__}: {e}") from e
@@ -2478,6 +2482,20 @@ def done(out, layer, cell):
     if read(file) is None: return False
     return limit is None or time.time() - os.path.getmtime(file) < limit * 86_400
 
+LISTED = None   # --listing: the store's keys, so the blocks it lacks are built first
+
+def in_store(cell, layers):
+    """Every tile this run writes for the cell is already in the store (False without --listing). A run cut
+    by the job's time limit (London, 2026-10-07: 37,562 of 51,466 cells in 290 min) then starts its rerun
+    with the cells it did not reach, instead of the same ones again."""
+    tiled = [l for l in layers if l in ("buildings", "streets", "terraces-v2")]
+    if BUILDINGS_V2 and "buildings" in layers: tiled.append("buildings-v2")
+    return LISTED is not None and all(f"tiles/{l}/{cell.key}.json" in LISTED for l in tiled)
+
+def build_order(cells, block, layers):
+    """The blocks, those with a tile missing from the store first, each part in key order."""
+    return sorted(blocks(cells, block), key=lambda g: all(in_store(c, layers) for c in g))
+
 def write(file, items):
     os.makedirs(os.path.dirname(file), exist_ok=True)
     with open(file + ".tmp", "w") as f: json.dump(items, f, ensure_ascii=False, separators=(",", ":"))
@@ -2719,7 +2737,7 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
     if "streets-main" in layers: do_main_streets([c for c in wide if not done(out, "streets-main", c)], out, failures)
     if "places" in layers: do_places([c for c in wide if not done(out, "places", c)], out, failures)
-    for group in blocks(cells, block):
+    for group in build_order(cells, block, layers):
         communes, need_terraces, need_buildings, need_sources, need_streets = {}, [], [], [], []
         for c in group:
             if "sources" in layers: need_sources.append(c)
@@ -2772,10 +2790,13 @@ def main():
     a.add_argument("--store", help="the published tiles' base URL (https://tiles.alephb.uk/tiles/): sources/ tiles keep its fields")
     a.add_argument("--buildings-v2", action="store_true", help="with the buildings layer, also write buildings-v2/: the same"
                    " footprints as integer deltas in 1e-5° steps, heights in 0.5 m steps (BUILDINGS.md)")
+    a.add_argument("--listing", help="the store's keys (changed.py's remote.tsv): blocks with a tile missing there are built first")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
-    global STORE, BUILDINGS_V2
+    global STORE, BUILDINGS_V2, LISTED
     STORE = args.store and args.store.rstrip("/") + "/"
+    if args.listing and os.path.exists(args.listing):
+        with open(args.listing) as f: LISTED = {line.split("\t")[0] for line in f}
     BUILDINGS_V2 = args.buildings_v2
     if args.cities:
         with open(args.cities) as f: entries = json.load(f)

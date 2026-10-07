@@ -883,3 +883,31 @@ with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:
             for lat, lon in ring:
                 assert any(abs(lat - p["latitude"]) <= 1e-5 and abs(lon - p["longitude"]) <= 1e-5 for p in b["outline"])
 print("ok (buildings-v2, committed tiles)")
+
+# A body cut short (http.client ends it without an error) is retried, not kept: Gijón's extract, 2026-10-07.
+import io, tempfile, urllib.request, make_tiles
+class Answer(io.BytesIO):
+    def __init__(self, body, length): super().__init__(body); self.headers = {"Content-Length": str(length)}
+answers, real_urlopen, real_sleep = [Answer(b"PBF", 6), Answer(b"PBFPBF", 6)], urllib.request.urlopen, make_tiles.time.sleep
+urllib.request.urlopen, make_tiles.time.sleep = lambda request, timeout: answers.pop(0), lambda s: None
+try:
+    with tempfile.TemporaryDirectory() as folder:
+        with open(make_tiles.download("https://example.org/x.osm.pbf", folder), "rb") as f: assert f.read() == b"PBFPBF"
+        assert not answers
+finally:
+    urllib.request.urlopen, make_tiles.time.sleep = real_urlopen, real_sleep
+print("ok (download, short body)")
+
+# With the store's listing, the blocks it lacks are built first (London, 2026-10-07: a rerun cut at the same
+# 290 minutes reaches the 13,904 cells the first run did not); without one, key order as before.
+from make_tiles import Cell, blocks, build_order
+cells = [Cell(y, x) for y in range(10) for x in range(10)]
+ordered = blocks(cells, 5)
+assert build_order(cells, 5, ["buildings"]) == ordered
+make_tiles.BUILDINGS_V2 = True
+make_tiles.LISTED = {f"tiles/{l}/{c.key}.json" for c in cells for l in ("buildings", "buildings-v2")}
+make_tiles.LISTED -= {"tiles/buildings-v2/9,9.json"}   # the last block's last cell has no v2 tile
+assert build_order(cells, 5, ["buildings"]) == [ordered[-1]] + ordered[:-1]
+assert build_order(cells, 5, ["terraces-v2"]) == ordered   # no terraces-v2/ listed at all: every block, key order
+make_tiles.LISTED, make_tiles.BUILDINGS_V2 = None, False
+print("ok (build order)")
