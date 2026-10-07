@@ -210,14 +210,25 @@ jobs:
       - env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_RETRY_MODE: adaptive
+          AWS_MAX_ATTEMPTS: "10"
         run: |
           cp -R tiles out
           rm -rf out/communes   # read by the fragment above, never uploaded
           python3 buildings_v2.py tiles/buildings out/buildings-v2   # the committed tiles in the app's v2 format too
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
-          aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \
-            --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"
+          # Same as the build's upload: R2 refuses a few PUTs even with retries (repo_upload, 2026-10-07);
+          # those files alone go up again, one at a time; anything else fails the step.
+          up() { aws s3 cp "$@" --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --content-encoding gzip --cache-control "public, max-age=86400"; }
+          up out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive > upload.log 2>&1 && exit 0
+          cat upload.log
+          grep -q '^upload failed: out/' upload.log || exit 1
+          grep -v '^upload failed: out/' upload.log | grep -q . && exit 1
+          sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
+            sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
+          done
 
   # The coverage feed the site's map reads: every job's fragment merged into the published feed, once.
   feed:
