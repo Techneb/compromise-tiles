@@ -911,3 +911,10 @@ assert build_order(cells, 5, ["buildings"]) == [ordered[-1]] + ordered[:-1]
 assert build_order(cells, 5, ["terraces-v2"]) == ordered   # no terraces-v2/ listed at all: every block, key order
 make_tiles.LISTED, make_tiles.BUILDINGS_V2 = None, False
 print("ok (build order)")
+
+# A run fails past 5 % of its cells failed (Genoa's 2,472 of 3,204 and Gijón's 1,536 of 1,536 on 2026-10-07); five in a
+# hundred do not, nor does a run with no cell.
+from make_tiles import short
+assert short(2472, 3204) and short(1536, 1536) and short(6, 100)
+assert not short(5, 100) and not short(1, 100) and not short(0, 0)
+print("ok (short run)")

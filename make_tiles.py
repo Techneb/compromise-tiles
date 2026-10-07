@@ -2822,8 +2822,15 @@ def main():
     if failures:
         log(f"\nFailures ({len(failed)} cells of {total}):")
         for label, key, layer, reason in failures: log(f"  {label} {key} {layer}: {reason}")
-    if total and len(failed) / total > 0.2:
-        log(f"More than 20% of cells failed ({len(failed)} of {total})."); sys.exit(1)
+    if short(len(failed), total):
+        log(f"More than {SHORT:.0%} of cells failed ({len(failed)} of {total})."); sys.exit(1)
+
+SHORT = 0.05   # the share of failed cells that fails the run: the tiles still go up, the job turns red (tiles.yml)
+
+def short(failed, total):
+    """Too many cells failed for the run to pass (20 % until 2026-10-07, when Gijón's 1,536 of 1,536 and Genoa's
+    2,472 of 3,204 failed and stayed green: the workflow's `|| true` dropped the exit code; it now turns the job red)."""
+    return bool(total) and failed / total > SHORT
 
 if __name__ == "__main__":
     main()
