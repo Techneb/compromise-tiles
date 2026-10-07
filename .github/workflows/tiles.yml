@@ -213,6 +213,7 @@ jobs:
         run: |
           cp -R tiles out
           rm -rf out/communes   # read by the fragment above, never uploaded
+          python3 buildings_v2.py tiles/buildings out/buildings-v2   # the committed tiles in the app's v2 format too
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           aws s3 cp out "s3://${{ secrets.R2_BUCKET }}/tiles/" --recursive --only-show-errors --endpoint-url "$ENDPOINT" \

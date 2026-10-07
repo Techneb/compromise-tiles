@@ -863,3 +863,23 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "buildings-v2", cell)) == compact_buildings(read(path(out, "buildings", cell)), cell.key) and read(path(out, "buildings-v2", cell))
     make_tiles.BUILDINGS_V2 = False
 print("ok (buildings-v2)")
+# repo_upload's converter (buildings_v2.py): committed Tel Aviv tiles, written as the generator writes them, every
+# footprint back within half a step; a tile that does not read is skipped, not written empty.
+import shutil
+from buildings_v2 import convert
+with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as dst:
+    tel_aviv = [n for n in sorted(os.listdir("tiles/buildings")) if n.startswith("1604")][:2]
+    assert len(tel_aviv) == 2, tel_aviv
+    for name in tel_aviv: shutil.copy(os.path.join("tiles/buildings", name), src)
+    open(os.path.join(src, "1,1.json"), "w").write("{broken")
+    assert convert(src, dst) == 2 and sorted(os.listdir(dst)) == tel_aviv
+    for name in tel_aviv:
+        key, items = name[:-5], read(os.path.join(src, name))
+        rows = read(os.path.join(dst, name))
+        assert rows == compact_buildings(items, key) and len(rows) >= 0.99 * len(items), (key, len(rows), len(items))
+        for b, row in zip([b for b in items if compact_building(b, key)], rows):
+            h, ring = expand(row, key)
+            assert (h is None) == bool(b.get("guessed")) and (h is None or abs(h - b["height"]) <= 0.25)
+            for lat, lon in ring:
+                assert any(abs(lat - p["latitude"]) <= 1e-5 and abs(lon - p["longitude"]) <= 1e-5 for p in b["outline"])
+print("ok (buildings-v2, committed tiles)")
