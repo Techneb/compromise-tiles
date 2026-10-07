@@ -1,0 +1,46 @@
+name: Delete superseded tiles
+# One-off, by hand: deletes OLD/<key>.json only where NEW/<key>.json exists on the store
+# (owner, 2026-10-07: buildings/ once buildings-v2/ is built). A dry run lists what would go.
+on:
+  workflow_dispatch:
+    inputs:
+      old: {description: "Layer to delete from", default: "buildings", required: true}
+      new: {description: "Layer that supersedes it", default: "buildings-v2", required: true}
+      confirm: {description: "Type DELETE to delete; anything else is a dry run", default: "dry run", required: true}
+permissions:
+  contents: read
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_RETRY_MODE: adaptive
+      AWS_MAX_ATTEMPTS: "10"
+      ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      BUCKET: ${{ secrets.R2_BUCKET }}
+    steps:
+      - name: List both layers
+        run: |
+          for l in "${{ inputs.old }}" "${{ inputs.new }}"; do
+            aws s3api list-objects-v2 --bucket "$BUCKET" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
+              --query 'Contents[].Key' --output text | tr '\t' '\n' | grep -v '^None$' | sed "s|^tiles/$l/||" | sort > "$l.txt"
+            echo "$l: $(wc -l < "$l.txt") tiles" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          comm -12 "${{ inputs.old }}.txt" "${{ inputs.new }}.txt" > superseded.txt
+          comm -23 "${{ inputs.old }}.txt" "${{ inputs.new }}.txt" > kept.txt
+          echo "superseded (to delete): $(wc -l < superseded.txt); kept, no ${{ inputs.new }} tile: $(wc -l < kept.txt)" | tee -a "$GITHUB_STEP_SUMMARY"
+          head -20 kept.txt
+      - name: Delete
+        if: ${{ inputs.confirm == 'DELETE' }}
+        run: |
+          split -l 1000 superseded.txt batch-
+          for b in batch-??; do
+            python3 -c 'import json,sys; print(json.dumps({"Objects":[{"Key":"tiles/"+sys.argv[2]+"/"+k.strip()} for k in open(sys.argv[1]) if k.strip()],"Quiet":True}))' "$b" "${{ inputs.old }}" > "$b.json"
+            aws s3api delete-objects --bucket "$BUCKET" --delete "file://$b.json" --endpoint-url "$ENDPOINT" > /dev/null
+          done
+          echo "deleted $(wc -l < superseded.txt) tiles from ${{ inputs.old }}/" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with: {name: lists, path: "*.txt", retention-days: 7}
