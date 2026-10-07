@@ -131,6 +131,7 @@ jobs:
       # Capped below the job's limit so a long build (Spain's cadastre answers slowly) still
       # reaches the upload with every cell it finished; a cell not finished keeps its last tile.
       - name: Build ${{ matrix.city }}
+        id: build
         env:
           CITY: ${{ matrix.city }}
           LAYERS: ${{ needs.plan.outputs.layers }}
@@ -139,7 +140,7 @@ jobs:
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
           timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 $V2 \
-            --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || true
+            --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || echo "status=$?" >> "$GITHUB_OUTPUT"   # checked after the upload
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
         if: ${{ !cancelled() }}
@@ -194,6 +195,19 @@ jobs:
           sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
             sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
           done
+      # Red once what was built is up: more than 5 % of the city's cells failed (make_tiles.py exits 1),
+      # or the time cap cut the build (124). A green job used to hide both (Gijón, Genoa, London, 2026-10-07).
+      - name: Check the build is complete
+        if: ${{ !cancelled() && steps.build.outputs.status != '' }}
+        env:
+          CITY: ${{ matrix.city }}
+          STATUS: ${{ steps.build.outputs.status }}
+        run: |
+          if [ "$STATUS" = 124 ]; then why="stopped by the 290-minute cap: the cells it did not reach keep their last tile"
+          else why="more than 5 % of its cells failed (exit $STATUS): see Failures in the build step"; fi
+          echo "### ❌ $CITY: $why" >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=$CITY is short::$why"
+          exit 1
 
   # The tiles committed in this repository (built off GitHub), uploaded as they are, with their feed fragment.
   repo_upload:
