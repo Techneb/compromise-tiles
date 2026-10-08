@@ -29,8 +29,6 @@ import argparse, datetime, json, math, os, re, urllib.error, urllib.request
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
 TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: terraces vs going-out venues nearby, the reader's rule
 GOING_OUT = 10    # bars, cafés and restaurants within about 400 m
-FALLBACK_HEIGHT = re.compile(rb'"height":\s*15(?:\.0+)?[,}]')  # written when a footprint has no height, in a tile built before the flag
-GUESSED = b'"guessed":true'  # the flag on such a footprint since 2026-10-04: counted instead wherever a tile carries it
 
 
 def tiles(out, layer):
@@ -106,10 +104,11 @@ def main():
     for k, raw in tiles(args.out, "terraces-v2") if args.out else []:
         c = cells.setdefault(k, [0, 0, 0, None, None, ""])
         c[0], c[3] = raw.count(b'"coordinate"'), today; touched.add(k)
-    for k, raw in tiles(args.out, "buildings") if args.out else []:
+    # buildings-v2/, what the store and the app hold: one row a footprint, a null height for the guess.
+    for k, raw in tiles(args.out, "buildings-v2") if args.out else []:
         c = cells.setdefault(k, [0, 0, 0, None, None, ""])
-        n = raw.count(b'"outline"')
-        c[1], c[2], c[4] = n, n - (raw.count(GUESSED) if GUESSED in raw else len(FALLBACK_HEIGHT.findall(raw))), today; touched.add(k)
+        rows = json.loads(raw)
+        c[1], c[2], c[4] = len(rows), sum(1 for r in rows if r[0] is not None), today; touched.add(k)
     for k, raw in tiles(args.out, "communes") if args.out else []:
         if k in cells:
             found = json.loads(raw)

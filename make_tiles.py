@@ -20,7 +20,8 @@ integer, OSM's) only when the name comes from or matches an administrative
 boundary relation (Paris: 9 the arrondissements, 10 the quartiers
 administratifs), absent otherwise, so a reader of the first format reads
 it unchanged (2026-10-06). Both only where streets/ is.
-With --buildings-v2, buildings-v2/ beside buildings/: the same footprints as
+buildings-v2/ is what the store holds (buildings/ stays local, read by coverage.py; 2026-10-08):
+the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
 0.5 m steps (BUILDINGS.md).
 
@@ -801,7 +802,7 @@ def building(ring, height=None):
     if height is None: return {"outline": ring, "height": DEFAULT_HEIGHT, "guessed": True}
     return {"outline": ring, "height": round(float(height), 1)}
 
-# buildings-v2/ (--buildings-v2, 2026-10-06): the same footprints as buildings/, a third of the bytes
+# buildings-v2/ (2026-10-06; the store's only buildings layer since 2026-10-08): the same footprints as buildings/, a third of the bytes
 # gzipped (BUILDINGS.md). Each building is a flat array [height, y0, x0, dy1, dx1, …]: the height in
 # HEIGHT_STEP metres (an integer when whole), null for the 15 m guess ("guessed": true in buildings/);
 # the ring open (its closing vertex not repeated), in BUILDING_UNIT steps, the first vertex from the
@@ -2488,8 +2489,7 @@ def in_store(cell, layers):
     """Every tile this run writes for the cell is already in the store (False without --listing). A run cut
     by the job's time limit (London, 2026-10-07: 37,562 of 51,466 cells in 290 min) then starts its rerun
     with the cells it did not reach, instead of the same ones again."""
-    tiled = [l for l in layers if l in ("buildings", "streets", "terraces-v2")]
-    if BUILDINGS_V2 and "buildings" in layers: tiled.append("buildings-v2")
+    tiled = [{"buildings": "buildings-v2"}.get(l, l) for l in layers if l in ("buildings", "streets", "terraces-v2")]
     return LISTED is not None and all(f"tiles/{l}/{cell.key}.json" in LISTED for l in tiled)
 
 def build_order(cells, block, layers):
@@ -2578,10 +2578,9 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
                 name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
                 items = [{k: b[k] for k in ("outline", "height", "guessed") if k in b} for b in items]
             if tiles: write(path(out, "buildings", c), items)
-            if tiles and BUILDINGS_V2: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))
+            if tiles: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))
             note_sources(out, c, published, buildings=name)
 
-BUILDINGS_V2 = False   # --buildings-v2: buildings-v2/ written beside buildings/, from the same items
 STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
 PUBLIC_STORE = "https://tiles.alephb.uk/tiles/"   # where a venue match reads from when no --store is given
 STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
@@ -2753,7 +2752,7 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
             # A box of départements (the petite couronne) keeps only their cells.
             if departements and not any(x["code"][:2] in departements for x in communes.get(c.key) or []):
                 outside.add(c.key); continue
-            if "buildings" in layers and not (done(out, "buildings", c) and (not BUILDINGS_V2 or done(out, "buildings-v2", c))):
+            if "buildings" in layers and not (done(out, "buildings", c) and done(out, "buildings-v2", c)):
                 need_buildings.append(c)
             if "streets" in layers and not done(out, "streets", c): need_streets.append(c)
             if "terraces-v2" in layers and not done(out, "terraces-v2", c):
@@ -2788,16 +2787,13 @@ def main():
     a.add_argument("--layers", default=",".join(LAYERS), help="which to write (default all): " + ", ".join(LAYERS)
                    + "; or sources, the building source of the published sources/ tiles that lack it (needs --store)")
     a.add_argument("--store", help="the published tiles' base URL (https://tiles.alephb.uk/tiles/): sources/ tiles keep its fields")
-    a.add_argument("--buildings-v2", action="store_true", help="with the buildings layer, also write buildings-v2/: the same"
-                   " footprints as integer deltas in 1e-5° steps, heights in 0.5 m steps (BUILDINGS.md)")
     a.add_argument("--listing", help="the store's keys (changed.py's remote.tsv): blocks with a tile missing there are built first")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
-    global STORE, BUILDINGS_V2, LISTED
+    global STORE, LISTED
     STORE = args.store and args.store.rstrip("/") + "/"
     if args.listing and os.path.exists(args.listing):
         with open(args.listing) as f: LISTED = {line.split("\t")[0] for line in f}
-    BUILDINGS_V2 = args.buildings_v2
     if args.cities:
         with open(args.cities) as f: entries = json.load(f)
     elif args.city and args.lat is not None and args.lon is not None:

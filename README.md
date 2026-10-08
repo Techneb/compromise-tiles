@@ -17,9 +17,9 @@ neighbourhood names and points, all three for the areas `cities.json`
 flags with `"streets": true` only. A
 building whose source gives no height is written at 15 m with
 `"guessed": true` (builds since 2026-10-04; a tile built before carries
-no flag). With `--buildings-v2`, `buildings-v2/` holds the same footprints
-as integer deltas, a third of the bytes; [BUILDINGS.md](BUILDINGS.md)
-gives its format and the size study behind it.
+no flag); it stays local. The store holds `buildings-v2/`, the same
+footprints as integer deltas, a third of the bytes (since 2026-10-08);
+[BUILDINGS.md](BUILDINGS.md) gives its format and the size study behind it.
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the

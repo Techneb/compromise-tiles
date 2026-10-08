@@ -40,7 +40,7 @@ PROBES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "probes.json")
 HALF = 0.5                 # a count or share under this fraction of its reference is a fall
 ROW_TIMEOUT = 25 * 60      # seconds one row may take: Catastro parses a whole municipality for its first cell
 OSM_KIND = "TERRASSE (OSM)"  # the kind osm_terraces() writes: the other entries of a terraces tile are the feed's
-NO_HEIGHT = 15.0           # the height written when a source gives none; flagged "guessed" since 2026-10-04 (coverage.py's FALLBACK_HEIGHT)
+NO_HEIGHT = 15.0           # the height written when a source gives none; flagged "guessed" since 2026-10-04 (a null height in buildings-v2/)
 UA = {"User-Agent": "compromise-tiles-check (+https://github.com/Techneb/compromise-tiles)"}
 FLOOR, RATIO, MINIMUM = 20, 0.30, 5  # the feed's terracesKnown rule, as check_feed.py restates it
 
@@ -153,15 +153,16 @@ def published(layer, key):
     """What the store holds for the probe cell: the row's own entries of the tile (a terraces tile also holds
     OpenStreetMap's, by kind), their share, and the source the sources/ tile credits."""
     out = {}
-    body, code = fetch_store(f"{STORE}{'terraces-v2' if layer == 'permits' else 'buildings'}/{key}.json")
+    body, code = fetch_store(f"{STORE}{'terraces-v2' if layer == 'permits' else 'buildings-v2'}/{key}.json")
     if body is None: out["status"] = f"HTTP {code}" if isinstance(code, int) else str(code)
     else:
         items = json.loads(body)
         if layer == "permits":
             own = [t for t in items if t.get("kind") != OSM_KIND]
             out.update(status="ok", count=len(own), named=named(own))
-        else:
-            flagged = any("guessed" in b for b in items)
+        else:   # buildings-v2/ rows: [height or null for the guess, ring…]
+            items = [{"height": NO_HEIGHT if r[0] is None else r[0], "guessed": r[0] is None} for r in items]
+            flagged = True
             out.update(status="ok", count=len(items), height=with_height(items), with_height=sum(1 for b in items if not guessed(b, flagged)))
     body, code = fetch_store(f"{STORE}sources/{key}.json")
     if body is not None:
@@ -434,9 +435,9 @@ def main():
         if body is None: sys.exit(f"coverage feed: {code}")
         feed = json.loads(body)
         def tile_counts(key):
-            b, _ = fetch_store(f"{STORE}buildings/{key}.json"); t, _ = fetch_store(f"{STORE}terraces-v2/{key}.json")
+            b, _ = fetch_store(f"{STORE}buildings-v2/{key}.json"); t, _ = fetch_store(f"{STORE}terraces-v2/{key}.json")
             time.sleep(0.2)
-            return (b.count(b'"outline"') if b is not None else None), (len(json.loads(t)) if t is not None else None)
+            return (len(json.loads(b)) if b is not None else None), (len(json.loads(t)) if t is not None else None)
         checked, bad, missing = feed_mismatches(feed, tile_counts, args.per_area, args.seed)
         out = {"updated": feed.get("updated"), "seed": args.seed, "checked": checked, "mismatches": bad, "missing": missing,
                "known": feed_known(feed)}

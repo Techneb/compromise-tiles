@@ -119,11 +119,14 @@ environment.
 
   It is not needed while the store sets `Content-Encoding`.
 
-## Implemented: buildings-v2/, behind `--buildings-v2`
+## Implemented: buildings-v2/, the store's only buildings layer
 
-`make_tiles.py --buildings-v2` (or the tiles workflow's `buildings_v2` input)
-writes `buildings-v2/<key>.json` beside `buildings/<key>.json`, from the same
-items. Without the flag nothing changes. Format:
+`make_tiles.py` writes `buildings-v2/<key>.json` beside `buildings/<key>.json`,
+from the same items. Since 2026-10-08 only buildings-v2/ is uploaded:
+buildings/ stays in the run (the build's resume), and the old layer was
+deleted from the store (`delete-superseded.yml`) once every key had its
+buildings-v2/ tile and a sample of 300 matched. Coverage counts and the
+weekly data check read buildings-v2/. Format:
 
 ```
 [[height, y0, x0, dy1, dx1, dy2, dx2, …], …]
