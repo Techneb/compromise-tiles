@@ -23,10 +23,6 @@ on:
       only:
         description: "Build only these cities (comma-separated city names as in cities.json); empty = all"
         default: ""
-      buildings_v2:
-        description: "With the buildings layer, also write buildings-v2/ (integer deltas, a third of the bytes; BUILDINGS.md). For the app's reader once it ships"
-        type: boolean
-        default: false
       dry_run:
         description: "Build and print what would be uploaded (new, changed, unchanged per layer); write nothing to R2 or the repository"
         type: boolean
@@ -87,10 +83,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           LAYERS: ${{ needs.plan.outputs.layers }}
-          V2: ${{ inputs.buildings_v2 && ',buildings-v2' || '' }}
         run: |
-          # sources/ is written beside the layers asked for (buildings-v2/ beside buildings/ when asked); communes/ is never uploaded, so not listed.
-          layers=$(echo "$LAYERS,sources$V2" | tr ',' '\n' | grep -vx communes | sort -u | tr '\n' ' ')
+          # sources/ is written beside the layers asked for; the store holds buildings-v2/ for buildings (2026-10-08); communes/ is never uploaded, so not listed.
+          layers=$(echo "$LAYERS,sources" | tr ',' '\n' | grep -vx communes | sed 's/^buildings$/buildings-v2/' | sort -u | tr '\n' ' ')
           pids=""
           for l in $layers; do
             aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
@@ -136,10 +131,9 @@ jobs:
           CITY: ${{ matrix.city }}
           LAYERS: ${{ needs.plan.outputs.layers }}
           STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, the row is skipped
-          V2: ${{ inputs.buildings_v2 && '--buildings-v2' || '' }}
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
-          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 $V2 \
+          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 \
             --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || echo "status=$?" >> "$GITHUB_OUTPUT"   # checked after the upload
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
@@ -155,7 +149,8 @@ jobs:
       # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
       # -n leaves out the name and time, so an unchanged tile gzips to the same bytes.
       # Compared with the store's ETags: only new and changed tiles are kept for the upload.
-      # communes/ leaves out/ first: the coverage fragment above has read it, and it is never uploaded.
+      # communes/ and buildings/ leave out/ first: the coverage fragment above has read them, and they are never
+      # uploaded (the app reads buildings-v2/; the old layer left the store on 2026-10-08).
       - name: Compare with the store
         if: ${{ !cancelled() }}
         env:
@@ -163,7 +158,7 @@ jobs:
           PRUNE: ${{ !inputs.dry_run && '--prune' || '' }}
         run: |
           [ -d out ] || exit 0
-          rm -rf out/communes
+          rm -rf out/communes out/buildings
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
@@ -230,7 +225,7 @@ jobs:
         run: |
           cp -R tiles out
           rm -rf out/communes   # read by the fragment above, never uploaded
-          python3 buildings_v2.py tiles/buildings out/buildings-v2   # the committed tiles in the app's v2 format too
+          python3 buildings_v2.py tiles/buildings out/buildings-v2 && rm -rf out/buildings   # the committed tiles, in the app's v2 format only
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           # Same as the build's upload: R2 refuses a few PUTs even with retries (repo_upload, 2026-10-07);

@@ -852,16 +852,12 @@ for b, row in zip(kept, rows):
         assert any(abs(lat - p["latitude"]) <= 0.5 / BUILDING_UNIT + 1e-9 and abs(lon - p["longitude"]) <= 0.5 / BUILDING_UNIT + 1e-9 for p in original)
 dump = lambda x: gzip.compress(json.dumps(x, separators=(",", ":")).encode(), 9, mtime=0)
 assert len(dump(rows)) < len(dump(items)) / 2, (len(dump(rows)), len(dump(items)))
-# The flag: buildings-v2/ beside buildings/, from the same items; off, nothing new is written.
+# buildings-v2/ beside buildings/, from the same items.
 with tempfile.TemporaryDirectory() as out:
     cell = Cell(25609, 2202)   # Antwerp: OSM
     make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [building([pt(cell.lat, cell.lon), pt(cell.lat, cell.lon + 1e-4), pt(cell.lat + 1e-4, cell.lon)], 9)]
     do_buildings([cell], out, [])
-    assert not os.path.exists(path(out, "buildings-v2", cell))
-    make_tiles.BUILDINGS_V2 = True
-    do_buildings([cell], out, [])
     assert read(path(out, "buildings-v2", cell)) == compact_buildings(read(path(out, "buildings", cell)), cell.key) and read(path(out, "buildings-v2", cell))
-    make_tiles.BUILDINGS_V2 = False
 print("ok (buildings-v2)")
 # repo_upload's converter (buildings_v2.py): committed Tel Aviv tiles, written as the generator writes them, every
 # footprint back within half a step; a tile that does not read is skipped, not written empty.
@@ -904,12 +900,10 @@ from make_tiles import Cell, blocks, build_order
 cells = [Cell(y, x) for y in range(10) for x in range(10)]
 ordered = blocks(cells, 5)
 assert build_order(cells, 5, ["buildings"]) == ordered
-make_tiles.BUILDINGS_V2 = True
-make_tiles.LISTED = {f"tiles/{l}/{c.key}.json" for c in cells for l in ("buildings", "buildings-v2")}
-make_tiles.LISTED -= {"tiles/buildings-v2/9,9.json"}   # the last block's last cell has no v2 tile
+make_tiles.LISTED = {f"tiles/buildings-v2/{c.key}.json" for c in cells} - {"tiles/buildings-v2/9,9.json"}   # the store holds no buildings/ since 2026-10-08
 assert build_order(cells, 5, ["buildings"]) == [ordered[-1]] + ordered[:-1]
 assert build_order(cells, 5, ["terraces-v2"]) == ordered   # no terraces-v2/ listed at all: every block, key order
-make_tiles.LISTED, make_tiles.BUILDINGS_V2 = None, False
+make_tiles.LISTED = None
 print("ok (build order)")
 
 # A run fails past 5 % of its cells failed (Genoa's 2,472 of 3,204 and Gijón's 1,536 of 1,536 on 2026-10-07); five in a
