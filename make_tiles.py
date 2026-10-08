@@ -188,11 +188,12 @@ PERMIT_CITIES = [
     # Ville de La Rochelle's public-space permits ("Licence ouverte / Open Licence"): one CSV, updated daily, no
     # query API, fetched whole once per run. The point is the `coordinates` column ("lat,lon"); the feed also lists
     # furniture, decking and kiosks, so only the three terrace kinds are kept (580 of 806 rows, 2026-10-03).
+    # A covered terrace is written TERRASSE FERMEE, like the closed kinds of the other feeds (2026-10-08).
     # The box is the terraces'.
     row("La Rochelle", "17300", "opendata.agglo-larochelle.fr",
         "sites/default/files/dataset/143/e9172-661e-4c90-bd87-99c8a79c551b/b_commerces_marches_vlr_aot_surfaces.csv",
         "enseigne_etablissement", ["type_surface"], (46.14, 46.18), (-1.22, -1.12), shape="csv", point="coordinates",
-        keep=["Terrasse", "Terrasse - extension saisonnière", "Terrasse couverte"]),
+        keep=["Terrasse", "Terrasse - extension saisonnière", "Terrasse couverte"], covered=["Terrasse couverte"]),
     # The terrace re-survey's registers (2026-10-04). Helsinki: the city's short-term land rentals (GeoServer WFS,
     # CC BY 4.0 through HRI), summer and winter terraces only — the layer also holds parklets, art and dog fields — each
     # the terrace's polygon at its mean vertex; only current and coming rentals are served. The name is `nimi` less its
@@ -2273,7 +2274,7 @@ def barcelona_all(c):
 
 def csv_all(c):
     """A whole CSV (La Rochelle): comma-separated, quoted, a BOM; the point a "lat,lon" column, the kind a
-    column kept only for the values in `keep`."""
+    column kept only for the values in `keep`, those in `covered` written TERRASSE FERMEE."""
     text = get(f"https://{c['host']}/{c['dataset']}").decode("utf-8-sig")
     kind, out = c["kinds"][0], []
     for r in csv.DictReader(io.StringIO(text)):
@@ -2281,7 +2282,8 @@ def csv_all(c):
         lat, _, lon = (r[c["point"]] or "").partition(",")
         lat, lon = number(lat.strip()), number(lon.strip())
         if lat is None or lon is None: continue
-        item = {"kind": r[kind], "coordinate": {"latitude": lat, "longitude": lon}}
+        item = {"kind": "TERRASSE FERMEE" if r[kind] in c.get("covered", []) else r[kind],
+                "coordinate": {"latitude": lat, "longitude": lon}}
         if r[c["name"]]: item["name"] = r[c["name"]]
         out.append(item)
     if not out: raise SourceError(f"{c['city']}: no terrace parsed")  # as for Madrid
