@@ -11,6 +11,7 @@ sources/ names what built each cell ([{"permits": city|null,
 streets/ is built only for the areas whose entry says "streets": true: each
 item is one OpenStreetMap street cut at the cell's edges, a flat array
 [kind, y0, x0, dy1, dx1, …] (kind 1 main road, 2 street, 3 pedestrian),
+with the way's name after the kind where it has one, [kind, "name", y0, …] (2026-10-08),
 coordinates in 1e-5° steps, the first from the key's corner (key / 500),
 each next from the one before. streets-main/ is the same on ~4 km cells
 (1/25°, keyed "<int(lat*25)>,<int(lon*25)>"): main roads only, 1e-4° steps
@@ -507,7 +508,7 @@ class OSM:
         return out
 
     def streets(self, rect, kinds=None, tolerance=None):
-        """The street ways meeting the rect, simplified: [(kind, [(lat, lon), …])]; with `kinds`, the
+        """The street ways meeting the rect, simplified: [(kind, [(lat, lon), …], name or "")]; with `kinds`, the
         ways of those highway values only. osmium keeps a way with a node in the cut, whole; a long
         straight one can cross a block with no node in it, hence STREET_PAD more."""
         s, w, n, e = padded(rect, STREET_PAD)
@@ -518,7 +519,8 @@ class OSM:
             kind = street_kind(f["properties"])
             if kinds is not None and f["properties"].get("highway") not in kinds: continue
             if kind and f["geometry"]["type"] == "LineString":
-                out.append((kind, simplified([(lat, lon) for lon, lat in f["geometry"]["coordinates"]], tolerance or STREET_TOLERANCE)))
+                out.append((kind, simplified([(lat, lon) for lon, lat in f["geometry"]["coordinates"]], tolerance or STREET_TOLERANCE),
+                            str(f["properties"].get("name", "")).strip()))
         return out
 
     def places(self):
@@ -753,8 +755,9 @@ def clipped(points, rect):
     if piece: pieces.append(piece)
     return pieces
 
-def street_line(kind, points, cell_key, scale=FINE, unit=STREET_UNIT):
-    """One street of a streets/ tile: [kind, y0, x0, dy1, dx1, …], every coordinate in 1e-5° steps,
+def street_line(kind, points, cell_key, scale=FINE, unit=STREET_UNIT, name=""):
+    """One street of a streets/ tile: [kind, y0, x0, dy1, dx1, …], or [kind, name, y0, …] when named,
+    every coordinate in 1e-5° steps,
     the first from the key's own corner (key / 500) and each next from the one before (streets-main/:
     1e-4° steps from key / 25). Rounded absolute coordinates first, so two cells cut a street at the
     same point. None when nothing of it is left once rounded."""
@@ -765,24 +768,25 @@ def street_line(kind, points, cell_key, scale=FINE, unit=STREET_UNIT):
         if not steps or q != steps[-1]: steps.append(q)
     if len(steps) < 2: return None
     per = unit // scale
-    out, (y, x) = [kind, steps[0][0] - ky * per, steps[0][1] - kx * per], steps[0]
+    out, (y, x) = [kind] + ([name] if name else []) + [steps[0][0] - ky * per, steps[0][1] - kx * per], steps[0]
     for qy, qx in steps[1:]:
         out += [qy - y, qx - x]
         y, x = qy, qx
     return out
 
-def street_tiles(cells, streets, scale=FINE, unit=STREET_UNIT):
-    """{key: [street line, …]} for the cells (of `scale` cells per degree), each street cut at their edges."""
+def street_tiles(cells, streets, scale=FINE, unit=STREET_UNIT, named=True):
+    """{key: [street line, …]} for the cells (of `scale` cells per degree), each street cut at their edges;
+    `named` writes the ways' names (streets/, not streets-main/)."""
     by_key = {c.key: c for c in cells}
     out = {c.key: [] for c in cells}
-    for kind, points in streets:
+    for kind, points, name in streets:
         lats, lons = [p[0] for p in points], [p[1] for p in points]
         for ky in range(index(min(lats), scale), index(max(lats), scale) + 1):
             for kx in range(index(min(lons), scale), index(max(lons), scale) + 1):
                 c = by_key.get(f"{ky},{kx}")
                 if c is None: continue
                 for piece in clipped(points, c.rect):
-                    line = street_line(kind, piece, c.key, scale, unit)
+                    line = street_line(kind, piece, c.key, scale, unit, name if named else "")
                     if line: out[c.key].append(line)
     return out
 
@@ -2676,7 +2680,7 @@ def do_streets(cells, out, failures):
 def do_main_streets(cells, out, failures):
     """The streets-main/ tiles, one ~4 km cell at a time."""
     for c in cells:
-        try: lines = street_tiles([c], osm_main_streets(c.rect), MAIN, MAIN_UNIT)[c.key]
+        try: lines = street_tiles([c], osm_main_streets(c.rect), MAIN, MAIN_UNIT, named=False)[c.key]
         except SourceError as e:
             failures.append((c.key, "streets-main", str(e))); continue
         write(path(out, "streets-main", c), lines)

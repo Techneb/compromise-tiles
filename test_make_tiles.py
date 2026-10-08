@@ -713,7 +713,7 @@ assert street_line(1, [(48.869, 2.327), (48.869000001, 2.327000001)], "24434,116
 assert street_line(2, [(-0.001, -0.001), (-0.0015, -0.001)], "0,0") == [2, -100, -100, -50, 0]   # key 0 spans both sides
 # Two cells cut a street at the same rounded point, each from its own corner, so the reader joins them exactly.
 west, east = Cell(24434, 1163), Cell(24434, 1164)
-tiles = street_tiles([west, east], [(1, [(48.8690, 2.3270), (48.8692, 2.3290)])])
+tiles = street_tiles([west, east], [(1, [(48.8690, 2.3270), (48.8692, 2.3290)], "")])
 (w,), (e,) = tiles[west.key], tiles[east.key]
 def absolute(row, key):
     ky, kx = map(int, key.split(","))
@@ -725,6 +725,10 @@ def absolute(row, key):
 assert absolute(w, west.key)[-1] == absolute(e, east.key)[0] == (4886910, 232800), (w, e)
 assert absolute(w, west.key)[0] == (4886900, 232700) and absolute(e, east.key)[-1] == (4886920, 232900)
 assert street_tiles([west], []) == {west.key: []}   # a cell with no street is an empty tile, not a missing one
+# A named way carries its name after the kind, in every cell it crosses; an unnamed one is written as before.
+tiles = street_tiles([west, east], [(2, [(48.8690, 2.3270), (48.8692, 2.3290)], "Rue de Grenelle")])
+assert [row[:2] for row in tiles[west.key] + tiles[east.key]] == [[2, "Rue de Grenelle"]] * 2
+assert street_line(2, [(48.87, 2.32656), (48.86967, 2.32644)], "24434,1163", name="Rue X") == [2, "Rue X", 200, 56, -33, -12]
 # streets/ only for the areas flagged "streets": true; every other layer as asked.
 assert entry_layers({"city": "Paris", "streets": True}, ["venues", "streets"]) == ["venues", "streets"]
 assert entry_layers({"city": "Rouen"}, ["venues", "streets"]) == ["venues"]
@@ -734,9 +738,9 @@ print("ok (streets)")
 from make_tiles import MAIN, MAIN_UNIT, MAIN_STREETS, distinct_places, osm_places
 assert street_line(1, [(48.88, 2.32), (48.8812, 2.3234)], "1222,58", MAIN, MAIN_UNIT) == [1, 0, 0, 12, 34]
 west, east = Cell(1221, 57, MAIN), Cell(1221, 58, MAIN)
-tiles = street_tiles([west, east], [(1, [(48.86, 2.31), (48.862, 2.33)])], MAIN, MAIN_UNIT)
+tiles = street_tiles([west, east], [(1, [(48.86, 2.31), (48.862, 2.33)], "Boulevard")], MAIN, MAIN_UNIT, named=False)
 (w,), (e,) = tiles[west.key], tiles[east.key]
-assert w == [1, 200, 300, 10, 100] and e == [1, 210, 0, 10, 100]   # they meet at 48.861°, 2.32°: the west cell's 400, the east's 0
+assert w == [1, 200, 300, 10, 100] and e == [1, 210, 0, 10, 100]   # streets-main/ unnamed   # they meet at 48.861°, 2.32°: the west cell's 400, the east's 0
 assert set(MAIN_STREETS) == {"trunk", "primary", "secondary", "tertiary"}
 # places/: each place once (a node and its area), by the key of its ~4 km cell.
 twins = [{"name": "Le Marais", "kind": "suburb", "coordinate": {"latitude": 48.859, "longitude": 2.360}},
