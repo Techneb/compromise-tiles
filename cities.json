@@ -28,6 +28,7 @@
   },
   {
     "city": "Tel Aviv",
+    "streets": true,
     "district": "Tel Aviv-Yafo (whole city)",
     "box": [
       32.025,
@@ -38,6 +39,7 @@
   },
   {
     "city": "Jerusalem",
+    "streets": true,
     "district": "Jerusalem (whole municipality)",
     "box": [
       31.7,
@@ -48,6 +50,7 @@
   },
   {
     "city": "Amsterdam",
+    "streets": true,
     "district": "Amsterdam (going-out core + 2 km)",
     "box": [
       52.311,
@@ -58,6 +61,7 @@
   },
   {
     "city": "Athens",
+    "streets": true,
     "district": "Athens (whole municipality)",
     "box": [
       37.9488,
@@ -69,6 +73,7 @@
   },
   {
     "city": "Basel",
+    "streets": true,
     "district": "Basel (whole municipality)",
     "box": [
       47.5193,
@@ -80,6 +85,7 @@
   },
   {
     "city": "Berlin",
+    "streets": true,
     "district": "Berlin (whole city)",
     "box": [
       52.3377,
@@ -102,6 +108,7 @@
   },
   {
     "city": "Budapest",
+    "streets": true,
     "district": "Budapest (going-out core + 2 km)",
     "box": [
       47.445,
@@ -112,6 +119,7 @@
   },
   {
     "city": "Chicago",
+    "streets": true,
     "district": "Chicago (densest 150 km\u00b2 of the core)",
     "box": [
       41.8638,
@@ -122,6 +130,7 @@
   },
   {
     "city": "Copenhagen",
+    "streets": true,
     "district": "Copenhagen (whole municipality)",
     "box": [
       55.6129,
@@ -133,6 +142,7 @@
   },
   {
     "city": "Geneva",
+    "streets": true,
     "district": "Geneva (whole municipality)",
     "box": [
       46.1778,
@@ -156,6 +166,7 @@
   },
   {
     "city": "Madrid",
+    "streets": true,
     "district": "Madrid (densest 150 km\u00b2 of the core)",
     "box": [
       40.3788,
@@ -177,6 +188,7 @@
   },
   {
     "city": "New York",
+    "streets": true,
     "district": "New York (five boroughs)",
     "box": [
       40.4956,
@@ -188,6 +200,7 @@
   },
   {
     "city": "Rotterdam",
+    "streets": true,
     "district": "Rotterdam (going-out core + 2 km)",
     "box": [
       51.869,
@@ -231,6 +244,7 @@
   },
   {
     "city": "The Hague",
+    "streets": true,
     "district": "The Hague (whole municipality)",
     "box": [
       52.0148,
@@ -242,6 +256,7 @@
   },
   {
     "city": "Toulouse",
+    "streets": true,
     "district": "Toulouse (whole municipality)",
     "box": [
       43.5327,
@@ -253,6 +268,7 @@
   },
   {
     "city": "Turin",
+    "streets": true,
     "district": "Turin (whole municipality)",
     "box": [
       45.0068,
@@ -275,6 +291,7 @@
   },
   {
     "city": "Vienna",
+    "streets": true,
     "district": "Vienna (densest 150 km\u00b2 of the core)",
     "box": [
       48.1651,
@@ -285,6 +302,7 @@
   },
   {
     "city": "Warsaw",
+    "streets": true,
     "district": "Warsaw (going-out core + 2 km)",
     "box": [
       52.175,
@@ -305,6 +323,7 @@
   },
   {
     "city": "Barcelona",
+    "streets": true,
     "district": "Barcelona (whole municipality)",
     "box": [
       41.317,
@@ -316,6 +335,7 @@
   },
   {
     "city": "Valencia",
+    "streets": true,
     "district": "Valencia (whole municipality)",
     "box": [
       39.2784,
@@ -451,6 +471,7 @@
   },
   {
     "city": "Vilnius",
+    "streets": true,
     "district": "Vilnius (centre, 5 km)",
     "box": [
       54.662,
@@ -461,6 +482,7 @@
   },
   {
     "city": "Oslo",
+    "streets": true,
     "district": "Oslo (centre, 5 km)",
     "box": [
       59.895,
@@ -511,6 +533,7 @@
   },
   {
     "city": "Vancouver",
+    "streets": true,
     "district": "Vancouver (densest 150 km\u00b2 of the core)",
     "box": [
       49.2228,
@@ -521,6 +544,7 @@
   },
   {
     "city": "Zurich",
+    "streets": true,
     "district": "Zurich (going-out core + 2 km)",
     "box": [
       47.329,
@@ -541,6 +565,7 @@
   },
   {
     "city": "Los Angeles",
+    "streets": true,
     "district": "Los Angeles (going-out core + 2 km)",
     "box": [
       34.015,
@@ -561,6 +586,7 @@
   },
   {
     "city": "Seoul",
+    "streets": true,
     "district": "Seoul (going-out core, densest 150 km\u00b2)",
     "box": [
       37.4791,
@@ -571,6 +597,7 @@
   },
   {
     "city": "Tokyo",
+    "streets": true,
     "district": "Tokyo (going-out core, densest 150 km\u00b2)",
     "box": [
       35.6298,
@@ -581,6 +608,7 @@
   },
   {
     "city": "Osaka",
+    "streets": true,
     "district": "Osaka (going-out core, densest 150 km\u00b2)",
     "box": [
       34.6394,
@@ -591,6 +619,7 @@
   },
   {
     "city": "Istanbul",
+    "streets": true,
     "district": "Istanbul (built-up area)",
     "box": [
       40.8022,
@@ -602,6 +631,7 @@
   },
   {
     "city": "Milan",
+    "streets": true,
     "district": "Milan (densest 150 km\u00b2 of the core)",
     "box": [
       45.435,
@@ -612,6 +642,7 @@
   },
   {
     "city": "Lisbon",
+    "streets": true,
     "district": "Lisbon (densest 150 km\u00b2 of the core)",
     "box": [
       38.6517,
@@ -622,6 +653,7 @@
   },
   {
     "city": "Rome",
+    "streets": true,
     "district": "Rome (densest 150 km\u00b2 of the core)",
     "box": [
       41.8417,
@@ -632,6 +664,7 @@
   },
   {
     "city": "Manila",
+    "streets": true,
     "district": "Manila (going-out core, densest 150 km\u00b2)",
     "box": [
       14.5333,
@@ -642,6 +675,7 @@
   },
   {
     "city": "Bogot\u00e1",
+    "streets": true,
     "district": "Bogot\u00e1 (going-out core, densest 150 km\u00b2)",
     "box": [
       4.5967,
@@ -652,6 +686,7 @@
   },
   {
     "city": "Buenos Aires",
+    "streets": true,
     "district": "Buenos Aires (densest 150 km\u00b2 of the core)",
     "box": [
       -34.6433,
@@ -672,6 +707,7 @@
   },
   {
     "city": "Toronto",
+    "streets": true,
     "district": "Toronto (densest 150 km\u00b2 of the core)",
     "box": [
       43.6333,
@@ -735,6 +771,7 @@
   },
   {
     "city": "Hamburg",
+    "streets": true,
     "district": "Hamburg (densest 150 km\u00b2 of the core)",
     "box": [
       53.5121,
@@ -745,6 +782,7 @@
   },
   {
     "city": "Stockholm",
+    "streets": true,
     "district": "Stockholm (going-out core + 2 km)",
     "box": [
       59.267,
@@ -755,6 +793,7 @@
   },
   {
     "city": "Sydney",
+    "streets": true,
     "district": "Sydney (going-out core + 2 km)",
     "box": [
       -33.937,
@@ -765,6 +804,7 @@
   },
   {
     "city": "Kyiv",
+    "streets": true,
     "district": "Kyiv (densest 150 km\u00b2 of the core)",
     "box": [
       50.3804,
@@ -775,6 +815,7 @@
   },
   {
     "city": "Brussels",
+    "streets": true,
     "district": "Brussels (whole municipality)",
     "box": [
       50.7963,
@@ -786,6 +827,7 @@
   },
   {
     "city": "Montr\u00e9al",
+    "streets": true,
     "district": "Montr\u00e9al (densest 150 km\u00b2 of the core)",
     "box": [
       45.4516,
@@ -796,6 +838,7 @@
   },
   {
     "city": "Kuala Lumpur",
+    "streets": true,
     "district": "Kuala Lumpur (going-out core + 2 km)",
     "box": [
       3.089,
@@ -806,6 +849,7 @@
   },
   {
     "city": "Prague",
+    "streets": true,
     "district": "Prague (densest 150 km\u00b2 of the core)",
     "box": [
       50.0269,
@@ -816,6 +860,7 @@
   },
   {
     "city": "Singapore",
+    "streets": true,
     "district": "Singapore (densest 150 km\u00b2 of the core)",
     "box": [
       1.2697,
@@ -826,6 +871,7 @@
   },
   {
     "city": "Munich",
+    "streets": true,
     "district": "Munich (densest 150 km\u00b2 of the core)",
     "box": [
       48.0855,
@@ -856,6 +902,7 @@
   },
   {
     "city": "Helsinki",
+    "streets": true,
     "district": "Helsinki (going-out core + 2 km)",
     "box": [
       60.135,
@@ -886,6 +933,7 @@
   },
   {
     "city": "Dublin",
+    "streets": true,
     "district": "Dublin (whole municipality)",
     "box": [
       53.2987,
@@ -907,6 +955,7 @@
   },
   {
     "city": "Auckland",
+    "streets": true,
     "district": "Auckland (going-out core + 2 km)",
     "box": [
       -36.913,
@@ -947,6 +996,7 @@
   },
   {
     "city": "Glasgow",
+    "streets": true,
     "district": "Glasgow (going-out core + 2 km)",
     "box": [
       55.829,
@@ -957,6 +1007,7 @@
   },
   {
     "city": "Edinburgh",
+    "streets": true,
     "district": "Edinburgh (going-out core + 2 km)",
     "box": [
       55.901,
@@ -967,6 +1018,7 @@
   },
   {
     "city": "Gothenburg",
+    "streets": true,
     "district": "Gothenburg (going-out core + 2 km)",
     "box": [
       57.665,
@@ -987,6 +1039,7 @@
   },
   {
     "city": "Antwerp",
+    "streets": true,
     "district": "Antwerp (going-out core + 2 km)",
     "box": [
       51.175,
@@ -997,6 +1050,7 @@
   },
   {
     "city": "Brisbane",
+    "streets": true,
     "district": "Brisbane (going-out core + 2 km)",
     "box": [
       -27.521,
@@ -1070,6 +1124,7 @@
   },
   {
     "city": "Perth",
+    "streets": true,
     "district": "Perth (going-out core + 2 km)",
     "box": [
       -31.979,
@@ -1080,6 +1135,7 @@
   },
   {
     "city": "Ghent",
+    "streets": true,
     "district": "Ghent (going-out core + 2 km)",
     "box": [
       51.011,
@@ -1101,6 +1157,7 @@
   },
   {
     "city": "Krak\u00f3w",
+    "streets": true,
     "district": "Krak\u00f3w (going-out core + 2 km)",
     "box": [
       50.021,
@@ -1111,6 +1168,7 @@
   },
   {
     "city": "Delhi",
+    "streets": true,
     "district": "Delhi (going-out core + 2 km)",
     "box": [
       28.521,
@@ -1132,6 +1190,7 @@
   },
   {
     "city": "Pozna\u0144",
+    "streets": true,
     "district": "Pozna\u0144 (going-out core + 2 km)",
     "box": [
       52.375,
@@ -1172,6 +1231,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (going-out core + 2 km)",
     "box": [
       -26.227,
@@ -1182,6 +1242,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Sandton)",
     "box": [
       -26.129,
@@ -1192,6 +1253,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Rosebank)",
     "box": [
       -26.169,
@@ -1202,6 +1264,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Northcliff)",
     "box": [
       -26.151,
@@ -1212,6 +1275,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Linden)",
     "box": [
       -26.161,
@@ -1222,6 +1286,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Rivonia)",
     "box": [
       -26.079,
@@ -1232,6 +1297,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Parkhurst)",
     "box": [
       -26.159,
@@ -1242,6 +1308,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Maboneng)",
     "box": [
       -26.225,
@@ -1252,6 +1319,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Melrose Arch)",
     "box": [
       -26.153,
@@ -1262,6 +1330,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Melville)",
     "box": [
       -26.197,
@@ -1272,6 +1341,7 @@
   },
   {
     "city": "Johannesburg",
+    "streets": true,
     "district": "Johannesburg (Braamfontein)",
     "box": [
       -26.213,
@@ -1292,6 +1362,7 @@
   },
   {
     "city": "Zagreb",
+    "streets": true,
     "district": "Zagreb (going-out core + 2 km)",
     "box": [
       45.761,
@@ -1302,6 +1373,7 @@
   },
   {
     "city": "Belgrade",
+    "streets": true,
     "district": "Belgrade (going-out core + 2 km)",
     "box": [
       44.761,
@@ -1332,6 +1404,7 @@
   },
   {
     "city": "Thessalon\u00edki",
+    "streets": true,
     "district": "Thessalon\u00edki (municipality)",
     "box": [
       40.59,
@@ -1362,6 +1435,7 @@
   },
   {
     "city": "Sofia",
+    "streets": true,
     "district": "Sofia (going-out core + 2 km)",
     "box": [
       42.637,
@@ -1372,6 +1446,7 @@
   },
   {
     "city": "Bratislava",
+    "streets": true,
     "district": "Bratislava (going-out core + 2 km)",
     "box": [
       48.095,
@@ -1392,6 +1467,7 @@
   },
   {
     "city": "Lyon",
+    "streets": true,
     "district": "Lyon (whole commune)",
     "box": [
       45.7074,
@@ -1403,6 +1479,7 @@
   },
   {
     "city": "Marseille",
+    "streets": true,
     "district": "Marseille (whole commune)",
     "box": [
       43.1696,
@@ -1818,6 +1895,7 @@
   },
   {
     "city": "Cape Town",
+    "streets": true,
     "district": "Cape Town (going-out core + 2 km)",
     "box": [
       -33.955,
@@ -1828,6 +1906,7 @@
   },
   {
     "city": "São Paulo",
+    "streets": true,
     "district": "São Paulo (going-out core + 2 km)",
     "box": [
       -23.607,
