@@ -790,6 +790,14 @@ gaillon = bound("r2189366", "Gaillon", 10, ring(48.867, 2.332, 48.871, 2.337), p
 out = place_levels([place("n8", "13e Arrondissement", "suburb", 48.83, 2.36), place("r9530", "Paris 13e Arrondissement", "suburb", 48.828, 2.362),
                     place("r2189366", "Gaillon", "quarter", 48.869, 2.335)], [r13, gaillon])
 assert [(p["name"], p["admin_level"]) for p in out] == [("13e Arrondissement", 9), ("Gaillon", 10)], out
+# name:en rides along as "name_en" where it exists and differs from the name; a boundary added as a place carries its own (2026-10-09).
+from make_tiles import english
+assert english({"name": "恵比寿"}, " Ebisu ") == {"name": "恵比寿", "name_en": "Ebisu"}
+assert english({"name": "Soho"}, "Soho") == {"name": "Soho"} and english({"name": "Soho"}, None) == {"name": "Soho"}
+ebisu = english(place("n10", "恵比寿", "quarter", 35.646, 139.710), "Ebisu")
+daiba = dict(bound("r12", "台場一丁目", 10, ring(35.62, 139.77, 35.63, 139.78)), name_en="Daiba 1-chome")
+out = place_levels([ebisu], [daiba])
+assert [(p["name"], p.get("name_en")) for p in out] == [("恵比寿", "Ebisu"), ("台場一丁目", "Daiba 1-chome")], out
 # A boundary at admin_level 9 or 10 that no place matched is added at its ring's mean vertex, of the kind its level stands for
 # (its own place tag when it has one); not one at another level, nor one whose ring is not whole in the extract.
 out = place_levels([], [bound("r7", "Quartier de la Muette", 10, ring(48.85, 2.26, 48.87, 2.28)),
@@ -811,7 +819,7 @@ make_tiles.osmium = lambda *a: """<osm><relation id="9519"><member type="node" r
 make_tiles.features = lambda pbf, kinds="point,polygon", ids=False: iter([{"properties": {"@type": "relation", "@id": 9519}, "geometry": ring(0, 0, 1, 1)},
                                                                          {"properties": {"@type": "way", "@id": 9519}, "geometry": ring(5, 5, 6, 6)}])
 fake = OSM.__new__(OSM); fake.admin = "admin.pbf"
-assert fake.boundaries() == [{"id": "r9519", "name": "Paris 17e Arrondissement", "admin_level": 9, "place": None,
+assert fake.boundaries() == [{"id": "r9519", "name": "Paris 17e Arrondissement", "name_en": None, "admin_level": 9, "place": None,
                               "labels": {"n2"}, "centres": {"n1"}, "geometry": ring(0, 0, 1, 1)}], fake.boundaries()
 make_tiles.osmium, make_tiles.features = real_osmium, real_features
 # The three layers follow the same flag.
