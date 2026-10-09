@@ -20,7 +20,9 @@ quarter, neighbourhood), "coordinate", "admin_level"?}]: "admin_level" (an
 integer, OSM's) only when the name comes from or matches an administrative
 boundary relation (Paris: 9 the arrondissements, 10 the quartiers
 administratifs), absent otherwise, so a reader of the first format reads
-it unchanged (2026-10-06). Both only where streets/ is.
+it unchanged (2026-10-06); "name_en" (OSM's name:en) the same way, only
+where it exists and differs from "name": Tokyo's, Seoul's or Kyiv's names
+are in their own scripts (2026-10-09). Both only where streets/ is.
 buildings-v2/ is what the store holds (buildings/ stays local, read by coverage.py; 2026-10-08):
 the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
@@ -535,7 +537,8 @@ class OSM:
                 if tags.get("place") not in PLACE_KINDS or not name: continue
                 at = mean_point(geometry)
                 if not at: continue
-                found.append({"name": name, "kind": tags["place"], "coordinate": vertex(*at), "osm": tags["@type"][0] + str(tags["@id"])})
+                found.append(english({"name": name, "kind": tags["place"], "coordinate": vertex(*at), "osm": tags["@type"][0] + str(tags["@id"])},
+                                     tags.get("name:en")))
             self._places = distinct_places(place_levels(found, self.boundaries()))
         return self._places
 
@@ -551,7 +554,7 @@ class OSM:
             name, level = (tags.get("name") or "").strip(), tags.get("admin_level", "")
             if tags.get("boundary") != "administrative" or not name or not level.isdigit(): continue
             role = lambda kind: {"n" + m.get("ref") for m in r.iter("member") if m.get("type") == "node" and m.get("role") == kind}
-            out.append({"id": "r" + r.get("id"), "name": name, "admin_level": int(level), "place": tags.get("place"),
+            out.append({"id": "r" + r.get("id"), "name": name, "name_en": tags.get("name:en"), "admin_level": int(level), "place": tags.get("place"),
                         "labels": role("label"), "centres": role("admin_centre"), "geometry": shapes.get("r" + r.get("id"))})
         return out
 
@@ -569,6 +572,12 @@ def osm_buildings(rect, tagged=False): return _osm.buildings(rect, tagged)
 def osm_streets(rect): return _osm.streets(rect)
 
 def osm_main_streets(rect): return _osm.streets(rect, MAIN_STREETS, MAIN_TOLERANCE)
+
+def english(place, name_en):
+    """The place with "name_en", OSM's name:en, when it has one that is not its "name"."""
+    name_en = str(name_en or "").strip()
+    if name_en and name_en != place["name"]: place["name_en"] = name_en
+    return place
 
 PLACE_TWIN = 1000  # metres: the same name this close is one place mapped twice (a node and its area)
 
@@ -642,7 +651,7 @@ def place_levels(places, boundaries):
         at = mean_point(b["geometry"])
         if not at: continue
         kind = b["place"] if b["place"] in PLACE_KINDS else PLACE_ADMIN_KINDS[b["admin_level"]]
-        out.append({"name": b["name"], "kind": kind, "coordinate": vertex(*at), "admin_level": b["admin_level"]})
+        out.append(english({"name": b["name"], "kind": kind, "coordinate": vertex(*at), "admin_level": b["admin_level"]}, b.get("name_en")))
     return out
 
 def osm_places(cell):
