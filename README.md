@@ -393,6 +393,8 @@ none, this says so rather than guessing.
 - Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.
 - Johannesburg: Statistics South Africa, Census 2011 sub places (UCT Libraries'
   republication); Stats SA is the source of the basic data.
+- Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
+  (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
 - Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.
 - London: Source: Office for National Statistics licensed under the Open
   Government Licence v.3.0, Wards (December 2024). Contains OS data © Crown

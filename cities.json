@@ -1492,6 +1492,7 @@
   },
   {
     "city": "Lille",
+    "streets": true,
     "district": "Lille (whole commune)",
     "box": [
       50.6009,
