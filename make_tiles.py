@@ -2806,6 +2806,24 @@ def estat_source(prefecture, wards):
     url = "https://www.e-stat.go.jp/gis/statmap-search/data?dlserveyId=A002005212020&code={}{}&coordSys=1&format=shape&downloadType=5&datum=2011"
     return shapefile_source(*(url.format(prefecture, w) for w in wards), encoding="cp932")
 
+def iris_head(name):
+    """An IRIS name's part before its first hyphen between two names: "Ariane-Monzie" Ariane, "Saint-Roch-Ricolfi"
+    Saint-Roch (a "Saint-" or "Sainte-" kept whole), "Cimiez" Cimiez."""
+    m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte))-(?=[A-ZÉÈ])", name)
+    return m[1].strip() if m else name
+
+def iris_source(insee):
+    """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
+    IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
+    Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice)."""
+    def fetch(rect):
+        found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
+                               "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
+        heads = [iris_head(str(p.get("nom_iris") or "")) for p, _ in found]
+        for (p, _), head in zip(found, heads): p["quartier"] = head if heads.count(head) > 1 else p.get("nom_iris")
+        return found
+    return fetch
+
 def osm_area_source(levels):
     """OpenStreetMap from the area's extract: administrative boundaries at the admin_levels (integers) or place
     polygons of the kinds (strings) in `levels`, in order: a later level's polygon is kept only where its inner
@@ -2885,6 +2903,8 @@ AREA_SOURCES = [
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
     area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
              "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
+    area_row("Bordeaux", "Bordeaux", geojson_source("https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/se_quartvie_s/exports/geojson"
+             "?select=libelle,geo_shape"), "libelle", "secteur de vie"),
     # The Planning Department's 26 neighborhoods ("not official neighborhood boundaries", it says): the ones people name.
     # Its data.boston.gov file redirects to S3 with ":443" in the URL, which urllib signs into the Host: 403.
     area_row("Boston", "Boston", geojson_source("https://gis.bostonplans.org/hosting/rest/services/Hosted/Boston_Neighborhood_Boundaries"
@@ -2931,6 +2951,9 @@ AREA_SOURCES = [
     area_row("Kraków", "OSM", osm_area_source((11,)), "name", None),
     area_row("Kuala Lumpur", "OSM", osm_area_source(("neighbourhood", "quarter", "suburb")), "name", None),
     area_row("Kyiv", "OSM", osm_area_source((7, 10)), "name", None),
+    area_row("Lille", "Lille", geojson_source("https://data.lillemetropole.fr/geoserver/ville_lille/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=ville_lille:limite_des_quartiers_de_lille_et_de_ses_communes_associees&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"),
+             "quartier", "quartier"),   # Lille's 10 quartiers, and Lomme and Hellemmes whole
     area_row("Lisbon", "Lisbon", geojson_source("https://services.arcgis.com/1dSrzEWVQn5kHHyK/arcgis/rest/services/Limite_Cartografia/FeatureServer/0/query"
              "?outFields=NOME&where=1%3D1&outSR=4326&f=geojson"), "NOME", "freguesia"),
     area_row("London", "London", arcgis_source("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Wards_December_2024_Boundaries_UK_BGC/FeatureServer/0",
@@ -2951,16 +2974,22 @@ AREA_SOURCES = [
              "/FeatureServer/0/query?where=1%3D1&outFields=LABEL&outSR=4326&f=geojson"), "LABEL", "neighborhood", dissolve=True),
     area_row("Milan", "Milan", geojson_source("https://dati.comune.milano.it/dataset/e8e765fc-d882-40b8-95d8-16ff3d39eb7c/resource/9c4e0776-56fc-4f3d-8a90-f4992a3be426"
              "/download/ds964_nil_wm.geojson"), "NIL", "NIL"),
+    area_row("Montpellier", "Montpellier", geojson_source("https://data.montpellier3m.fr/sites/default/files/ressources/VilleMTP_MTP_SousQuartiers.json"),
+             "name", "sous-quartier"),
     area_row("Montréal", "Montréal", geojson_source("https://donnees.montreal.ca/dataset/f38c91a1-e33f-4475-a112-3b84b1c60c1e/resource/a80e611f-5336-4306-ba2a-fd657f0f00fa"
              "/download/quartierreferencehabitation.geojson"), "nom_qr", "quartier de référence"),
     area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"
              "&typeName=gsm_wfs:vablock_stadtbezirk&outputFormat=application/json&srsName=EPSG:4326"), "sb_name", "Stadtbezirk", dissolve=True),
+    area_row("Nantes", "Nantes", geojson_source("https://data.nantesmetropole.fr/api/explore/v2.1/catalog/datasets/244400404_quartiers-de-la-ville-de-nantes"
+             "/exports/geojson?select=nom,geo_shape"), "nom", "quartier"),
     # The 30 quartieri (Chiaia, Vomero, Posillipo) on the 2001 census sections, the newest the Comune publishes as a file.
     area_row("Naples", "Naples", shapefile_source("https://trasparenza.comune.napoli.it/flex/cm/pages/ServeAttachment.php/L/IT/D/8%252Fa%252Fe%252FD.8fbafa14e575ac594a1c"
              "/P/BLOB%3AID%3D26532/E/zip?mode=download"), "QUART", "quartiere"),
     # ntatype 0: the residential NTAs; 5 to 9 are parks, cemeteries, airports.
     area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
              keep=lambda p: str(p.get("ntatype")) == "0"),
+    # The city publishes 6 territoires only; its 146 IRIS grouped into 131 quartiers (iris_source).
+    area_row("Nice", "Nice", iris_source("06088"), "quartier", "IRIS", dissolve=True),
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
              dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),
@@ -2997,6 +3026,9 @@ AREA_SOURCES = [
              keep=lambda p: p.get("prefname") in ("ЖК.", "КВ.")),
     area_row("Stockholm", "Stockholm", geojson_source("https://geodata.scb.se/geoserver/stat/wfs?service=WFS&request=GetFeature&version=2.0.0&typeNames=stat:RegSO_2025"
              "&outputFormat=application/json&srsName=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("kommunkod='0180'")), "regsonamn", "RegSO"),
+    # The finest of the city's cuts (10, 14, 23, 28 quartiers), and the one with whole names.
+    area_row("Strasbourg", "Strasbourg", geojson_source("https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/strasbourg-en-28-quartiers/exports/geojson"
+             "?select=nom,geo_shape"), "nom", "quartier"),
     area_row("Sydney", "Sydney", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='1'", "objectid"),
              lambda p: re.sub(r" \(NSW\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     area_row("São Paulo", "São Paulo", geojson_source("https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/geoportal/wfs?service=WFS&version=2.0.0&request=GetFeature"

@@ -236,6 +236,7 @@
   },
   {
     "city": "Strasbourg",
+    "streets": true,
     "district": "Strasbourg (whole municipality)",
     "box": [
       48.4919,
@@ -1156,6 +1157,7 @@
   },
   {
     "city": "Bordeaux",
+    "streets": true,
     "district": "Bordeaux (whole municipality)",
     "box": [
       44.8107,
@@ -1503,6 +1505,7 @@
   },
   {
     "city": "Lille",
+    "streets": true,
     "district": "Lille (whole commune)",
     "box": [
       50.6009,
@@ -1514,6 +1517,7 @@
   },
   {
     "city": "Nantes",
+    "streets": true,
     "district": "Nantes (whole commune)",
     "box": [
       47.1806,
@@ -1525,6 +1529,7 @@
   },
   {
     "city": "Nice",
+    "streets": true,
     "district": "Nice (whole commune)",
     "box": [
       43.6454,
@@ -1536,6 +1541,7 @@
   },
   {
     "city": "Montpellier",
+    "streets": true,
     "district": "Montpellier (whole commune)",
     "box": [
       43.5668,

@@ -357,6 +357,8 @@ none, this says so rather than guessing.
   Zero 2.0.
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
   CC BY 4.0.
+- Bordeaux: Ville de Bordeaux, secteurs de vie (Bordeaux Métropole open data),
+  Licence Ouverte.
 - Boston: Boston Maps (Analyze Boston), BPDA Neighborhood Boundaries, Open Data
   Commons Public Domain Dedication and License (PDDL).
 - Bratislava: Magistrát hlavného mesta SR, Bratislava, mestské časti, CC BY 4.0.
@@ -395,6 +397,8 @@ none, this says so rather than guessing.
 - Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.
 - Johannesburg: Statistics South Africa, Census 2011 sub places (UCT Libraries'
   republication); Stats SA is the source of the basic data.
+- Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
+  (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
 - Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.
 - London: Source: Office for National Statistics licensed under the Open
   Government Licence v.3.0, Wards (December 2024). Contains OS data © Crown
@@ -406,12 +410,17 @@ none, this says so rather than guessing.
 - Miami: © City of Miami, Department of Innovation and Technology, GIS Team,
   Miami Neighborhoods, CC BY 4.0.
 - Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.
+- Montpellier: Montpellier Méditerranée Métropole, sous-quartiers de Montpellier (producer
+  OpenStreetMap), Open Data Commons Open Database License (ODbL).
 - Montréal: Ville de Montréal, quartiers de référence en habitation, CC BY 4.0.
 - Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
   Deutschland – Namensnennung – 2.0.
+- Nantes: Nantes Métropole, quartiers de la ville de Nantes, Licence Ouverte.
 - Naples: Comune di Napoli, territorio cittadino suddiviso in quartieri, IODL 2.0.
 - New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation
   Areas, NYC Open Data (licence not stated by the publisher).
+- Nice: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Osaka, Tokyo: 出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）,
   2020 census small areas, merged into towns (e-Stat terms of use, compatible
   with CC BY 4.0).
@@ -440,6 +449,8 @@ none, this says so rather than guessing.
   at each build from data.gov.sg, which is made available under the terms of the
   Singapore Open Data Licence version 1.0.
 - Sofia: ОП „Софияплан“, квартали (licence not stated by the publisher).
+- Strasbourg: Eurométropole de Strasbourg, découpage de la ville de Strasbourg en 28
+  quartiers, Licence Ouverte (Etalab).
 - São Paulo: Prefeitura de São Paulo, GeoSampa, distritos municipais, CC BY-SA
   4.0.
 - Tel Aviv: Tel Aviv-Yafo Municipality open data, neighbourhoods (free to share
