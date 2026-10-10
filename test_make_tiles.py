@@ -780,6 +780,14 @@ two = street_tiles([west], [(2, [(48.8691, 2.3271), (48.8691, 2.3279)], "Rue Zol
 rows = number_rows(two, [(48.8691, 2.3272, "Rue Zola", 1), (48.8691, 2.3273, "Rue Zola", 9),
                          (48.8692, 2.3272, "Avenue Bosquet", 4), (48.8692, 2.3273, "Avenue Bosquet", 2)], [])
 assert rows[west.key] == [["Avenue Bosquet", 2, 4], ["Rue Zola", 1, 9]], rows
+# A stray top (a flat number as the house number) is cut; a real spread is kept, and so is a short street.
+from make_tiles import trimmed_high
+assert trimmed_high({48, 52, 60, 2213}) == [48, 52, 60] and trimmed_high([1, 3, 2213, 9000]) == [1, 3]
+assert trimmed_high([3, 40]) == [3, 40] and trimmed_high([1, 4]) == [1, 4] and trimmed_high([150, 420]) == [150, 420]
+assert trimmed_high([7, 7]) == [7] and trimmed_high([]) == []
+camden = [(48.8691, 2.3272, "Rue de Grenelle", x) for x in (48, 62, 2213)]
+assert number_rows(tiles, camden, [])[west.key] == [["Rue de Grenelle", 48, 62]]
+assert number_rows(tiles, camden[::2], [])[west.key] == [], "48 and 2213 alone: one number left, no row"
 # do_streets: streets/ exactly as before (no range in it), numbers/ beside it, no numbers/ file for a cell with none.
 import tempfile, make_tiles
 from make_tiles import do_streets

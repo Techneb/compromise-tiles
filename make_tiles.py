@@ -934,10 +934,19 @@ def interpolated(line, first, last, step):
         out.append((lat, lon, first + (step if last > first else -step) * i))
     return out
 
+def trimmed_high(numbers):
+    """The distinct numbers, sorted, without a stray top: while the highest is over 3× the next and more
+    than 100 above it, it goes. A flat or unit number tagged as the house number (Camden High Street's
+    48–2213, 2026-10-10) is the case; a real ~200 m cell spans tens of doors."""
+    out = sorted(set(numbers))
+    while len(out) >= 2 and out[-1] > 3 * out[-2] and out[-1] - out[-2] > 100: out.pop()
+    return out
+
+
 def number_rows(tiles, points, interpolations):
     """{key: [[name, lowest, highest], …]} (numbers/) for the streets/ tiles: each named way of a tile whose
     street_key() matches the addr:street of at least two distinct numbers inside that cell (the key's
-    truncation deciding), once per name as the tile writes it, sorted by name."""
+    truncation deciding), once per name as the tile writes it, sorted by name; a stray top cut first (trimmed_high)."""
     seen = {key: {} for key in tiles}
     points = list(points) + [(lat, lon, street, x) for street, line, first, last, step in interpolations
                              for lat, lon, x in interpolated(line, first, last, step)]
@@ -947,7 +956,7 @@ def number_rows(tiles, points, interpolations):
     out = {}
     for key, lines in tiles.items():
         names = dict.fromkeys(line[1] for line in lines if len(line) > 1 and isinstance(line[1], str))
-        found = [(name, seen[key].get(street_key(name), ())) for name in names]
+        found = [(name, trimmed_high(seen[key].get(street_key(name), ()))) for name in names]
         out[key] = sorted([name, min(n), max(n)] for name, n in found if len(n) >= 2)
     return out
 
