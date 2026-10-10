@@ -2806,6 +2806,24 @@ def estat_source(prefecture, wards):
     url = "https://www.e-stat.go.jp/gis/statmap-search/data?dlserveyId=A002005212020&code={}{}&coordSys=1&format=shape&downloadType=5&datum=2011"
     return shapefile_source(*(url.format(prefecture, w) for w in wards), encoding="cp932")
 
+def iris_head(name):
+    """An IRIS name's part before its first hyphen between two names: "Ariane-Monzie" Ariane, "Saint-Roch-Ricolfi"
+    Saint-Roch (a "Saint-" or "Sainte-" kept whole), "Cimiez" Cimiez."""
+    m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte))-(?=[A-ZÉÈ])", name)
+    return m[1].strip() if m else name
+
+def iris_source(insee):
+    """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
+    IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
+    Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice)."""
+    def fetch(rect):
+        found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
+                               "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
+        heads = [iris_head(str(p.get("nom_iris") or "")) for p, _ in found]
+        for (p, _), head in zip(found, heads): p["quartier"] = head if heads.count(head) > 1 else p.get("nom_iris")
+        return found
+    return fetch
+
 def osm_area_source(levels):
     """OpenStreetMap from the area's extract: administrative boundaries at the admin_levels (integers) or place
     polygons of the kinds (strings) in `levels`, in order: a later level's polygon is kept only where its inner
@@ -2951,6 +2969,8 @@ AREA_SOURCES = [
              "/exports/geojson?select=nom,geo_shape"), "nom", "quartier"),
     area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
              keep=lambda p: str(p.get("ntatype")) == "0"),
+    # The city publishes 6 territoires only; its 146 IRIS grouped into 131 quartiers (iris_source).
+    area_row("Nice", "Nice", iris_source("06088"), "quartier", "IRIS", dissolve=True),
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
              dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),

@@ -408,6 +408,8 @@ none, this says so rather than guessing.
 - Nantes: Nantes Métropole, quartiers de la ville de Nantes, Licence Ouverte.
 - New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation
   Areas, NYC Open Data (licence not stated by the publisher).
+- Nice: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Osaka, Tokyo: 出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）,
   2020 census small areas, merged into towns (e-Stat terms of use, compatible
   with CC BY 4.0).

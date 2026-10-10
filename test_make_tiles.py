@@ -1072,6 +1072,19 @@ assert roman_part("ΠΑΓΚΡΑΤΙ ΙΙ") == "ΠΑΓΚΡΑΤΙ" and roman_part(
 assert logical_hebrew("'נאות אפקה א") == "נאות אפקה א'" and logical_hebrew("(יפו ד' (גבעת התמרים") == "יפו ד' (גבעת התמרים)"
 print("ok (boundaries, cell by label point)")
 
+# Nice's IRIS grouped into quartiers: a head two IRIS share (the bare "Cimiez" counts) names them; a lone head does not.
+assert make_tiles.iris_head("Ariane-Monzie") == "Ariane" and make_tiles.iris_head("Saint-Roch-Ricolfi") == "Saint-Roch"
+assert make_tiles.iris_head("Saint-Augustin") == "Saint-Augustin" and make_tiles.iris_head("Madeleine Robiony") == "Madeleine Robiony"
+square = lambda x: {"type": "Polygon", "coordinates": [[[x, 43.7], [x + 0.01, 43.7], [x + 0.01, 43.71], [x, 43.7]]]}
+iris = ["Cimiez", "Cimiez-Valrose", "France-Negresco", "Saint-Roch-Ricolfi", "Saint-Roch-Jean XXIII", "Saint-Augustin"]
+make_tiles.get_json, real_get_json = lambda url: {"features": [{"properties": {"nom_iris": n}, "geometry": square(7.2 + i / 100)}
+                                                               for i, n in enumerate(iris)]}, make_tiles.get_json
+grouped = make_tiles.area_features(make_tiles.area_row("Nice", "Nice", make_tiles.iris_source("06088"), "quartier", "IRIS", dissolve=True), None)
+make_tiles.get_json = real_get_json
+assert [f["name"] for f in grouped] == ["Cimiez", "France-Negresco", "Saint-Roch", "Saint-Augustin"], [f["name"] for f in grouped]
+assert abs(grouped[0]["geometry"].area - 2 * shapely.Polygon(square(7.2)["coordinates"][0]).area) < 1e-12   # two IRIS dissolved
+print("ok (boundaries, IRIS grouped into quartiers)")
+
 # A shared edge stays shared after the 5 m simplification: two neighbours along a wiggly street (2 m off a straight
 # line, every 10 m), simplified together; the edge's vertices are the same in both and no gap or overlap opens.
 lon0, lat0 = 13.40, 52.50
