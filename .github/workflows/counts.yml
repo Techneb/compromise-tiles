@@ -43,7 +43,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # --drop: each extract is deleted once its cities are counted, the runner's disk is small.
-      - run: python3 counts.py --cities "$CITIES" --part "${{ matrix.part }}/4" --extracts extracts --write counts.json --drop --only "${{ inputs.only }}"
+      - env:
+          ONLY: ${{ inputs.only }}   # through env, not the script's text: a quote in it would run as shell
+        run: python3 counts.py --cities "$CITIES" --part "${{ matrix.part }}/4" --extracts extracts --write counts.json --drop --only "$ONLY"
       - uses: actions/upload-artifact@v4
         with:
           name: counts-part-${{ matrix.part }}
@@ -59,7 +61,7 @@ jobs:
           pattern: counts-part-*
           path: parts
       # --previous: a run given `only` keeps the published rows of the listed cities it did not count.
-      - run: python3 counts.py --cities "$CITIES" --extracts extracts --write counts.json --merge parts/*/counts.json --previous "https://tiles.alephb.uk/counts.json"
+      - run: python3 counts.py --cities "$CITIES" --write counts.json --merge parts/*/counts.json --previous "https://tiles.alephb.uk/counts.json"
       - name: Upload to R2
         # Only the listed cities: the published file is what the cities page reads.
         if: ${{ env.CITIES == 'counts-cities.json' }}

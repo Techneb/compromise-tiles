@@ -4,8 +4,9 @@ name: Delete superseded tiles
 on:
   workflow_dispatch:
     inputs:
-      old: {description: "Layer to delete from", default: "buildings", required: true}
-      new: {description: "Layer that supersedes it", default: "buildings-v2", required: true}
+      # Choices, not free text: old terraces-v2 with new sources would delete nearly every terraces tile.
+      old: {description: "Layer to delete from", type: choice, options: [buildings], default: "buildings", required: true}
+      new: {description: "Layer that supersedes it", type: choice, options: [buildings-v2], default: "buildings-v2", required: true}
       confirm: {description: "Type DELETE to delete; anything else is a dry run", default: "dry run", required: true}
 permissions:
   contents: read

@@ -6,7 +6,8 @@
 # boundaries/ (neighbourhood outlines, 2026-10-10) needs shapely, pyproj and pyshp (requirements.txt), installed only when asked.
 # Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY and LINZ_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
-# uploaded; dry_run builds and prints that plan without writing anything.
+# uploaded; a numbers/ or boundaries/ tile the store holds for a cell the run left with none is deleted (only those two
+# layers, only in the city's own cells); dry_run builds and prints that plan without writing anything.
 name: Tiles
 
 on:
@@ -60,7 +61,11 @@ jobs:
           LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,streets,streets-main,places,boundaries' || 'terraces-v2,venues') }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os
+          import json, os, sys
+          from make_tiles import LAYERS
+          # make_tiles.py refuses an unknown layer too: caught here, no job downloads an extract to build nothing.
+          unknown = [l for l in os.environ["LAYERS"].split(",") if l not in LAYERS + ("sources",)]
+          if unknown: sys.exit(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources (numbers comes with streets)")
           only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
           # A run of the street layers alone has nothing to do for a city with no flagged entry: no job for it.
           streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places", "boundaries"}
@@ -170,7 +175,7 @@ jobs:
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
           [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
-          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY"
+          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt
       # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
       # there is complete, and R2 keeps last week's tile for the rest.
       - name: Upload tiles to R2
@@ -197,6 +202,20 @@ jobs:
           sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
             sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
           done
+      # numbers/ and boundaries/ write no file for a cell left with nothing: the keys of the city's own cells this run
+      # emptied (changed.py --stale, listed in the summary above, a dry run included) go from the store, those two layers only.
+      - name: Delete emptied tiles from R2
+        if: ${{ !cancelled() && !inputs.dry_run && hashFiles('stale.txt') != '' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          split -l 1000 stale.txt stale-
+          for b in stale-??; do
+            python3 -c 'import json,sys; print(json.dumps({"Objects":[{"Key":k.strip()} for k in open(sys.argv[1]) if k.strip()],"Quiet":True}))' "$b" > "$b.json"
+            aws s3api delete-objects --bucket "${{ secrets.R2_BUCKET }}" --delete "file://$b.json" --endpoint-url "$ENDPOINT"
+          done
+          echo "Deleted $(wc -l < stale.txt) emptied numbers/ and boundaries/ tiles." >> "$GITHUB_STEP_SUMMARY"
       # Red once what was built is up: more than 5 % of the city's cells failed (make_tiles.py exits 1),
       # or the time cap cut the build (124). A green job used to hide both (Gijón, Genoa, London, 2026-10-07).
       - name: Check the build is complete
@@ -211,14 +230,34 @@ jobs:
           echo "::error title=$CITY is short::$why"
           exit 1
 
-  # The tiles committed in this repository (built off GitHub), uploaded as they are, with their feed fragment.
+  # The tiles committed in this repository for the cities built off GitHub, uploaded as they are, with their feed fragment.
   repo_upload:
     needs: plan
     if: ${{ inputs.repo_tiles && !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 coverage.py --out tiles --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
+      # Only the cells of the cities built off GitHub (storage.py's owners): tiles/ also holds snapshots of cities the
+      # build jobs make every week (before 2026-10-04), which would overwrite their fresh tiles. buildings-v2/ before
+      # the fragment: coverage.py counts that layer only, and the repository holds buildings/.
+      - env:
+          REPO_CITIES: Tel Aviv   # comma-separated, as in cities.json
+        run: |
+          python3 - <<'PY'
+          import os, shutil
+          from storage import LAYER_SCALE, TILE, owners
+          repo, cells = {c.strip() for c in os.environ["REPO_CITIES"].split(",")}, owners("cities.json")
+          for layer in sorted(l for l in os.listdir("tiles") if os.path.isdir(os.path.join("tiles", l))):
+              names = sorted(os.listdir(os.path.join("tiles", layer)))
+              kept = [n for n in names if (m := TILE.match(f"tiles/{layer}/{n}")) and cells[LAYER_SCALE[layer]].get((int(m[2]), int(m[3]))) in repo]
+              os.makedirs(os.path.join("out", layer), exist_ok=True)
+              for n in kept: shutil.copy2(os.path.join("tiles", layer, n), os.path.join("out", layer, n))
+              print(f"{layer}: {len(kept)} of {len(names)} committed tiles uploaded")
+          PY
+          # Two statements: a failure on the left of && does not stop a bash -e step, and out/buildings/ went up.
+          python3 buildings_v2.py out/buildings out/buildings-v2   # the committed tiles, in the app's v2 format only
+          rm -rf out/buildings
+      - run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
       - uses: actions/upload-artifact@v4
         with:
           name: fragment-repo
@@ -230,9 +269,7 @@ jobs:
           AWS_RETRY_MODE: adaptive
           AWS_MAX_ATTEMPTS: "10"
         run: |
-          cp -R tiles out
           rm -rf out/communes   # read by the fragment above, never uploaded
-          python3 buildings_v2.py tiles/buildings out/buildings-v2 && rm -rf out/buildings   # the committed tiles, in the app's v2 format only
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           # Same as the build's upload: R2 refuses a few PUTs even with retries (repo_upload, 2026-10-07);

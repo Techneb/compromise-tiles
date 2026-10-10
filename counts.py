@@ -201,7 +201,7 @@ def passing_cells(source):
     """(ky, kx) of the cells the coverage feed marks passing (FLOOR buildings); None when it cannot be read."""
     try:
         import urllib.request
-        raw = urllib.request.urlopen(urllib.request.Request(source, headers={"User-Agent": "compromise-tiles"})).read() \
+        raw = urllib.request.urlopen(urllib.request.Request(source, headers={"User-Agent": "compromise-tiles"}), timeout=60).read() \
             if "://" in source else open(source, "rb").read()
         return {(c[0], c[1]) for c in json.loads(raw)["cells"] if c[3] >= FLOOR}
     except Exception as x:  # noqa: BLE001 — the other counts do not depend on it
@@ -297,13 +297,16 @@ def publish(rows, no_point, failed, args):
     # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
     if args.previous:
         try:
-            import urllib.request
-            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
+            import urllib.error, urllib.request
+            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"}), timeout=60).read() \
                 if "://" in args.previous else open(args.previous, "rb").read()
             listed = json.load(open(args.cities))  # a city renamed, moved or dropped from the list leaves
             rows += [r for r in json.loads(raw).get("cities", [])
                      if not any(same_city(r, c) for c in rows) and any(same_city(r, e) for e in listed)]
         except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
+            # unless the run is partial and the store answered: its few rows alone would replace the published file.
+            gone = isinstance(x, urllib.error.HTTPError) and x.code == 404
+            if "://" in args.previous and (args.only or args.merge) and not gone: raise
             print(f"previous counts not merged: {x}", file=sys.stderr)
     rows.sort(key=lambda r: -r["goingOutCells"])
     with open(args.write, "w") as f:
@@ -335,7 +338,7 @@ def merge_parts(paths):
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     a.add_argument("--cities", default="counts-cities.json")
-    a.add_argument("--extracts", required=True, help="folder the Geofabrik extracts are kept in")
+    a.add_argument("--extracts", help="folder the Geofabrik extracts are kept in (not needed with --merge)")
     a.add_argument("--write", default="counts.json")
     a.add_argument("--only", default="", help="comma-separated city names")
     a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 24 km square")
@@ -348,6 +351,7 @@ def main():
     if args.merge:
         publish(*merge_parts(args.merge), args)
         return
+    if not args.extracts: a.error("--extracts is required unless --merge")
     passing = passing_cells(args.coverage) if args.coverage else None
     only = {x.strip() for x in args.only.split(",") if x.strip()}
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]

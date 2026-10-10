@@ -43,7 +43,8 @@ jobs:
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       - env:
           STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, its row is skipped
-        run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "${{ inputs.only }}" --write "part-${{ matrix.part }}.json"
+          ONLY: ${{ inputs.only }}   # through env, not the script's text: a quote in it would run as shell
+        run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "$ONLY" --write "part-${{ matrix.part }}.json"
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:

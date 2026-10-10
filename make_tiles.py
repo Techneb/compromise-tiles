@@ -963,11 +963,13 @@ def interpolated(line, first, last, step):
     return out
 
 def trimmed_high(numbers):
-    """The distinct numbers, sorted, without a stray top: while the highest is over 3× the next and more
-    than 100 above it, it goes. A flat or unit number tagged as the house number (Camden High Street's
-    48–2213, 2026-10-10) is the case; a real ~200 m cell spans tens of doors."""
+    """The distinct numbers, sorted, without a stray top: while the highest is over 3× the next and further
+    above it than the rest span plus 100 (of two alone, more than 1,000 above: no ~200 m cell spans that), it
+    goes. A flat or unit number tagged as the house number (Camden High Street's 48–2213, 2026-10-10) is the
+    case; a real ~200 m cell spans tens of doors, and near a grid city's numbering origin the 0 and 100 blocks
+    ({40, 150} and {20, 40, 150} stay)."""
     out = sorted(set(numbers))
-    while len(out) >= 2 and out[-1] > 3 * out[-2] and out[-1] - out[-2] > 100: out.pop()
+    while len(out) >= 2 and out[-1] > 3 * out[-2] and out[-1] - out[-2] > (out[-2] - out[0] + 100 if len(out) > 2 else 1000): out.pop()
     return out
 
 
@@ -1085,7 +1087,7 @@ def combined(osm, city, metres=False):
         lat, lon = centre(b)
         near = grid.get((math.floor(lat * COMBINE_GRID), math.floor(lon * COMBINE_GRID)), ())
         mine = ring(b)
-        height = same.get(key(b), next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None))
+        height = same[key(b)] if key(b) in same else next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None)
         kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
         out.append(b if height is None or kept else dict({k: v for k, v in b.items() if k != "guessed"}, height=height, city=True))
     return out
@@ -3569,6 +3571,8 @@ def main():
     a.add_argument("--listing", help="the store's keys (changed.py's remote.tsv): blocks with a tile missing there are built first")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
+    unknown = [l for l in args.layers.split(",") if l not in LAYERS + ("sources",)]   # numbers/ is written beside streets/
+    if unknown: a.error(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources")
     global STORE, LISTED
     STORE = args.store and args.store.rstrip("/") + "/"
     if args.listing and os.path.exists(args.listing):

@@ -48,7 +48,8 @@ def load_previous(src):
                 return json.load(r)
         with open(src) as f:
             return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:  # absent or unreadable: start empty
+    except (FileNotFoundError, json.JSONDecodeError) as e:  # a local file absent or unreadable: start empty
+        if src.startswith(("http://", "https://")): raise  # a 200 with a challenge page or a cut body is not an absent feed
         print(f"previous feed not read ({e}); starting empty")
         return {}
     except urllib.error.HTTPError as e:
@@ -199,7 +200,8 @@ def main():
             # area, named from the commune tiles, boxed by its own cells.
             by_commune = {}
             for ky, kx, c in keys:
-                code = next(x for x in c[5].split() if x[:2] in e["departements"])
+                code = next((x for x in c[5].split() if x[:2] in e["departements"]), None)
+                if code is None: continue  # no commune code recorded (its commune call failed): no area to give it to
                 by_commune.setdefault(code, []).append((ky, kx, c))
             for code, group in sorted(by_commune.items()):
                 lats = [ky / 500 for ky, _, _ in group]; lons = [kx / 500 for _, kx, _ in group]

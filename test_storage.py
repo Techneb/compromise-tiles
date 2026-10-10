@@ -26,4 +26,7 @@ assert flagged == {"old.json", "tiles/terraces/", "tiles/communes/", "tiles/buil
 assert "| `buildings` | Paris |" in summary(t)
 # Deletion candidates: read layers only, a cell no area builds (not the unread layers, deleted as prefixes).
 assert orphans(parse(listing), owners(cities)) == ["tiles/buildings/1,1.json"]
+# boundaries/ is read, on places/'s 1/25° cells (#76): not flagged unread, and its keys found an owner.
+t = tally(parse(["2026-10-10 03:12:45        500 tiles/boundaries/1221,58.json\n"]), owners(cities))
+assert t["cities"] == [{"layer": "boundaries", "city": "Paris", "bytes": 500, "objects": 1}] and not unread(t), t
 print("ok")

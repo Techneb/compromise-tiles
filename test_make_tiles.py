@@ -785,6 +785,8 @@ from make_tiles import trimmed_high
 assert trimmed_high({48, 52, 60, 2213}) == [48, 52, 60] and trimmed_high([1, 3, 2213, 9000]) == [1, 3]
 assert trimmed_high([3, 40]) == [3, 40] and trimmed_high([1, 4]) == [1, 4] and trimmed_high([150, 420]) == [150, 420]
 assert trimmed_high([7, 7]) == [7] and trimmed_high([]) == []
+# A grid city's cell across its numbering origin: the 100 block's door is real (#76).
+assert trimmed_high([40, 150]) == [40, 150] and trimmed_high([20, 40, 150]) == [20, 40, 150]
 camden = [(48.8691, 2.3272, "Rue de Grenelle", x) for x in (48, 62, 2213)]
 assert number_rows(tiles, camden, [])[west.key] == [["Rue de Grenelle", 48, 62]]
 assert number_rows(tiles, camden[::2], [])[west.key] == [], "48 and 2213 alone: one number left, no row"
@@ -1117,3 +1119,11 @@ for malformed in ("Mo-Su sunset-02:00", "Mo-Fr 18:00+", "Lu-Ve 10:00-02:00", "Mo
 assert drinks_late({"amenity": "restaurant", "opening_hours": "Mo-Su 08:00-02:00"}) and drinks_late({"amenity": "cafe", "bar": "yes"})
 assert not drinks_late({"amenity": "cafe", "opening_hours": "Mo-Su 08:00-19:00"})
 assert not drinks_late({"amenity": "bar", "opening_hours": "Mo-Su 18:00-02:00"}), "a bar is under Bar already"
+
+# An unknown layer is refused before any download (#76): "terraces" or "numbers" alone used to build nothing for hours.
+import subprocess, sys
+for layers in ("terraces", "numbers", "venues,building"):
+    r = subprocess.run([sys.executable, "make_tiles.py", "--city", "X", "--lat", "0", "--lon", "0", "--layers", layers, "--out", tempfile.mkdtemp()],
+                       capture_output=True, text=True)
+    assert r.returncode == 2 and "unknown layer" in r.stderr, (layers, r.returncode, r.stderr)
+print("ok (unknown layers)")

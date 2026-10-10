@@ -15,7 +15,7 @@ Sizes are bytes at rest (the tiles are gzipped), in GB of 10^9 bytes as R2 bills
 import argparse, json, os, re
 from make_tiles import COARSE, FINE, MAIN, cells_in, clip, index
 
-LAYER_SCALE = {"buildings": FINE, "buildings-v2": FINE, "terraces-v2": FINE, "communes": FINE, "sources": FINE, "streets": FINE, "numbers": FINE, "venues": COARSE, "streets-main": MAIN, "places": MAIN}
+LAYER_SCALE = {"buildings": FINE, "buildings-v2": FINE, "terraces-v2": FINE, "communes": FINE, "sources": FINE, "streets": FINE, "numbers": FINE, "venues": COARSE, "streets-main": MAIN, "places": MAIN, "boundaries": MAIN}
 READ = {  # what a reader takes: the app's tile folders, then the files the app and the site read at the root
     "tiles": set(LAYER_SCALE) - {"communes"},  # communes/: no longer uploaded or read (2026-10-03), a deletion candidate
     "root": {"config.json", "coverage.json", "cities.json", "counts.json", "stats.json"},
@@ -117,7 +117,7 @@ def main():
     a.add_argument("--cities", default="cities.json")
     a.add_argument("--write", default="storage.json")
     a.add_argument("--summary", default="storage.md")
-    a.add_argument("--orphans", help="also write the keys of tiles no area builds, one a line (storage.yml deletes them)")
+    a.add_argument("--orphans", help="also write the keys of tiles no area builds, one a line (storage.yml puts them in its artifact; it deletes nothing)")
     args = a.parse_args()
     with open(args.listing) as f: objects = list(parse(f))
     cells = owners(args.cities)

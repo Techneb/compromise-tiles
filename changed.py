@@ -10,10 +10,17 @@ same key (tiles/<path under out>): a single-part upload's ETag is the MD5 of its
 with a "-" (a multipart upload) is not an MD5, so that file counts as changed. --prune deletes the
 unchanged files from --out, so uploading what is left uploads only new and changed tiles. A
 missing listing counts every file as new.
+
+With --city (and --cities), --stale lists the store's numbers/ and boundaries/ keys this run emptied, for
+deletion: their builds write no file for a cell with nothing, so the upload alone would leave a stale range or
+outline served. Only in the city's own cells (its flagged areas' boxes that no other flagged city's box reaches,
+nor comes within a cell of for boundaries/): numbers/ where this run wrote the cell's streets/ tile, boundaries/
+once it wrote any (a failed source writes none).
 """
-import argparse, hashlib, os
+import argparse, hashlib, json, os
 
 STATES = ("new", "changed", "unchanged")
+STALE = ("numbers", "boundaries")
 
 
 def etags(lines):
@@ -51,6 +58,26 @@ def plan(files, remote):
     return rows, totals
 
 
+def stale(remote, out, cities, city):
+    """The store's numbers/ and boundaries/ keys in the city's own cells that this run built and left with no tile."""
+    from make_tiles import FINE, MAIN, area, cells_in
+    flagged = [e for e in cities if e.get("streets") is True]
+    keys = lambda scale, mine: {c.key for e in flagged if (e["city"] == city) == mine for c in cells_in(*area(e, 0.5), scale=scale)}
+    # An outline's label point can lie past its own city's box: a margin of one 1/25° cell around the others' boxes.
+    near = {f"{int(y) + i},{int(x) + j}" for y, x in (k.split(",") for k in keys(MAIN, False)) for i in (-1, 0, 1) for j in (-1, 0, 1)}
+    own = {"numbers": keys(FINE, True) - keys(FINE, False), "boundaries": keys(MAIN, True) - near}
+    has = lambda layer, k: os.path.exists(os.path.join(out, layer, k + ".json"))
+    wrote = os.path.isdir(os.path.join(out, "boundaries")) and any(n.endswith(".json") for n in os.listdir(os.path.join(out, "boundaries")))
+    built = {"numbers": lambda k: has("streets", k), "boundaries": lambda k: wrote}
+    found = []
+    for key in sorted(remote):
+        parts = key.split("/")
+        if len(parts) != 3 or parts[0] != "tiles" or parts[1] not in STALE or not parts[2].endswith(".json"): continue
+        layer, k = parts[1], parts[2][:-5]
+        if k in own[layer] and built[layer](k) and not has(layer, k): found.append(key)
+    return found
+
+
 def summary(totals):
     lines = ["| Layer | New | Changed | Unchanged | Upload KB |", "|---|---:|---:|---:|---:|"]
     for layer, t in sorted(totals.items()):
@@ -65,15 +92,25 @@ def main():
     a.add_argument("--out", default="out")
     a.add_argument("--prune", action="store_true", help="delete the unchanged files from --out")
     a.add_argument("--summary", help="append the table to this file (such as $GITHUB_STEP_SUMMARY)")
+    a.add_argument("--cities", default="cities.json", help="with --city: the whole list, to tell the city's own cells")
+    a.add_argument("--city", help="the city this --out was built for: list its emptied numbers/ and boundaries/ keys")
+    a.add_argument("--stale", default="stale.txt", help="with --city: where to write those keys, one a line (no file when none)")
     args = a.parse_args()
     remote = {}
     if args.listing and os.path.exists(args.listing):
         with open(args.listing) as f: remote = etags(f)
+    # Before --prune, which removes the unchanged streets/ and numbers/ files this reads.
+    gone = stale(remote, args.out, json.load(open(args.cities)), args.city) if args.city else []
     rows, totals = plan(local(args.out), remote)
     if args.prune:
         for _, path, s in rows:
             if s == "unchanged": os.remove(path)
     table = summary(totals)
+    if gone:
+        with open(args.stale, "w") as f: f.writelines(k + "\n" for k in gone)
+        table += "\nEmptied this run, deleted from the store after the upload (not in a dry run): " + ", ".join(
+            f"`{l}` {sum(k.split('/')[1] == l for k in gone):,}" for l in STALE) + "\n"
+        print("\n".join(gone))
     print(table, end="")
     if args.summary:
         with open(args.summary, "a") as f: f.write(table)
