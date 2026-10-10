@@ -416,6 +416,8 @@ none, this says so rather than guessing.
 - Rome: Roma Capitale, suddivisioni toponomastiche (licence not stated by the
   publisher).
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
+- San Francisco: DataSF, City and County of San Francisco, SF Find Neighborhoods,
+  Public Domain U.S. Government.
 - Seoul: 서울특별시 (Seoul Open Data Plaza, OA-22160), administrative dong
   boundaries, 공공누리 1유형 (KOGL Type 1).
 - Singapore: Contains information from the Urban Redevelopment Authority's

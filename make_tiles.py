@@ -2957,6 +2957,8 @@ AREA_SOURCES = [
              "DESCRIZIONE", lambda p: (p.get("TIPOLOGIA") or "").lower() or "suddivisione"),
     area_row("Rotterdam", "Rotterdam", ogc_source("https://api.pdok.nl/cbs/wijken-en-buurten-2025/ogc/v1/collections/buurten/items?f=json&limit=1000&gemeentecode=GM0599"),
              "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
+    # SF Find's 117 neighborhoods (Hayes Valley, Noe Valley), not the 41 Analysis Neighborhoods; data.sfgov.org moved here.
+    area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
              {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
     area_row("Singapore", "Singapore", datagovsg_source("d_4765db0e87b9c86336792efe8a1f7a66"), "PLN_AREA_N", "planning area"),

@@ -211,6 +211,7 @@
   },
   {
     "city": "San Francisco",
+    "streets": true,
     "district": "San Francisco (whole municipality)",
     "box": [
       37.7065,
