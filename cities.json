@@ -986,6 +986,7 @@
   },
   {
     "city": "Washington DC",
+    "streets": true,
     "district": "Washington DC (densest 150 km\u00b2 of the core)",
     "box": [
       38.857,

@@ -440,6 +440,8 @@ none, this says so rather than guessing.
 - Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
 - Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
   publisher).
+- Washington DC: DC Office of Planning (https://planning.dc.gov/), Neighborhood
+  Clusters, CC BY 4.0.
 - Zagreb: Grad Zagreb, mjesni odbori, Otvorena dozvola (the source and date of
   last change named).
 - Zurich: Stadt Zürich, statistische Quartiere, CC0.
