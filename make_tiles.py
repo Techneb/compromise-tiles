@@ -2941,6 +2941,8 @@ AREA_SOURCES = [
              "NOMBRE", "barrio"),
     # The City of Manila's 16 districts, then the barangays of the cities around it (Manila's own are numbered).
     area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
+    area_row("Melbourne", "Melbourne", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='2'", "objectid"),
+             lambda p: re.sub(r" \(Vic\.\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     # Two neighborhoods mapped in two parts each (Baypoint, Fair Isle) merged; one feature has no label.
     area_row("Miami", "Miami", geojson_source("https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Miami_Neighborhoods_Shapefile"
              "/FeatureServer/0/query?where=1%3D1&outFields=LABEL&outSR=4326&f=geojson"), "LABEL", "neighborhood", dissolve=True),

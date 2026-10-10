@@ -417,8 +417,8 @@ none, this says so rather than guessing.
   with Oslo kommune's key (licence not stated by the publisher).
 - Ottawa: Ottawa Neighbourhood Study, Neighbourhood Boundaries Gen 3. Contains
   information licensed under the Open Government Licence – City of Ottawa.
-- Perth, Sydney: Based on Australian Bureau of Statistics data, Suburbs and
-  Localities (ASGS 2021), CC BY 4.0.
+- Melbourne, Perth, Sydney: Based on Australian Bureau of Statistics data,
+  Suburbs and Localities (ASGS 2021), CC BY 4.0.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the
   source).
 - Prague: datový podklad © IPR Praha, městské části, CC BY 4.0.

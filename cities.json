@@ -177,6 +177,7 @@
   },
   {
     "city": "Melbourne",
+    "streets": true,
     "district": "Melbourne (whole municipality)",
     "box": [
       -37.8507,
