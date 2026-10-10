@@ -201,7 +201,7 @@ def passing_cells(source):
     """(ky, kx) of the cells the coverage feed marks passing (FLOOR buildings); None when it cannot be read."""
     try:
         import urllib.request
-        raw = urllib.request.urlopen(urllib.request.Request(source, headers={"User-Agent": "compromise-tiles"})).read() \
+        raw = urllib.request.urlopen(urllib.request.Request(source, headers={"User-Agent": "compromise-tiles"}), timeout=60).read() \
             if "://" in source else open(source, "rb").read()
         return {(c[0], c[1]) for c in json.loads(raw)["cells"] if c[3] >= FLOOR}
     except Exception as x:  # noqa: BLE001 — the other counts do not depend on it
@@ -298,7 +298,7 @@ def publish(rows, no_point, failed, args):
     if args.previous:
         try:
             import urllib.error, urllib.request
-            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
+            raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"}), timeout=60).read() \
                 if "://" in args.previous else open(args.previous, "rb").read()
             listed = json.load(open(args.cities))  # a city renamed, moved or dropped from the list leaves
             rows += [r for r in json.loads(raw).get("cities", [])
