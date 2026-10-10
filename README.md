@@ -430,6 +430,8 @@ none, this says so rather than guessing.
   at each build from data.gov.sg, which is made available under the terms of the
   Singapore Open Data Licence version 1.0.
 - Sofia: ОП „Софияплан“, квартали (licence not stated by the publisher).
+- Strasbourg: Eurométropole de Strasbourg, découpage de la ville de Strasbourg en 28
+  quartiers, Licence Ouverte (Etalab).
 - São Paulo: Prefeitura de São Paulo, GeoSampa, distritos municipais, CC BY-SA
   4.0.
 - Tel Aviv: Tel Aviv-Yafo Municipality open data, neighbourhoods (free to share

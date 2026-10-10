@@ -2993,6 +2993,9 @@ AREA_SOURCES = [
              keep=lambda p: p.get("prefname") in ("ЖК.", "КВ.")),
     area_row("Stockholm", "Stockholm", geojson_source("https://geodata.scb.se/geoserver/stat/wfs?service=WFS&request=GetFeature&version=2.0.0&typeNames=stat:RegSO_2025"
              "&outputFormat=application/json&srsName=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("kommunkod='0180'")), "regsonamn", "RegSO"),
+    # The finest of the city's cuts (10, 14, 23, 28 quartiers), and the one with whole names.
+    area_row("Strasbourg", "Strasbourg", geojson_source("https://data.strasbourg.eu/api/explore/v2.1/catalog/datasets/strasbourg-en-28-quartiers/exports/geojson"
+             "?select=nom,geo_shape"), "nom", "quartier"),
     area_row("Sydney", "Sydney", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='1'", "objectid"),
              lambda p: re.sub(r" \(NSW\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     area_row("São Paulo", "São Paulo", geojson_source("https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/geoportal/wfs?service=WFS&version=2.0.0&request=GetFeature"

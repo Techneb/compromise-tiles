@@ -233,6 +233,7 @@
   },
   {
     "city": "Strasbourg",
+    "streets": true,
     "district": "Strasbourg (whole municipality)",
     "box": [
       48.4919,
