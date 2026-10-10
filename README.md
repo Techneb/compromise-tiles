@@ -401,6 +401,8 @@ none, this says so rather than guessing.
   copyright and database right 2024.
 - Los Angeles: Los Angeles Times, LA Times Neighborhoods, CC BY 4.0.
 - Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
+- Málaga: Ayuntamiento de Málaga, datos abiertos, Sistema de Información
+  Cartográfica – Barrio, CC BY 4.0 (the record's licence link: CC BY-SA 4.0).
 - Miami: © City of Miami, Department of Innovation and Technology, GIS Team,
   Miami Neighborhoods, CC BY 4.0.
 - Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.

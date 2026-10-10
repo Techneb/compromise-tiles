@@ -360,6 +360,7 @@
   },
   {
     "city": "M\u00e1laga",
+    "streets": true,
     "district": "M\u00e1laga (going-out core + 2 km)",
     "box": [
       36.669,

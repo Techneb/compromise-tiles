@@ -2939,6 +2939,9 @@ AREA_SOURCES = [
              "?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
     area_row("Madrid", "Madrid", shapefile_source("https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/LIMITES_ADMINISTRATIVOS/Barrios/Barrios.zip"),
              "NOMBRE", "barrio"),
+    # The Ayuntamiento's 419 barrios (El Perchel, La Trinidad, El Palo); its 11 distritos are too coarse.
+    area_row("Málaga", "Málaga", geojson_source("https://datosabiertos.malaga.eu/recursos/urbanismoEInfraestructura/planimetria/callejero"
+             "/da_cartografiaBarrio-4326.geojson"), "NOMBARRIO", "barrio"),
     # The City of Manila's 16 districts, then the barangays of the cities around it (Manila's own are numbered).
     area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
     area_row("Melbourne", "Melbourne", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='2'", "objectid"),
