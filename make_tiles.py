@@ -13,14 +13,13 @@ item is one OpenStreetMap street cut at the cell's edges, a flat array
 [kind, y0, x0, dy1, dx1, …] (kind 1 main road, 2 street, 3 pedestrian),
 with the way's name after the kind where it has one, [kind, "name", y0, …] (2026-10-08),
 coordinates in 1e-5° steps, the first from the key's corner (key / 500),
-each next from the one before. After the lines, a named street may have one row
-[0, "name", lowest, highest] (2026-10-10): the lowest and highest house number
-OpenStreetMap gives on that street inside the cell (addr:housenumber with an
-addr:street, else an associatedStreet relation's name, matching the name
-without case, accents or apostrophes, its leading
-digits: "12bis" is 12; nodes, buildings and addr:interpolation ways), written
-only where at least two distinct numbers are found; kind 0 is no street, so a
-reader of the lines skips the row. streets-main/ is the same on ~4 km cells
+each next from the one before. numbers/ (2026-10-10), built with streets/ on
+its cells: [["name", lowest, highest], …] sorted by name, one row per named
+street of the cell's streets/ tile with at least two distinct house numbers
+inside the cell — OpenStreetMap's addr:housenumber (its leading digits:
+"12bis" is 12) on nodes, buildings and along addr:interpolation ways, whose
+addr:street, else associatedStreet relation's name, matches the name without
+case, accents or apostrophes; no file for a cell with none. streets-main/ is the same on ~4 km cells
 (1/25°, keyed "<int(lat*25)>,<int(lon*25)>"): main roads only, 1e-4° steps
 from key / 25. places/, on the same cells: [{"name", "kind" (suburb,
 quarter, neighbourhood), "coordinate", "admin_level"?}]: "admin_level" (an
@@ -832,10 +831,9 @@ def street_tiles(cells, streets, scale=FINE, unit=STREET_UNIT, named=True):
                     if line: out[c.key].append(line)
     return out
 
-# House numbers on streets/ (2026-10-10): per named street of a cell, a row [0, name, lowest, highest] after
-# its lines, from OpenStreetMap's addr:housenumber + addr:street or associatedStreet (nodes, buildings) and addr:interpolation
-# ways, the addresses inside the cell only. Kind 0 is no street kind: a reader of the lines skips it.
-NUMBERS_KIND = 0
+# numbers/ (2026-10-10), beside streets/: per named street of a cell, [name, lowest, highest] from OpenStreetMap's
+# addr:housenumber + addr:street or associatedStreet (nodes, buildings) and addr:interpolation ways, the addresses
+# inside the cell only. A layer of its own: the app's streets/ decoder fails a tile on a row it does not know.
 NUMBER_PAD = 200          # metres asked around a block: an interpolation way across it with both ends outside
 NUMBER_MAX = 100_000      # a larger "number" is a typo or a reference, not a house
 INTERPOLATION_MAX = 1000  # numbers along one interpolation way at most
@@ -898,9 +896,9 @@ def interpolated(line, first, last, step):
     return out
 
 def number_rows(tiles, points, interpolations):
-    """{key: [[NUMBERS_KIND, name, lowest, highest], …]} for the streets/ tiles: each named way of a tile whose
+    """{key: [[name, lowest, highest], …]} (numbers/) for the streets/ tiles: each named way of a tile whose
     street_key() matches the addr:street of at least two distinct numbers inside that cell (the key's
-    truncation deciding), once per name as the tile writes it."""
+    truncation deciding), once per name as the tile writes it, sorted by name."""
     seen = {key: {} for key in tiles}
     points = list(points) + [(lat, lon, street, x) for street, line, first, last, step in interpolations
                              for lat, lon, x in interpolated(line, first, last, step)]
@@ -911,7 +909,7 @@ def number_rows(tiles, points, interpolations):
     for key, lines in tiles.items():
         names = dict.fromkeys(line[1] for line in lines if len(line) > 1 and isinstance(line[1], str))
         found = [(name, seen[key].get(street_key(name), ())) for name in names]
-        out[key] = [[NUMBERS_KIND, name, min(n), max(n)] for name, n in found if len(n) >= 2]
+        out[key] = sorted([name, min(n), max(n)] for name, n in found if len(n) >= 2)
     return out
 
 
@@ -2800,7 +2798,10 @@ def do_streets(cells, out, failures):
         failures += [(c.key, "streets", str(e)) for c in cells]; return
     tiles = street_tiles(cells, streets)
     numbers = number_rows(tiles, points, interpolations)
-    for c in cells: write(path(out, "streets", c), tiles[c.key] + numbers[c.key])
+    for c in cells:
+        write(path(out, "streets", c), tiles[c.key])
+        if numbers[c.key]: write(path(out, "numbers", c), numbers[c.key])
+        elif os.path.exists(path(out, "numbers", c)): os.remove(path(out, "numbers", c))   # an earlier run's, now stale
 
 def do_main_streets(cells, out, failures):
     """The streets-main/ tiles, one ~4 km cell at a time."""

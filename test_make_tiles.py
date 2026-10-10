@@ -729,7 +729,7 @@ assert street_tiles([west], []) == {west.key: []}   # a cell with no street is a
 tiles = street_tiles([west, east], [(2, [(48.8690, 2.3270), (48.8692, 2.3290)], "Rue de Grenelle")])
 assert [row[:2] for row in tiles[west.key] + tiles[east.key]] == [[2, "Rue de Grenelle"]] * 2
 assert street_line(2, [(48.87, 2.32656), (48.86967, 2.32644)], "24434,1163", name="Rue X") == [2, "Rue X", 200, 56, -33, -12]
-# House numbers: per named street of a cell, [0, name, lowest, highest] from the addresses inside it.
+# numbers/: per named street of a cell, [name, lowest, highest] from the addresses inside it, sorted by name.
 from make_tiles import street_key, house_numbers, interpolation, interpolated, number_rows
 assert street_key("Rue de l’Échaudé") == street_key("RUE DE L'ECHAUDE") == street_key("rue  de l'échaudé ") == "rue de lechaude"
 assert street_key("St Mary's Road") == street_key("St Marys Road") and street_key("Straße") == "strasse"
@@ -746,12 +746,12 @@ points = [(48.8691, 2.3272, "rue de GRENELLE", 105), (48.8691, 2.3275, "Rue de G
           (48.8691, 2.3278, "Rue Ailleurs", 1), (48.8691, 2.3278, "Rue Ailleurs", 9),   # no way of that name in the cell
           (48.8800, 2.3272, "Rue de Grenelle", 999)]   # another cell's, outside the block
 rows = number_rows(tiles, points, [])
-assert rows == {west.key: [[0, "Rue de Grenelle", 105, 121]], east.key: []}, rows
+assert rows == {west.key: [["Rue de Grenelle", 105, 121]], east.key: []}, rows
 assert number_rows(tiles, [], []) == {west.key: [], east.key: []}
 assert number_rows(street_tiles([west], [(2, [(48.8690, 2.3270), (48.8692, 2.3290)], "")]), points, []) == {west.key: []}   # unnamed ways get none
 # "12bis" and "12 ter" are 12: with 14, a range; alone, one number and no row.
 bis = [(48.8691, 2.3272, "Rue de Grenelle", x) for v in ("12bis", "12 ter", "14") for x in house_numbers(v)]
-assert number_rows(tiles, bis, [])[west.key] == [[0, "Rue de Grenelle", 12, 14]]
+assert number_rows(tiles, bis, [])[west.key] == [["Rue de Grenelle", 12, 14]]
 assert number_rows(tiles, bis[:2], [])[west.key] == []
 # France's associatedStreet relations: each "house" member (node, building way) takes the relation's name.
 from make_tiles import associated_streets
@@ -774,7 +774,29 @@ assert abs(along[6][1] - 2.3278) < 1e-9   # 14, halfway
 assert [n for _, _, n in interpolated(way[1][::-1], 26, 2, 2)][:2] == [26, 24]
 # The way crosses 2.328: 2–16 in the west cell (16 at 2.3279), 18–26 in the east one.
 rows = number_rows(tiles, [], [way])
-assert rows == {west.key: [[0, "Rue de Grenelle", 2, 16]], east.key: [[0, "Rue de Grenelle", 18, 26]]}, rows
+assert rows == {west.key: [["Rue de Grenelle", 2, 16]], east.key: [["Rue de Grenelle", 18, 26]]}, rows
+# Sorted by name, whatever the order of the ways in the tile.
+two = street_tiles([west], [(2, [(48.8691, 2.3271), (48.8691, 2.3279)], "Rue Zola"), (2, [(48.8692, 2.3271), (48.8692, 2.3279)], "Avenue Bosquet")])
+rows = number_rows(two, [(48.8691, 2.3272, "Rue Zola", 1), (48.8691, 2.3273, "Rue Zola", 9),
+                         (48.8692, 2.3272, "Avenue Bosquet", 4), (48.8692, 2.3273, "Avenue Bosquet", 2)], [])
+assert rows[west.key] == [["Avenue Bosquet", 2, 4], ["Rue Zola", 1, 9]], rows
+# do_streets: streets/ exactly as before (no range in it), numbers/ beside it, no numbers/ file for a cell with none.
+import tempfile, make_tiles
+from make_tiles import do_streets
+saved = make_tiles.osm_streets, make_tiles.osm_addresses
+make_tiles.osm_streets, make_tiles.osm_addresses = (lambda rect: grenelle), (lambda rect: (points, []))
+with tempfile.TemporaryDirectory() as out:
+    os.makedirs(os.path.join(out, "numbers")); open(os.path.join(out, "numbers", east.key + ".json"), "w").write("[]")   # an earlier run's
+    failures = []
+    do_streets([west, east], out, failures)
+    read_json = lambda *p: json.load(open(os.path.join(out, *p)))
+    assert failures == [] and read_json("streets", west.key + ".json") == street_tiles([west], grenelle)[west.key]
+    assert read_json("streets", east.key + ".json") == street_tiles([east], grenelle)[east.key]
+    assert read_json("numbers", west.key + ".json") == [["Rue de Grenelle", 105, 121]]
+    assert not os.path.exists(os.path.join(out, "numbers", east.key + ".json"))
+make_tiles.osm_streets, make_tiles.osm_addresses = saved
+from storage import LAYER_SCALE
+assert LAYER_SCALE["numbers"] == LAYER_SCALE["streets"]
 # streets/ only for the areas flagged "streets": true; every other layer as asked.
 assert entry_layers({"city": "Paris", "streets": True}, ["venues", "streets"]) == ["venues", "streets"]
 assert entry_layers({"city": "Rouen"}, ["venues", "streets"]) == ["venues"]

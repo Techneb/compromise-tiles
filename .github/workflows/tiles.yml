@@ -1,6 +1,7 @@
 # Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
 # coverage feed. Weekly: venues and terraces. Yearly: buildings and the street layers (run it by hand too when cities.json
-# gains an area). streets, streets-main and places are built only for the areas whose entry says "streets": true. French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
+# gains an area). streets, streets-main and places are built only for the areas whose entry says "streets": true;
+# numbers/ (house-number ranges) is written beside streets/ by the same build and uploaded with it. French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
 # to name the feed's areas; they are never uploaded (2026-10-03: the app credits from sources/).
 # Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
@@ -84,8 +85,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
-          # sources/ is written beside the layers asked for; the store holds buildings-v2/ for buildings (2026-10-08); communes/ is never uploaded, so not listed.
-          layers=$(echo "$LAYERS,sources" | tr ',' '\n' | grep -vx communes | sed 's/^buildings$/buildings-v2/' | sort -u | tr '\n' ' ')
+          # sources/ is written beside the layers asked for, numbers/ beside streets/ (2026-10-10); the store holds buildings-v2/
+          # for buildings (2026-10-08); communes/ is never uploaded, so not listed.
+          layers=$(echo "$LAYERS,sources" | tr ',' '\n' | grep -vx communes | sed 's/^buildings$/buildings-v2/; s/^streets$/streets\nnumbers/' | sort -u | tr '\n' ' ')
           pids=""
           for l in $layers; do
             aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
