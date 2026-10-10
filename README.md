@@ -10,12 +10,12 @@ The tiles are served from Cloudflare R2 at
 root. Layers: `buildings/` and `terraces-v2/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
 point, amenity, outdoor seating, source); `sources/` per ~200 m cell
-names the permit feed and building source each cell was built from;
+names the permit feed, building source and neighbourhood boundaries each cell was built from;
 `streets/` per ~200 m cell holds street lines and `numbers/` on the same
 cells their house-number ranges, `streets-main/` per
-1/25° cell the main roads alone and `places/` on the same cells
-neighbourhood names and points, all four for the areas `cities.json`
-flags with `"streets": true` only. A
+1/25° cell the main roads alone, `places/` on the same cells
+neighbourhood names and points and `boundaries/` their outlines, all six
+for the areas `cities.json` flags with `"streets": true` only. A
 building whose source gives no height is written at 15 m with
 `"guessed": true` (builds since 2026-10-04; a tile built before carries
 no flag); it stays local. The store holds `buildings-v2/`, the same
@@ -83,6 +83,38 @@ Each tile is an array of `{"name", "kind", "coordinate", "admin_level"?}`:
 Added on 2026-10-06 and backward compatible: a reader of the first format
 ignores the new key, and every `kind` is still one of the three. A tile
 built before carries no `admin_level`.
+
+### boundaries/
+
+Neighbourhood outlines, on the same 1/25° cells and keys as `places/` (since
+2026-10-10). Each tile is an array of `{"name", "level", "source", "polygons"}`:
+
+- Each outline is written once and whole, in the cell of its label point, not
+  cut at the cell's edges. The label point is the `places/` place of the same
+  name lying inside the outline (compared as `places/` compares names: case,
+  accents, punctuation, a leading "Quartier" and articles set aside), and
+  `name` is then written as in `places/`; else it is a point inside the
+  outline, and `name` is the source's (a name in capitals only is put in title
+  case).
+- `level` is the source's own word for the unit (`"quartier"`, `"Ortsteil"`,
+  `"wijk"`), or an integer, OpenStreetMap's `admin_level`, or its `place` tag
+  where the outline is a place polygon.
+- `source` is the key under which `sources/` names the source (below).
+- `polygons` is an array of polygons, each an array of rings: the outer ring
+  (counter-clockwise) first, then its holes (clockwise). Most outlines are one
+  polygon of one ring. A ring is `[y0, x0, dy1, dx1, …]`, as in `buildings-v2/`:
+  integers in 1e-5° steps, the first vertex from the key's corner (key / 25,
+  so it may be negative, or beyond the cell, for an outline reaching out of
+  it), each next from the one before; the ring is open (its first vertex is
+  not repeated).
+- Outlines are simplified at 5 m over each source's whole set, so an edge two
+  neighbours share is simplified once and stays shared, then rounded on the
+  absolute 1e-5° grid, so shared vertices stay equal.
+- A cell holding no label point has no file. The outlines are of one source
+  per area (where a city has two, as Paris has, each covers its own part).
+
+A `sources/` tile names, under `"boundaries"`, the source of the outline
+holding the cell's centre.
 
 ## Weekly data check
 
@@ -303,6 +335,114 @@ none, this says so rather than guessing.
 - Montréal (the agglomeration, `montreal.geojson`): Ville de Montréal,
   Limites administratives de l'agglomération de Montréal (arrondissements
   et villes liées), CC BY 4.0; its 34 polygons dissolved into one.
+
+**Neighbourhood boundaries (`boundaries/`, by the `source` key)**
+- OSM (Barcelona, Belgrade, Budapest, Delhi, Istanbul, Jerusalem, Kraków,
+  Kuala Lumpur, Kyiv, Manila, Warsaw): © OpenStreetMap contributors, ODbL.
+- Paris: Ville de Paris, Quartiers administratifs, ODbL.
+- IGN (Paris, the petite couronne's communes): IGN, ADMIN EXPRESS, Licence
+  Ouverte 2.0.
+- Lyon: Ville de Lyon, Périmètres des conseils de quartier (data.grandlyon.com),
+  Licence Ouverte 2.0.
+- Marseille: Datactivist, quartiers de Marseille (Métropole Aix-Marseille-Provence
+  open data), Licence Ouverte 2.0.
+- Toulouse: Mairie de Toulouse, grands quartiers, Licence Ouverte 2.0.
+- Amsterdam: Gemeente Amsterdam, wijken, CC0 1.0.
+- Antwerp: Copyright Stad Antwerpen, wijken (the city's terms of use).
+- Athens: City of Athens, neighbourhoods, CC BY 4.0.
+- Auckland: Sourced from the LINZ Data Service and licensed for reuse under the
+  CC BY 4.0 licence (NZ Suburbs and Localities).
+- Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
+- Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
+  Zero 2.0.
+- Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
+  CC BY 4.0.
+- Bratislava: Magistrát hlavného mesta SR, Bratislava, mestské časti, CC BY 4.0.
+- Brisbane: © Brisbane City Council 2025 © State of Queensland (Department of
+  Resources) 2025, suburb boundaries, CC BY 4.0.
+- Brussels: Ville de Bruxelles, ibsa.brussels, perspective.brussels, Monitoring
+  des quartiers, CC0 1.0.
+- Buenos Aires: Gobierno de la Ciudad de Buenos Aires, barrios, CC BY 2.5 AR.
+- Cape Town: City of Cape Town, Corporate GIS, major suburbs (through the Western
+  Cape Government's mirror; the City's open data terms of use).
+- Chicago: City of Chicago Data Portal, Boundaries – Neighborhoods. "This site
+  provides applications using data that has been modified for use from its
+  original source, www.cityofchicago.org, the official website of the City of
+  Chicago. The City of Chicago makes no claims as to the content, accuracy,
+  timeliness, or completeness of any of the data provided at this site. The
+  data provided at this site is subject to change at any time. It is
+  understood that the data provided at this site is being used at one's own
+  risk."
+- Copenhagen: Københavns Kommune, kvarterer, CC BY 4.0.
+- Dublin: Dublin City Council, electoral divisions (Smart Dublin), Creative
+  Commons Attribution.
+- Edinburgh: Copyright City of Edinburgh Council, contains Ordnance Survey data
+  © Crown copyright and database right 2026, natural neighbourhoods, Open
+  Government Licence v3.0.
+- Geneva: « Données SITG », secteurs statistiques, extracted at each build
+  (accès libre).
+- Ghent: Stad Gent, stadswijken, Modellicentie Gratis Hergebruik.
+- Glasgow: Glasgow City Council, community council areas, Open Government
+  Licence v3.0; Crown copyright and database right 2022, licensed under the One
+  Scotland Mapping Agreement.
+- Gothenburg, Stockholm: Statistiska centralbyrån (SCB), RegSO 2025, CC0.
+- Hamburg: Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und
+  Vermessung (LGV), Stadtteile, Datenlizenz Deutschland – Namensnennung – 2.0.
+- Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.
+- Johannesburg: Statistics South Africa, Census 2011 sub places (UCT Libraries'
+  republication); Stats SA is the source of the basic data.
+- Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.
+- London: Source: Office for National Statistics licensed under the Open
+  Government Licence v.3.0, Wards (December 2024). Contains OS data © Crown
+  copyright and database right 2024.
+- Los Angeles: Los Angeles Times, LA Times Neighborhoods, CC BY 4.0.
+- Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
+- Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.
+- Montréal: Ville de Montréal, quartiers de référence en habitation, CC BY 4.0.
+- Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
+  Deutschland – Namensnennung – 2.0.
+- New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation
+  Areas, NYC Open Data (licence not stated by the publisher).
+- Osaka, Tokyo: 出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）,
+  2020 census small areas, merged into towns (e-Stat terms of use, compatible
+  with CC BY 4.0).
+- Oslo: Kartverket, grunnkretser (Geonorge), CC BY 4.0; grouped into delbydeler
+  with Oslo kommune's key (licence not stated by the publisher).
+- Perth, Sydney: Based on Australian Bureau of Statistics data, Suburbs and
+  Localities (ASGS 2021), CC BY 4.0.
+- Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the
+  source).
+- Prague: datový podklad © IPR Praha, městské části, CC BY 4.0.
+- Rome: Roma Capitale, suddivisioni toponomastiche (licence not stated by the
+  publisher).
+- Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
+- Seoul: 서울특별시 (Seoul Open Data Plaza, OA-22160), administrative dong
+  boundaries, 공공누리 1유형 (KOGL Type 1).
+- Singapore: Contains information from the Urban Redevelopment Authority's
+  planning area boundaries (dataset d_4765db0e87b9c86336792efe8a1f7a66) accessed
+  at each build from data.gov.sg, which is made available under the terms of the
+  Singapore Open Data Licence version 1.0.
+- Sofia: ОП „Софияплан“, квартали (licence not stated by the publisher).
+- São Paulo: Prefeitura de São Paulo, GeoSampa, distritos municipais, CC BY-SA
+  4.0.
+- Tel Aviv: Tel Aviv-Yafo Municipality open data, neighbourhoods (free to share
+  and adapt with credit).
+- The Hague: Gemeente Den Haag, wijken, CC0 1.0.
+- Thessaloníki: Δήμος Θεσσαλονίκης, δημοτικές κοινότητες (the municipality's open
+  licence).
+- Toronto: City of Toronto, Neighbourhoods. Contains information licensed under
+  the Open Government Licence – Toronto.
+- Turin: Comune di Torino, zone statistiche, CC BY 4.0.
+- Valencia: Fuente de los datos: Ajuntament de València – Dades Obertes, barris,
+  CC BY 4.0.
+- Vancouver: City of Vancouver, local area boundary. Contains information
+  licensed under the Open Government Licence – Vancouver.
+- Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
+- Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
+  publisher).
+- Zagreb: Grad Zagreb, mjesni odbori, Otvorena dozvola (the source and date of
+  last change named).
+- Zurich: Stadt Zürich, statistische Quartiere, CC0.
 
 **City names and points (`survey-candidates.json`)**
 - GeoNames (geonames.org), CC BY 4.0.
