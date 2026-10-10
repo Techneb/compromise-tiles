@@ -1,5 +1,5 @@
 """python3 test_make_tiles.py — stdlib asserts, no network."""
-from make_tiles import smallest_region, cells_in, clip, rooftop, seating
+from make_tiles import smallest_region, cells_in, clip, rooftop, seating, open_past_midnight, drinks_late
 from make_tiles import smallest_region, cells_in, clip, riga_venue_name, toronto_name, permit_items
 
 def square(s, w, n, e): return {"type": "Polygon", "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]]}
@@ -992,3 +992,20 @@ from make_tiles import short
 assert short(2472, 3204) and short(1536, 1536) and short(6, 100)
 assert not short(5, 100) and not short(1, 100) and not short(0, 0)
 print("ok (short run)")
+
+# Open past midnight: wrapping and past-24:00 ranges, a whole day, 24/7; "off" rules and holidays
+# alone open nothing; what the strict reading cannot parse is False. La Perle's and Le Progrès's
+# values (Marais, 2026-10-10) are the first two.
+assert open_past_midnight("Mo-Fr 06:00-02:00, Sa-Su 08:00-02:00")
+assert open_past_midnight("Mo-Sa 07:30-02:00; Su 08:00-02:00")
+assert open_past_midnight("Tu-Sa 12:00-14:30, 19:00-01:00") and open_past_midnight("Mo-Su 18:00-26:00")
+assert open_past_midnight("24/7") and open_past_midnight("24/7; PH off") and open_past_midnight("Mo 00:00-24:00")
+assert not open_past_midnight("Mo-Sa 18:00-00:00"), "closing at midnight is not past it"
+assert not open_past_midnight("Mo-Fr 12:00-14:30,19:00-23:30")
+assert not open_past_midnight("Fr-Sa 22:00-05:00 off") and open_past_midnight("Mo-Fr 18:00-03:00; PH off")
+assert not open_past_midnight("PH 18:00-03:00") and not open_past_midnight("PH,SH 20:00-02:00")
+for malformed in ("Mo-Su sunset-02:00", "Mo-Fr 18:00+", "Lu-Ve 10:00-02:00", "Mo-Fr 25:00-02:00", "Mo-Fr 10:00-02:00 xyz", "", None):
+    assert not open_past_midnight(malformed), malformed
+assert drinks_late({"amenity": "restaurant", "opening_hours": "Mo-Su 08:00-02:00"}) and drinks_late({"amenity": "cafe", "bar": "yes"})
+assert not drinks_late({"amenity": "cafe", "opening_hours": "Mo-Su 08:00-19:00"})
+assert not drinks_late({"amenity": "bar", "opening_hours": "Mo-Su 18:00-02:00"}), "a bar is under Bar already"
