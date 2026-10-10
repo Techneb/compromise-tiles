@@ -2885,6 +2885,10 @@ AREA_SOURCES = [
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
     area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
              "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
+    # The Planning Department's 26 neighborhoods ("not official neighborhood boundaries", it says): the ones people name.
+    # Its data.boston.gov file redirects to S3 with ":443" in the URL, which urllib signs into the Host: 403.
+    area_row("Boston", "Boston", geojson_source("https://gis.bostonplans.org/hosting/rest/services/Hosted/Boston_Neighborhood_Boundaries"
+             "/FeatureServer/5/query?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
     area_row("Bratislava", "Bratislava", geojson_source("https://data.bratislava.sk/api/download/v1/items/f1daafc79a9247e8b93241aa005fbea3/geojson?layers=0"),
              "NAZOV_UTJ", "mestská časť"),
     area_row("Brisbane", "Brisbane", geojson_source("https://data.brisbane.qld.gov.au/api/explore/v2.1/catalog/datasets/suburb-boundaries/exports/geojson"),
@@ -2905,6 +2909,8 @@ AREA_SOURCES = [
              "/download/electoral-divisions_cso2.shp.geojson"), lambda p: re.sub(r" [A-F]$", "", (p.get("Pllng_D") or "").strip()), "electoral division", dissolve=True),
     area_row("Edinburgh", "Edinburgh", geojson_source("https://edinburghcouncilmaps.info/arcgis/rest/services/Misc/INSPIRE/MapServer/27/query"
              "?where=1%3D1&outFields=NATURALCOM&outSR=4326&f=geojson"), "NATURALCOM", "natural neighbourhood"),
+    # ISTAT's sub-municipal areas (Rifredi, Campo di Marte); the 1995 rioni are older and misspelt. In EPSG:3003.
+    area_row("Florence", "Florence", geojson_source("https://datigis.comune.fi.it/json/aree_elementari_2021.json"), "denae2021", "area elementare"),
     area_row("Geneva", "Geneva", geojson_source("https://vector.sitg.ge.ch/arcgis/rest/services/Hosted/OCS_SECTEURS_STATISTIQUES/MapServer/0/query"
              "?where=no_com_federal%3D6621&outFields=nom_secteur&outSR=4326&f=geojson"), "nom_secteur", "secteur statistique"),
     area_row("Ghent", "Ghent", geojson_source("https://data.stad.gent/api/explore/v2.1/catalog/datasets/stadswijken-gent/exports/geojson"), "wijk", "stadswijk"),
@@ -2933,32 +2939,57 @@ AREA_SOURCES = [
              "?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
     area_row("Madrid", "Madrid", shapefile_source("https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/LIMITES_ADMINISTRATIVOS/Barrios/Barrios.zip"),
              "NOMBRE", "barrio"),
+    # The Ayuntamiento's 419 barrios (El Perchel, La Trinidad, El Palo); its 11 distritos are too coarse.
+    area_row("Málaga", "Málaga", geojson_source("https://datosabiertos.malaga.eu/recursos/urbanismoEInfraestructura/planimetria/callejero"
+             "/da_cartografiaBarrio-4326.geojson"), "NOMBARRIO", "barrio"),
     # The City of Manila's 16 districts, then the barangays of the cities around it (Manila's own are numbered).
     area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
+    area_row("Melbourne", "Melbourne", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='2'", "objectid"),
+             lambda p: re.sub(r" \(Vic\.\)$", "", p.get("sal_name_2021") or ""), "suburb"),
+    # Two neighborhoods mapped in two parts each (Baypoint, Fair Isle) merged; one feature has no label.
+    area_row("Miami", "Miami", geojson_source("https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Miami_Neighborhoods_Shapefile"
+             "/FeatureServer/0/query?where=1%3D1&outFields=LABEL&outSR=4326&f=geojson"), "LABEL", "neighborhood", dissolve=True),
     area_row("Milan", "Milan", geojson_source("https://dati.comune.milano.it/dataset/e8e765fc-d882-40b8-95d8-16ff3d39eb7c/resource/9c4e0776-56fc-4f3d-8a90-f4992a3be426"
              "/download/ds964_nil_wm.geojson"), "NIL", "NIL"),
     area_row("Montréal", "Montréal", geojson_source("https://donnees.montreal.ca/dataset/f38c91a1-e33f-4475-a112-3b84b1c60c1e/resource/a80e611f-5336-4306-ba2a-fd657f0f00fa"
              "/download/quartierreferencehabitation.geojson"), "nom_qr", "quartier de référence"),
     area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"
              "&typeName=gsm_wfs:vablock_stadtbezirk&outputFormat=application/json&srsName=EPSG:4326"), "sb_name", "Stadtbezirk", dissolve=True),
+    # The 30 quartieri (Chiaia, Vomero, Posillipo) on the 2001 census sections, the newest the Comune publishes as a file.
+    area_row("Naples", "Naples", shapefile_source("https://trasparenza.comune.napoli.it/flex/cm/pages/ServeAttachment.php/L/IT/D/8%252Fa%252Fe%252FD.8fbafa14e575ac594a1c"
+             "/P/BLOB%3AID%3D26532/E/zip?mode=download"), "QUART", "quartiere"),
     # ntatype 0: the residential NTAs; 5 to 9 are parks, cemeteries, airports.
     area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
              keep=lambda p: str(p.get("ntatype")) == "0"),
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
              dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),
+    # The Ottawa Neighbourhood Study's Gen 3 (116, the city's open data), in capitals; Gatineau, across the river, has none.
+    area_row("Ottawa", "Ottawa", geojson_source("https://services.arcgis.com/G6F8XLCl5KtAlZ2G/arcgis/rest/services/GEN3_OTT_1_3_3/FeatureServer/0/query"
+             "?where=1%3D1&outFields=ONS_Name&outSR=4326&f=geojson"), "ONS_Name", "neighbourhood"),
     area_row("Perth", "Perth", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='5'", "objectid"),
              lambda p: re.sub(r" \(WA\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
     area_row("Prague", "Prague", geojson_source("https://lkod-iprpraha.hub.arcgis.com/api/download/v1/items/35ede955057f4815b522ea91b488792a/geojson?layers=0"),
              "nazev_1", "městská část"),
+    # The 58 apkaimes (Āgenskalns, Grīziņkalns), in LKS-92 with an ISO-8859-13 .cpg.
+    area_row("Riga", "Riga", shapefile_source("https://data.gov.lv/dati/dataset/ddc24ef1-4db4-46ce-a035-258b6ed69d91/resource/5409870d-287f-49e0-b336-d3c4ce936f69"
+             "/download/apkaimes.zip"), "apkaime", "apkaime"),
     area_row("Rome", "Rome", geojson_source("https://geoportale.comune.roma.it/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature"
              "&typeNames=DIPSER:SuddivisioniToponomastica&outputFormat=application/json&srsName=EPSG:4326"),
              "DESCRIZIONE", lambda p: (p.get("TIPOLOGIA") or "").lower() or "suddivisione"),
     area_row("Rotterdam", "Rotterdam", ogc_source("https://api.pdok.nl/cbs/wijken-en-buurten-2025/ogc/v1/collections/buurten/items?f=json&limit=1000&gemeentecode=GM0599"),
              "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
+    # SF Find's 117 neighborhoods (Hayes Valley, Noe Valley), not the 41 Analysis Neighborhoods; data.sfgov.org moved here.
+    area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
+    # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la
+    # Municipalidad de San José", and IGN's finest are the distritos.
+    area_row("San José", "OSM", osm_area_source((10,)), "name", None),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
              {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
+    # IDE.Sevilla's barrios (Triana's, Nervión's); "VILLEGAS" is mapped in two parts.
+    area_row("Seville", "Seville", geojson_source("https://services1.arcgis.com/hcmP7kr0Cx3AcTJk/arcgis/rest/services/Barrios_de_Sevilla/FeatureServer/0/query"
+             "?where=1%3D1&outFields=Barrio&outSR=4326&f=geojson"), "Barrio", "barrio", dissolve=True),
     area_row("Singapore", "Singapore", datagovsg_source("d_4765db0e87b9c86336792efe8a1f7a66"), "PLN_AREA_N", "planning area"),
     # The ж.к. (housing estates) and кв. (quarters); villages, villa zones and industrial areas left out.
     area_row("Sofia", "Sofia", geojson_source("https://api.sofiaplan.bg/datasets/297"),
@@ -2990,6 +3021,11 @@ AREA_SOURCES = [
     area_row("Vilnius", "Vilnius", geojson_source("https://zemelapiai.vplanas.lt/arcgis/rest/services/Open_Data/Vilniaus_miesto_ribos/MapServer/1/query"
              "?where=1%3D1&outFields=SENIUNIJA&outSR=4326&f=geojson"), "SENIUNIJA", "seniūnija"),
     area_row("Warsaw", "OSM", osm_area_source((10,)), "name", None),   # the city's WFS was not reached (2026-10-10)
+    # Each cluster named by its neighborhoods ("Kalorama Heights, Adams Morgan, Lanier Heights"; NAME is "Cluster 1");
+    # the 7 "Additional" clusters are parks, the Mall, bases and campuses. Finer names are points only.
+    area_row("Washington DC", "Washington DC", geojson_source("https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Administrative_Other_Boundaries_WebMercator"
+             "/MapServer/17/query?where=1%3D1&outFields=NAME,NBH_NAMES,TYPE&outSR=4326&f=geojson"), "NBH_NAMES", "neighborhood cluster",
+             keep=lambda p: p.get("TYPE") == "Original"),
     area_row("Zagreb", "Zagreb", shapefile_source("https://data.zagreb.hr/dataset/37fa6630-0a87-4084-b62d-ff5edab3610b/resource/482b7289-d397-4c38-9929-5d0410ad0e16"
              "/download/rpj_mo.zip", encoding="cp1250"), "JMS_IME", "mjesni odbor"),
     area_row("Zurich", "Zurich", geojson_source("https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Statistische_Quartiere?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature"
