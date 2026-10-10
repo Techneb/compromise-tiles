@@ -48,7 +48,8 @@ def load_previous(src):
                 return json.load(r)
         with open(src) as f:
             return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:  # absent or unreadable: start empty
+    except (FileNotFoundError, json.JSONDecodeError) as e:  # a local file absent or unreadable: start empty
+        if src.startswith(("http://", "https://")): raise  # a 200 with a challenge page or a cut body is not an absent feed
         print(f"previous feed not read ({e}); starting empty")
         return {}
     except urllib.error.HTTPError as e:
