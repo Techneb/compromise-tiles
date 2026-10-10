@@ -1087,7 +1087,7 @@ def combined(osm, city, metres=False):
         lat, lon = centre(b)
         near = grid.get((math.floor(lat * COMBINE_GRID), math.floor(lon * COMBINE_GRID)), ())
         mine = ring(b)
-        height = same.get(key(b), next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None))
+        height = same[key(b)] if key(b) in same else next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None)
         kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
         out.append(b if height is None or kept else dict({k: v for k, v in b.items() if k != "guessed"}, height=height, city=True))
     return out
