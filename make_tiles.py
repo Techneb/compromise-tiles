@@ -2973,6 +2973,9 @@ AREA_SOURCES = [
     area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
              {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
+    # IDE.Sevilla's barrios (Triana's, Nervión's); "VILLEGAS" is mapped in two parts.
+    area_row("Seville", "Seville", geojson_source("https://services1.arcgis.com/hcmP7kr0Cx3AcTJk/arcgis/rest/services/Barrios_de_Sevilla/FeatureServer/0/query"
+             "?where=1%3D1&outFields=Barrio&outSR=4326&f=geojson"), "Barrio", "barrio", dissolve=True),
     area_row("Singapore", "Singapore", datagovsg_source("d_4765db0e87b9c86336792efe8a1f7a66"), "PLN_AREA_N", "planning area"),
     # The ж.к. (housing estates) and кв. (quarters); villages, villa zones and industrial areas left out.
     area_row("Sofia", "Sofia", geojson_source("https://api.sofiaplan.bg/datasets/297"),

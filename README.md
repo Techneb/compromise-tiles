@@ -427,6 +427,8 @@ none, this says so rather than guessing.
   Public Domain U.S. Government.
 - Seoul: 서울특별시 (Seoul Open Data Plaza, OA-22160), administrative dong
   boundaries, 공공누리 1유형 (KOGL Type 1).
+- Seville: Fuente: Gerencia de Urbanismo (IDE.Sevilla), barrios, Reconocimiento 4.0
+  Internacional (CC BY 4.0).
 - Singapore: Contains information from the Urban Redevelopment Authority's
   planning area boundaries (dataset d_4765db0e87b9c86336792efe8a1f7a66) accessed
   at each build from data.gov.sg, which is made available under the terms of the

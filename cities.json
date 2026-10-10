@@ -223,6 +223,7 @@
   },
   {
     "city": "Seville",
+    "streets": true,
     "district": "Seville (whole municipality)",
     "box": [
       37.3002,
