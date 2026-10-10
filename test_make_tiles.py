@@ -1,5 +1,5 @@
 """python3 test_make_tiles.py — stdlib asserts, no network."""
-from make_tiles import smallest_region, cells_in, clip, rooftop, seating
+from make_tiles import smallest_region, cells_in, clip, rooftop, seating, open_past_midnight, drinks_late
 from make_tiles import smallest_region, cells_in, clip, riga_venue_name, toronto_name, permit_items
 
 def square(s, w, n, e): return {"type": "Polygon", "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]]}
@@ -780,6 +780,14 @@ two = street_tiles([west], [(2, [(48.8691, 2.3271), (48.8691, 2.3279)], "Rue Zol
 rows = number_rows(two, [(48.8691, 2.3272, "Rue Zola", 1), (48.8691, 2.3273, "Rue Zola", 9),
                          (48.8692, 2.3272, "Avenue Bosquet", 4), (48.8692, 2.3273, "Avenue Bosquet", 2)], [])
 assert rows[west.key] == [["Avenue Bosquet", 2, 4], ["Rue Zola", 1, 9]], rows
+# A stray top (a flat number as the house number) is cut; a real spread is kept, and so is a short street.
+from make_tiles import trimmed_high
+assert trimmed_high({48, 52, 60, 2213}) == [48, 52, 60] and trimmed_high([1, 3, 2213, 9000]) == [1, 3]
+assert trimmed_high([3, 40]) == [3, 40] and trimmed_high([1, 4]) == [1, 4] and trimmed_high([150, 420]) == [150, 420]
+assert trimmed_high([7, 7]) == [7] and trimmed_high([]) == []
+camden = [(48.8691, 2.3272, "Rue de Grenelle", x) for x in (48, 62, 2213)]
+assert number_rows(tiles, camden, [])[west.key] == [["Rue de Grenelle", 48, 62]]
+assert number_rows(tiles, camden[::2], [])[west.key] == [], "48 and 2213 alone: one number left, no row"
 # do_streets: streets/ exactly as before (no range in it), numbers/ beside it, no numbers/ file for a cell with none.
 import tempfile, make_tiles
 from make_tiles import do_streets
@@ -1080,3 +1088,19 @@ assert all(v in vertices(b) for v in vertices(a) if bottom + 0.001 < v[1] / BOUN
 assert abs(shapely.union(a, b).area - (a.area + b.area)) < 1e-12   # no overlap
 assert shapely.union(a, b).geom_type == "Polygon" and len(shapely.union(a, b).interiors) == 0   # no gap
 print("ok (boundaries, shared edge)")
+# Open past midnight: wrapping and past-24:00 ranges, a whole day, 24/7; "off" rules and holidays
+# alone open nothing; what the strict reading cannot parse is False. La Perle's and Le Progrès's
+# values (Marais, 2026-10-10) are the first two.
+assert open_past_midnight("Mo-Fr 06:00-02:00, Sa-Su 08:00-02:00")
+assert open_past_midnight("Mo-Sa 07:30-02:00; Su 08:00-02:00")
+assert open_past_midnight("Tu-Sa 12:00-14:30, 19:00-01:00") and open_past_midnight("Mo-Su 18:00-26:00")
+assert open_past_midnight("24/7") and open_past_midnight("24/7; PH off") and open_past_midnight("Mo 00:00-24:00")
+assert not open_past_midnight("Mo-Sa 18:00-00:00"), "closing at midnight is not past it"
+assert not open_past_midnight("Mo-Fr 12:00-14:30,19:00-23:30")
+assert not open_past_midnight("Fr-Sa 22:00-05:00 off") and open_past_midnight("Mo-Fr 18:00-03:00; PH off")
+assert not open_past_midnight("PH 18:00-03:00") and not open_past_midnight("PH,SH 20:00-02:00")
+for malformed in ("Mo-Su sunset-02:00", "Mo-Fr 18:00+", "Lu-Ve 10:00-02:00", "Mo-Fr 25:00-02:00", "Mo-Fr 10:00-02:00 xyz", "", None):
+    assert not open_past_midnight(malformed), malformed
+assert drinks_late({"amenity": "restaurant", "opening_hours": "Mo-Su 08:00-02:00"}) and drinks_late({"amenity": "cafe", "bar": "yes"})
+assert not drinks_late({"amenity": "cafe", "opening_hours": "Mo-Su 08:00-19:00"})
+assert not drinks_late({"amenity": "bar", "opening_hours": "Mo-Su 18:00-02:00"}), "a bar is under Bar already"

@@ -509,6 +509,7 @@ class OSM:
                     lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
                 venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
                          "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
+                if drinks_late(tags): venue["bar"] = True
                 self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
             for f in (box, kept):
@@ -746,6 +747,44 @@ def seating(tag, on_roof=False):
     if tag == "yes": return True
     return str(tag)
 
+def drinks_late(tags):
+    """A café or restaurant that is a bar in all but name, counted under Bar by the app: tagged
+    bar=yes, or open past midnight on some day (owner, 2026-10-10: La Perle and Le Progrès in the
+    Marais are a restaurant and a café closing at 02:00)."""
+    return tags.get("amenity") in ("cafe", "restaurant") and (tags.get("bar") == "yes" or open_past_midnight(tags.get("opening_hours")))
+
+_DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
+_MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
+_SELECTOR = re.compile(rf"(?:{_DAY}(?:-{_DAY})?|PH|SH|{_MONTH}(?:\s?\d{{1,2}})?(?:-{_MONTH}?(?:\s?\d{{1,2}})?)?|\d{{4}}(?:-\d{{4}})?|week\s?\d{{1,2}}(?:-\d{{1,2}})?)")
+_SPAN = r"(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})"
+_TIMES = re.compile(rf"{_SPAN}(?:\s*,\s*{_SPAN})*")
+
+def open_past_midnight(value):
+    """Whether an opening_hours value keeps the place open after midnight on some day: "24/7", a
+    range that wraps (18:00-02:00) or runs past 24:00 (18:00-26:00), or a whole day (00:00-24:00).
+    A rule ending "off" or "closed" opens nothing, one for public or school holidays alone (PH,
+    SH) is ignored, and anything this strict reading cannot parse — sunset, open ends, typos — is
+    False: a guess would put a restaurant under Bar."""
+    if not value: return False
+    late = False
+    # Rules part at ";", "||", and at a comma after a time ("Mo-Fr 06:00-02:00, Sa-Su 08:00-02:00").
+    for rule in re.split(r";|\|\||(?<=\d),\s*(?=[A-Za-z])", value):
+        rule = re.sub(r'\s*"[^"]*"\s*$', "", rule).strip()  # a trailing comment
+        if rule == "24/7": late = True
+        if not rule or rule == "24/7": continue
+        words = rule.split()
+        if words[-1] in ("off", "closed"): continue
+        if words[-1] == "open": words = words[:-1]
+        cut = next((i for i in range(len(words)) if _TIMES.fullmatch(" ".join(words[i:]))), len(words))
+        selectors = [t for t in re.split(r"[\s,]+", " ".join(words[:cut])) if t]
+        if not all(_SELECTOR.fullmatch(t) for t in selectors): return False
+        if cut == len(words) or (selectors and all(t in ("PH", "SH") for t in selectors)): continue
+        for h1, m1, h2, m2 in (map(int, span) for span in re.findall(_SPAN, " ".join(words[cut:]))):
+            if h1 > 24 or h2 > 48 or m1 > 59 or m2 > 59: return False
+            start, end = h1 * 60 + m1, h2 * 60 + m2
+            if end > 24 * 60 or 0 < end < start or (start == 0 and end == 24 * 60): late = True
+    return late
+
 def osm_venues(cell):
     """The named venues of one ~2 km cell, the key's own truncation deciding the edge."""
     return [v for v in _osm.near(_osm.venues, cell.rect) if v["name"]
@@ -923,10 +962,19 @@ def interpolated(line, first, last, step):
         out.append((lat, lon, first + (step if last > first else -step) * i))
     return out
 
+def trimmed_high(numbers):
+    """The distinct numbers, sorted, without a stray top: while the highest is over 3× the next and more
+    than 100 above it, it goes. A flat or unit number tagged as the house number (Camden High Street's
+    48–2213, 2026-10-10) is the case; a real ~200 m cell spans tens of doors."""
+    out = sorted(set(numbers))
+    while len(out) >= 2 and out[-1] > 3 * out[-2] and out[-1] - out[-2] > 100: out.pop()
+    return out
+
+
 def number_rows(tiles, points, interpolations):
     """{key: [[name, lowest, highest], …]} (numbers/) for the streets/ tiles: each named way of a tile whose
     street_key() matches the addr:street of at least two distinct numbers inside that cell (the key's
-    truncation deciding), once per name as the tile writes it, sorted by name."""
+    truncation deciding), once per name as the tile writes it, sorted by name; a stray top cut first (trimmed_high)."""
     seen = {key: {} for key in tiles}
     points = list(points) + [(lat, lon, street, x) for street, line, first, last, step in interpolations
                              for lat, lon, x in interpolated(line, first, last, step)]
@@ -936,7 +984,7 @@ def number_rows(tiles, points, interpolations):
     out = {}
     for key, lines in tiles.items():
         names = dict.fromkeys(line[1] for line in lines if len(line) > 1 and isinstance(line[1], str))
-        found = [(name, seen[key].get(street_key(name), ())) for name in names]
+        found = [(name, trimmed_high(seen[key].get(street_key(name), ()))) for name in names]
         out[key] = sorted([name, min(n), max(n)] for name, n in found if len(n) >= 2)
     return out
 
