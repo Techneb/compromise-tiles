@@ -2959,6 +2959,9 @@ AREA_SOURCES = [
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
              dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),
+    # The Ottawa Neighbourhood Study's Gen 3 (116, the city's open data), in capitals; Gatineau, across the river, has none.
+    area_row("Ottawa", "Ottawa", geojson_source("https://services.arcgis.com/G6F8XLCl5KtAlZ2G/arcgis/rest/services/GEN3_OTT_1_3_3/FeatureServer/0/query"
+             "?where=1%3D1&outFields=ONS_Name&outSR=4326&f=geojson"), "ONS_Name", "neighbourhood"),
     area_row("Perth", "Perth", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='5'", "objectid"),
              lambda p: re.sub(r" \(WA\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),

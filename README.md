@@ -415,6 +415,8 @@ none, this says so rather than guessing.
   with CC BY 4.0).
 - Oslo: Kartverket, grunnkretser (Geonorge), CC BY 4.0; grouped into delbydeler
   with Oslo kommune's key (licence not stated by the publisher).
+- Ottawa: Ottawa Neighbourhood Study, Neighbourhood Boundaries Gen 3. Contains
+  information licensed under the Open Government Licence – City of Ottawa.
 - Perth, Sydney: Based on Australian Bureau of Statistics data, Suburbs and
   Localities (ASGS 2021), CC BY 4.0.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the

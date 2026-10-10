@@ -1120,6 +1120,7 @@
   },
   {
     "city": "Ottawa",
+    "streets": true,
     "district": "Ottawa (going-out core + 2 km)",
     "box": [
       45.373,
