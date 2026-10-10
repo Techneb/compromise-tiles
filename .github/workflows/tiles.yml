@@ -236,7 +236,9 @@ jobs:
         run: |
           cp -R tiles out
           rm -rf out/communes   # read by the fragment above, never uploaded
-          python3 buildings_v2.py tiles/buildings out/buildings-v2 && rm -rf out/buildings   # the committed tiles, in the app's v2 format only
+          # Two statements: a failure on the left of && does not stop a bash -e step, and out/buildings/ went up.
+          python3 buildings_v2.py tiles/buildings out/buildings-v2   # the committed tiles, in the app's v2 format only
+          rm -rf out/buildings
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           # Same as the build's upload: R2 refuses a few PUTs even with retries (repo_upload, 2026-10-07);
