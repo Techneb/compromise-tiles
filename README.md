@@ -31,6 +31,33 @@ builds the rest on a schedule and uploads it to R2; those tiles are not
 kept here. OpenStreetMap is read from Geofabrik extracts with
 osmium-tool; city and national feeds are downloaded in bulk.
 
+### streets/
+
+Each tile is an array of rows. A street row is `[kind, y0, x0, dy1, dx1, …]`
+(kind 1 main road, 2 street, 3 pedestrian), or `[kind, "name", y0, x0, …]`
+where the OpenStreetMap way has a name (since 2026-10-08): one way cut at the
+cell's edges, coordinates in 1e-5° steps, the first from the key's corner
+(key / 500), each next from the one before.
+
+After the street rows, a named street may have one house-number row
+`[0, "name", lowest, highest]` (since 2026-10-10):
+
+- `name` is written exactly as on the street rows of the same tile.
+- `lowest` and `highest` are integers, the smallest and largest house number
+  found on that street inside the cell. A number is OpenStreetMap's
+  `addr:housenumber` on a node, a building or along an `addr:interpolation`
+  way, whose `addr:street` (else the name of the `associatedStreet` relation
+  it is a house of) equals the name once case, accents and apostrophes are
+  set aside; only its leading digits count ("12bis" and "12 ter" are 12,
+  "12-14" is 12, "12;14" is both), and one not starting with a digit is left
+  out. The address point (a building's mean vertex) must lie in the cell.
+- The row is written only where at least two distinct numbers are found, so
+  most streets have none. A range is that cell's alone: a street crossing
+  several cells has one row in each.
+
+Kind 0 is not a street kind, so a reader that only draws streets skips the
+row; a tile built before carries none.
+
 ### places/
 
 Each tile is an array of `{"name", "kind", "coordinate", "admin_level"?}`:
