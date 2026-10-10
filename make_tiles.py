@@ -2950,6 +2950,9 @@ AREA_SOURCES = [
              "/download/quartierreferencehabitation.geojson"), "nom_qr", "quartier de référence"),
     area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"
              "&typeName=gsm_wfs:vablock_stadtbezirk&outputFormat=application/json&srsName=EPSG:4326"), "sb_name", "Stadtbezirk", dissolve=True),
+    # The 30 quartieri (Chiaia, Vomero, Posillipo) on the 2001 census sections, the newest the Comune publishes as a file.
+    area_row("Naples", "Naples", shapefile_source("https://trasparenza.comune.napoli.it/flex/cm/pages/ServeAttachment.php/L/IT/D/8%252Fa%252Fe%252FD.8fbafa14e575ac594a1c"
+             "/P/BLOB%3AID%3D26532/E/zip?mode=download"), "QUART", "quartiere"),
     # ntatype 0: the residential NTAs; 5 to 9 are parks, cemeteries, airports.
     area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
              keep=lambda p: str(p.get("ntatype")) == "0"),

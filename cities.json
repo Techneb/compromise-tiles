@@ -1096,6 +1096,7 @@
   },
   {
     "city": "Naples",
+    "streets": true,
     "district": "Naples (whole municipality)",
     "box": [
       40.7912,
