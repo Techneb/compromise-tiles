@@ -215,18 +215,32 @@ jobs:
           echo "::error title=$CITY is short::$why"
           exit 1
 
-  # The tiles committed in this repository (built off GitHub), uploaded as they are, with their feed fragment.
+  # The tiles committed in this repository for the cities built off GitHub, uploaded as they are, with their feed fragment.
   repo_upload:
     needs: plan
     if: ${{ inputs.repo_tiles && !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # buildings-v2/ before the fragment: coverage.py counts that layer only, and the repository holds buildings/.
-      - run: |
-          cp -R tiles out
+      # Only the cells of the cities built off GitHub (storage.py's owners): tiles/ also holds snapshots of cities the
+      # build jobs make every week (before 2026-10-04), which would overwrite their fresh tiles. buildings-v2/ before
+      # the fragment: coverage.py counts that layer only, and the repository holds buildings/.
+      - env:
+          REPO_CITIES: Tel Aviv   # comma-separated, as in cities.json
+        run: |
+          python3 - <<'PY'
+          import os, shutil
+          from storage import LAYER_SCALE, TILE, owners
+          repo, cells = {c.strip() for c in os.environ["REPO_CITIES"].split(",")}, owners("cities.json")
+          for layer in sorted(l for l in os.listdir("tiles") if os.path.isdir(os.path.join("tiles", l))):
+              names = sorted(os.listdir(os.path.join("tiles", layer)))
+              kept = [n for n in names if (m := TILE.match(f"tiles/{layer}/{n}")) and cells[LAYER_SCALE[layer]].get((int(m[2]), int(m[3]))) in repo]
+              os.makedirs(os.path.join("out", layer), exist_ok=True)
+              for n in kept: shutil.copy2(os.path.join("tiles", layer, n), os.path.join("out", layer, n))
+              print(f"{layer}: {len(kept)} of {len(names)} committed tiles uploaded")
+          PY
           # Two statements: a failure on the left of && does not stop a bash -e step, and out/buildings/ went up.
-          python3 buildings_v2.py tiles/buildings out/buildings-v2   # the committed tiles, in the app's v2 format only
+          python3 buildings_v2.py out/buildings out/buildings-v2   # the committed tiles, in the app's v2 format only
           rm -rf out/buildings
       - run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
       - uses: actions/upload-artifact@v4
