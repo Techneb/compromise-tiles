@@ -2960,6 +2960,8 @@ AREA_SOURCES = [
     area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
     area_row("Milan", "Milan", geojson_source("https://dati.comune.milano.it/dataset/e8e765fc-d882-40b8-95d8-16ff3d39eb7c/resource/9c4e0776-56fc-4f3d-8a90-f4992a3be426"
              "/download/ds964_nil_wm.geojson"), "NIL", "NIL"),
+    area_row("Montpellier", "Montpellier", geojson_source("https://data.montpellier3m.fr/sites/default/files/ressources/VilleMTP_MTP_SousQuartiers.json"),
+             "name", "sous-quartier"),
     area_row("Montréal", "Montréal", geojson_source("https://donnees.montreal.ca/dataset/f38c91a1-e33f-4475-a112-3b84b1c60c1e/resource/a80e611f-5336-4306-ba2a-fd657f0f00fa"
              "/download/quartierreferencehabitation.geojson"), "nom_qr", "quartier de référence"),
     area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"

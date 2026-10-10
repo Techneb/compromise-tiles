@@ -402,6 +402,8 @@ none, this says so rather than guessing.
 - Los Angeles: Los Angeles Times, LA Times Neighborhoods, CC BY 4.0.
 - Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
 - Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.
+- Montpellier: Montpellier Méditerranée Métropole, sous-quartiers de Montpellier (producer
+  OpenStreetMap), Open Data Commons Open Database License (ODbL).
 - Montréal: Ville de Montréal, quartiers de référence en habitation, CC BY 4.0.
 - Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
   Deutschland – Namensnennung – 2.0.

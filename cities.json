@@ -1529,6 +1529,7 @@
   },
   {
     "city": "Montpellier",
+    "streets": true,
     "district": "Montpellier (whole commune)",
     "box": [
       43.5668,
