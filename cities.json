@@ -1181,6 +1181,7 @@
   },
   {
     "city": "Miami",
+    "streets": true,
     "district": "Miami (whole municipality)",
     "box": [
       25.709,

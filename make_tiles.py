@@ -2935,6 +2935,9 @@ AREA_SOURCES = [
              "NOMBRE", "barrio"),
     # The City of Manila's 16 districts, then the barangays of the cities around it (Manila's own are numbered).
     area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
+    # Two neighborhoods mapped in two parts each (Baypoint, Fair Isle) merged; one feature has no label.
+    area_row("Miami", "Miami", geojson_source("https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Miami_Neighborhoods_Shapefile"
+             "/FeatureServer/0/query?where=1%3D1&outFields=LABEL&outSR=4326&f=geojson"), "LABEL", "neighborhood", dissolve=True),
     area_row("Milan", "Milan", geojson_source("https://dati.comune.milano.it/dataset/e8e765fc-d882-40b8-95d8-16ff3d39eb7c/resource/9c4e0776-56fc-4f3d-8a90-f4992a3be426"
              "/download/ds964_nil_wm.geojson"), "NIL", "NIL"),
     area_row("Montréal", "Montréal", geojson_source("https://donnees.montreal.ca/dataset/f38c91a1-e33f-4475-a112-3b84b1c60c1e/resource/a80e611f-5336-4306-ba2a-fd657f0f00fa"
