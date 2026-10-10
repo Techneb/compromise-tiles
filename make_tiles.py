@@ -963,11 +963,13 @@ def interpolated(line, first, last, step):
     return out
 
 def trimmed_high(numbers):
-    """The distinct numbers, sorted, without a stray top: while the highest is over 3× the next and more
-    than 100 above it, it goes. A flat or unit number tagged as the house number (Camden High Street's
-    48–2213, 2026-10-10) is the case; a real ~200 m cell spans tens of doors."""
+    """The distinct numbers, sorted, without a stray top: while the highest is over 3× the next and further
+    above it than the rest span plus 100 (of two alone, more than 1,000 above: no ~200 m cell spans that), it
+    goes. A flat or unit number tagged as the house number (Camden High Street's 48–2213, 2026-10-10) is the
+    case; a real ~200 m cell spans tens of doors, and near a grid city's numbering origin the 0 and 100 blocks
+    ({40, 150} and {20, 40, 150} stay)."""
     out = sorted(set(numbers))
-    while len(out) >= 2 and out[-1] > 3 * out[-2] and out[-1] - out[-2] > 100: out.pop()
+    while len(out) >= 2 and out[-1] > 3 * out[-2] and out[-1] - out[-2] > (out[-2] - out[0] + 100 if len(out) > 2 else 1000): out.pop()
     return out
 
 
