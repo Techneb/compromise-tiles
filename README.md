@@ -381,6 +381,8 @@ none, this says so rather than guessing.
 - Edinburgh: Copyright City of Edinburgh Council, contains Ordnance Survey data
   © Crown copyright and database right 2026, natural neighbourhoods, Open
   Government Licence v3.0.
+- Florence: Comune di Firenze, aree elementari 2021, Creative Commons Attribuzione
+  4.0 Internazionale (CC-BY 4.0).
 - Geneva: « Données SITG », secteurs statistiques, extracted at each build
   (accès libre).
 - Ghent: Stad Gent, stadswijken, Modellicentie Gratis Hergebruik.

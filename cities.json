@@ -1074,6 +1074,7 @@
   },
   {
     "city": "Florence",
+    "streets": true,
     "district": "Florence (whole municipality)",
     "box": [
       43.7258,
