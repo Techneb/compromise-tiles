@@ -7,7 +7,7 @@ terraces-v2/, streets/ and communes/ (French cells: the build and the coverage f
 read them, the upload leaves them out), and one per ~2 km cell, keyed
 "<int(lat*50)>,<int(lon*50)>", under venues/. Beside the first two,
 sources/ names what built each cell ([{"permits": city|null,
-"buildings": city|"IGN"|"OSM"|city+"+OSM"}]) — what the app credits.
+"buildings": city|"IGN"|"OSM"|city+"+OSM", "boundaries"?: source}]) — what the app credits.
 streets/ is built only for the areas whose entry says "streets": true: each
 item is one OpenStreetMap street cut at the cell's edges, a flat array
 [kind, y0, x0, dy1, dx1, …] (kind 1 main road, 2 street, 3 pedestrian),
@@ -29,6 +29,17 @@ administratifs), absent otherwise, so a reader of the first format reads
 it unchanged (2026-10-06); "name_en" (OSM's name:en) the same way, only
 where it exists and differs from "name": Tokyo's, Seoul's or Kyiv's names
 are in their own scripts (2026-10-09). Both only where streets/ is.
+boundaries/ (2026-10-10), on places/'s cells and only where streets/ is: [{"name", "level", "source",
+"polygons"}], each neighbourhood's outline whole in the cell of its label point (the places/ place of
+the same name inside it, whose name is then written; else a point inside it), not cut at the cell's
+edges. "level" is the source's word for the unit ("quartier", "Ortsteil") or OSM's admin_level,
+"source" the key sources/ names; "polygons" [[ring, …], …], per polygon its outer ring
+(counter-clockwise) then its holes (clockwise), each ring [y0, x0, dy1, dx1, …] open, in 1e-5° steps,
+the first from the key's corner (key / 25), each next from the one before. Simplified at 5 m with
+shapely's coverage_simplify over each source's set, so neighbours keep sharing an edge, then rounded
+on the 1e-5° grid. One source per city (AREA_SOURCES: the city's portal, else a national agency,
+else OpenStreetMap's boundaries or place polygons from the extract), fetched once per run; sources/
+names it ("boundaries") in each ~200 m cell whose centre one of its polygons holds.
 buildings-v2/ is what the store holds (buildings/ stays local, read by coverage.py; 2026-10-08):
 the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
@@ -55,7 +66,8 @@ answer — a source that failed leaves no file, so the next run asks again.
 Failures are listed at the end; the exit status is non-zero only if more
 than 20% of the cells failed.
 
-Needs Python 3 (standard library only) and osmium-tool on the PATH.
+Needs Python 3 and osmium-tool on the PATH; the standard library only, but for boundaries/:
+shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
@@ -271,7 +283,7 @@ _last, _dead = {}, {}
 
 def redact(text):
     """The text with every keyed row's secret blanked: a key sits in its feed's URL path."""
-    for c in PERMIT_CITIES:
+    for c in PERMIT_CITIES + AREA_SOURCES:
         secret = c.get("key") and os.environ.get(c["key"])
         if secret: text = text.replace(secret, "***")
     return text
@@ -477,7 +489,7 @@ class OSM:
         s, w, n, e = rect
         self.venues, self.walls, self.roads, self.last = {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
         self.named, self.admin, self._places = pbf + ".places.pbf", pbf + ".admin.pbf", None
-        self.numbers = pbf + ".numbers.pbf"
+        self.numbers, self.pbf = pbf + ".numbers.pbf", pbf
         box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
         try:
             osmium("extract", "-b", f"{w},{s},{e},{n}", pbf, "-o", box, "--overwrite")
@@ -573,14 +585,15 @@ class OSM:
             self._places = distinct_places(place_levels(found, self.boundaries()))
         return self._places
 
-    def boundaries(self):
-        """The administrative boundary relations of the area: [{"id": "r…", "name", "admin_level" (int), "place",
-        "labels", "centres" (the ids, "n…", of its label and admin_centre member nodes), "geometry" (None when its
-        ring is not whole in the extract)}]. One without a name or a numeric admin_level is left out."""
-        shapes = {"r" + str(f["properties"]["@id"]): f["geometry"] for f in features(self.admin, "polygon", ids=True)
+    def boundaries(self, pbf=None):
+        """The administrative boundary relations of the area (or of `pbf`): [{"id": "r…", "name", "admin_level" (int),
+        "place", "labels", "centres" (the ids, "n…", of its label and admin_centre member nodes), "geometry" (None when
+        its ring is not whole in the extract)}]. One without a name or a numeric admin_level is left out."""
+        pbf = pbf or self.admin
+        shapes = {"r" + str(f["properties"]["@id"]): f["geometry"] for f in features(pbf, "polygon", ids=True)
                   if f["properties"].get("@type") == "relation"}
         out = []
-        for r in ET.fromstring(osmium("cat", self.admin, "-t", "relation", "-f", "osm")).iter("relation"):
+        for r in ET.fromstring(osmium("cat", pbf, "-t", "relation", "-f", "osm")).iter("relation"):
             tags = {t.get("k"): t.get("v") for t in r.iter("tag")}
             name, level = (tags.get("name") or "").strip(), tags.get("admin_level", "")
             if tags.get("boundary") != "administrative" or not name or not level.isdigit(): continue
@@ -588,6 +601,21 @@ class OSM:
             out.append({"id": "r" + r.get("id"), "name": name, "name_en": tags.get("name:en"), "admin_level": int(level), "place": tags.get("place"),
                         "labels": role("label"), "centres": role("admin_centre"), "geometry": shapes.get("r" + r.get("id"))})
         return out
+
+    def areas(self, rect):
+        """The administrative boundaries (boundaries()) and the place polygons ([(tags, geometry)]) meeting the rect,
+        whole: cut from the extract with osmium's smart strategy, which completes a boundary or multipolygon relation
+        crossing the cut's edge (the area's own box drops it: Kyiv's raions, 2026-10-10)."""
+        s, w, n, e = rect
+        cut, kept = self.pbf + ".areas.pbf", self.pbf + ".areas-kept.pbf"
+        try:
+            osmium("extract", "-b", f"{w},{s},{e},{n}", "-s", "smart", "-S", "types=boundary,multipolygon", self.pbf, "-o", cut, "--overwrite")
+            osmium("tags-filter", cut, "r/boundary=administrative", "wr/place=" + ",".join(PLACE_KINDS), "-o", kept, "--overwrite")
+            places = [(f["properties"], f["geometry"]) for f in features(kept, "polygon")]
+            return self.boundaries(kept), places
+        finally:
+            for f in (cut, kept):
+                if os.path.exists(f): os.remove(f)
 
     def near(self, table, rect):
         """Everything in the buckets the rect touches, once each: callers keep what is near enough."""
@@ -2634,15 +2662,516 @@ def commune(lat, lon):
     return [{"nom": c["nom"], "code": c["code"]} for c in answer]
 
 
+# ---------------------------------------------------------------- neighbourhood boundaries
+
+# boundaries/ (2026-10-10): each neighbourhood's real outline, on places/'s 1/25° cells. A polygon is written once and
+# whole in the cell of its label point: the places/ point of the same name inside it (that place's name is then
+# written), else a point inside it. Simplified over the whole set of a source, so neighbours keep sharing their
+# edge, then rounded on the absolute 1e-5° grid; rings as buildings-v2/'s, from the cell's corner (key / 25).
+# Needs shapely ≥ 2.1 (coverage_simplify), pyproj and pyshp (requirements.txt); the other layers need none.
+BOUNDARY_TOLERANCE = 5        # metres
+BOUNDARY_UNIT = 100_000       # 1e-5° steps
+
+def area_row(city, source, fetch, name, level, keep=None, dissolve=None, key=None):
+    """One source of a city's neighbourhoods. `fetch(rect)` → [(properties, shapely geometry in lon/lat)] for the
+    tiled area's box; `name` a field or a function of the properties (a falsy name leaves the feature out);
+    `level` the source's own word for the unit, or a function of the properties; `keep` a filter; `dissolve` a
+    function of the properties whose equal values are merged into one feature (True: by name); `key` the
+    environment variable holding the source's API key (unset: the city gets no boundaries, said once)."""
+    return dict(city=city, source=source, fetch=fetch, name=name, level=level, keep=keep, dissolve=dissolve, key=key)
+
+def _crs_transform(geoms, crs):
+    """lon/lat geometries from `crs` (anything pyproj reads: "EPSG:3857", a .prj's WKT); WGS84 and its kin as they are."""
+    if crs is None: return geoms
+    import numpy, pyproj, shapely
+    source = pyproj.CRS.from_user_input(crs)
+    code = source.to_epsg(min_confidence=70)
+    if code in (4326, 4258, 6668, 4612): return geoms   # WGS84, ETRS89, JGD2011, JGD2000: within a metre
+    # An ESRI .prj names no datum shift (Turin's Monte Mario): its EPSG code brings PROJ's.
+    t = pyproj.Transformer.from_crs(f"EPSG:{code}" if code else source, "EPSG:4326", always_xy=True)
+    return [shapely.transform(g, lambda xy: numpy.column_stack(t.transform(xy[:, 0], xy[:, 1]))) for g in geoms]
+
+def _feature_crs(collection):
+    name = ((collection.get("crs") or {}).get("properties") or {}).get("name") or ""
+    code = ((collection.get("crs") or {}).get("properties") or {}).get("code")
+    if code: name = f"EPSG:{code}"
+    return None if not name or re.search(r"CRS84|EPSG:+(4326|4258)$", name) else name
+
+def _shaped(features, crs=None):
+    """GeoJSON features → [(properties, shapely geometry)], polygons only, in lon/lat."""
+    import shapely.geometry
+    out = [(f.get("properties") or {}, shapely.geometry.shape(f["geometry"])) for f in features
+           if (f.get("geometry") or {}).get("type") in ("Polygon", "MultiPolygon")]
+    return list(zip([p for p, _ in out], _crs_transform([g for _, g in out], crs)))
+
+def geojson_source(url, crs=None):
+    """One GET of a FeatureCollection (an Opendatasoft export, a WFS, Socrata, a plain file); its own "crs" read."""
+    def fetch(rect):
+        root = get_json(url)
+        return _shaped(root.get("features") or [], crs or _feature_crs(root))
+    return fetch
+
+def ogc_source(url):
+    """OGC API Features items, its "next" links followed."""
+    def fetch(rect):
+        features, at = [], url
+        while at:
+            page = get_json(at)
+            features += page.get("features") or []
+            at = next((l["href"] for l in page.get("links") or [] if l.get("rel") == "next" and page.get("features")), None)
+        return _shaped(features)
+    return fetch
+
+def arcgis_source(url, fields, where="1=1", oid="OBJECTID"):
+    """An ArcGIS REST layer over the area's box, paged on its OID field (arcgis())."""
+    return lambda rect: _shaped(arcgis(url, rect, fields, where, oid))
+
+def wfs_source(url, type_name, key=None):
+    """A WFS 2.0 layer over the area's box, as GeoJSON in EPSG:4326 (wfs()); `key` the environment variable whose
+    value fills the URL's {key}."""
+    def fetch(rect):
+        at = url.replace("{key}", urllib.parse.quote(os.environ.get(key, "").strip(), safe="")) if key else url
+        return _shaped(wfs(at, {"TYPENAMES": type_name, "OUTPUTFORMAT": "application/json", "SRSNAME": "EPSG:4326"}, rect))
+    return fetch
+
+def _zip_members(raw):
+    import zipfile
+    z = zipfile.ZipFile(io.BytesIO(raw))
+    return {m: z.read(m) for m in z.namelist() if not m.endswith("/")}
+
+def _shapefile_features(members, encoding=None):
+    """Every polygon record of each Shapefile in a zip's members, holes and parts kept (pyshp), in lon/lat."""
+    import shapefile, shapely.geometry
+    out = []
+    for shp in (m for m in members if m.lower().endswith(".shp")):
+        part = lambda x: next((io.BytesIO(members[m]) for m in members if m.lower() == shp[:-4].lower() + x), None)
+        cpg, prj = part(".cpg"), part(".prj")
+        code = encoding or (cpg.read().decode("ascii", "replace").strip() if cpg else "latin-1")
+        reader = shapefile.Reader(shp=part(".shp"), shx=part(".shx"), dbf=part(".dbf"), encoding=code)
+        records = [(r.record.as_dict(), shapely.geometry.shape(r.shape.__geo_interface__)) for r in reader.iterShapeRecords()
+                   if r.shape.shapeType in (5, 15, 25) and r.shape.points]
+        geoms = _crs_transform([g for _, g in records], prj.read().decode("latin-1") if prj else None)
+        out += list(zip([p for p, _ in records], geoms))
+    return out
+
+def shapefile_source(*urls, encoding=None):
+    """Zipped Shapefiles, each fetched whole (a few hundred KB)."""
+    return lambda rect: [f for url in urls for f in _shapefile_features(_zip_members(get(url)), encoding)]
+
+def posted_shapefile_source(url, form, encoding=None):
+    """A zipped Shapefile answered to a form POST (Seoul's portal)."""
+    return lambda rect: _shapefile_features(_zip_members(get(url, urllib.parse.urlencode(form).encode())), encoding)
+
+def ckan_wkt_source(url, field):
+    """A CKAN DataStore table whose `field` holds WKT (Athens)."""
+    def fetch(rect):
+        import shapely.wkt
+        records = get_json(url)["result"]["records"]
+        return [(r, shapely.wkt.loads(r[field])) for r in records if r.get(field)]
+    return fetch
+
+def datagovsg_source(dataset):
+    """data.gov.sg: poll-download answers a signed URL, valid an hour, for the GeoJSON."""
+    def fetch(rect):
+        link = get_json(f"https://api-open.data.gov.sg/v1/public/api/datasets/{dataset}/poll-download")["data"]["url"]
+        return _shaped(get_json(link).get("features") or [])
+    return fetch
+
+def oslo_source(rect):
+    """Oslo's 98 delbydeler: Geonorge's grunnkretser, each named by Oslo kommune's key (an XLSX: grunnkrets → delbydel)."""
+    members = _zip_members(get("https://nedlasting.geonorge.no/geonorge/Basisdata/Grunnkretser/GeoJSON/Basisdata_03_Oslo_4258_Grunnkretser_GeoJSON.zip"))
+    root = json.loads(next(v for k, v in members.items() if k.endswith("Grunnkrets_GeoJSON.geojson")).decode("utf-8-sig"))
+    rows = xlsx_rows(get("https://www.oslo.kommune.no/get-file/2563152/7433a6d80e58a5128319f5e16325d3b94bda0c8e26d023d3fb19108c5c21040c"))
+    head = rows[0]
+    delbydel = {str(r[head.index("Grunnkrets_2017_nr")]).zfill(4): r[head.index("Delbydel_2017_navn")] for r in rows[1:]
+                if len(r) == len(head) and r[head.index("Grunnkrets_2017_nr")]}
+    for f in root["features"]: f["properties"]["delbydel"] = delbydel.get(str(f["properties"].get("grunnkretsnummer", ""))[4:])
+    return _shaped(root["features"])
+
+def xlsx_rows(raw):
+    """The first sheet of an .xlsx as rows of strings (shared strings resolved), standard library only."""
+    members, ns = _zip_members(raw), {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    shared = [("".join(t.itertext())) for t in ET.fromstring(members["xl/sharedStrings.xml"]).findall("m:si", ns)] if "xl/sharedStrings.xml" in members else []
+    out = []
+    for r in ET.fromstring(members["xl/worksheets/sheet1.xml"]).iter(f"{{{ns['m']}}}row"):
+        cells = []
+        for c in r.findall("m:c", ns):
+            v = c.find("m:v", ns)
+            cells.append(shared[int(v.text)] if c.get("t") == "s" and v is not None else v.text if v is not None else "")
+        out.append(cells)
+    return out
+
+def estat_source(prefecture, wards):
+    """e-Stat's 2020 census small areas (chōme), one zipped Shapefile per ward (JGD2011, cp932)."""
+    url = "https://www.e-stat.go.jp/gis/statmap-search/data?dlserveyId=A002005212020&code={}{}&coordSys=1&format=shape&downloadType=5&datum=2011"
+    return shapefile_source(*(url.format(prefecture, w) for w in wards), encoding="cp932")
+
+def osm_area_source(levels):
+    """OpenStreetMap from the area's extract: administrative boundaries at the admin_levels (integers) or place
+    polygons of the kinds (strings) in `levels`, in order: a later level's polygon is kept only where its inner
+    point lies in no polygon kept before (Manila's districts, then the barangays of the cities around)."""
+    def fetch(rect):
+        import shapely, shapely.geometry
+        found, (boundaries, places) = {}, _osm.areas(rect)
+        for b in boundaries:
+            if b["admin_level"] in levels and b["geometry"]:
+                found.setdefault(b["admin_level"], []).append(({"name": b["name"], "level": b["admin_level"]}, shapely.geometry.shape(b["geometry"])))
+        for tags, geometry in places:
+            name = str(tags.get("name", "")).strip()
+            if tags.get("place") in levels and name and tags.get("boundary") != "administrative":
+                found.setdefault(tags["place"], []).append(({"name": name, "level": tags["place"]}, shapely.geometry.shape(geometry)))
+        out = []
+        for level in levels:
+            kept = shapely.union_all([g for _, g in out]) if out else None
+            for p, g in found.get(level, ()):
+                if kept is not None and kept.contains(g.representative_point()): continue
+                # One area mapped twice (a way and a relation of one name, Jerusalem's Har Tsiyon): the first kept.
+                if any(q["name"] == p["name"] and h.intersects(g.representative_point()) for q, h in out): continue
+                out.append((p, g))
+        return out
+    return fetch
+
+def roman_part(name):
+    """Athens's parts: "ΠΑΓΚΡΑΤΙ ΙΙ", "ΚΑΤΩ ΠΑΤΗΣΙΑ II", "ΠΡΟΜΠΟΝΑ2" are Pangrati, Kato Patisia, Prompona."""
+    return re.sub(r"\s*(?:\b[IΙ]{1,3}|\d+)$", "", name).strip()
+
+def logical_hebrew(name):
+    """Tel Aviv's names keep a closing mark where right-to-left display shows it, at the start: "'נאות אפקה א" is
+    Neot Afeka Alef, "נאות אפקה א'", and "(יפו ד' (גבעת התמרים" is "יפו ד' (גבעת התמרים)"."""
+    lead = re.match(r"^[\"'(]+", name)
+    if not lead: return name
+    return name[lead.end():].strip() + lead[0][::-1].replace("(", ")")
+
+def machi(p):
+    """A Japanese chōme's town: 丸の内一丁目 → 丸の内."""
+    return re.sub(r"[一二三四五六七八九十〇]+丁目$", "", p["S_NAME"] or "").strip()
+
+ABS_SAL = "https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/SAL/MapServer/0"
+IGN_WFS = "https://data.geopf.fr/wfs/ows"
+LINZ_WFS = "https://data.linz.govt.nz/services;key={key}/wfs"
+
+# One row per source, from compromise's docs/research/neighbourhood_boundaries.csv (2026-10-10): the city's portal
+# at the level people name, else a national statistics or mapping agency, else OpenStreetMap from the extract.
+# Owner, 2026-10-10: every surveyed source is used (Chicago, São Paulo's CC BY-SA, Geneva included); Perth from
+# ABS, not Landgate; Auckland from LINZ only with LINZ_API_KEY. The source key is what sources/ and each item name.
+AREA_SOURCES = [
+    area_row("Paris", "Paris", geojson_source("https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/quartier_paris/exports/geojson"),
+             "l_qu", "quartier"),
+    # The petite couronne: people name the commune (Montreuil, Vincennes), not its quartiers.
+    area_row("Paris", "IGN", geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=ADMINEXPRESS-COG-CARTO.LATEST:commune"
+             "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("code_insee_du_departement IN ('92','93','94')")),
+             "nom_officiel", "commune"),
+    area_row("Lyon", "Lyon", geojson_source("https://data.grandlyon.com/geoserver/ville-de-lyon/ows?SERVICE=WFS&VERSION=2.0.0&request=GetFeature"
+             "&typename=ville-de-lyon:vdl_vie_citoyenne.perimetre_de_quartier&outputFormat=application/json&SRSNAME=EPSG:4326"), "nom", "quartier"),
+    area_row("Marseille", "Marseille", geojson_source("https://data.ampmetropole.fr/api/explore/v2.1/catalog/datasets/a7104f3c-e487-4af3-82ad-6197cedfaeb1/exports/geojson"),
+             "nom", "quartier"),
+    area_row("Toulouse", "Toulouse", geojson_source("https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/"
+             "recensement-population-2020-grands-quartiers-familles/exports/geojson?select=grd_quart,lib_grd_quart,geo_shape"),
+             "lib_grd_quart", "grand quartier"),
+    # Without the filter the API also answers every past version of each wijk.
+    area_row("Amsterdam", "Amsterdam", geojson_source("https://api.data.amsterdam.nl/v1/gebieden/wijken/?_format=geojson&_pageSize=2000&eindGeldigheid[isnull]=true"),
+             "naam", "wijk"),
+    area_row("Antwerp", "Antwerp", geojson_source("https://geodata.antwerpen.be/arcgissql/rest/services/P_Portal/portal_publiek2/MapServer/97/query"
+             "?where=1%3D1&outFields=*&outSR=4326&f=geojson"),
+             lambda p: re.sub(r"^Antwerpen - ", "", (p.get("wijknaam") or "").strip()), "wijk", keep=lambda p: (p.get("wijknaam") or "").strip() != "Schelde"),
+    # Parts of one neighbourhood ("ΠΑΓΚΡΑΤΙ Ι", "ΠΑΓΚΡΑΤΙ ΙΙ") merged; friendly_name is filled for 25 of 144, some wrongly.
+    area_row("Athens", "Athens", ckan_wkt_source("https://opendata.cityofathens.gr/api/3/action/datastore_search?resource_id=0283af02-7783-4688-897b-7153da7ed2fd&limit=500",
+             "polygon_geo"), lambda p: roman_part(p.get("name") or ""), "neighbourhood", keep=lambda p: str(p.get("status")) == "1", dissolve=True),
+    area_row("Auckland", "Auckland", wfs_source(LINZ_WFS, "layer-113764", "LINZ_API_KEY"), "name", "suburb", key="LINZ_API_KEY"),
+    area_row("Barcelona", "OSM", osm_area_source((10,)), "name", None),   # the portal is behind a bot check; OSM's barris are the city's own (2018)
+    area_row("Basel", "Basel", geojson_source("https://data.bs.ch/api/explore/v2.1/catalog/datasets/100042/exports/geojson"), "wov_name", "Wohnviertel"),
+    area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),
+    area_row("Berlin", "Berlin", geojson_source("https://gdi.berlin.de/services/wfs/alkis_ortsteile?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
+    area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
+             "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
+    area_row("Bratislava", "Bratislava", geojson_source("https://data.bratislava.sk/api/download/v1/items/f1daafc79a9247e8b93241aa005fbea3/geojson?layers=0"),
+             "NAZOV_UTJ", "mestská časť"),
+    area_row("Brisbane", "Brisbane", geojson_source("https://data.brisbane.qld.gov.au/api/explore/v2.1/catalog/datasets/suburb-boundaries/exports/geojson"),
+             "suburb_name", "suburb"),
+    area_row("Brussels", "Brussels", geojson_source("https://opendata.bruxelles.be/api/explore/v2.1/catalog/datasets/"
+             "quartiers-du-monitoring-des-quartiers-ibsa-perspective-rbc/exports/geojson"), "namefre", "quartier"),
+    area_row("Budapest", "OSM", osm_area_source((10,)), "name", None),
+    area_row("Buenos Aires", "Buenos Aires", geojson_source("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/innovacion-transformacion-digital/barrios/barrios.geojson"),
+             "nombre", "barrio"),
+    area_row("Cape Town", "Cape Town", geojson_source("https://gis.westerncape.gov.za/server2/rest/services/SpatialDataWarehouse/CoCT_Management_Boundaries"
+             "/MapServer/15/query?where=1%3D1&outFields=SBRB_NAME&outSR=4326&f=geojson"), "SBRB_NAME", "major suburb"),
+    area_row("Chicago", "Chicago", geojson_source("https://data.cityofchicago.org/resource/y6yq-dbs2.geojson?$limit=1000"), "pri_neigh", "neighborhood"),
+    area_row("Copenhagen", "Copenhagen", geojson_source("https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:kvarter"
+             "&outputFormat=json&SRSNAME=EPSG:4326"), "kvarternavn", "kvarter"),
+    area_row("Delhi", "OSM", osm_area_source((10,)), "name", None),
+    # Electoral divisions: "Beaumont A" to "Beaumont F" are Beaumont.
+    area_row("Dublin", "Dublin", geojson_source("https://data.smartdublin.ie/dataset/2afc02f8-314b-40eb-91f0-2955f84bb912/resource/a19c6a3e-bbc8-4f20-b178-65de8e6950f1"
+             "/download/electoral-divisions_cso2.shp.geojson"), lambda p: re.sub(r" [A-F]$", "", (p.get("Pllng_D") or "").strip()), "electoral division", dissolve=True),
+    area_row("Edinburgh", "Edinburgh", geojson_source("https://edinburghcouncilmaps.info/arcgis/rest/services/Misc/INSPIRE/MapServer/27/query"
+             "?where=1%3D1&outFields=NATURALCOM&outSR=4326&f=geojson"), "NATURALCOM", "natural neighbourhood"),
+    area_row("Geneva", "Geneva", geojson_source("https://vector.sitg.ge.ch/arcgis/rest/services/Hosted/OCS_SECTEURS_STATISTIQUES/MapServer/0/query"
+             "?where=no_com_federal%3D6621&outFields=nom_secteur&outSR=4326&f=geojson"), "nom_secteur", "secteur statistique"),
+    area_row("Ghent", "Ghent", geojson_source("https://data.stad.gent/api/explore/v2.1/catalog/datasets/stadswijken-gent/exports/geojson"), "wijk", "stadswijk"),
+    # Two "Shared …" rows are areas two councils share, over others.
+    area_row("Glasgow", "Glasgow", geojson_source("https://www.mapping.glasgow.gov.uk/arcgis_web/rest/services/OPEN_DATA/Community_Councils/MapServer/0/query"
+             "?where=1%3D1&outFields=AREANAME&outSR=4326&f=geojson"), "AREANAME", "community council area",
+             keep=lambda p: not (p.get("AREANAME") or "").strip().startswith("Shared")),
+    area_row("Gothenburg", "Gothenburg", geojson_source("https://geodata.scb.se/geoserver/stat/wfs?service=WFS&request=GetFeature&version=2.0.0&typeNames=stat:RegSO_2025"
+             "&outputFormat=application/json&srsName=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("kommunkod='1480'")), "regsonamn", "RegSO"),
+    area_row("Hamburg", "Hamburg", ogc_source("https://api.hamburg.de/datasets/v1/verwaltungsgrenzen/collections/stadtteile/items?f=json&limit=1000"),
+             "stadtteil_name", "Stadtteil"),
+    area_row("Helsinki", "Helsinki", geojson_source("https://kartta.hel.fi/ws/geoserver/avoindata/wfs?service=WFS&version=2.0.0&request=GetFeature"
+             "&typeNames=avoindata:Piirijako_osaalue&outputFormat=application/json&srsName=EPSG:4326"), "nimi_fi", "osa-alue"),
+    area_row("Istanbul", "OSM", osm_area_source((8,)), "name", None),   # İBB publishes the mahalle as points only
+    area_row("Jerusalem", "OSM", osm_area_source(("neighbourhood", "quarter", "suburb")), "name", None),   # CBS's statistical areas carry no names
+    area_row("Johannesburg", "Johannesburg", arcgis_source("https://services3.arcgis.com/GMycIhSIBQnnjV35/arcgis/rest/services/Census_2011_Sub_Places_of_South_Africa/FeatureServer/0",
+             ["SP_NAME"], "MN_NAME='City of Johannesburg'"), "SP_NAME", "sub place"),
+    area_row("Kraków", "OSM", osm_area_source((11,)), "name", None),
+    area_row("Kuala Lumpur", "OSM", osm_area_source(("neighbourhood", "quarter", "suburb")), "name", None),
+    area_row("Kyiv", "OSM", osm_area_source((7, 10)), "name", None),
+    area_row("Lisbon", "Lisbon", geojson_source("https://services.arcgis.com/1dSrzEWVQn5kHHyK/arcgis/rest/services/Limite_Cartografia/FeatureServer/0/query"
+             "?outFields=NOME&where=1%3D1&outSR=4326&f=geojson"), "NOME", "freguesia"),
+    area_row("London", "London", arcgis_source("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Wards_December_2024_Boundaries_UK_BGC/FeatureServer/0",
+             ["WD24NM"], "LAD24CD LIKE 'E09%'", "FID"), "WD24NM", "ward"),
+    area_row("Los Angeles", "Los Angeles", geojson_source("https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/LA_Times_Neighborhoods/FeatureServer/0/query"
+             "?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
+    area_row("Madrid", "Madrid", shapefile_source("https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/LIMITES_ADMINISTRATIVOS/Barrios/Barrios.zip"),
+             "NOMBRE", "barrio"),
+    # The City of Manila's 16 districts, then the barangays of the cities around it (Manila's own are numbered).
+    area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
+    area_row("Milan", "Milan", geojson_source("https://dati.comune.milano.it/dataset/e8e765fc-d882-40b8-95d8-16ff3d39eb7c/resource/9c4e0776-56fc-4f3d-8a90-f4992a3be426"
+             "/download/ds964_nil_wm.geojson"), "NIL", "NIL"),
+    area_row("Montréal", "Montréal", geojson_source("https://donnees.montreal.ca/dataset/f38c91a1-e33f-4475-a112-3b84b1c60c1e/resource/a80e611f-5336-4306-ba2a-fd657f0f00fa"
+             "/download/quartierreferencehabitation.geojson"), "nom_qr", "quartier de référence"),
+    area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"
+             "&typeName=gsm_wfs:vablock_stadtbezirk&outputFormat=application/json&srsName=EPSG:4326"), "sb_name", "Stadtbezirk", dissolve=True),
+    # ntatype 0: the residential NTAs; 5 to 9 are parks, cemeteries, airports.
+    area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
+             keep=lambda p: str(p.get("ntatype")) == "0"),
+    area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
+             dissolve=lambda p: (p["CITY"], machi(p))),
+    area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),
+    area_row("Perth", "Perth", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='5'", "objectid"),
+             lambda p: re.sub(r" \(WA\)$", "", p.get("sal_name_2021") or ""), "suburb"),
+    area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
+    area_row("Prague", "Prague", geojson_source("https://lkod-iprpraha.hub.arcgis.com/api/download/v1/items/35ede955057f4815b522ea91b488792a/geojson?layers=0"),
+             "nazev_1", "městská část"),
+    area_row("Rome", "Rome", geojson_source("https://geoportale.comune.roma.it/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature"
+             "&typeNames=DIPSER:SuddivisioniToponomastica&outputFormat=application/json&srsName=EPSG:4326"),
+             "DESCRIZIONE", lambda p: (p.get("TIPOLOGIA") or "").lower() or "suddivisione"),
+    area_row("Rotterdam", "Rotterdam", ogc_source("https://api.pdok.nl/cbs/wijken-en-buurten-2025/ogc/v1/collections/buurten/items?f=json&limit=1000&gemeentecode=GM0599"),
+             "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
+    area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
+             {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
+    area_row("Singapore", "Singapore", datagovsg_source("d_4765db0e87b9c86336792efe8a1f7a66"), "PLN_AREA_N", "planning area"),
+    # The ж.к. (housing estates) and кв. (quarters); villages, villa zones and industrial areas left out.
+    area_row("Sofia", "Sofia", geojson_source("https://api.sofiaplan.bg/datasets/297"),
+             lambda p: re.sub(r"^(ЖК|КВ)\.\s*", "", (p.get("kvname") or "").strip()), lambda p: (p.get("prefname") or "").lower(),
+             keep=lambda p: p.get("prefname") in ("ЖК.", "КВ.")),
+    area_row("Stockholm", "Stockholm", geojson_source("https://geodata.scb.se/geoserver/stat/wfs?service=WFS&request=GetFeature&version=2.0.0&typeNames=stat:RegSO_2025"
+             "&outputFormat=application/json&srsName=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("kommunkod='0180'")), "regsonamn", "RegSO"),
+    area_row("Sydney", "Sydney", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='1'", "objectid"),
+             lambda p: re.sub(r" \(NSW\)$", "", p.get("sal_name_2021") or ""), "suburb"),
+    area_row("São Paulo", "São Paulo", geojson_source("https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/geoportal/wfs?service=WFS&version=2.0.0&request=GetFeature"
+             "&typeNames=geoportal:distrito_municipal&outputFormat=application/json&srsName=EPSG:4326"), "nm_distrito_municipal", "distrito"),
+    area_row("Tel Aviv", "Tel Aviv", geojson_source("https://gisn.tel-aviv.gov.il/arcgis/rest/services/IView2/MapServer/511/query"
+             "?where=1%3D1&outFields=shem_shchuna&outSR=4326&f=geojson"), lambda p: logical_hebrew((p.get("shem_shchuna") or "").strip()), "shchuna"),
+    area_row("The Hague", "The Hague", geojson_source("https://den-haag-opendata.opendatasoft.com/api/explore/v2.1/catalog/datasets/wijken/exports/geojson"),
+             "wijknaam", "wijk"),
+    area_row("Thessaloníki", "Thessaloníki", geojson_source("https://maps.thessaloniki.gr/server/rest/services/DataMapImage/MapServer/111/query"
+             "?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "δημοτική κοινότητα"),
+    # Chōme merged into their machi, ward by ward.
+    area_row("Tokyo", "Tokyo", estat_source("13", range(101, 124)), machi, "machi", dissolve=lambda p: (p["CITY"], machi(p))),
+    area_row("Toronto", "Toronto", geojson_source("https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/fc443770-ef0a-4025-9c2c-2cb558bfab00"
+             "/resource/0719053b-28b7-48ea-b863-068823a93aaa/download/neighbourhoods-4326.geojson"), "AREA_NAME", "neighbourhood"),
+    area_row("Turin", "Turin", shapefile_source("http://geoportale.comune.torino.it/geodati/zip/zone_statistiche_geo.zip"), "DENOM", "zona statistica"),  # http only
+    area_row("Valencia", "Valencia", geojson_source("https://geoportal.valencia.es/server/rest/services/OPENDATA/UrbanismoEInfraestructuras/MapServer/224/query"
+             "?where=1%3D1&outFields=nombre&outSR=4326&f=geojson"), "nombre", "barri"),
+    area_row("Vancouver", "Vancouver", geojson_source("https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/local-area-boundary/exports/geojson"),
+             "name", "local area"),
+    area_row("Vienna", "Vienna", geojson_source("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:BEZIRKSGRENZEOGD"
+             "&srsName=EPSG:4326&outputFormat=json"), "NAMEK", "Bezirk"),
+    area_row("Vilnius", "Vilnius", geojson_source("https://zemelapiai.vplanas.lt/arcgis/rest/services/Open_Data/Vilniaus_miesto_ribos/MapServer/1/query"
+             "?where=1%3D1&outFields=SENIUNIJA&outSR=4326&f=geojson"), "SENIUNIJA", "seniūnija"),
+    area_row("Warsaw", "OSM", osm_area_source((10,)), "name", None),   # the city's WFS was not reached (2026-10-10)
+    area_row("Zagreb", "Zagreb", shapefile_source("https://data.zagreb.hr/dataset/37fa6630-0a87-4084-b62d-ff5edab3610b/resource/482b7289-d397-4c38-9929-5d0410ad0e16"
+             "/download/rpj_mo.zip", encoding="cp1250"), "JMS_IME", "mjesni odbor"),
+    area_row("Zurich", "Zurich", geojson_source("https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Statistische_Quartiere?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature"
+             "&TYPENAME=adm_statistische_quartiere_map&OUTPUTFORMAT=GeoJSON"), "qname", "statistisches Quartier"),
+]
+
+TITLE_SMALL = {"de", "des", "du", "la", "le", "les", "del", "della", "delle", "degli", "dei", "di", "da", "do", "dos", "das", "sul", "y", "et",
+               "e", "i", "and", "of", "the",
+               "van", "der", "den", "het", "von", "am", "im"}
+
+def titled(name):
+    """A name written in capitals only ("LA CREU COBERTA", "ΚΟΛΩΝΑΚΙ") in title case, its articles and particles after
+    the first word in lower case and a Roman numeral kept ("Avenue Léopold III"); any other name as it is."""
+    if not any(ch.isalpha() for ch in name) or name != name.upper(): return name
+    def word(m):
+        w = m[0]
+        if re.fullmatch(r"[IVX]+", w) and m.start() > 0: return w
+        if w.lower() in TITLE_SMALL and m.start() > 0 and name[m.start() - 1] == " ": return w.lower()
+        return w[0] + w[1:].lower()
+    return re.sub(r"[^\W\d_]+", word, name)
+
+def area_features(row, rect):
+    """[{"name", "level", "source", "geometry"}] of one row: kept, named, dissolved, made valid, polygons only."""
+    import shapely
+    out, groups = [], {}
+    for p, g in row["fetch"](rect):
+        if row["keep"] and not row["keep"](p): continue
+        name = row["name"](p) if callable(row["name"]) else p.get(row["name"])
+        name = " ".join(str(name or "").split())
+        if len(name) > 2 and name[0] == name[-1] == '"': name = name[1:-1].strip()   # Zagreb's units named after people
+        if not any(ch.isalnum() for ch in name): continue   # e-Stat's "‐", an unnamed area
+        level = row["level"](p) if callable(row["level"]) else row["level"] if row["level"] is not None else p.get("level")
+        g = shapely.make_valid(g)
+        g = shapely.union_all([part for part in shapely.get_parts(g) if part.geom_type in ("Polygon", "MultiPolygon")] or [shapely.Polygon()])
+        if g.is_empty: continue
+        group = None if not row["dissolve"] else name if row["dissolve"] is True else row["dissolve"](p)
+        if group is not None and group in groups:
+            groups[group]["geometry"] = shapely.union(groups[group]["geometry"], g); continue
+        out.append({"name": name, "level": level, "source": row["source"], "geometry": g})
+        if group is not None: groups[group] = out[-1]
+    return out
+
+def simplified_coverage(geoms, tolerance=BOUNDARY_TOLERANCE):
+    """The geometries (lon/lat) simplified together by `tolerance` metres, in a local equirectangular frame:
+    an edge two of them share is simplified once, so it stays shared. Then rounded on the 1e-5° grid,
+    vertex by vertex, so the shared vertices stay equal."""
+    import shapely, numpy
+    if not geoms: return []
+    lat0 = numpy.mean([g.centroid.y for g in geoms])
+    k = math.cos(math.radians(lat0))
+    there = shapely.transform(numpy.array(geoms, dtype=object), lambda xy: xy * [M * k, M])
+    back = shapely.transform(shapely.coverage_simplify(there, tolerance), lambda xy: xy / [M * k, M])
+    return list(shapely.set_precision(back, 1 / BOUNDARY_UNIT, mode="pointwise"))
+
+def area_rings(geometry, cell_key):
+    """boundaries/'s "polygons" for a geometry: per polygon its outer ring (counter-clockwise) then its holes
+    (clockwise), each open, in BOUNDARY_UNIT steps, the first vertex from the key's corner (key / 25), each next
+    from the one before. A ring of under 3 distinct vertices is left out, and a polygon whose outer ring is."""
+    import shapely
+    ky, kx = map(int, cell_key.split(","))
+    per = BOUNDARY_UNIT // MAIN
+    out = []
+    for polygon in shapely.get_parts(shapely.orient_polygons(geometry)):
+        rings = []
+        for ring in [polygon.exterior, *polygon.interiors]:
+            steps = []
+            for lon, lat in ring.coords:
+                q = (round(lat * BOUNDARY_UNIT), round(lon * BOUNDARY_UNIT))
+                if not steps or q != steps[-1]: steps.append(q)
+            if len(steps) > 1 and steps[0] == steps[-1]: steps.pop()
+            if len(steps) < 3:
+                if not rings: break
+                continue
+            flat, (y, x) = [steps[0][0] - ky * per, steps[0][1] - kx * per], steps[0]
+            for qy, qx in steps[1:]:
+                flat += [qy - y, qx - x]
+                y, x = qy, qx
+            rings.append(flat)
+        if rings: out.append(rings)
+    return out
+
+def label_point(feature, places):
+    """(name, lat, lon): the places/ place inside the polygon under the same place_key() (its name and point),
+    else the polygon's name, in title case if written in capitals, at a point inside it."""
+    import shapely
+    key = place_key(feature["name"])
+    for p in places:
+        lat, lon = p["coordinate"]["latitude"], p["coordinate"]["longitude"]
+        if place_key(p["name"]) == key and feature["geometry"].contains(shapely.Point(lon, lat)): return p["name"], lat, lon
+    at = feature["geometry"].representative_point()
+    return titled(feature["name"]), at.y, at.x
+
+def area_tiles(features, places):
+    """{MAIN key: [item, …] sorted by name}: each feature whole in its label point's cell."""
+    tiles = {}
+    for f in features:
+        name, lat, lon = label_point(f, places)
+        key = f"{index(lat, MAIN)},{index(lon, MAIN)}"
+        polygons = area_rings(f["geometry"], key)
+        if not polygons: continue
+        tiles.setdefault(key, []).append({"name": name, "level": f["level"], "source": f["source"], "polygons": polygons})
+    for items in tiles.values(): items.sort(key=lambda i: (i["name"], i["polygons"][0][0][:2]))
+    return tiles
+
+def area_region(entries, half_km=0.5):
+    """The city's tiled area: each entry's box, cut to its boundary where it has one, together."""
+    import shapely, shapely.geometry
+    parts = []
+    for e in entries:
+        s, w, n, e_ = area(e, half_km)
+        part = shapely.box(w, s, e_, n)
+        if e.get("_boundary"):   # a ring of under 4 positions (Marseille's file holds one) is left out
+            g = e["_boundary"]
+            polygons = [g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]
+            shape = shapely.MultiPolygon([shapely.Polygon(p[0], [r for r in p[1:] if len(r) >= 4]) for p in polygons if p and len(p[0]) >= 4])
+            part = part.intersection(shapely.make_valid(shape))
+        parts.append(part)
+    return shapely.union_all(parts)
+
+_areas = {}   # city → (features, tiles) or SourceError: built once a run, at the city's first entry
+
+def city_areas(city, entries):
+    """The city's boundaries/ features (simplified) and tiles, from every row of the city: a row's features meeting
+    the tiled area, simplified as one set. A row whose key is not set gives nothing (said once); a row that
+    fails fails the city (its published tiles stay)."""
+    import shapely
+    if city in _areas: return _areas[city]
+    features = []
+    try:
+        region = area_region(entries)
+        s, w, n, e = region.bounds[1], region.bounds[0], region.bounds[3], region.bounds[2]
+        for row in (r for r in AREA_SOURCES if r["city"] == city):
+            if row["key"] and not os.environ.get(row["key"], "").strip():
+                log(f"  {city} boundaries: skipped, {row['key']} is not set"); continue
+            found = [f for f in area_features(row, (s, w, n, e))
+                     if f["geometry"].intersects(region) and shapely.area(shapely.intersection(f["geometry"], region)) > 0]
+            for f, g in zip(found, simplified_coverage([f["geometry"] for f in found])): f["geometry"] = g
+            features += [f for f in found if not f["geometry"].is_empty]
+            log(f"  {city} boundaries: {len(found)} from {row['source']}")
+        _areas[city] = features, area_tiles(features, _osm.places() if _osm else [])
+    except SourceError as error:
+        _areas[city] = error
+    except Exception as error:  # noqa: BLE001 — a malformed answer (bad zip, missing field) fails the city, not the run
+        _areas[city] = SourceError(f"{type(error).__name__}: {error}"[:300])
+    return _areas[city]
+
+def do_boundaries(city, entries, cells, out, failures, published=None):
+    """The city's boundaries/ tiles (written at its first entry; an earlier run's tile in a cell of the city's area
+    that holds none now is removed), and in sources/ each of this entry's ~200 m cells whose centre lies in a
+    polygon names its source ("boundaries")."""
+    first = city not in _areas
+    answer = city_areas(city, entries)
+    wide = {c.key for e in entries for c in cells_in(*area(e, 0.5), scale=MAIN)}
+    if isinstance(answer, SourceError):
+        if first: failures += [(k, "boundaries", str(answer)) for k in sorted(wide)]
+        return
+    features, tiles = answer
+    if first:
+        for key, items in tiles.items(): write(os.path.join(out, "boundaries", key + ".json"), items)
+        for key in wide - set(tiles):
+            if os.path.exists(os.path.join(out, "boundaries", key + ".json")): os.remove(os.path.join(out, "boundaries", key + ".json"))
+    if not features or not cells: return
+    import shapely
+    tree = shapely.STRtree([f["geometry"] for f in features])
+    at, hit = tree.query(shapely.points([(c.lon, c.lat) for c in cells]), predicate="intersects")
+    source = {}
+    for i, j in zip(at, hit): source.setdefault(cells[i].key, features[j]["source"])
+    noted = [c for c in cells if c.key in source]
+    published = published if published is not None else published_sources(out, noted)
+    for c in noted: note_sources(out, c, published, boundaries=source[c.key])
+
+
 # ---------------------------------------------------------------- the run
 
-LAYERS = ("communes", "buildings", "terraces-v2", "venues", "streets", "streets-main", "places")
-STREET_LAYERS = ("streets", "streets-main", "places")   # built only where an entry says "streets": true
+LAYERS = ("communes", "buildings", "terraces-v2", "venues", "streets", "streets-main", "places", "boundaries")
+STREET_LAYERS = ("streets", "streets-main", "places", "boundaries")   # built only where an entry says "streets": true
 # Days before a finished tile is cut again. Resuming skips a cell only while
 # its file is younger than this, so the weekly run does refresh permits
 # (they lapse) while a same-day re-run after a
 # failure still skips what is done. Buildings and streets change yearly, communes never.
 MAX_AGE_DAYS = {"communes": None, "buildings": 360, "buildings-v2": 360, "terraces-v2": 6, "venues": 6, "streets": 360, "streets-main": 360, "places": 360}
+# boundaries/ has no age: a city's set is one small fetch, asked again each run that builds the layer.
 
 def path(out, layer, cell): return os.path.join(out, layer, cell.key + ".json")
 
@@ -2887,7 +3416,7 @@ def clip(cells, boundary):
     """The cells whose centre falls inside a GeoJSON (Multi)Polygon."""
     return [c for c in cells if contains(boundary, c.lat, c.lon)]
 
-def run(label, rect, out, block, layers, extracts, departements=None, boundary=None):
+def run(label, rect, out, block, layers, extracts, departements=None, boundary=None, city=None, city_entries=()):
     global _osm
     started = time.monotonic()
     cells, coarse, wide = cells_in(*rect), cells_in(*rect, scale=COARSE), cells_in(*rect, scale=MAIN)
@@ -2910,7 +3439,7 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         return len(cells), [(c.key, "all", str(e)) for c in cells]
     # A French extract means French communes; elsewhere the geo API would answer [] a cell at a time.
     french = "/europe/france" in pbf
-    sources_only = set(layers) <= {"sources", "venues", "streets-main", "places"}
+    sources_only = set(layers) <= {"sources", "venues", "streets-main", "places", "boundaries"}
     if "venues" in layers:
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
@@ -2945,13 +3474,15 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         if need_streets: do_streets(need_streets, out, failures)
         if need_terraces: do_terraces(need_terraces, communes, out, failures)
         if need_sources: do_sources(need_sources, out, failures)
+    # After the blocks, so a cell's sources/ tile written by this run's buildings or terraces is the one noted.
+    if "boundaries" in layers: do_boundaries(city or label, city_entries or [{"box": rect, "_boundary": boundary}], [c for c in cells if c.key not in outside], out, failures)
     failed = {k for k, _, _ in failures}
     log(f"{label}: {len(cells) - len(outside) - len(failed)} of {len(cells) - len(outside)} cells complete ({skipped} already there), "
         f"{len(failed)} failed, {time.monotonic() - started:.0f} s")
     return len(cells) - len(outside), failures
 
 def entry_layers(entry, layers):
-    """The layers built for one area: streets/, streets-main/ and places/ only where its entry says
+    """The layers built for one area: streets/, streets-main/, places/ and boundaries/ only where its entry says
     "streets": true (owner, 2026-10-05: a few cities a country, chosen by hand), every other layer as asked."""
     return [l for l in layers if l not in STREET_LAYERS or entry.get("streets") is True]
 
@@ -2982,16 +3513,20 @@ def main():
         a.error("give --cities, or --city with --lat and --lon")
     total, failures = 0, []
     for entry in entries:
-        label = entry["city"] + (f" ({entry['district']})" if entry.get("district") else "")
-        boundary = None
+        entry["_boundary"] = None
         if entry.get("boundary"):
             with open(os.path.join(os.path.dirname(os.path.abspath(args.cities)), entry["boundary"])) as f: boundary = json.load(f)
-            boundary = boundary.get("geometry", boundary)
+            entry["_boundary"] = boundary.get("geometry", boundary)
+        entry.setdefault("half_km", args.half_km)
+    for entry in entries:
+        label = entry["city"] + (f" ({entry['district']})" if entry.get("district") else "")
         layers = entry_layers(entry, args.layers.split(","))
         if not layers:
             log(f"{label}: no streets/ for this area (not flagged), nothing else asked"); continue
+        # boundaries/ is the city's, built from all its flagged entries' areas at the first.
+        city_entries = [e for e in entries if e["city"] == entry["city"] and "boundaries" in entry_layers(e, ["boundaries"])]
         n, f = run(label, area(entry, args.half_km), args.out, args.block, layers, args.extracts,
-                   entry.get("departements"), boundary)
+                   entry.get("departements"), entry["_boundary"], entry["city"], city_entries)
         total += n
         failures += [(label,) + x for x in f]
     failed = {(x[0], x[1]) for x in failures}

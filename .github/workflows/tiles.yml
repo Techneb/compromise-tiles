@@ -1,9 +1,10 @@
 # Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
 # coverage feed. Weekly: venues and terraces. Yearly: buildings and the street layers (run it by hand too when cities.json
-# gains an area). streets, streets-main and places are built only for the areas whose entry says "streets": true;
+# gains an area). streets, streets-main, places and boundaries are built only for the areas whose entry says "streets": true;
 # numbers/ (house-number ranges) is written beside streets/ by the same build and uploaded with it. French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
 # to name the feed's areas; they are never uploaded (2026-10-03: the app credits from sources/).
-# Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY (the build step only). Public repo, standard
+# boundaries/ (neighbourhood outlines, 2026-10-10) needs shapely, pyproj and pyshp (requirements.txt), installed only when asked.
+# Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY and LINZ_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
 # uploaded; dry_run builds and prints that plan without writing anything.
 name: Tiles
@@ -15,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       layers:
-        description: "Layers to build (comma-separated; streets, streets-main and places only where cities.json flags \"streets\": true); sources alone restores the building source of the published sources/ tiles that lack it"
+        description: "Layers to build (comma-separated; streets, streets-main, places and boundaries only where cities.json flags \"streets\": true); sources alone restores the building source of the published sources/ tiles that lack it"
         default: "terraces-v2,venues"
       repo_tiles:
         description: "Skip the build and upload the tiles committed in this repository (built off GitHub, such as Tel Aviv, whose heights feed answers only from Israel)"
@@ -56,13 +57,13 @@ jobs:
       - id: plan
         env:
           ONLY: ${{ inputs.only }}
-          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,streets,streets-main,places' || 'terraces-v2,venues') }}
+          LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,streets,streets-main,places,boundaries' || 'terraces-v2,venues') }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
           only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
           # A run of the street layers alone has nothing to do for a city with no flagged entry: no job for it.
-          streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places"}
+          streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places", "boundaries"}
           names = []
           for e in json.load(open("cities.json")):
               if streets_only and e.get("streets") is not True: continue
@@ -117,6 +118,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      # boundaries/ alone needs packages (shapely ≥ 2.1 for coverage_simplify); in the user's site, the system's Python left as it is.
+      - if: ${{ contains(format(',{0},', needs.plan.outputs.layers), ',boundaries,') }}
+        run: python3 -m pip install --user --break-system-packages -q -r requirements.txt
       # The store's listing, read twice: the build starts with the blocks the store lacks, the upload compares with it.
       - uses: actions/download-artifact@v4
         if: ${{ !cancelled() }}
@@ -133,6 +137,7 @@ jobs:
           CITY: ${{ matrix.city }}
           LAYERS: ${{ needs.plan.outputs.layers }}
           STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, the row is skipped
+          LINZ_API_KEY: ${{ secrets.LINZ_API_KEY }}             # Auckland's suburbs (boundaries/); unset, Auckland gets none
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
           timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 \

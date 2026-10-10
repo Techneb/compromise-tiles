@@ -1001,6 +1001,93 @@ assert short(2472, 3204) and short(1536, 1536) and short(6, 100)
 assert not short(5, 100) and not short(1, 100) and not short(0, 0)
 print("ok (short run)")
 
+# boundaries/ (2026-10-10): neighbourhood outlines on places/'s 1/25° cells, rings as buildings-v2/'s from key / 25.
+import shapely
+from make_tiles import area_rings, area_tiles, simplified_coverage, titled, roman_part, logical_hebrew, BOUNDARY_UNIT, MAIN
+
+def decoded(polygons, key):
+    """area_rings() undone: [[[(lat, lon), …] per ring] per polygon]."""
+    ky, kx = map(int, key.split(","))
+    out = []
+    for polygon in polygons:
+        rings = []
+        for flat in polygon:
+            y, x = flat[0] + ky * (BOUNDARY_UNIT // MAIN), flat[1] + kx * (BOUNDARY_UNIT // MAIN)
+            ring = [(y, x)]
+            for k in range(2, len(flat), 2):
+                y, x = y + flat[k], x + flat[k + 1]
+                ring.append((y, x))
+            rings.append([(a / BOUNDARY_UNIT, b / BOUNDARY_UNIT) for a, b in ring])
+        out.append(rings)
+    return out
+
+# Delta encoding round trip: the open ring, every vertex rounded to 1e-5°, from the cell's corner (key / 25),
+# even for a vertex below or left of it (a polygon reaching out of its cell).
+square = shapely.Polygon([(2.35, 48.85), (2.3612345, 48.85), (2.3612345, 48.8601), (2.35, 48.8601)])
+rings = area_rings(square, "1221,58")
+assert len(rings) == 1 and len(rings[0]) == 1 and len(rings[0][0]) == 8   # one polygon, one ring, 4 vertices, not closed
+assert all(isinstance(v, int) for v in rings[0][0])
+assert rings[0][0][:2] == [round(48.85 * BOUNDARY_UNIT) - 1221 * 4000, round(2.35 * BOUNDARY_UNIT) - 58 * 4000]
+back = decoded(rings, "1221,58")[0][0]
+assert sorted(back) == sorted((round(lat, 5), round(lon, 5)) for lon, lat in list(square.exterior.coords)[:-1])
+south = area_rings(shapely.Polygon([(2.35, 48.70), (2.36, 48.70), (2.36, 48.71)]), "1221,58")
+assert south[0][0][0] < 0 and decoded(south, "1221,58")[0][0][0] == (48.70, 2.35)
+# Southern and western hemispheres: negative keys, the same rule (Buenos Aires).
+ba = shapely.Polygon([(-58.40, -34.60), (-58.39, -34.60), (-58.39, -34.59)])
+assert decoded(area_rings(ba, "-865,-1459"), "-865,-1459")[0][0][0] == (-34.60, -58.40)
+# A ring rounding to under 3 vertices is left out.
+assert area_rings(shapely.Polygon([(2.35, 48.85), (2.350001, 48.85), (2.350001, 48.850001)]), "1221,58") == []
+print("ok (boundaries, delta encoding)")
+
+# A multipolygon with a hole: each polygon its outer ring first (counter-clockwise), then its hole (clockwise).
+outer = [(2.30, 48.80), (2.34, 48.80), (2.34, 48.84), (2.30, 48.84)]
+hole = [(2.31, 48.81), (2.32, 48.81), (2.32, 48.82), (2.31, 48.82)]
+island = [(2.36, 48.80), (2.37, 48.80), (2.37, 48.81)]
+multi = shapely.MultiPolygon([shapely.Polygon(outer[::-1], [hole]), shapely.Polygon(island[::-1])])   # given clockwise, hole counter-clockwise
+rings = area_rings(multi, "1220,57")
+assert [len(p) for p in rings] == [2, 1]
+signed = lambda ring: sum(a[1] * b[0] - b[1] * a[0] for a, b in zip(ring, ring[1:] + ring[:1])) / 2   # (lat, lon): x is lon
+polygons = decoded(rings, "1220,57")
+assert signed(polygons[0][0]) > 0 and signed(polygons[0][1]) < 0 and signed(polygons[1][0]) > 0
+rebuilt = shapely.MultiPolygon([shapely.Polygon([(x, y) for y, x in p[0]], [[(x, y) for y, x in r] for r in p[1:]]) for p in polygons])
+assert abs(rebuilt.area - multi.area) < 1e-12 and rebuilt.equals(multi)
+print("ok (boundaries, multipolygon with a hole)")
+
+# Each polygon whole in its label point's cell: the places/ place of the same name inside it (its name and point
+# win: "Quartier de la Goutte-d'Or" is "La Goutte d'Or" there), else a point inside it, in title case if in capitals.
+long_one = shapely.Polygon([(2.30, 48.83), (2.50, 48.83), (2.50, 48.84), (2.30, 48.84)])   # across 1/25° cells 57 to 62
+features = [{"name": "GOUTTE D'OR", "level": "quartier", "source": "Paris", "geometry": long_one},
+            {"name": "LA CREU COBERTA", "level": "barri", "source": "Valencia", "geometry": shapely.Polygon([(-0.38, 39.45), (-0.37, 39.45), (-0.37, 39.46)])}]
+places = [{"name": "La Goutte d'Or", "kind": "quarter", "coordinate": {"latitude": 48.835, "longitude": 2.45}},
+          {"name": "Goutte d'Or", "kind": "quarter", "coordinate": {"latitude": 48.90, "longitude": 2.45}}]   # same name, outside: not used
+tiles = area_tiles(features, places)
+assert set(tiles) == {f"{int(48.835 * 25)},{int(2.45 * 25)}", f"{int(39.4567 * 25)},{int(-0.3733 * 25)}"}
+item = tiles["1220,61"][0]
+assert item["name"] == "La Goutte d'Or" and item["level"] == "quartier" and item["source"] == "Paris"
+assert decoded(item["polygons"], "1220,61")[0][0][0] == (48.83, 2.30)   # whole, not cut at the cell's edge: starts 4 cells west
+assert tiles["986,-9"][0]["name"] == "La Creu Coberta"
+assert list(area_tiles(features[:1], []))[0] == f"{int(long_one.representative_point().y * 25)},{int(long_one.representative_point().x * 25)}"
+assert titled("BOIS DE LA CAMBRE") == "Bois de la Cambre" and titled("AVENUE LEOPOLD III") == "Avenue Leopold III" and titled("Saint-Germain") == "Saint-Germain"
+assert roman_part("ΠΑΓΚΡΑΤΙ ΙΙ") == "ΠΑΓΚΡΑΤΙ" and roman_part("ΚΑΤΩ ΠΑΤΗΣΙΑ II") == "ΚΑΤΩ ΠΑΤΗΣΙΑ" and roman_part("ΠΡΟΜΠΟΝΑ2") == "ΠΡΟΜΠΟΝΑ"
+assert logical_hebrew("'נאות אפקה א") == "נאות אפקה א'" and logical_hebrew("(יפו ד' (גבעת התמרים") == "יפו ד' (גבעת התמרים)"
+print("ok (boundaries, cell by label point)")
+
+# A shared edge stays shared after the 5 m simplification: two neighbours along a wiggly street (2 m off a straight
+# line, every 10 m), simplified together; the edge's vertices are the same in both and no gap or overlap opens.
+lon0, lat0 = 13.40, 52.50
+step = 10 / (111_320 * math.cos(math.radians(lat0)))
+edge = [(lon0 + k * step, lat0 + (2 / 111_320) * (k % 2)) for k in range(101)]
+top, bottom = lat0 + 0.005, lat0 - 0.005
+north = shapely.Polygon(edge + [(edge[-1][0], top), (edge[0][0], top)])
+south = shapely.Polygon(edge[::-1] + [(edge[0][0], bottom), (edge[-1][0], bottom)])
+a, b = simplified_coverage([north, south])
+vertices = lambda g: {(round(x * BOUNDARY_UNIT), round(y * BOUNDARY_UNIT)) for x, y in g.exterior.coords}
+shared = vertices(a) & vertices(b)
+assert 2 <= len(shared) < 101   # simplified, and still both sides of one line
+assert all(v in vertices(b) for v in vertices(a) if bottom + 0.001 < v[1] / BOUNDARY_UNIT < top - 0.001)   # every vertex of the edge, in both
+assert abs(shapely.union(a, b).area - (a.area + b.area)) < 1e-12   # no overlap
+assert shapely.union(a, b).geom_type == "Polygon" and len(shapely.union(a, b).interiors) == 0   # no gap
+print("ok (boundaries, shared edge)")
 # Open past midnight: wrapping and past-24:00 ranges, a whole day, 24/7; "off" rules and holidays
 # alone open nothing; what the strict reading cannot parse is False. La Perle's and Le Progrès's
 # values (Marais, 2026-10-10) are the first two.
