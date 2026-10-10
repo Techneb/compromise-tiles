@@ -6,7 +6,8 @@
 # boundaries/ (neighbourhood outlines, 2026-10-10) needs shapely, pyproj and pyshp (requirements.txt), installed only when asked.
 # Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY and LINZ_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
-# uploaded; dry_run builds and prints that plan without writing anything.
+# uploaded; a numbers/ or boundaries/ tile the store holds for a cell the run left with none is deleted (only those two
+# layers, only in the city's own cells); dry_run builds and prints that plan without writing anything.
 name: Tiles
 
 on:
@@ -174,7 +175,7 @@ jobs:
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
           [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
-          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY"
+          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt
       # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
       # there is complete, and R2 keeps last week's tile for the rest.
       - name: Upload tiles to R2
@@ -201,6 +202,20 @@ jobs:
           sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
             sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
           done
+      # numbers/ and boundaries/ write no file for a cell left with nothing: the keys of the city's own cells this run
+      # emptied (changed.py --stale, listed in the summary above, a dry run included) go from the store, those two layers only.
+      - name: Delete emptied tiles from R2
+        if: ${{ !cancelled() && !inputs.dry_run && hashFiles('stale.txt') != '' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          split -l 1000 stale.txt stale-
+          for b in stale-??; do
+            python3 -c 'import json,sys; print(json.dumps({"Objects":[{"Key":k.strip()} for k in open(sys.argv[1]) if k.strip()],"Quiet":True}))' "$b" > "$b.json"
+            aws s3api delete-objects --bucket "${{ secrets.R2_BUCKET }}" --delete "file://$b.json" --endpoint-url "$ENDPOINT"
+          done
+          echo "Deleted $(wc -l < stale.txt) emptied numbers/ and boundaries/ tiles." >> "$GITHUB_STEP_SUMMARY"
       # Red once what was built is up: more than 5 % of the city's cells failed (make_tiles.py exits 1),
       # or the time cap cut the build (124). A green job used to hide both (Gijón, Genoa, London, 2026-10-07).
       - name: Check the build is complete
