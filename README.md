@@ -405,6 +405,7 @@ none, this says so rather than guessing.
 - Montréal: Ville de Montréal, quartiers de référence en habitation, CC BY 4.0.
 - Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
   Deutschland – Namensnennung – 2.0.
+- Nantes: Nantes Métropole, quartiers de la ville de Nantes, Licence Ouverte.
 - New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation
   Areas, NYC Open Data (licence not stated by the publisher).
 - Osaka, Tokyo: 出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）,

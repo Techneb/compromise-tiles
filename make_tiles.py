@@ -2947,6 +2947,8 @@ AREA_SOURCES = [
     area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"
              "&typeName=gsm_wfs:vablock_stadtbezirk&outputFormat=application/json&srsName=EPSG:4326"), "sb_name", "Stadtbezirk", dissolve=True),
     # ntatype 0: the residential NTAs; 5 to 9 are parks, cemeteries, airports.
+    area_row("Nantes", "Nantes", geojson_source("https://data.nantesmetropole.fr/api/explore/v2.1/catalog/datasets/244400404_quartiers-de-la-ville-de-nantes"
+             "/exports/geojson?select=nom,geo_shape"), "nom", "quartier"),
     area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
              keep=lambda p: str(p.get("ntatype")) == "0"),
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",

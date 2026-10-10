@@ -1504,6 +1504,7 @@
   },
   {
     "city": "Nantes",
+    "streets": true,
     "district": "Nantes (whole commune)",
     "box": [
       47.1806,
