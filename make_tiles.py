@@ -2967,6 +2967,9 @@ AREA_SOURCES = [
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
     area_row("Prague", "Prague", geojson_source("https://lkod-iprpraha.hub.arcgis.com/api/download/v1/items/35ede955057f4815b522ea91b488792a/geojson?layers=0"),
              "nazev_1", "městská část"),
+    # The 58 apkaimes (Āgenskalns, Grīziņkalns), in LKS-92 with an ISO-8859-13 .cpg.
+    area_row("Riga", "Riga", shapefile_source("https://data.gov.lv/dati/dataset/ddc24ef1-4db4-46ce-a035-258b6ed69d91/resource/5409870d-287f-49e0-b336-d3c4ce936f69"
+             "/download/apkaimes.zip"), "apkaime", "apkaime"),
     area_row("Rome", "Rome", geojson_source("https://geoportale.comune.roma.it/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature"
              "&typeNames=DIPSER:SuddivisioniToponomastica&outputFormat=application/json&srsName=EPSG:4326"),
              "DESCRIZIONE", lambda p: (p.get("TIPOLOGIA") or "").lower() or "suddivisione"),

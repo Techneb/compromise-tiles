@@ -720,6 +720,7 @@
   },
   {
     "city": "Riga",
+    "streets": true,
     "district": "Riga (going-out core + 2 km)",
     "box": [
       56.923,

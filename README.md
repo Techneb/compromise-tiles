@@ -422,6 +422,8 @@ none, this says so rather than guessing.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the
   source).
 - Prague: datový podklad © IPR Praha, městské části, CC BY 4.0.
+- Riga: Rīgas valstspilsētas pašvaldība (data.gov.lv), Rīgas apkaimes, Creative
+  Commons Attribution 4.0.
 - Rome: Roma Capitale, suddivisioni toponomastiche (licence not stated by the
   publisher).
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
