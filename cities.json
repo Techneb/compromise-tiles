@@ -1146,6 +1146,7 @@
   },
   {
     "city": "Bordeaux",
+    "streets": true,
     "district": "Bordeaux (whole municipality)",
     "box": [
       44.8107,

@@ -357,6 +357,8 @@ none, this says so rather than guessing.
   Zero 2.0.
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
   CC BY 4.0.
+- Bordeaux: Ville de Bordeaux, secteurs de vie (Bordeaux Métropole open data),
+  Licence Ouverte.
 - Bratislava: Magistrát hlavného mesta SR, Bratislava, mestské časti, CC BY 4.0.
 - Brisbane: © Brisbane City Council 2025 © State of Queensland (Department of
   Resources) 2025, suburb boundaries, CC BY 4.0.
