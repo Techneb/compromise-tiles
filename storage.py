@@ -117,7 +117,7 @@ def main():
     a.add_argument("--cities", default="cities.json")
     a.add_argument("--write", default="storage.json")
     a.add_argument("--summary", default="storage.md")
-    a.add_argument("--orphans", help="also write the keys of tiles no area builds, one a line (storage.yml deletes them)")
+    a.add_argument("--orphans", help="also write the keys of tiles no area builds, one a line (storage.yml puts them in its artifact; it deletes nothing)")
     args = a.parse_args()
     with open(args.listing) as f: objects = list(parse(f))
     cells = owners(args.cities)
