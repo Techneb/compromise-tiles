@@ -13,7 +13,13 @@ item is one OpenStreetMap street cut at the cell's edges, a flat array
 [kind, y0, x0, dy1, dx1, …] (kind 1 main road, 2 street, 3 pedestrian),
 with the way's name after the kind where it has one, [kind, "name", y0, …] (2026-10-08),
 coordinates in 1e-5° steps, the first from the key's corner (key / 500),
-each next from the one before. streets-main/ is the same on ~4 km cells
+each next from the one before. numbers/ (2026-10-10), built with streets/ on
+its cells: [["name", lowest, highest], …] sorted by name, one row per named
+street of the cell's streets/ tile with at least two distinct house numbers
+inside the cell — OpenStreetMap's addr:housenumber (its leading digits:
+"12bis" is 12) on nodes, buildings and along addr:interpolation ways, whose
+addr:street, else associatedStreet relation's name, matches the name without
+case, accents or apostrophes; no file for a cell with none. streets-main/ is the same on ~4 km cells
 (1/25°, keyed "<int(lat*25)>,<int(lon*25)>"): main roads only, 1e-4° steps
 from key / 25. places/, on the same cells: [{"name", "kind" (suburb,
 quarter, neighbourhood), "coordinate", "admin_level"?}]: "admin_level" (an
@@ -471,6 +477,7 @@ class OSM:
         s, w, n, e = rect
         self.venues, self.walls, self.roads, self.last = {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
         self.named, self.admin, self._places = pbf + ".places.pbf", pbf + ".admin.pbf", None
+        self.numbers = pbf + ".numbers.pbf"
         box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
         try:
             osmium("extract", "-b", f"{w},{s},{e},{n}", pbf, "-o", box, "--overwrite")
@@ -478,6 +485,7 @@ class OSM:
             osmium("tags-filter", box, "w/highway=" + ",".join(STREET_KINDS), "-o", self.roads, "--overwrite")
             osmium("tags-filter", box, "nwr/place=" + ",".join(PLACE_KINDS), "-o", self.named, "--overwrite")
             osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
+            osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
             osmium("tags-filter", box, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
             for feature in features(kept):
                 tags, geometry = feature["properties"], feature["geometry"]
@@ -524,6 +532,28 @@ class OSM:
                 out.append((kind, simplified([(lat, lon) for lon, lat in f["geometry"]["coordinates"]], tolerance or STREET_TOLERANCE),
                             str(f["properties"].get("name", "")).strip()))
         return out
+
+    def addresses(self, rect):
+        """The house numbers around the rect: ([(lat, lon, addr:street, number)], [interpolation(), …]). A node
+        at its point, a building at its outer ring's mean vertex; an addr:interpolation way kept when both its
+        end nodes carry a number. A house with no addr:street takes the name of the associatedStreet relation
+        it is a "house" of (France's way: three in four of Paris's numbered nodes, 2026-10-10). osmium keeps a
+        way whole, its nodes with it."""
+        s, w, n, e = padded(rect, NUMBER_PAD)
+        cut = self.numbers + ".cut.pbf"
+        osmium("extract", "-b", f"{w},{s},{e},{n}", self.numbers, "-o", cut, "--overwrite")
+        points, ends, ways, houses = [], {}, [], associated_streets(osmium("cat", cut, "-t", "relation", "-f", "osm"))
+        for f in features(cut, "point,linestring,polygon", ids=True):
+            tags, geometry = f["properties"], f["geometry"]
+            if geometry["type"] == "LineString":  # a closed building way comes out as a line too: skipped here
+                if tags.get("addr:interpolation"): ways.append((tags, geometry["coordinates"]))
+                continue
+            street = str(tags.get("addr:street") or houses.get(tags.get("@type", "")[:1] + str(tags.get("@id")), "")).strip()
+            numbers = house_numbers(tags.get("addr:housenumber", ""))
+            if geometry["type"] == "Point": ends[tuple(geometry["coordinates"][:2])] = (street, numbers)
+            at = mean_point(geometry)
+            if street and numbers and at: points += [(at[0], at[1], street, x) for x in numbers]
+        return points, [i for tags, coordinates in ways if (i := interpolation(tags, coordinates, ends))]
 
     def places(self):
         """The area's named places (PLACE_KINDS), read once: a node at its point, an area at its
@@ -572,6 +602,8 @@ def osm_buildings(rect, tagged=False): return _osm.buildings(rect, tagged)
 def osm_streets(rect): return _osm.streets(rect)
 
 def osm_main_streets(rect): return _osm.streets(rect, MAIN_STREETS, MAIN_TOLERANCE)
+
+def osm_addresses(rect): return _osm.addresses(rect)
 
 def english(place, name_en):
     """The place with "name_en", OSM's name:en, when it has one that is not its "name"."""
@@ -797,6 +829,87 @@ def street_tiles(cells, streets, scale=FINE, unit=STREET_UNIT, named=True):
                 for piece in clipped(points, c.rect):
                     line = street_line(kind, piece, c.key, scale, unit, name if named else "")
                     if line: out[c.key].append(line)
+    return out
+
+# numbers/ (2026-10-10), beside streets/: per named street of a cell, [name, lowest, highest] from OpenStreetMap's
+# addr:housenumber + addr:street or associatedStreet (nodes, buildings) and addr:interpolation ways, the addresses
+# inside the cell only. A layer of its own: the app's streets/ decoder fails a tile on a row it does not know.
+NUMBER_PAD = 200          # metres asked around a block: an interpolation way across it with both ends outside
+NUMBER_MAX = 100_000      # a larger "number" is a typo or a reference, not a house
+INTERPOLATION_MAX = 1000  # numbers along one interpolation way at most
+INTERPOLATION_STEP = {"even": 2, "odd": 2, "all": 1}  # and a number: that step; "alphabetic" is left out
+
+def street_key(name):
+    """A street name as addr:street and a way's name are compared: no case, no accents, no apostrophes
+    ("l'Échaudé", "L’Echaudé"), runs of spaces as one."""
+    s = "".join(ch for ch in unicodedata.normalize("NFKD", str(name)) if not unicodedata.combining(ch)).casefold()
+    return " ".join(re.sub(r"['’‘ʼ`´]", "", s).split())
+
+def house_numbers(value):
+    """The numbers an addr:housenumber gives: each ";"- or ","-part's leading digits ("12bis" 12, "12 ter" 12,
+    "12-14" 12, "12;14" both); none for a part that does not start with one ("A3", "Flat 2")."""
+    out = []
+    for part in str(value).replace(",", ";").split(";"):
+        m = re.match(r"\s*(\d+)", part)
+        if m and 0 < int(m.group(1)) < NUMBER_MAX: out.append(int(m.group(1)))
+    return out
+
+def associated_streets(xml):
+    """{"n…"/"w…"/"r…": street} for the "house" members of the type=associatedStreet relations in an
+    osmium OSM-XML dump, the street the relation's name, else its addr:street."""
+    out = {}
+    for r in ET.fromstring(xml).iter("relation"):
+        tags = {t.get("k"): t.get("v") for t in r.iter("tag")}
+        name = (tags.get("name") or tags.get("addr:street") or "").strip()
+        if tags.get("type") != "associatedStreet" or not name: continue
+        for m in r.iter("member"):
+            if m.get("role") == "house": out.setdefault(m.get("type", "")[:1] + str(m.get("ref")), name)
+    return out
+
+def interpolation(tags, coordinates, ends):
+    """An addr:interpolation way as (street, [(lat, lon), …], first, last, step), or None: its kind not
+    even/odd/all or a step, or an end with no number. `ends` maps a node's (lon, lat) to its (street, numbers);
+    the street is the way's addr:street, else its ends'."""
+    kind = str(tags.get("addr:interpolation", "")).strip()
+    step = INTERPOLATION_STEP.get(kind) or (int(kind) if kind.isdigit() and int(kind) > 0 else None)
+    if not step or len(coordinates) < 2: return None
+    a, b = ends.get(tuple(coordinates[0][:2])), ends.get(tuple(coordinates[-1][:2]))
+    if not (a and a[1] and b and b[1]): return None
+    street = str(tags.get("addr:street") or a[0] or b[0]).strip()
+    return (street, [(lat, lon) for lon, lat in (p[:2] for p in coordinates)], a[1][0], b[1][0], step) if street else None
+
+def interpolated(line, first, last, step):
+    """[(lat, lon, number)] along an interpolation way, the numbers from first to last spaced evenly by length."""
+    count = abs(last - first) // step
+    if not count or count > INTERPOLATION_MAX: return []
+    k = math.cos(math.radians(line[0][0]))
+    lengths = [math.hypot(b[0] - a[0], (b[1] - a[1]) * k) for a, b in zip(line, line[1:])]
+    total, out = sum(lengths), []
+    for i in range(count + 1):
+        at, (lat, lon) = total * i / count, line[-1]
+        for (a, b), d in zip(zip(line, line[1:]), lengths):
+            if at <= d and d:
+                lat, lon = a[0] + (b[0] - a[0]) * at / d, a[1] + (b[1] - a[1]) * at / d
+                break
+            at -= d
+        out.append((lat, lon, first + (step if last > first else -step) * i))
+    return out
+
+def number_rows(tiles, points, interpolations):
+    """{key: [[name, lowest, highest], …]} (numbers/) for the streets/ tiles: each named way of a tile whose
+    street_key() matches the addr:street of at least two distinct numbers inside that cell (the key's
+    truncation deciding), once per name as the tile writes it, sorted by name."""
+    seen = {key: {} for key in tiles}
+    points = list(points) + [(lat, lon, street, x) for street, line, first, last, step in interpolations
+                             for lat, lon, x in interpolated(line, first, last, step)]
+    for lat, lon, street, number in points:
+        numbers = seen.get(f"{index(lat)},{index(lon)}")
+        if numbers is not None: numbers.setdefault(street_key(street), set()).add(number)
+    out = {}
+    for key, lines in tiles.items():
+        names = dict.fromkeys(line[1] for line in lines if len(line) > 1 and isinstance(line[1], str))
+        found = [(name, seen[key].get(street_key(name), ())) for name in names]
+        out[key] = sorted([name, min(n), max(n)] for name, n in found if len(n) >= 2)
     return out
 
 
@@ -2679,12 +2792,16 @@ def do_terraces(cells, communes, out, failures):
         note_sources(out, c, published, permits=feed_of[c.key] and feed_of[c.key]["city"])
 
 def do_streets(cells, out, failures):
-    """The street tiles of a block: OpenStreetMap's ways asked once, cut cell by cell."""
-    try: streets = osm_streets(union(cells))
+    """The street tiles of a block: OpenStreetMap's ways and house numbers asked once, cut cell by cell."""
+    try: streets, (points, interpolations) = osm_streets(union(cells)), osm_addresses(union(cells))
     except SourceError as e:
         failures += [(c.key, "streets", str(e)) for c in cells]; return
     tiles = street_tiles(cells, streets)
-    for c in cells: write(path(out, "streets", c), tiles[c.key])
+    numbers = number_rows(tiles, points, interpolations)
+    for c in cells:
+        write(path(out, "streets", c), tiles[c.key])
+        if numbers[c.key]: write(path(out, "numbers", c), numbers[c.key])
+        elif os.path.exists(path(out, "numbers", c)): os.remove(path(out, "numbers", c))   # an earlier run's, now stale
 
 def do_main_streets(cells, out, failures):
     """The streets-main/ tiles, one ~4 km cell at a time."""
