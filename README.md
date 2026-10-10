@@ -338,7 +338,7 @@ none, this says so rather than guessing.
 
 **Neighbourhood boundaries (`boundaries/`, by the `source` key)**
 - OSM (Barcelona, Belgrade, Budapest, Delhi, Istanbul, Jerusalem, Kraków,
-  Kuala Lumpur, Kyiv, Manila, Warsaw): © OpenStreetMap contributors, ODbL.
+  Kuala Lumpur, Kyiv, Manila, San José, Warsaw): © OpenStreetMap contributors, ODbL.
 - Paris: Ville de Paris, Quartiers administratifs, ODbL.
 - IGN (Paris, the petite couronne's communes): IGN, ADMIN EXPRESS, Licence
   Ouverte 2.0.

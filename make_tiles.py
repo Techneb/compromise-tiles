@@ -2977,6 +2977,9 @@ AREA_SOURCES = [
              "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
     # SF Find's 117 neighborhoods (Hayes Valley, Noe Valley), not the 41 Analysis Neighborhoods; data.sfgov.org moved here.
     area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
+    # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la
+    # Municipalidad de San José", and IGN's finest are the distritos.
+    area_row("San José", "OSM", osm_area_source((10,)), "name", None),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
              {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
     # IDE.Sevilla's barrios (Triana's, Nervión's); "VILLEGAS" is mapped in two parts.

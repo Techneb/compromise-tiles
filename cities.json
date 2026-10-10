@@ -1393,6 +1393,7 @@
   },
   {
     "city": "San Jos\u00e9",
+    "streets": true,
     "district": "San Jos\u00e9 (municipality)",
     "box": [
       9.9005,
