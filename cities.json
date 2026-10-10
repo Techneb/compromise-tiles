@@ -600,7 +600,7 @@
   {
     "city": "Tokyo",
     "streets": true,
-    "district": "Tokyo (whole 23 special wards)",
+    "district": "Tokyo (whole 23 special wards + the old core)",
     "box": [
       35.5209,
       139.5629,
@@ -612,12 +612,12 @@
   {
     "city": "Osaka",
     "streets": true,
-    "district": "Osaka (whole municipality)",
+    "district": "Osaka (whole municipality + the old core)",
     "box": [
       34.5861,
       135.3434,
       34.7689,
-      135.5992
+      135.602
     ],
     "boundary": "boundaries/osaka.geojson"
   },
@@ -647,10 +647,10 @@
   {
     "city": "Lisbon",
     "streets": true,
-    "district": "Lisbon (whole municipality)",
+    "district": "Lisbon (whole municipality + the old core)",
     "box": [
-      38.6917,
-      -9.2299,
+      38.65,
+      -9.244,
       38.7968,
       -9.0899
     ],
@@ -681,7 +681,7 @@
   {
     "city": "Bogot\u00e1",
     "streets": true,
-    "district": "Bogot\u00e1 (whole city, Sumapaz's p\u00e1ramo left out)",
+    "district": "Bogot\u00e1 (whole city without Sumapaz's p\u00e1ramo + the old core)",
     "box": [
       4.4656,
       -74.2236,
@@ -845,7 +845,7 @@
   {
     "city": "Kuala Lumpur",
     "streets": true,
-    "district": "Kuala Lumpur (whole municipality)",
+    "district": "Kuala Lumpur (whole municipality + the old core)",
     "box": [
       3.0334,
       101.6151,
@@ -889,7 +889,7 @@
   },
   {
     "city": "Seattle",
-    "district": "Seattle (whole municipality)",
+    "district": "Seattle (whole municipality + the old core)",
     "box": [
       47.4956,
       -122.436,
@@ -900,7 +900,7 @@
   },
   {
     "city": "Frankfurt",
-    "district": "Frankfurt (whole municipality)",
+    "district": "Frankfurt (whole municipality + the old core)",
     "box": [
       50.0153,
       8.4727,
@@ -912,7 +912,7 @@
   {
     "city": "Helsinki",
     "streets": true,
-    "district": "Helsinki (whole municipality)",
+    "district": "Helsinki (whole municipality + the old core)",
     "box": [
       60.0949,
       24.8285,
@@ -1468,7 +1468,7 @@
   },
   {
     "city": "Oakland",
-    "district": "Oakland (whole municipality)",
+    "district": "Oakland (whole municipality + the old core)",
     "box": [
       37.6992,
       -122.3427,
