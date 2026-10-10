@@ -61,7 +61,7 @@ jobs:
           pattern: counts-part-*
           path: parts
       # --previous: a run given `only` keeps the published rows of the listed cities it did not count.
-      - run: python3 counts.py --cities "$CITIES" --extracts extracts --write counts.json --merge parts/*/counts.json --previous "https://tiles.alephb.uk/counts.json"
+      - run: python3 counts.py --cities "$CITIES" --write counts.json --merge parts/*/counts.json --previous "https://tiles.alephb.uk/counts.json"
       - name: Upload to R2
         # Only the listed cities: the published file is what the cities page reads.
         if: ${{ env.CITIES == 'counts-cities.json' }}

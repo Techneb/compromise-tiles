@@ -338,7 +338,7 @@ def merge_parts(paths):
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     a.add_argument("--cities", default="counts-cities.json")
-    a.add_argument("--extracts", required=True, help="folder the Geofabrik extracts are kept in")
+    a.add_argument("--extracts", help="folder the Geofabrik extracts are kept in (not needed with --merge)")
     a.add_argument("--write", default="counts.json")
     a.add_argument("--only", default="", help="comma-separated city names")
     a.add_argument("--boxes", default="cities.json", help="a cities.json whose municipal boxes and boundaries replace the 24 km square")
@@ -351,6 +351,7 @@ def main():
     if args.merge:
         publish(*merge_parts(args.merge), args)
         return
+    if not args.extracts: a.error("--extracts is required unless --merge")
     passing = passing_cells(args.coverage) if args.coverage else None
     only = {x.strip() for x in args.only.split(",") if x.strip()}
     cities = [e for e in json.load(open(args.cities)) if not only or e["city"] in only]
