@@ -60,7 +60,11 @@ jobs:
           LAYERS: ${{ inputs.layers || (github.event.schedule == '41 4 2 1 *' && 'buildings,streets,streets-main,places,boundaries' || 'terraces-v2,venues') }}
         run: |
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os
+          import json, os, sys
+          from make_tiles import LAYERS
+          # make_tiles.py refuses an unknown layer too: caught here, no job downloads an extract to build nothing.
+          unknown = [l for l in os.environ["LAYERS"].split(",") if l not in LAYERS + ("sources",)]
+          if unknown: sys.exit(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources (numbers comes with streets)")
           only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
           # A run of the street layers alone has nothing to do for a city with no flagged entry: no job for it.
           streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places", "boundaries"}

@@ -3539,6 +3539,8 @@ def main():
     a.add_argument("--listing", help="the store's keys (changed.py's remote.tsv): blocks with a tile missing there are built first")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
+    unknown = [l for l in args.layers.split(",") if l not in LAYERS + ("sources",)]   # numbers/ is written beside streets/
+    if unknown: a.error(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources")
     global STORE, LISTED
     STORE = args.store and args.store.rstrip("/") + "/"
     if args.listing and os.path.exists(args.listing):
