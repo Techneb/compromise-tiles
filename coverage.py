@@ -200,7 +200,8 @@ def main():
             # area, named from the commune tiles, boxed by its own cells.
             by_commune = {}
             for ky, kx, c in keys:
-                code = next(x for x in c[5].split() if x[:2] in e["departements"])
+                code = next((x for x in c[5].split() if x[:2] in e["departements"]), None)
+                if code is None: continue  # no commune code recorded (its commune call failed): no area to give it to
                 by_commune.setdefault(code, []).append((ky, kx, c))
             for code, group in sorted(by_commune.items()):
                 lats = [ky / 500 for ky, _, _ in group]; lons = [kx / 500 for _, kx, _ in group]
