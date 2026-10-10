@@ -338,7 +338,7 @@ none, this says so rather than guessing.
 
 **Neighbourhood boundaries (`boundaries/`, by the `source` key)**
 - OSM (Barcelona, Belgrade, Budapest, Delhi, Istanbul, Jerusalem, Kraków,
-  Kuala Lumpur, Kyiv, Manila, Warsaw): © OpenStreetMap contributors, ODbL.
+  Kuala Lumpur, Kyiv, Manila, San José, Warsaw): © OpenStreetMap contributors, ODbL.
 - Paris: Ville de Paris, Quartiers administratifs, ODbL.
 - IGN (Paris, the petite couronne's communes): IGN, ADMIN EXPRESS, Licence
   Ouverte 2.0.
@@ -359,6 +359,8 @@ none, this says so rather than guessing.
   CC BY 4.0.
 - Bordeaux: Ville de Bordeaux, secteurs de vie (Bordeaux Métropole open data),
   Licence Ouverte.
+- Boston: Boston Maps (Analyze Boston), BPDA Neighborhood Boundaries, Open Data
+  Commons Public Domain Dedication and License (PDDL).
 - Bratislava: Magistrát hlavného mesta SR, Bratislava, mestské časti, CC BY 4.0.
 - Brisbane: © Brisbane City Council 2025 © State of Queensland (Department of
   Resources) 2025, suburb boundaries, CC BY 4.0.
@@ -381,6 +383,8 @@ none, this says so rather than guessing.
 - Edinburgh: Copyright City of Edinburgh Council, contains Ordnance Survey data
   © Crown copyright and database right 2026, natural neighbourhoods, Open
   Government Licence v3.0.
+- Florence: Comune di Firenze, aree elementari 2021, Creative Commons Attribuzione
+  4.0 Internazionale (CC-BY 4.0).
 - Geneva: « Données SITG », secteurs statistiques, extracted at each build
   (accès libre).
 - Ghent: Stad Gent, stadswijken, Modellicentie Gratis Hergebruik.
@@ -401,6 +405,10 @@ none, this says so rather than guessing.
   copyright and database right 2024.
 - Los Angeles: Los Angeles Times, LA Times Neighborhoods, CC BY 4.0.
 - Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
+- Málaga: Ayuntamiento de Málaga, datos abiertos, Sistema de Información
+  Cartográfica – Barrio, CC BY 4.0 (the record's licence link: CC BY-SA 4.0).
+- Miami: © City of Miami, Department of Innovation and Technology, GIS Team,
+  Miami Neighborhoods, CC BY 4.0.
 - Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.
 - Montpellier: Montpellier Méditerranée Métropole, sous-quartiers de Montpellier (producer
   OpenStreetMap), Open Data Commons Open Database License (ODbL).
@@ -408,6 +416,7 @@ none, this says so rather than guessing.
 - Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
   Deutschland – Namensnennung – 2.0.
 - Nantes: Nantes Métropole, quartiers de la ville de Nantes, Licence Ouverte.
+- Naples: Comune di Napoli, territorio cittadino suddiviso in quartieri, IODL 2.0.
 - New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation
   Areas, NYC Open Data (licence not stated by the publisher).
 - Nice: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
@@ -417,16 +426,24 @@ none, this says so rather than guessing.
   with CC BY 4.0).
 - Oslo: Kartverket, grunnkretser (Geonorge), CC BY 4.0; grouped into delbydeler
   with Oslo kommune's key (licence not stated by the publisher).
-- Perth, Sydney: Based on Australian Bureau of Statistics data, Suburbs and
-  Localities (ASGS 2021), CC BY 4.0.
+- Ottawa: Ottawa Neighbourhood Study, Neighbourhood Boundaries Gen 3. Contains
+  information licensed under the Open Government Licence – City of Ottawa.
+- Melbourne, Perth, Sydney: Based on Australian Bureau of Statistics data,
+  Suburbs and Localities (ASGS 2021), CC BY 4.0.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the
   source).
 - Prague: datový podklad © IPR Praha, městské části, CC BY 4.0.
+- Riga: Rīgas valstspilsētas pašvaldība (data.gov.lv), Rīgas apkaimes, Creative
+  Commons Attribution 4.0.
 - Rome: Roma Capitale, suddivisioni toponomastiche (licence not stated by the
   publisher).
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
+- San Francisco: DataSF, City and County of San Francisco, SF Find Neighborhoods,
+  Public Domain U.S. Government.
 - Seoul: 서울특별시 (Seoul Open Data Plaza, OA-22160), administrative dong
   boundaries, 공공누리 1유형 (KOGL Type 1).
+- Seville: Fuente: Gerencia de Urbanismo (IDE.Sevilla), barrios, Reconocimiento 4.0
+  Internacional (CC BY 4.0).
 - Singapore: Contains information from the Urban Redevelopment Authority's
   planning area boundaries (dataset d_4765db0e87b9c86336792efe8a1f7a66) accessed
   at each build from data.gov.sg, which is made available under the terms of the
@@ -451,6 +468,8 @@ none, this says so rather than guessing.
 - Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
 - Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
   publisher).
+- Washington DC: DC Office of Planning (https://planning.dc.gov/), Neighborhood
+  Clusters, CC BY 4.0.
 - Zagreb: Grad Zagreb, mjesni odbori, Otvorena dozvola (the source and date of
   last change named).
 - Zurich: Stadt Zürich, statistische Quartiere, CC0.

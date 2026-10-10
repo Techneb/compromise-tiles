@@ -177,6 +177,7 @@
   },
   {
     "city": "Melbourne",
+    "streets": true,
     "district": "Melbourne (whole municipality)",
     "box": [
       -37.8507,
@@ -211,6 +212,7 @@
   },
   {
     "city": "San Francisco",
+    "streets": true,
     "district": "San Francisco (whole municipality)",
     "box": [
       37.7065,
@@ -222,6 +224,7 @@
   },
   {
     "city": "Seville",
+    "streets": true,
     "district": "Seville (whole municipality)",
     "box": [
       37.3002,
@@ -358,6 +361,7 @@
   },
   {
     "city": "M\u00e1laga",
+    "streets": true,
     "district": "M\u00e1laga (going-out core + 2 km)",
     "box": [
       36.669,
@@ -719,6 +723,7 @@
   },
   {
     "city": "Riga",
+    "streets": true,
     "district": "Riga (going-out core + 2 km)",
     "box": [
       56.923,
@@ -914,6 +919,7 @@
   },
   {
     "city": "Boston",
+    "streets": true,
     "district": "Boston (going-out core + 2 km)",
     "box": [
       42.315,
@@ -987,6 +993,7 @@
   },
   {
     "city": "Washington DC",
+    "streets": true,
     "district": "Washington DC (densest 150 km\u00b2 of the core)",
     "box": [
       38.857,
@@ -1072,6 +1079,7 @@
   },
   {
     "city": "Florence",
+    "streets": true,
     "district": "Florence (whole municipality)",
     "box": [
       43.7258,
@@ -1093,6 +1101,7 @@
   },
   {
     "city": "Naples",
+    "streets": true,
     "district": "Naples (whole municipality)",
     "box": [
       40.7912,
@@ -1115,6 +1124,7 @@
   },
   {
     "city": "Ottawa",
+    "streets": true,
     "district": "Ottawa (going-out core + 2 km)",
     "box": [
       45.373,
@@ -1181,6 +1191,7 @@
   },
   {
     "city": "Miami",
+    "streets": true,
     "district": "Miami (whole municipality)",
     "box": [
       25.709,
@@ -1386,6 +1397,7 @@
   },
   {
     "city": "San Jos\u00e9",
+    "streets": true,
     "district": "San Jos\u00e9 (municipality)",
     "box": [
       9.9005,
