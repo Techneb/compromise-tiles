@@ -297,13 +297,16 @@ def publish(rows, no_point, failed, args):
     # A partial run (--only) must not shrink the published file: the other cities keep their last rows.
     if args.previous:
         try:
-            import urllib.request
+            import urllib.error, urllib.request
             raw = urllib.request.urlopen(urllib.request.Request(args.previous, headers={"User-Agent": "compromise-tiles"})).read() \
                 if "://" in args.previous else open(args.previous, "rb").read()
             listed = json.load(open(args.cities))  # a city renamed, moved or dropped from the list leaves
             rows += [r for r in json.loads(raw).get("cities", [])
                      if not any(same_city(r, c) for c in rows) and any(same_city(r, e) for e in listed)]
         except Exception as x:  # noqa: BLE001 — a missing or unreadable previous file is not a reason to fail the run
+            # unless the run is partial and the store answered: its few rows alone would replace the published file.
+            gone = isinstance(x, urllib.error.HTTPError) and x.code == 404
+            if "://" in args.previous and (args.only or args.merge) and not gone: raise
             print(f"previous counts not merged: {x}", file=sys.stderr)
     rows.sort(key=lambda r: -r["goingOutCells"])
     with open(args.write, "w") as f:

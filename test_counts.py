@@ -67,4 +67,26 @@ assert holds(london_box, {"city": "London", "box": [51.4, -0.3, 51.6, 0.0]}) and
 uk, ca = {"city": "London", "country": "United Kingdom", "lat": 51.507, "lon": -0.128}, {"city": "London", "country": "Canada", "lat": 42.98, "lon": -81.25}
 assert same_city(uk, dict(uk)) and not same_city(uk, ca) and not same_city(uk, dict(uk, lat=42.98, lon=-81.25))
 assert same_city(uk, {"city": "London", "country": "United Kingdom"})   # a row published before rows carried a point
+# publish(): a partial run whose read of the published file failed on the store's side stops (#76); a 404 starts the file.
+import argparse, http.server, tempfile, threading, urllib.error
+from counts import publish
+class Store(http.server.BaseHTTPRequestHandler):
+    def do_GET(self): self.send_response(503 if self.path == "/down.json" else 404); self.end_headers()
+    def log_message(self, *a): pass
+server = http.server.HTTPServer(("127.0.0.1", 0), Store)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+d = tempfile.mkdtemp()
+json.dump([], open(os.path.join(d, "list.json"), "w"))
+args = lambda previous, **k: argparse.Namespace(previous=f"http://127.0.0.1:{server.server_port}/{previous}", cities=os.path.join(d, "list.json"),
+                                                write=os.path.join(d, "counts.json"), only=k.get("only", ""), merge=k.get("merge", []))
+row = [{"city": "Paris", "country": "France", "goingOutCells": 1}]
+try: publish(list(row), [], [], args("down.json", only="Paris")); raise AssertionError("published one city over the store's 503")
+except urllib.error.HTTPError: pass
+try: publish(list(row), [], [], args("down.json", merge=["parts/1/counts.json"])); raise AssertionError("published a merge over the store's 503")
+except urllib.error.HTTPError: pass
+assert not os.path.exists(os.path.join(d, "counts.json"))
+publish(list(row), [], [], args("absent.json", only="Paris"))   # no published file yet
+publish(list(row), [], [], args("down.json"))                     # a whole run has every row: the read is not needed
+assert [r["city"] for r in json.load(open(os.path.join(d, "counts.json")))["cities"]] == ["Paris"]
+server.shutdown()
 print("ok")
