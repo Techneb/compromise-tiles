@@ -914,6 +914,7 @@
   },
   {
     "city": "Boston",
+    "streets": true,
     "district": "Boston (going-out core + 2 km)",
     "box": [
       42.315,

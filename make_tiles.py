@@ -2885,6 +2885,10 @@ AREA_SOURCES = [
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
     area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
              "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
+    # The Planning Department's 26 neighborhoods ("not official neighborhood boundaries", it says): the ones people name.
+    # Its data.boston.gov file redirects to S3 with ":443" in the URL, which urllib signs into the Host: 403.
+    area_row("Boston", "Boston", geojson_source("https://gis.bostonplans.org/hosting/rest/services/Hosted/Boston_Neighborhood_Boundaries"
+             "/FeatureServer/5/query?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
     area_row("Bratislava", "Bratislava", geojson_source("https://data.bratislava.sk/api/download/v1/items/f1daafc79a9247e8b93241aa005fbea3/geojson?layers=0"),
              "NAZOV_UTJ", "mestská časť"),
     area_row("Brisbane", "Brisbane", geojson_source("https://data.brisbane.qld.gov.au/api/explore/v2.1/catalog/datasets/suburb-boundaries/exports/geojson"),
