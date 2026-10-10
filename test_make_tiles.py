@@ -598,8 +598,9 @@ with tempfile.TemporaryDirectory() as d:
         os.chdir(here)
         make_tiles.get_json, make_tiles.download = real_get_json, real_download
         make_tiles._plateau.clear(); make_tiles._plateau_index.clear()
-# Each box is its city's tiled area; east of Osaka's city line (Higashiōsaka) the row answers nothing and the cell falls to OSM.
-assert at(35.7015, 139.7395) == "Tokyo" and at(35.6938, 139.7034) == "Tokyo" and at(35.75, 139.70) == "OSM"
+# Each box is its city's tiled area, the whole city since 2026-10-11 (Itabashi, outside the old core, is Tokyo's); past
+# the 23 wards (Mitaka) and east of Osaka's city line (Higashiōsaka) the row answers nothing and the cell falls to OSM.
+assert at(35.7015, 139.7395) == "Tokyo" and at(35.6938, 139.7034) == "Tokyo" and at(35.75, 139.70) == "Tokyo" and at(35.68, 139.55) == "OSM"
 assert at(34.7050, 135.4970) == "Osaka" and at(34.6664, 135.5003) == "Osaka" and at(34.70, 135.62) == "OSM"
 print("ok (PLATEAU rows)")
 # 2026-10-05 rows, zipped Shapefiles (Buenos Aires, Milan, Rome). The projection, against PROJ (EPSG:7791 and 25833, to a mm):
