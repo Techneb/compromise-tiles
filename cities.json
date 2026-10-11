@@ -1805,6 +1805,7 @@
   },
   {
     "city": "Le Mans",
+    "streets": true,
     "district": "Le Mans (whole commune)",
     "box": [
       47.9279,

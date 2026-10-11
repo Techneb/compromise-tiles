@@ -2839,7 +2839,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen, Amiens)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen, Amiens, Le Mans)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -3048,6 +3048,9 @@ AREA_SOURCES = [
     area_row("Le Havre", "Le Havre", lambda rect: _shapefile_features(_zip_members(_zip_members(get(
              "https://data.lehavreseinemetropole.fr/api/v1/file/data/90/CONSEIL_QUARTIER/shp"))["OD.CONSEIL_QUARTIER.shp.zip"])),
              "NOM", "conseil de quartier", keep=lambda p: p.get("NUM") != 0),
+    # Le Mans Métropole publishes 8 conseils de quartier ("Nord Est", "Sud Ouest") and its IRIS in capitals with codes: IGN's 71 IRIS,
+    # grouped into 70 (iris_source).
+    area_row("Le Mans", "Le Mans", iris_source("72181"), "quartier", "IRIS", dissolve=True),
     area_row("Lille", "Lille", geojson_source("https://data.lillemetropole.fr/geoserver/ville_lille/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=ville_lille:limite_des_quartiers_de_lille_et_de_ses_communes_associees&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"),
              "quartier", "quartier"),   # Lille's 10 quartiers, and Lomme and Hellemmes whole

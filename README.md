@@ -441,6 +441,8 @@ none, this says so rather than guessing.
   del sector público estatal.
 - Le Havre: Ville du Havre, conseils de quartier (Le Havre Seine Métropole open data),
   Licence ODbL.
+- Le Mans: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open
+  Licence version 2.0.
 - Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
   (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
 - Limoges: Limoges Métropole, quartiers de la Ville de Limoges (licence not stated by
