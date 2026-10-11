@@ -394,6 +394,7 @@ none, this says so rather than guessing.
   data provided at this site is subject to change at any time. It is
   understood that the data provided at this site is being used at one's own
   risk."
+- Clermont-Ferrand: IGN, Contours... IRIS®, Licence Ouverte / Open Licence version 2.0.
 - Copenhagen: Københavns Kommune, kvarterer, CC BY 4.0.
 - Dijon: Dijon métropole, ateliers de quartiers de Dijon (Open Dijon), Licence Ouverte
   Version 2.0.

@@ -1601,6 +1601,7 @@
   },
   {
     "city": "Clermont-Ferrand",
+    "streets": true,
     "district": "Clermont-Ferrand (whole commune)",
     "box": [
       45.7557,

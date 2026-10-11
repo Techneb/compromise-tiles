@@ -2839,7 +2839,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2971,6 +2971,9 @@ AREA_SOURCES = [
     area_row("Cape Town", "Cape Town", geojson_source("https://gis.westerncape.gov.za/server2/rest/services/SpatialDataWarehouse/CoCT_Management_Boundaries"
              "/MapServer/15/query?where=1%3D1&outFields=SBRB_NAME&outSR=4326&f=geojson"), "SBRB_NAME", "major suburb"),
     area_row("Chicago", "Chicago", geojson_source("https://data.cityofchicago.org/resource/y6yq-dbs2.geojson?$limit=1000"), "pri_neigh", "neighborhood"),
+    # Neither the city nor Clermont Auvergne Métropole publishes quartiers (its "Quartiers 2021" are 5 territoires): its 42 IRIS
+    # (iris_source), none merged.
+    area_row("Clermont-Ferrand", "Clermont-Ferrand", iris_source("63113"), "quartier", "IRIS", dissolve=True),
     area_row("Copenhagen", "Copenhagen", geojson_source("https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:kvarter"
              "&outputFormat=json&SRSNAME=EPSG:4326"), "kvarternavn", "kvarter"),
     area_row("Delhi", "OSM", osm_area_source((10,)), "name", None),
