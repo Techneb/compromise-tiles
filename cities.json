@@ -804,6 +804,215 @@
     "boundary": "boundaries/herzliya.geojson"
   },
   {
+    "city": "Ramat HaSharon",
+    "district": "Ramat HaSharon (whole municipality)",
+    "box": [
+      32.1119,
+      34.7956,
+      32.1588,
+      34.868
+    ],
+    "boundary": "boundaries/ramat-hasharon.geojson"
+  },
+  {
+    "city": "Bnei Brak",
+    "district": "Bnei Brak (whole municipality)",
+    "box": [
+      32.069,
+      34.8214,
+      32.1085,
+      34.8493
+    ],
+    "boundary": "boundaries/bnei-brak.geojson"
+  },
+  {
+    "city": "Or Yehuda",
+    "district": "Or Yehuda (whole municipality)",
+    "box": [
+      32.0165,
+      34.8273,
+      32.0452,
+      34.8758
+    ],
+    "boundary": "boundaries/or-yehuda.geojson"
+  },
+  {
+    "city": "Givatayim",
+    "district": "Givatayim (whole municipality)",
+    "box": [
+      32.0584,
+      34.7978,
+      32.0819,
+      34.8208
+    ],
+    "boundary": "boundaries/givatayim.geojson"
+  },
+  {
+    "city": "Givat Shmuel",
+    "district": "Givat Shmuel (whole municipality)",
+    "box": [
+      32.0657,
+      34.8432,
+      32.0903,
+      34.8603
+    ],
+    "boundary": "boundaries/givat-shmuel.geojson"
+  },
+  {
+    "city": "Bat Yam",
+    "district": "Bat Yam (whole municipality)",
+    "box": [
+      31.9924,
+      34.7287,
+      32.0338,
+      34.762
+    ],
+    "boundary": "boundaries/bat-yam.geojson"
+  },
+  {
+    "city": "Petah Tikva",
+    "district": "Petah Tikva (whole municipality)",
+    "box": [
+      32.0541,
+      34.8457,
+      32.1272,
+      34.9291
+    ],
+    "boundary": "boundaries/petah-tikva.geojson"
+  },
+  {
+    "city": "Kiryat Ono",
+    "district": "Kiryat Ono (whole municipality)",
+    "box": [
+      32.0332,
+      34.8366,
+      32.0711,
+      34.8684
+    ],
+    "boundary": "boundaries/kiryat-ono.geojson"
+  },
+  {
+    "city": "Azor",
+    "district": "Azor (whole municipality)",
+    "box": [
+      32.0105,
+      34.7905,
+      32.0345,
+      34.8254
+    ],
+    "boundary": "boundaries/azor.geojson"
+  },
+  {
+    "city": "Mevaseret Zion",
+    "district": "Mevaseret Zion (whole municipality)",
+    "box": [
+      31.7813,
+      35.1324,
+      31.812,
+      35.1718
+    ],
+    "boundary": "boundaries/mevaseret-zion.geojson"
+  },
+  {
+    "city": "Bethlehem",
+    "district": "Bethlehem (whole municipality)",
+    "box": [
+      31.6907,
+      35.1823,
+      31.7237,
+      35.2235
+    ],
+    "boundary": "boundaries/bethlehem.geojson"
+  },
+  {
+    "city": "Giv'at Ze'ev",
+    "district": "Giv'at Ze'ev (whole municipality)",
+    "box": [
+      31.8249,
+      35.1355,
+      31.8702,
+      35.1918
+    ],
+    "boundary": "boundaries/givat-zeev.geojson"
+  },
+  {
+    "city": "Beit Sahur",
+    "district": "Beit Sahur (whole municipality)",
+    "box": [
+      31.6895,
+      35.2117,
+      31.719,
+      35.2503
+    ],
+    "boundary": "boundaries/beit-sahur.geojson"
+  },
+  {
+    "city": "Albireh",
+    "district": "Albireh (whole municipality)",
+    "box": [
+      31.8812,
+      35.1948,
+      31.9401,
+      35.2328
+    ],
+    "boundary": "boundaries/albireh.geojson"
+  },
+  {
+    "city": "Beitar Ilit",
+    "district": "Beitar Ilit (whole municipality)",
+    "box": [
+      31.6881,
+      35.0936,
+      31.7221,
+      35.1297
+    ],
+    "boundary": "boundaries/beitar-ilit.geojson"
+  },
+  {
+    "city": "Abu Gosh",
+    "district": "Abu Gosh (whole municipality)",
+    "box": [
+      31.799,
+      35.0946,
+      31.814,
+      35.1226
+    ],
+    "boundary": "boundaries/abu-gosh.geojson"
+  },
+  {
+    "city": "Ramallah",
+    "district": "Ramallah (whole municipality)",
+    "box": [
+      31.8838,
+      35.1645,
+      31.9296,
+      35.2103
+    ],
+    "boundary": "boundaries/ramallah.geojson"
+  },
+  {
+    "city": "Har Adar",
+    "district": "Har Adar (whole municipality)",
+    "box": [
+      31.8202,
+      35.123,
+      31.8355,
+      35.1366
+    ],
+    "boundary": "boundaries/har-adar.geojson"
+  },
+  {
+    "city": "Maale Adumim",
+    "district": "Maale Adumim (whole municipality)",
+    "box": [
+      31.7467,
+      35.2579,
+      31.827,
+      35.3906
+    ],
+    "boundary": "boundaries/maale-adumim.geojson"
+  },
+  {
     "city": "Hamburg",
     "streets": true,
     "district": "Hamburg (whole municipality without Neuwerk)",
