@@ -678,6 +678,8 @@ finally: make_tiles.urllib.request.urlopen = real_urlopen
 # Each row held to its municipality: past General Paz (Vicente López), Sesto San Giovanni and Corsico, the Vatican.
 assert at(-34.5851, -58.3792) == "Buenos Aires" and at(-34.5400, -58.4900) == "OSM"
 assert at(45.4848, 9.2016) == "Milan" and at(45.5400, 9.2300) != "Milan" and at(45.4400, 9.1000) != "Milan"
+# Each box the whole city since 2026-10-11: Villa Lugano and Gratosoglio, outside the old cores, are the cities' own.
+assert at(-34.6800, -58.4700) == "Buenos Aires" and at(45.4100, 9.1750) == "Milan"
 assert at(41.8986, 12.4769) == "Rome" and at(41.9029, 12.4534) == "OSM"
 print("ok (Shapefile rows)")
 # Streets: the kept ways, simplified, cut at the cells' edges, written in 1e-5° steps.

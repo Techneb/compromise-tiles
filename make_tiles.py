@@ -136,8 +136,9 @@ PERMIT_CITIES = [
         shape="socrata", point="location", filter="expiration_date >= '{today}'"),
     row("San Francisco", "", "data.sf.gov", "dpch-7nr4", "dbaname", [], (37.70, 37.83), (-122.52, -122.35),
         shape="socrata", point="point", filter="tablesandchairs = true"),
-    # DSO REST, HAL JSON, points in RD New: a terrace is a licence whose terrasgeometrie is not null.
-    row("Amsterdam", "", "api.data.amsterdam.nl", "horeca/exploitatievergunning", "zaaknaam", [], (52.28, 52.43), (4.73, 5.02),
+    # DSO REST, HAL JSON, points in RD New: a terrace is a licence whose terrasgeometrie is not null. The box is the
+    # municipality's (cities.json, whole since 2026-10-11, Weesp included): the city's own register, so city-wide.
+    row("Amsterdam", "", "api.data.amsterdam.nl", "horeca/exploitatievergunning", "zaaknaam", [], (52.2779, 52.4311), (4.7287, 5.1077),
         shape="amsterdam"),
     # WFS: NAME is the placement, not the café, so no name field — door rule only.
     row("Vienna", "", "data.wien.gv.at/daten/geo", "ogdwien:SCHANIGARTENOGD", "", [], (48.10, 48.35), (16.15, 16.58),
@@ -257,18 +258,18 @@ PERMIT_CITIES = [
     # COVID-era authorisations — 2,273 named points, no status or expiry, both types (sidewalk and private property,
     # on-street) open air. Many of those venues are gone, so a permit is kept only where a venue of today stands under its
     # name (`match="venues"`: the published venues/ tiles, OpenStreetMap's, within MATCH_REACH; owner, 2026-10-05). The box
-    # is the tiled area's (cities.json): the layer covers the whole city, the venue tiles only this.
+    # is the tiled area's (cities.json), widened on 2026-10-11 with it to the whole city, which the layer covers.
     row("Los Angeles", "", "services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services", "Al_Fresco_Dining_Locations/FeatureServer/0",
-        "Business_Name", [], (34.015, 34.087), (-118.2907, -118.2073), shape="arcgis", match="venues"),
+        "Business_Name", [], (33.7047, 34.3374), (-118.6682, -118.1553), shape="arcgis", match="venues"),
     # Stockholm: Trafikkontoret's markupplåtelser (public-ground leases, CC0 1.0 per the layer's metadata), a WFS
     # behind a free API key: `key` names the environment variable holding it (an Actions secret), which goes into
     # the URL path at fetch time and never into a log; without it the row is left out of the run, logged. Only
     # the uteservering kind of ärendekategori is kept, and only unexpired leases; the attribute names are matched
     # loosely (no sample without the key, 2026-10-05) and the first answer's field names are logged. No name
-    # field until that sample shows one, so the door rule. The box is the tiled area's (cities.json); no other
-    # city's cells fall in it, so no boundary.
+    # field until that sample shows one, so the door rule. The box is the tiled area's (cities.json), widened on
+    # 2026-10-11 with it to the whole municipality, which the WFS covers; no other city's cells fall in it, so no boundary.
     row("Stockholm", "", "openstreetgs.stockholm.se/geoservice/api/{key}/wfs", "od_gis:Markupplatelse_Punkt", "", [],
-        (59.267, 59.371), (17.9638, 18.1642), shape="stockholm", key="STOCKHOLM_API_KEY"),
+        (59.2296, 59.4403), (17.7696, 18.2001), shape="stockholm", key="STOCKHOLM_API_KEY"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
@@ -1953,7 +1954,7 @@ CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
         "structure_extrusion"), lambda p: p.get("structure_extrusion"))),
-    building_row("Amsterdam", (52.28, 52.43), (4.73, 5.02), bag3d),
+    building_row("Amsterdam", (52.2779, 52.4311), (4.7287, 5.1077), bag3d),   # 3DBAG is national: the whole municipality's box
     building_row("Rotterdam", (51.86, 51.99), (4.37, 4.60), bag3d),
     building_row("The Hague", (52.00, 52.13), (4.18, 4.42), bag3d),
     building_row("Utrecht", (52.03, 52.14), (4.97, 5.20), bag3d),
@@ -2005,7 +2006,7 @@ CITY_BUILDINGS = [
     building_row("Valencia", (39.40, 39.52), (-0.43, -0.30), catastro),
     building_row("Zaragoza", (41.58, 41.72), (-0.98, -0.80), catastro),
     building_row("Málaga", (36.66, 36.78), (-4.55, -4.35), catastro),
-    building_row("Palma", (39.53, 39.62), (2.58, 2.75), catastro),
+    building_row("Palma", (39.5038, 39.6583), (2.5638, 2.847), catastro),   # the whole municipality's box (2026-10-11)
     building_row("Las Palmas", (28.05, 28.18), (-15.47, -15.40), catastro),
     building_row("Murcia", (37.95, 38.03), (-1.18, -1.08), catastro),
     building_row("Alicante", (38.32, 38.40), (-0.53, -0.43), catastro),
@@ -2166,13 +2167,14 @@ CITY_BUILDINGS = [
     # tiled area (cities.json), held to the municipality its file covers. Buenos Aires: Tejido Urbano (Subsecretaría de
     # Planeamiento, data to 2021, CC BY 2.5 AR; WGS84): altura, metres, on all 1,386,616 volumes; two read 280 and
     # 830 m, over the city's tallest (Alvear Tower, 235 m): over 250 is the flagged guess. Held to CABA's perimetro
-    # (CC BY 2.5 AR): Vicente López and the partidos past General Paz stay OSM.
-    building_row("Buenos Aires", (-34.6433, -34.5332), (-58.4952, -58.3615), boundary=boundary("buenos-aires"),
+    # (CC BY 2.5 AR): Vicente López and the partidos past General Paz stay OSM. Both boxes widened on 2026-10-11 to the
+    # whole city's (cities.json, buenos-aires-whole and milan-whole), which each file covers; still held to the municipality.
+    building_row("Buenos Aires", (-34.7059, -34.5265), (-58.5315, -58.3351), boundary=boundary("buenos-aires"),
                  fetch=shapefile(BUENOS_AIRES_TEJIDO, "tejido", "buenos-aires", ("altura",),
                                  lambda p, f: p["altura"] if p["altura"] and p["altura"] <= 250 else None)),
     # Milan: the Comune's DBT 2020 (CC BY 4.0; RDN2008 / UTM 32N), 237,743 unità volumetriche (dbt_height). Held to the
     # Comune's confine (CC BY 4.0): Sesto San Giovanni, Bresso, Corsico and the rest of the box stay OSM.
-    building_row("Milan", (45.435, 45.5451), (9.0903, 9.2473), boundary=boundary("milan"),
+    building_row("Milan", (45.3867, 45.546), (9.0408, 9.2782), boundary=boundary("milan"),
                  fetch=shapefile(MILAN_DBT, "UN_VOL", "milan", DBT_FIELDS, dbt_height)),
     # Rome: Regione Lazio's DBGT 2020 for Roma (ETRS89 / UTM 33N; 386,769 volumes, 78 % surveyed 2003, the rest 2014 and
     # 2023; the licence asks that the source be named), the same rule. Monuments drawn as other classes (the Colosseum)
