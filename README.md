@@ -465,6 +465,8 @@ none, this says so rather than guessing.
   CC BY 4.0.
 - Vancouver: City of Vancouver, local area boundary. Contains information
   licensed under the Open Government Licence – Vancouver.
+- Versailles: Communauté d'Agglomération Versailles Grand Parc, quartiers municipaux
+  de Versailles, Licence Ouverte/Open License Version 2.0.
 - Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
 - Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
   publisher).

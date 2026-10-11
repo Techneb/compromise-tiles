@@ -1895,6 +1895,7 @@
   },
   {
     "city": "Versailles",
+    "streets": true,
     "district": "Versailles (whole commune)",
     "box": [
       48.7791,

@@ -3052,6 +3052,9 @@ AREA_SOURCES = [
              "?where=1%3D1&outFields=nombre&outSR=4326&f=geojson"), "nombre", "barri"),
     area_row("Vancouver", "Vancouver", geojson_source("https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/local-area-boundary/exports/geojson"),
              "name", "local area"),
+    # Versailles Grand Parc's 8 quartiers municipaux of Versailles (the urbanisme department's, 2004).
+    area_row("Versailles", "Versailles", geojson_source("https://services2.arcgis.com/YECJCCLQCtaylXWh/arcgis/rest/services/VersaillesQuartiersMunicipaux"
+             "/FeatureServer/0/query?where=1%3D1&outFields=NOM&outSR=4326&f=geojson"), "NOM", "quartier"),
     area_row("Vienna", "Vienna", geojson_source("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:BEZIRKSGRENZEOGD"
              "&srsName=EPSG:4326&outputFormat=json"), "NAMEK", "Bezirk"),
     area_row("Vilnius", "Vilnius", geojson_source("https://zemelapiai.vplanas.lt/arcgis/rest/services/Open_Data/Vilniaus_miesto_ribos/MapServer/1/query"
