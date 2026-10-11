@@ -5,7 +5,9 @@
 
 Reads the tiles a build just wrote (one JSON array per cell), replaces the records of the
 cells it finds, keeps every other record (per layer, so a run that builds only terraces and
-venues keeps the building counts), then totals each area of cities.json. The sunny filter
+venues keeps the building counts), then drops the records of the cells no area builds now and totals each area of cities.json over
+the cells it builds (its box, inside its boundary when it has one, the first area winning a shared
+cell: storage.py's owners, the generator's cut), never over its box. The sunny filter
 is available where a 200 m cell holds enough buildings (`passing`); where it also holds enough
 terraces (`terracesKnown`) the filter judges terraces, elsewhere the side of the street.
 
@@ -18,13 +20,14 @@ Output (compact JSON):
               from the build's own communes/ files (never uploaded; a cell keeps its codes in the feed)
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
-  areas       [{name, city, box: [s, w, n, e], tiled, passing, places, seats, terracesKnown, km2, goingOut, goingOutShare, lastBuilt}]
+  areas       [{name, city, box: [s, w, n, e] (the entry's), tiled, passing, places, seats, terracesKnown, km2, goingOut, goingOutShare, lastBuilt}]
               (a départements entry gives one area per commune, never an aggregate)
               passing: cells with enough buildings; terracesKnown: cells with enough terraces;
               km2: area of the passing cells; goingOut: going-out cells; goingOutShare: share of the going-out cells
               holding enough terraces and buildings both
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
+from storage import COARSE, FINE, areas, owners
 
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
 TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: terraces vs going-out venues nearby, the reader's rule
@@ -162,24 +165,35 @@ def main():
         if v is None: return c[0] >= FLOOR
         return c[0] >= TERRACE_MINIMUM and c[0] >= TERRACE_RATIO * v
 
+    # A record of a cell no area builds now is a tile of an area dropped, moved or cut to its boundary since:
+    # deleted from the store or left there unread, it is no coverage, so it leaves the feed (the map draws
+    # every record). The same cut as storage.py's, so the feed and the store's deletion list agree.
+    built = areas(args.cities)
+    own = owners(args.cities, built=built)
+    key = lambda k: tuple(map(int, k.split(",")))
+    kept = {k: c for k, c in cells.items() if key(k) in own[FINE]}
+    kept_venues = {k: v for k, v in venues.items() if key(k) in own[COARSE]}
+    print(f"dropped {len(cells) - len(kept)} cells and {len(venues) - len(kept_venues)} venue cells no area builds")
+    cells, venues = kept, kept_venues
+
     passes = lambda c: c[1] >= FLOOR
-    areas = []
-    for e in json.load(open(args.cities)):
-        s, w, n, east = box = area_box(e)
+    result, taken = [], set()
+    for e, area_cells in built:
+        box = area_box(e)
         keys = []
-        for ky in range(int(s * 500), int(n * 500) + 1):
-            for kx in range(int(w * 500), int(east * 500) + 1):
-                c = cells.get(f"{ky},{kx}")
-                if c is None:
-                    continue
-                codes = c[5].split()
-                if e.get("box") and codes:  # boxes overlap their neighbours: the commune decides
-                    if e.get("departements"):
-                        if not any(x[:2] in e["departements"] for x in codes):
-                            continue
-                    elif not any(names.get(x) == e["city"] for x in codes):
+        for cell in area_cells:  # the area's own cells, a cell another area counted first left to it
+            c = cells.get(cell.key)
+            if c is None or cell.key in taken:
+                continue
+            codes = c[5].split()
+            if codes:  # boxes overlap their neighbours: the commune decides (Boulogne's cells in Paris's box are the petite couronne's)
+                if e.get("departements"):
+                    if not any(x[:2] in e["departements"] for x in codes):
                         continue
-                keys.append((ky, kx, c))
+                elif not any(names.get(x) == e["city"] for x in codes):
+                    continue
+            taken.add(cell.key)
+            keys.append((*key(cell.key), c))
         def summary(keys, name, city, box):
             ok = [(ky, kx) for ky, kx, c in keys if passes(c)]
             out_cells = [(ky, kx, c) for ky, kx, c in keys if going_out(ky, kx)]
@@ -206,9 +220,9 @@ def main():
             for code, group in sorted(by_commune.items()):
                 lats = [ky / 500 for ky, _, _ in group]; lons = [kx / 500 for _, kx, _ in group]
                 cbox = (min(lats), min(lons), max(lats) + 1 / 500, max(lons) + 1 / 500)
-                areas.append(summary(group, names.get(code, code), names.get(code, code), cbox))
+                result.append(summary(group, names.get(code, code), names.get(code, code), cbox))
             continue
-        areas.append(summary(keys, e.get("district") or e["city"], e["city"], box))
+        result.append(summary(keys, e.get("district") or e["city"], e["city"], box))
 
     dl = sorted({d for c in cells.values() for d in c[3:5] if d} | {v[2] for v in venues.values() if v[2]})
     ix = {d: i for i, d in enumerate(dl)}
@@ -220,11 +234,11 @@ def main():
                   for k, c in sorted(cells.items())],
         "communes": {k: names[k] for k in sorted({x for c in cells.values() for x in c[5].split()}) if k in names},
         "venueCells": [[*split(k), v[0], v[1], idx(v[2])] for k, v in sorted(venues.items())],
-        "areas": areas,
+        "areas": result,
     }
     with open(args.write, "w") as f:
         json.dump(feed, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"{len(cells)} cells, {len(venues)} venue cells, {len(areas)} areas -> {args.write}")
+    print(f"{len(cells)} cells, {len(venues)} venue cells, {len(result)} areas -> {args.write}")
 
 
 if __name__ == "__main__":

@@ -32,15 +32,24 @@ def parse(lines):
         if len(parts) == 4 and parts[2].isdigit(): yield parts[3].rstrip("\n"), int(parts[2])
 
 
-def owners(cities_path, only=None):
-    """{scale: {(ky, kx): city}}: the cells each area of cities.json builds (of the cities in `only` when given), the first area winning."""
-    out = {FINE: {}, COARSE: {}, MAIN: {}}
+def areas(cities_path, only=None):
+    """[(entry, cells)]: each area of cities.json (of the cities in `only` when given) with the cells the generator builds for it."""
+    out = []
     for e in json.load(open(cities_path)):
         if only is not None and e["city"] not in only: continue
         cells = cells_in(*e["box"])
         if e.get("boundary"):
             with open(os.path.join(os.path.dirname(os.path.abspath(cities_path)), e["boundary"])) as f: b = json.load(f)
             cells = clip(cells, b.get("geometry", b))
+        out.append((e, cells))
+    return out
+
+
+def owners(cities_path, only=None, built=None):
+    """{scale: {(ky, kx): city}}: the cells each area of cities.json builds (of the cities in `only` when given), the first area winning.
+    `built`: areas() already read, so a caller that needs both clips the boundaries once."""
+    out = {FINE: {}, COARSE: {}, MAIN: {}}
+    for e, cells in built if built is not None else areas(cities_path, only):
         for c in cells:
             out[FINE].setdefault(tuple(map(int, c.key.split(","))), e["city"])
             out[COARSE].setdefault((index(c.lat, COARSE), index(c.lon, COARSE)), e["city"])

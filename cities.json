@@ -35,7 +35,8 @@
       34.735,
       32.15,
       34.855
-    ]
+    ],
+    "boundary": "boundaries/tel-aviv.geojson"
   },
   {
     "city": "Jerusalem",
@@ -43,10 +44,11 @@
     "district": "Jerusalem (whole municipality)",
     "box": [
       31.7,
-      35.1,
+      35.085,
       31.89,
       35.27
-    ]
+    ],
+    "boundary": "boundaries/jerusalem.geojson"
   },
   {
     "city": "Amsterdam",
@@ -1015,7 +1017,7 @@
     "district": "Birmingham (going-out core + 2 km)",
     "box": [
       52.451,
-      -1.8965,
+      -1.925,
       52.491,
       -1.8235
     ]

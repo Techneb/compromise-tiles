@@ -34,4 +34,32 @@ subprocess.run([sys.executable, "coverage.py", "--out", os.path.join(d, "none"),
                check=True, capture_output=True)
 areas = json.load(open(feed))["areas"]
 assert [(a["name"], a["tiled"]) for a in areas] == [("Boulogne-Billancourt", 1)], areas
+
+# A record of a cell no area builds (outside its boundary, or of an area moved since) leaves the feed, and an area
+# totals the cells it builds, a cell another area took first left to it, never its box (coherence review, 2026-10-11).
+json.dump({"type": "Polygon", "coordinates": [[[2.20, 48.80], [2.21, 48.80], [2.21, 48.81], [2.20, 48.81], [2.20, 48.80]]]},
+          open(os.path.join(d, "west.geojson"), "w"))
+json.dump([{"city": "West", "box": [48.80, 2.20, 48.81, 2.22], "boundary": "west.geojson"},
+           {"city": "Overlap", "box": [48.80, 2.20, 48.81, 2.22]}], open(cities, "w"))
+json.dump({"dates": ["2026-10-05"], "communes": {},
+           "cells": [[24401, 1101, 0, 30, 30, -1, 0, ""],     # inside West's boundary: West's
+                     [24401, 1107, 0, 30, 30, -1, 0, ""],     # past it, in both boxes: Overlap's
+                     [25000, 1500, 0, 30, 30, -1, 0, ""]],    # no area builds it
+           "venueCells": [[2440, 110, 12, 0, 0], [2500, 150, 12, 0, 0]]}, open(prev, "w"))
+subprocess.run([sys.executable, "coverage.py", "--out", os.path.join(d, "none"), "--cities", cities, "--previous", prev, "--write", feed],
+               check=True, capture_output=True)
+f = json.load(open(feed))
+assert [c[:2] for c in f["cells"]] == [[24401, 1101], [24401, 1107]], f["cells"]
+assert [v[:2] for v in f["venueCells"]] == [[2440, 110]], f["venueCells"]
+assert [(a["city"], a["tiled"], a["passing"]) for a in f["areas"]] == [("West", 1, 1), ("Overlap", 1, 1)], f["areas"]
+
+# A cell the first area's box holds but whose commune is a later area's is that area's (Boulogne in Paris's box).
+json.dump([{"city": "Paris", "box": [48.80, 2.20, 48.82, 2.24]},
+           {"city": "Petite couronne", "box": [48.80, 2.20, 48.82, 2.24], "departements": ["92"]}], open(cities, "w"))
+json.dump({"dates": [], "communes": {"75056": "Paris", "92012": "Boulogne-Billancourt"},
+           "cells": [[24401, 1101, 0, 30, 30, -1, 0, "75056"], [24402, 1102, 0, 30, 30, -1, 0, "92012"]]}, open(prev, "w"))
+subprocess.run([sys.executable, "coverage.py", "--out", os.path.join(d, "none"), "--cities", cities, "--previous", prev, "--write", feed],
+               check=True, capture_output=True)
+areas = json.load(open(feed))["areas"]
+assert [(a["name"], a["tiled"]) for a in areas] == [("Paris", 1), ("Boulogne-Billancourt", 1)], areas
 print("ok")
