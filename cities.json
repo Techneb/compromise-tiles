@@ -530,6 +530,7 @@
   },
   {
     "city": "Lorient",
+    "streets": true,
     "district": "Lorient (whole commune)",
     "box": [
       47.71,
@@ -1601,6 +1602,7 @@
   },
   {
     "city": "Clermont-Ferrand",
+    "streets": true,
     "district": "Clermont-Ferrand (whole commune)",
     "box": [
       45.7557,
@@ -1612,6 +1614,7 @@
   },
   {
     "city": "Nancy",
+    "streets": true,
     "district": "Nancy (whole commune)",
     "box": [
       48.6668,
@@ -1623,6 +1626,7 @@
   },
   {
     "city": "Villeurbanne",
+    "streets": true,
     "district": "Villeurbanne (whole commune)",
     "box": [
       45.7484,
@@ -1646,6 +1650,7 @@
   },
   {
     "city": "Le Havre",
+    "streets": true,
     "district": "Le Havre (whole commune)",
     "box": [
       49.4515,
@@ -1681,6 +1686,7 @@
   },
   {
     "city": "Metz",
+    "streets": true,
     "district": "Metz (whole commune)",
     "box": [
       49.0608,
@@ -1692,6 +1698,7 @@
   },
   {
     "city": "Brest",
+    "streets": true,
     "district": "Brest (whole commune)",
     "box": [
       48.3573,
@@ -1703,6 +1710,7 @@
   },
   {
     "city": "Saint-\u00c9tienne",
+    "streets": true,
     "district": "Saint-\u00c9tienne (whole commune)",
     "box": [
       45.3715,
@@ -1714,6 +1722,7 @@
   },
   {
     "city": "Caen",
+    "streets": true,
     "district": "Caen (whole commune)",
     "box": [
       49.153,
@@ -1737,6 +1746,7 @@
   },
   {
     "city": "Tours",
+    "streets": true,
     "district": "Tours (whole commune)",
     "box": [
       47.3489,
@@ -1748,6 +1758,7 @@
   },
   {
     "city": "Angers",
+    "streets": true,
     "district": "Angers (whole commune)",
     "box": [
       47.4375,
@@ -1759,6 +1770,7 @@
   },
   {
     "city": "Besan\u00e7on",
+    "streets": true,
     "district": "Besan\u00e7on (whole commune)",
     "box": [
       47.2006,
@@ -1770,6 +1782,7 @@
   },
   {
     "city": "Limoges",
+    "streets": true,
     "district": "Limoges (whole commune)",
     "box": [
       45.7886,
@@ -1781,6 +1794,7 @@
   },
   {
     "city": "Amiens",
+    "streets": true,
     "district": "Amiens (whole commune)",
     "box": [
       49.8468,
@@ -1792,6 +1806,7 @@
   },
   {
     "city": "Le Mans",
+    "streets": true,
     "district": "Le Mans (whole commune)",
     "box": [
       47.9279,
@@ -1803,6 +1818,7 @@
   },
   {
     "city": "N\u00eemes",
+    "streets": true,
     "district": "N\u00eemes (whole commune)",
     "box": [
       43.7414,
@@ -1814,6 +1830,7 @@
   },
   {
     "city": "La Rochelle",
+    "streets": true,
     "district": "La Rochelle (whole commune)",
     "box": [
       46.1332,
@@ -1825,6 +1842,7 @@
   },
   {
     "city": "Toulon",
+    "streets": true,
     "district": "Toulon (whole commune)",
     "box": [
       43.1011,
@@ -1836,6 +1854,7 @@
   },
   {
     "city": "Orl\u00e9ans",
+    "streets": true,
     "district": "Orl\u00e9ans (whole commune)",
     "box": [
       47.8133,
@@ -1905,6 +1924,7 @@
   },
   {
     "city": "Bayonne",
+    "streets": true,
     "district": "Bayonne (whole commune)",
     "box": [
       43.4498,

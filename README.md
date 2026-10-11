@@ -358,7 +358,11 @@ none, this says so rather than guessing.
   Open Licence version 2.0.
 - Ajaccio: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
+- Amiens: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Amsterdam: Gemeente Amsterdam, wijken, CC0 1.0.
+- Angers: Angers Loire Métropole, quartiers de la Ville d'Angers (data.angers.fr), Open
+  Database License (ODbL).
 - Annecy: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
 - Antwerp: Copyright Stad Antwerpen, wijken (the city's terms of use).
@@ -368,8 +372,12 @@ none, this says so rather than guessing.
 - Avignon: Ville d'Avignon, limites des mairies de quartier (DataSud), Licence Ouverte /
   Open Licence version 2.0.
 - Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
+- Bayonne: Ville de Bayonne, quartiers officiels, Licence Ouverte / Open Licence version
+  2.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.
+- Besançon: Grand Besançon Métropole, quartiers de la Ville de Besançon (licence not
+  stated by the publisher).
 - Biarritz: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
 - Bilbao: Fuente de los datos: Ayuntamiento de Bilbao, barrios (GeoBilbao), Creative Commons
@@ -383,11 +391,15 @@ none, this says so rather than guessing.
 - Boston: Boston Maps (Analyze Boston), BPDA Neighborhood Boundaries, Open Data
   Commons Public Domain Dedication and License (PDDL).
 - Bratislava: Magistrát hlavného mesta SR, Bratislava, mestské časti, CC BY 4.0.
+- Brest: Brest métropole, quartiers administratifs de Brest, Licence Ouverte / Open
+  Licence version 2.0.
 - Brisbane: © Brisbane City Council 2025 © State of Queensland (Department of
   Resources) 2025, suburb boundaries, CC BY 4.0.
 - Brussels: Ville de Bruxelles, ibsa.brussels, perspective.brussels, Monitoring
   des quartiers, CC0 1.0.
 - Buenos Aires: Gobierno de la Ciudad de Buenos Aires, barrios, CC BY 2.5 AR.
+- Caen: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Cannes: Mairie de Cannes, quartiers politiques (data.cannes.fr), Licence Ouverte.
 - Cape Town: City of Cape Town, Corporate GIS, major suburbs (through the Western
   Cape Government's mirror; the City's open data terms of use).
@@ -399,6 +411,7 @@ none, this says so rather than guessing.
   data provided at this site is subject to change at any time. It is
   understood that the data provided at this site is being used at one's own
   risk."
+- Clermont-Ferrand: IGN, Contours... IRIS®, Licence Ouverte / Open Licence version 2.0.
 - Copenhagen: Københavns Kommune, kvarterer, CC BY 4.0.
 - Dijon: Dijon métropole, ateliers de quartiers de Dijon (Open Dijon), Licence Ouverte
   Version 2.0.
@@ -428,21 +441,33 @@ none, this says so rather than guessing.
 - Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.
 - Johannesburg: Statistics South Africa, Census 2011 sub places (UCT Libraries'
   republication); Stats SA is the source of the basic data.
+- La Rochelle: Ville de La Rochelle, comités de quartier (opendata.agglo-larochelle.fr),
+  data of 2012-05-23, Licence ouverte / Open Licence.
 - Las Palmas: Origen de los datos: Ayuntamiento de Las Palmas de Gran Canaria, Callejero
   Municipal, barrios, Reutilización de la información del sector público para el ámbito
   del sector público estatal.
+- Le Havre: Ville du Havre, conseils de quartier (Le Havre Seine Métropole open data),
+  Licence ODbL.
+- Le Mans: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open
+  Licence version 2.0.
 - Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
   (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
+- Limoges: Limoges Métropole, quartiers de la Ville de Limoges (licence not stated by
+  the publisher).
 - Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.
 - Liverpool: Liverpool City Council, Liverpool Electoral Ward Boundaries, UK Open
   Government Licence (OGL).
 - London: Source: Office for National Statistics licensed under the Open
   Government Licence v.3.0, Wards (December 2024). Contains OS data © Crown
   copyright and database right 2024.
+- Lorient: Lorient Agglomération, quartiers de l'aire urbaine (licence not stated by the
+  publisher).
 - Los Angeles: Los Angeles Times, LA Times Neighborhoods, CC BY 4.0.
 - Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
 - Málaga: Ayuntamiento de Málaga, datos abiertos, Sistema de Información
   Cartográfica – Barrio, CC BY-SA 4.0.
+- Metz: Eurométropole de Metz, quartiers (DataGrandEst), Licence Ouverte / Open Licence
+  Version 2.0.
 - Miami: © City of Miami, Department of Innovation and Technology, GIS Team,
   Miami Neighborhoods, CC BY 4.0.
 - Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.
@@ -451,12 +476,18 @@ none, this says so rather than guessing.
 - Montréal: Ville de Montréal, quartiers de référence en habitation, CC BY 4.0.
 - Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
   Deutschland – Namensnennung – 2.0.
+- Nancy: Métropole du Grand Nancy, quartiers des communes du Grand Nancy (Ville de
+  Nancy's quartiers; licence not stated by the publisher).
 - Nantes: Nantes Métropole, quartiers de la ville de Nantes, Licence Ouverte.
 - Naples: Comune di Napoli, territorio cittadino suddiviso in quartieri, IODL 2.0.
 - New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation
   Areas, NYC Open Data (licence not stated by the publisher).
 - Nice: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
+- Nîmes: Nîmes Métropole, Comités de Quartiers de Nîmes (licence not stated by the
+  publisher).
+- Orléans: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open
+  Licence version 2.0.
 - Osaka, Tokyo: 出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）,
   2020 census small areas, merged into towns (e-Stat terms of use, compatible
   with CC BY 4.0).
@@ -480,6 +511,8 @@ none, this says so rather than guessing.
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
 - Rouen: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
+- Saint-Étienne: Ville de Saint-Étienne, Saint-Etienne Métropole, quartiers (flux de
+  données géographiques ouvertes), Licence Ouverte / Open Licence version 2.0.
 - San Francisco: DataSF, City and County of San Francisco, SF Find Neighborhoods,
   Public Domain U.S. Government.
 - San Sebastián: © Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, Donostiako
@@ -506,6 +539,10 @@ none, this says so rather than guessing.
   licence).
 - Toronto: City of Toronto, Neighbourhoods. Contains information licensed under
   the Open Government Licence – Toronto.
+- Toulon: Métropole Toulon Provence Méditerranée, comités d'intérêt local of the Mairie
+  de Toulon (licence not stated by the publisher).
+- Tours: Ville de Tours, quartiers (data.tours-metropole.fr), Licence Ouverte v2.0
+  (Etalab).
 - Turin: Comune di Torino, zone statistiche, CC BY 4.0.
 - Utrecht: Gemeente Utrecht, buurten (Gis Buurt), CC-0 (1.0).
 - Valencia: Fuente de los datos: Ajuntament de València – Dades Obertes, barris,
@@ -515,6 +552,8 @@ none, this says so rather than guessing.
 - Versailles: Communauté d'Agglomération Versailles Grand Parc, quartiers municipaux
   de Versailles, Licence Ouverte/Open License Version 2.0.
 - Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
+- Villeurbanne: Métropole de Lyon, quartiers des communes de la Métropole de Lyon
+  (data.grandlyon.com), Licence Ouverte / Open Licence version 2.0.
 - Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
   publisher).
 - Washington DC: DC Office of Planning (https://planning.dc.gov/), Neighborhood
