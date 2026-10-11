@@ -1611,6 +1611,7 @@
   },
   {
     "city": "Dijon",
+    "streets": true,
     "district": "Dijon (whole commune)",
     "box": [
       47.2862,

@@ -389,6 +389,8 @@ none, this says so rather than guessing.
   understood that the data provided at this site is being used at one's own
   risk."
 - Copenhagen: Københavns Kommune, kvarterer, CC BY 4.0.
+- Dijon: Dijon métropole, ateliers de quartiers de Dijon (Open Dijon), Licence Ouverte
+  Version 2.0.
 - Dublin: Dublin City Council, electoral divisions (Smart Dublin), Creative
   Commons Attribution.
 - Edinburgh: Copyright City of Edinburgh Council, contains Ordnance Survey data

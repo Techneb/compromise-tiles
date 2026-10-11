@@ -2961,6 +2961,9 @@ AREA_SOURCES = [
     area_row("Copenhagen", "Copenhagen", geojson_source("https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:kvarter"
              "&outputFormat=json&SRSNAME=EPSG:4326"), "kvarternavn", "kvarter"),
     area_row("Delhi", "OSM", osm_area_source((10,)), "name", None),
+    # Dijon's 9 quartiers of its ateliers de quartier; the portal left Opendatasoft (2025), its old export is a 404.
+    area_row("Dijon", "Dijon", geojson_source("https://data.metropole-dijon.fr/sites/default/files/dataset/2025/06/20/8e39eea1-603a-4ad5-a937-8cc592b840a7"
+             "/query.geojson"), "NOM", "quartier"),
     # Electoral divisions: "Beaumont A" to "Beaumont F" are Beaumont.
     area_row("Dublin", "Dublin", geojson_source("https://data.smartdublin.ie/dataset/2afc02f8-314b-40eb-91f0-2955f84bb912/resource/a19c6a3e-bbc8-4f20-b178-65de8e6950f1"
              "/download/electoral-divisions_cso2.shp.geojson"), lambda p: re.sub(r" [A-F]$", "", (p.get("Pllng_D") or "").strip()), "electoral division", dissolve=True),
