@@ -3184,6 +3184,10 @@ AREA_SOURCES = [
     area_row("Tokyo", "Tokyo", estat_source("13", range(101, 124)), machi, "machi", dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Toronto", "Toronto", geojson_source("https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/fc443770-ef0a-4025-9c2c-2cb558bfab00"
              "/resource/0719053b-28b7-48ea-b863-068823a93aaa/download/neighbourhoods-4326.geojson"), "AREA_NAME", "neighbourhood"),
+    # The Mairie's 38 comités d'intérêt local (Mourillon, Le Jonquet, Saint-Jean du Var), on the Métropole TPM's map server; no
+    # licence stated. The Faron, the Arsenal and the port lie in none; the layer's CIL of Le Pradet left out.
+    area_row("Toulon", "Toulon", geojson_source("https://portailsig.metropoletpm.fr/ags2/rest/services/Metiers/MET_ADMINISTRATION/MapServer/6/query"
+             "?where=commune%3D%27TOULON%27&outFields=nom&outSR=4326&f=geojson"), "nom", "comité d'intérêt local"),
     # The Ville de Tours's 22 quartiers (Sanitas-Rotonde, Deux Lions Gloriette; its IRIS aggregated); its 8 conseils de quartier are coarser.
     area_row("Tours", "Tours", geojson_source("https://data.tours-metropole.fr/api/explore/v2.1/catalog/datasets/quartiers-ville-de-tours"
              "/exports/geojson?select=quartier,geo_shape"), "quartier", "quartier"),

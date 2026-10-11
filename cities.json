@@ -1841,6 +1841,7 @@
   },
   {
     "city": "Toulon",
+    "streets": true,
     "district": "Toulon (whole commune)",
     "box": [
       43.1011,
