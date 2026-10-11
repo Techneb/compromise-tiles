@@ -212,6 +212,13 @@ none, this says so rather than guessing.
   ONS postcode centres, OGL).
 - Los Angeles: City of Los Angeles, L.A. Al Fresco dining locations, 2021
   (licence not stated by the publisher).
+- Hong Kong (wired 2026-10-11, read once the city is tiled): Food and
+  Environmental Hygiene Department, Restaurant Licences (licensed
+  restaurants with outside seating accommodation), through the Common
+  Spatial Data Infrastructure portal; DATA.GOV.HK Terms and Conditions
+  ("You are allowed to browse, download, distribute, reproduce, hyperlink
+  to, and print the Data for both commercial and non-commercial purposes
+  on a free-of-charge basis", with the source identified).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains

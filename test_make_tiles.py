@@ -425,7 +425,20 @@ rbkc = next(c for c in PERMIT_CITIES if c["city"] == "Kensington and Chelsea")
 got = permits(rbkc, (51.49, -0.20, 51.51, -0.19))
 assert [t["name"] for t in got] == ["Nouvelle Delicatessen", "The Abingdon", "Amorino"] and all(t["kind"] == "TERRASSE" for t in got)
 assert "(ExpiryDate >= CURRENT_TIMESTAMP) AND OBJECTID>-1" in asked[0] and "outFields=OBJECTID,TradingName" in asked[0]
+# Hong Kong: FEHD's restaurant licences on CSDI, outside seating (#A) only, each at the licence's own point (four real
+# rows at Sai Kung's waterfront, 2026-10-11).
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/hong-kong.json") as f: return json.load(f)
+make_tiles.get = fake_get
+hk = next(c for c in PERMIT_CITIES if c["city"] == "Hong Kong")
+got = permits(hk, (22.380, 114.270, 22.384, 114.276))
+assert [t["name"] for t in got] == ["Schragels Delicatessen", "LA VERDE", "JASPAS BAR & GRILL", "CENA"] and all(t["kind"] == "TERRASSE" for t in got)
+assert got[0]["coordinate"] == {"latitude": 22.380985997573212, "longitude": 114.27342300252502}
+assert "(NSEARCH04_EN LIKE '%#A%') AND OBJECTID>-1" in asked[0] and "outFields=OBJECTID,NSEARCH03_EN" in asked[0]
 make_tiles.get = real_get
+assert feed(22.2810, 114.1580) == "Hong Kong" and feed(22.3820, 114.2720) == "Hong Kong" and feed(22.5430, 114.0580) is None
 assert feed(51.4977, -0.1958) == "Kensington and Chelsea" and feed(51.4913, -0.1950) == "Kensington and Chelsea" and feed(51.5150, -0.2050) == "Kensington and Chelsea"
 assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) is None
 assert feed(60.1711, 24.9453) == "Helsinki" and feed(57.7040, 11.9782) == "Gothenburg" and feed(38.9016, -77.0204) == "Washington DC"
