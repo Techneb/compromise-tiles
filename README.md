@@ -367,6 +367,7 @@ none, this says so rather than guessing.
 - Brussels: Ville de Bruxelles, ibsa.brussels, perspective.brussels, Monitoring
   des quartiers, CC0 1.0.
 - Buenos Aires: Gobierno de la Ciudad de Buenos Aires, barrios, CC BY 2.5 AR.
+- Cannes: Mairie de Cannes, quartiers politiques (data.cannes.fr), Licence Ouverte.
 - Cape Town: City of Cape Town, Corporate GIS, major suburbs (through the Western
   Cape Government's mirror; the City's open data terms of use).
 - Chicago: City of Chicago Data Portal, Boundaries – Neighborhoods. "This site

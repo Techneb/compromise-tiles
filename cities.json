@@ -1907,6 +1907,7 @@
   },
   {
     "city": "Cannes",
+    "streets": true,
     "district": "Cannes (whole commune)",
     "box": [
       43.505,
