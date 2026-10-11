@@ -1757,6 +1757,7 @@
   },
   {
     "city": "Angers",
+    "streets": true,
     "district": "Angers (whole commune)",
     "box": [
       47.4375,

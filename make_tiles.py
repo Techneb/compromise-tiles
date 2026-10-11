@@ -2918,6 +2918,9 @@ AREA_SOURCES = [
     # Without the filter the API also answers every past version of each wijk.
     area_row("Amsterdam", "Amsterdam", geojson_source("https://api.data.amsterdam.nl/v1/gebieden/wijken/?_format=geojson&_pageSize=2000&eindGeldigheid[isnull]=true"),
              "naam", "wijk"),
+    # The Ville d'Angers's 10 quartiers, those of its conseils de quartier (Belle-Beille, Lac de Maine, Doutre - Saint-Jacques - Nazareth).
+    area_row("Angers", "Angers", geojson_source("https://data.angers.fr/api/explore/v2.1/catalog/datasets/ccq_007/exports/geojson?select=nom_cq,geo_shape"),
+             "nom_cq", "quartier"),
     # The commune nouvelle (Annecy-le-Vieux, Cran-Gevrier, Meythet, Pringy, Seynod since 2017) publishes no quartiers:
     # its 51 IRIS grouped into 47 (iris_source; the three Novel are one, the three Meythet one).
     area_row("Annecy", "Annecy", iris_source("74010"), "quartier", "IRIS", dissolve=True),
