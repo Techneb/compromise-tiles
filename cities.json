@@ -1894,6 +1894,39 @@
     "boundary": "boundaries/mulhouse.geojson"
   },
   {
+    "city": "Versailles",
+    "district": "Versailles (whole commune)",
+    "box": [
+      48.7791,
+      2.0699,
+      48.8286,
+      2.1684
+    ],
+    "boundary": "boundaries/versailles.geojson"
+  },
+  {
+    "city": "Cannes",
+    "district": "Cannes (whole commune)",
+    "box": [
+      43.505,
+      6.9447,
+      43.5749,
+      7.0741
+    ],
+    "boundary": "boundaries/cannes.geojson"
+  },
+  {
+    "city": "Ajaccio",
+    "district": "Ajaccio (whole commune)",
+    "box": [
+      41.8739,
+      8.5854,
+      41.9717,
+      8.8262
+    ],
+    "boundary": "boundaries/ajaccio.geojson"
+  },
+  {
     "city": "Vaughan",
     "district": "Vaughan (going-out core + 2 km)",
     "box": [
