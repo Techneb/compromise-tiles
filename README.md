@@ -355,6 +355,8 @@ none, this says so rather than guessing.
 - Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.
+- Bilbao: Fuente de los datos: Ayuntamiento de Bilbao, barrios (GeoBilbao), Creative Commons
+  Reconocimiento 3.0 España (CC BY 3.0 ES).
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
   CC BY 4.0.
 - Bologna: Comune di Bologna - U.I. Ufficio Comunale di Statistica, aree statistiche,
