@@ -367,6 +367,19 @@ assert "typeName=od_gis:Markupplatelse_Punkt" in asked[0] and "bbox=18.06,59.33,
 assert redact("GET https://openstreetgs.stockholm.se/geoservice/api/s3cr3t-key/wfs") == \
     "GET https://openstreetgs.stockholm.se/geoservice/api/***/wfs"
 os.environ.pop("STOCKHOLM_API_KEY")
+# Vienna: the Schanigärten WFS read whole (no bbox, one request for the run), then cut to each rect; on a trimmed real
+# answer. Asked per block and cell by cell, it held the whole municipality past the 290-minute cap (2026-10-11).
+asked.clear()
+def fake_get(url, data=None, parse=None, **k):
+    asked.append(urllib.parse.unquote_plus(url))
+    with open("fixtures/vienna.json") as f: return json.load(f)
+make_tiles.get = fake_get
+vienna = next(c for c in PERMIT_CITIES if c["city"] == "Vienna")
+got = permits(vienna, (48.207, 16.370, 48.210, 16.374))
+assert len(got) == 3 and all(t["kind"] == "TERRASSE" and "name" not in t for t in got)
+assert permits(vienna, (48.226, 16.392, 48.227, 16.393))[0]["coordinate"] == {"latitude": 48.22605105, "longitude": 16.39227343}
+assert permits(vienna, (48.30, 16.20, 48.31, 16.21)) == [] and len(asked) == 1   # read once, cut to the cell
+assert "typeName=ogdwien:SCHANIGARTENOGD" in asked[0] and "bbox" not in asked[0] and "BBOX" not in asked[0]
 # Gothenburg: one ';' CSV with a BOM, read whole; a terrace where Serveringstyper lists Uteservering (alone or among
 # catering and tastings) and the public is served (alone or with closed companies); no outdoor serving, a closed
 # company and a row without a point dropped.
