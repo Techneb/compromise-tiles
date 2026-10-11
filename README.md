@@ -448,6 +448,8 @@ none, this says so rather than guessing.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the
   source).
 - Prague: datový podklad © IPR Praha, městské části, CC BY 4.0.
+- Reims: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Rennes: Rennes Métropole, périmètres des 45 sous-quartiers de Rennes, Licence ODbL 1.0.
 - Riga: Rīgas valstspilsētas pašvaldība (data.gov.lv), Rīgas apkaimes, Creative
   Commons Attribution 4.0.

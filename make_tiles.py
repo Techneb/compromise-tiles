@@ -2836,7 +2836,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz, Rouen)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -3044,6 +3044,8 @@ AREA_SOURCES = [
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
     area_row("Prague", "Prague", geojson_source("https://lkod-iprpraha.hub.arcgis.com/api/download/v1/items/35ede955057f4815b522ea91b488792a/geojson?layers=0"),
              "nazev_1", "městská část"),
+    # Neither the city nor the Grand Reims publishes quartiers: its 85 IRIS grouped into 50 (iris_source; Murigny's 5, Laon's 4).
+    area_row("Reims", "Reims", iris_source("51454"), "quartier", "IRIS", dissolve=True),
     # Rennes's 45 sous-quartiers (Villejean, Bréquigny, Thabor - Paris), under its 12 quartiers' compound names.
     area_row("Rennes", "Rennes", geojson_source("https://data.rennesmetropole.fr/api/explore/v2.1/catalog/datasets/perimetres-des-45-sous-quartiers-de-la-ville-de-rennes"
              "/exports/geojson?select=nomsquart,geo_shape"), "nomsquart", "sous-quartier"),
