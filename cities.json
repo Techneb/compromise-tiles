@@ -1631,6 +1631,7 @@
   },
   {
     "city": "Rennes",
+    "streets": true,
     "district": "Rennes (whole commune)",
     "box": [
       48.0768,
