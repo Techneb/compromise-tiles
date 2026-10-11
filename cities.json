@@ -1865,6 +1865,7 @@
   },
   {
     "city": "Biarritz",
+    "streets": true,
     "district": "Biarritz (whole commune)",
     "box": [
       43.4474,

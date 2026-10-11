@@ -363,6 +363,8 @@ none, this says so rather than guessing.
 - Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.
+- Biarritz: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
   CC BY 4.0.
 - Bordeaux: Ville de Bordeaux, secteurs de vie (Bordeaux Métropole open data),

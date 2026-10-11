@@ -2822,7 +2822,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence)."""
+    Annecy, Aix-en-Provence, Biarritz)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2919,6 +2919,8 @@ AREA_SOURCES = [
     area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),
     area_row("Berlin", "Berlin", geojson_source("https://gdi.berlin.de/services/wfs/alkis_ortsteile?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
+    # Neither the city nor the Pays Basque agglomeration publishes quartiers: its 12 IRIS (iris_source), none merged.
+    area_row("Biarritz", "Biarritz", iris_source("64122"), "quartier", "IRIS", dissolve=True),
     area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
              "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
     area_row("Bordeaux", "Bordeaux", geojson_source("https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/se_quartvie_s/exports/geojson"
