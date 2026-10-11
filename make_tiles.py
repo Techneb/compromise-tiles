@@ -2839,7 +2839,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2969,6 +2969,9 @@ AREA_SOURCES = [
     area_row("Budapest", "OSM", osm_area_source((10,)), "name", None),
     area_row("Buenos Aires", "Buenos Aires", geojson_source("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/innovacion-transformacion-digital/barrios/barrios.geojson"),
              "nombre", "barrio"),
+    # Neither the city nor Caen la mer publishes quartiers: its 51 IRIS grouped into 45 (iris_source; IGN's "La Grace de Dieu Ouest"
+    # joins La Grâce de Dieu).
+    area_row("Caen", "Caen", iris_source("14118"), lambda p: p["quartier"].replace("La Grace de Dieu Ouest", "La Grâce de Dieu"), "IRIS", dissolve=True),
     # The Mairie's 12 quartiers ("quartiers politiques", not the QPV); its 63 secteurs de proximité are often a street's name.
     area_row("Cannes", "Cannes", geojson_source("https://data.cannes.fr/api/explore/v2.1/catalog/datasets/quartiers-politiques/exports/geojson"
              "?select=nom_quartier,geo_shape"), "nom_quartier", "quartier"),

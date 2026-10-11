@@ -1721,6 +1721,7 @@
   },
   {
     "city": "Caen",
+    "streets": true,
     "district": "Caen (whole commune)",
     "box": [
       49.153,
