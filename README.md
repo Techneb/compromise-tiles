@@ -518,6 +518,8 @@ none, this says so rather than guessing.
   licence).
 - Toronto: City of Toronto, Neighbourhoods. Contains information licensed under
   the Open Government Licence – Toronto.
+- Tours: Ville de Tours, quartiers (data.tours-metropole.fr), Licence Ouverte v2.0
+  (Etalab).
 - Turin: Comune di Torino, zone statistiche, CC BY 4.0.
 - Utrecht: Gemeente Utrecht, buurten (Gis Buurt), CC-0 (1.0).
 - Valencia: Fuente de los datos: Ajuntament de València – Dades Obertes, barris,

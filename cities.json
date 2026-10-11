@@ -1745,6 +1745,7 @@
   },
   {
     "city": "Tours",
+    "streets": true,
     "district": "Tours (whole commune)",
     "box": [
       47.3489,
