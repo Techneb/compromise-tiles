@@ -907,6 +907,7 @@
   },
   {
     "city": "Frankfurt",
+    "streets": true,
     "district": "Frankfurt (whole municipality + the old core)",
     "box": [
       50.0153,

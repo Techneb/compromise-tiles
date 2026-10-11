@@ -388,6 +388,8 @@ none, this says so rather than guessing.
   Government Licence v3.0.
 - Florence: Comune di Firenze, aree elementari 2021, Creative Commons Attribuzione
   4.0 Internazionale (CC-BY 4.0).
+- Frankfurt: quelle: Stadt Frankfurt am Main, www.frankfurt.de, Stadtteile (WFS
+  Stadtgebietsgliederung), Datenlizenz Deutschland – Namensnennung – Version 2.0.
 - Geneva: « Données SITG », secteurs statistiques, extracted at each build
   (accès libre).
 - Ghent: Stad Gent, stadswijken, Modellicentie Gratis Hergebruik.
