@@ -3013,6 +3013,10 @@ AREA_SOURCES = [
     area_row("Kraków", "OSM", osm_area_source((11,)), "name", None),
     area_row("Kuala Lumpur", "OSM", osm_area_source(("neighbourhood", "quarter", "suburb")), "name", None),
     area_row("Kyiv", "OSM", osm_area_source((7, 10)), "name", None),
+    # The Ville de La Rochelle's 19 comités de quartier (its 2012 cut; Port-Neuf, Les Minimes), on the Agglomération's portal;
+    # its 4 conseils de secteur are too coarse.
+    area_row("La Rochelle", "La Rochelle", geojson_source("https://opendata.agglo-larochelle.fr/d4c/api/records/2.0/downloadfile/"
+             "format=geojson&resource_id=b55cda71-088c-4ea4-8df8-69fc80c7b9c8"), "cq_nom", "comité de quartier"),
     # The Ayuntamiento's barrios (Vegueta, Triana, Guanarteme); each distrito's rural rest, "DISEMINADO", left out: 112.
     area_row("Las Palmas", "Las Palmas", geojson_source("https://sit.laspalmasgc.es/server/rest/services/opendata/barrios/MapServer/0/query"
              "?where=1%3D1&outFields=NUCL_DS_NOMBRE&outSR=4326&f=geojson"), "NUCL_DS_NOMBRE", "barrio",

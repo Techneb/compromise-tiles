@@ -1814,6 +1814,7 @@
   },
   {
     "city": "La Rochelle",
+    "streets": true,
     "district": "La Rochelle (whole commune)",
     "box": [
       46.1332,

@@ -421,6 +421,8 @@ none, this says so rather than guessing.
 - Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.
 - Johannesburg: Statistics South Africa, Census 2011 sub places (UCT Libraries'
   republication); Stats SA is the source of the basic data.
+- La Rochelle: Ville de La Rochelle, comités de quartier (opendata.agglo-larochelle.fr),
+  data of 2012-05-23, Licence ouverte / Open Licence.
 - Las Palmas: Origen de los datos: Ayuntamiento de Las Palmas de Gran Canaria, Callejero
   Municipal, barrios, Reutilización de la información del sector público para el ámbito
   del sector público estatal.
