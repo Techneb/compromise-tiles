@@ -1919,6 +1919,7 @@
   },
   {
     "city": "Ajaccio",
+    "streets": true,
     "district": "Ajaccio (whole commune)",
     "box": [
       41.8739,
