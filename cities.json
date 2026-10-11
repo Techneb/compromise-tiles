@@ -286,6 +286,7 @@
   },
   {
     "city": "Utrecht",
+    "streets": true,
     "district": "Utrecht (whole municipality)",
     "box": [
       52.0263,

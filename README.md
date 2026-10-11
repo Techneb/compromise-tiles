@@ -471,6 +471,7 @@ none, this says so rather than guessing.
 - Toronto: City of Toronto, Neighbourhoods. Contains information licensed under
   the Open Government Licence – Toronto.
 - Turin: Comune di Torino, zone statistiche, CC BY 4.0.
+- Utrecht: Gemeente Utrecht, buurten (Gis Buurt), CC-0 (1.0).
 - Valencia: Fuente de los datos: Ajuntament de València – Dades Obertes, barris,
   CC BY 4.0.
 - Vancouver: City of Vancouver, local area boundary. Contains information
