@@ -2839,7 +2839,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen, Amiens, Le Mans)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen, Amiens, Le Mans, Orléans)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -3109,6 +3109,9 @@ AREA_SOURCES = [
     area_row("Nîmes", "Nîmes", geojson_source("https://services2.arcgis.com/ghqRCL5wdHSQIHfv/arcgis/rest/services/Comit%C3%A9s_de_Quartiers/FeatureServer/1/query"
              "?where=1%3D1&outFields=COMITE_QUARTIER&outSR=4326&f=geojson"), lambda p: (p.get("COMITE_QUARTIER") or "").upper(), "comité de quartier",
              keep=lambda p: not (p.get("COMITE_QUARTIER") or "").startswith("NON ATTRIBUE")),
+    # Orléans Métropole publishes the city's 6 quartiers (its mairies de proximité) only: its 45 IRIS grouped into 36 (iris_source;
+    # Bourgogne's 5, Bannier's 3).
+    area_row("Orléans", "Orléans", iris_source("45234"), "quartier", "IRIS", dissolve=True),
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
              dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),
