@@ -3160,6 +3160,13 @@ AREA_SOURCES = [
              "/FeatureServer/0/query?where=1%3D1&outFields=NOM&outSR=4326&f=geojson"), "NOM", "quartier"),
     area_row("Vienna", "Vienna", geojson_source("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:BEZIRKSGRENZEOGD"
              "&srsName=EPSG:4326&outputFormat=json"), "NAMEK", "Bezirk"),
+    # The Métropole de Lyon's quartiers of its communes (201, no commune field): Villeurbanne's 8, those of its conseils de
+    # quartier; La Doua's campus lies in none. The Ville publishes none of its own.
+    area_row("Villeurbanne", "Villeurbanne", geojson_source("https://data.grandlyon.com/geoserver/metropole-de-lyon/ows?SERVICE=WFS&VERSION=2.0.0&request=GetFeature"
+             "&typename=metropole-de-lyon:adr_voie_lieu.adrquartier&outputFormat=application/json&SRSNAME=EPSG:4326"),
+             lambda p: (p.get("nom") or "").removeprefix("Quartier "), "quartier",
+             keep=lambda p: (p.get("nom") or "").removeprefix("Quartier ") in {"Buers Croix-Luizet", "Charpennes Tonkin", "Cusset Bonnevay",
+             "Cyprian Les Brosses", "Ferrandière Maisons Neuves", "Gratte-Ciel Dedieu Charmettes", "Perralière Grandclément", "Saint-Jean"}),
     area_row("Vilnius", "Vilnius", geojson_source("https://zemelapiai.vplanas.lt/arcgis/rest/services/Open_Data/Vilniaus_miesto_ribos/MapServer/1/query"
              "?where=1%3D1&outFields=SENIUNIJA&outSR=4326&f=geojson"), "SENIUNIJA", "seniūnija"),
     area_row("Warsaw", "OSM", osm_area_source((10,)), "name", None),   # the city's WFS was not reached (2026-10-10)

@@ -1625,6 +1625,7 @@
   },
   {
     "city": "Villeurbanne",
+    "streets": true,
     "district": "Villeurbanne (whole commune)",
     "box": [
       45.7484,

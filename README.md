@@ -517,6 +517,8 @@ none, this says so rather than guessing.
 - Versailles: Communauté d'Agglomération Versailles Grand Parc, quartiers municipaux
   de Versailles, Licence Ouverte/Open License Version 2.0.
 - Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
+- Villeurbanne: Métropole de Lyon, quartiers des communes de la Métropole de Lyon
+  (data.grandlyon.com), Licence Ouverte / Open Licence version 2.0.
 - Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
   publisher).
 - Washington DC: DC Office of Planning (https://planning.dc.gov/), Neighborhood
