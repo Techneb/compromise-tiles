@@ -1709,6 +1709,7 @@
   },
   {
     "city": "Saint-\u00c9tienne",
+    "streets": true,
     "district": "Saint-\u00c9tienne (whole commune)",
     "box": [
       45.3715,

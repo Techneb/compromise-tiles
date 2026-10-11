@@ -3119,6 +3119,10 @@ AREA_SOURCES = [
              "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
     # Neither the city nor the Métropole Rouen Normandie publishes quartiers: its 42 IRIS grouped into 40 (iris_source).
     area_row("Rouen", "Rouen", iris_source("76540"), "quartier", "IRIS", dissolve=True),
+    # The Ville de Saint-Étienne's 47 quartiers (Badouillère, Crêt de Roc, Fauriel), its SIG's WFS, unaccented; its 21 conseils
+    # de quartier bundle them.
+    area_row("Saint-Étienne", "Saint-Étienne", geojson_source("https://extranet.saint-etienne.fr/extrasig/geoserver/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=vse:GENSECT1&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nom", "quartier"),
     # SF Find's 117 neighborhoods (Hayes Valley, Noe Valley), not the 41 Analysis Neighborhoods; data.sfgov.org moved here.
     area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
     # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la

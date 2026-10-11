@@ -488,6 +488,8 @@ none, this says so rather than guessing.
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
 - Rouen: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
+- Saint-Étienne: Ville de Saint-Étienne, Saint-Etienne Métropole, quartiers (flux de
+  données géographiques ouvertes), Licence Ouverte / Open Licence version 2.0.
 - San Francisco: DataSF, City and County of San Francisco, SF Find Neighborhoods,
   Public Domain U.S. Government.
 - San Sebastián: © Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, Donostiako
