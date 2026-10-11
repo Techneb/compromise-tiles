@@ -1769,6 +1769,7 @@
   },
   {
     "city": "Besan\u00e7on",
+    "streets": true,
     "district": "Besan\u00e7on (whole commune)",
     "box": [
       47.2006,

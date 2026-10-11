@@ -2941,6 +2941,10 @@ AREA_SOURCES = [
     area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),
     area_row("Berlin", "Berlin", geojson_source("https://gdi.berlin.de/services/wfs/alkis_ortsteile?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
+    # The Ville de Besançon's 13 quartiers (Battant, Chaprais - Cras, Planoise), on Grand Besançon Métropole's map server; no licence
+    # stated. Its open data portal lists the streets by quartier only.
+    area_row("Besançon", "Besançon", geojson_source("https://sig-portail.grandbesancon.fr/server/rest/services/Visionneuse/Limites_administratives/MapServer/8"
+             "/query?where=1%3D1&outFields=NOM&outSR=4326&f=geojson"), "NOM", "quartier"),
     # Neither the city nor the Pays Basque agglomeration publishes quartiers: its 12 IRIS (iris_source), none merged.
     area_row("Biarritz", "Biarritz", iris_source("64122"), "quartier", "IRIS", dissolve=True),
     # GeoBilbao's barrios (Deustu's, Abando's; the open data catalogue has them as a CSV without outlines); each distrito's

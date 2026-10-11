@@ -367,6 +367,8 @@ none, this says so rather than guessing.
   2.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.
+- Besançon: Grand Besançon Métropole, quartiers de la Ville de Besançon (licence not
+  stated by the publisher).
 - Biarritz: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
 - Bilbao: Fuente de los datos: Ayuntamiento de Bilbao, barrios (GeoBilbao), Creative Commons
