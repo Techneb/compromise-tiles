@@ -152,6 +152,7 @@ none, this says so rather than guessing.
 - Anglet: Ville d'Anglet, Licence Ouverte 2.0.
 - Rouen: Ville de Rouen, 2021 edition, Licence Ouverte 2.0.
 - Lorient: Ville de Lorient, 2020 edition, Licence Ouverte 2.0.
+- La Rochelle: Ville de La Rochelle (Licence ouverte / Open Licence).
 - Issy-les-Moulineaux: Ville d'Issy-les-Moulineaux, 2020 list (licence not
   stated by the publisher).
 - Boulogne-Billancourt: Ville de Boulogne-Billancourt, 2020 list (licence
@@ -212,6 +213,9 @@ none, this says so rather than guessing.
   ONS postcode centres, OGL).
 - Los Angeles: City of Los Angeles, L.A. Al Fresco dining locations, 2021
   (licence not stated by the publisher).
+- Thessaloníki: Δήμος Θεσσαλονίκης, shops of health interest (licence: the
+  Ministry of the Interior's "Ανοιχτή Άδεια", as linked by the publisher),
+  2017–2019.
 - Hong Kong (wired 2026-10-11, read once the city is tiled): Food and
   Environmental Hygiene Department, Restaurant Licences (licensed
   restaurants with outside seating accommodation), through the Common
@@ -305,6 +309,18 @@ none, this says so rather than guessing.
 - Milan: Comune di Milano, Database Topografico (DBT) 2020, CC BY 4.0.
 - Rome: Regione Lazio, Database Geotopografico (DBGT) 2020, Roma. Fonte:
   Regione Lazio.
+- Düsseldorf: Geobasis NRW, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
+  Zero – Version 2.0).
+- Nuremberg: Datenquelle: Bayerische Vermessungsverwaltung –
+  www.geodaten.bayern.de, 3D-Gebäudemodelle LoD2 (CC BY 4.0).
+- Zagreb: Grad Zagreb, ZG3D 2022 3D model Grada Zagreba (Otvorena dozvola).
+- Belgrade: Beoland, Beograd 3D (licence not stated by the publisher).
+- San José: Municipalidad de San José, SIG_SER_3D_Edificaciones ("Definidos
+  por la Municipalidad de San José").
+- San Jose: County of Santa Clara; Sanborn Map Co., Buildings Footprints 2D
+  (licence not stated by the publisher).
+- Genoa: Regione Liguria, DB Geotopografico NC5 3D (CC BY 4.0).
+- Sofia: Sofiaplan, Сгради 18.12.2009 (licence not stated by the publisher).
 - Spain (Madrid, Seville, Barcelona, Valencia, Zaragoza, Málaga, Palma,
   Las Palmas, Murcia, Alicante, Córdoba, Valladolid, Vigo, Gijón):
   outlines and heights derived from the Dirección General del Catastro's
