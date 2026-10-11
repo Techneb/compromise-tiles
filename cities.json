@@ -509,6 +509,7 @@
   },
   {
     "city": "Rouen",
+    "streets": true,
     "district": "Rouen (whole commune)",
     "box": [
       49.4,

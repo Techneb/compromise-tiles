@@ -2821,8 +2821,14 @@ def estat_source(prefecture, wards):
 def iris_head(name):
     """An IRIS name's part before its first hyphen between two names: "Ariane-Monzie" Ariane, "Saint-Roch-Ricolfi"
     Saint-Roch (a "Saint-", "Sainte-", "Notre-" or compass "Nord-Est" kept whole), "Cimiez" Cimiez. A numbered or
-    "partie" piece is its whole: "Encagnane 2" Encagnane, "Arbois Partie Est" Arbois (Aix's)."""
-    name = re.sub(r"\s+(?:\d+|[Pp]artie\b.*)$", "", name)
+    "partie" piece is its whole: "Encagnane 2" Encagnane, "Arbois Partie Est" Arbois (Aix's); else a compass tail
+    is dropped: "Murigny Sud-Est", "Saint-Rémi Nord Est et Sud", "Cernay-Centre" (Reims's), not "Croix du Sud"'s."""
+    whole = re.sub(r"\s+(?:\d+|[Pp]artie\b.*)$", "", name)
+    tail = whole == name and re.match(r"^(.*?)((?:[\s-]+(?:Nord|Sud|Est|Ouest|Centre|et))+)$", name)
+    if tail and tail[1]:
+        whole = tail[1]
+        if whole.split()[-1] in ("du", "de", "des"): whole += re.match(r"[\s-]+\w+", tail[2])[0]
+    name = whole
     m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte)(?<!\bNotre)(?<!\bNord)(?<!\bSud))-(?=[A-ZÉÈ])", name)
     return m[1].strip() if m else name
 
@@ -2830,7 +2836,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2902,7 +2908,7 @@ AREA_SOURCES = [
              "recensement-population-2020-grands-quartiers-familles/exports/geojson?select=grd_quart,lib_grd_quart,geo_shape"),
              "lib_grd_quart", "grand quartier"),
     # Neither the city nor the Métropole (data.ampmetropole.fr has Marseille's quartiers only) publishes Aix's: its 54
-    # IRIS grouped into 42 (iris_source; Encagnane 1 to 4, Jas 1 to 6 are one each).
+    # IRIS grouped into 39 (iris_source; Encagnane 1 to 4, Jas 1 to 6, Couronne Est, Nord, Sud are one each).
     area_row("Aix-en-Provence", "Aix-en-Provence", iris_source("13001"), "quartier", "IRIS", dissolve=True),
     # Neither the city nor the CAPA publishes quartiers, and OpenStreetMap maps none: its 24 IRIS (iris_source).
     area_row("Ajaccio", "Ajaccio", iris_source("2A004"), "quartier", "IRIS", dissolve=True),
@@ -2910,7 +2916,7 @@ AREA_SOURCES = [
     area_row("Amsterdam", "Amsterdam", geojson_source("https://api.data.amsterdam.nl/v1/gebieden/wijken/?_format=geojson&_pageSize=2000&eindGeldigheid[isnull]=true"),
              "naam", "wijk"),
     # The commune nouvelle (Annecy-le-Vieux, Cran-Gevrier, Meythet, Pringy, Seynod since 2017) publishes no quartiers:
-    # its 51 IRIS grouped into 49 (iris_source; the three Novel are one).
+    # its 51 IRIS grouped into 47 (iris_source; the three Novel are one, the three Meythet one).
     area_row("Annecy", "Annecy", iris_source("74010"), "quartier", "IRIS", dissolve=True),
     area_row("Antwerp", "Antwerp", geojson_source("https://geodata.antwerpen.be/arcgissql/rest/services/P_Portal/portal_publiek2/MapServer/97/query"
              "?where=1%3D1&outFields=*&outSR=4326&f=geojson"),
@@ -3046,6 +3052,8 @@ AREA_SOURCES = [
              "DESCRIZIONE", lambda p: (p.get("TIPOLOGIA") or "").lower() or "suddivisione"),
     area_row("Rotterdam", "Rotterdam", ogc_source("https://api.pdok.nl/cbs/wijken-en-buurten-2025/ogc/v1/collections/buurten/items?f=json&limit=1000&gemeentecode=GM0599"),
              "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
+    # Neither the city nor the Métropole Rouen Normandie publishes quartiers: its 42 IRIS grouped into 40 (iris_source).
+    area_row("Rouen", "Rouen", iris_source("76540"), "quartier", "IRIS", dissolve=True),
     # SF Find's 117 neighborhoods (Hayes Valley, Noe Valley), not the 41 Analysis Neighborhoods; data.sfgov.org moved here.
     area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
     # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la
