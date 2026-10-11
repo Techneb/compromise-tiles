@@ -1841,6 +1841,7 @@
   },
   {
     "city": "Aix-en-Provence",
+    "streets": true,
     "district": "Aix-en-Provence (whole commune)",
     "box": [
       43.446,

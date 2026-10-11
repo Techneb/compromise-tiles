@@ -347,6 +347,8 @@ none, this says so rather than guessing.
 - Marseille: Datactivist, quartiers de Marseille (Métropole Aix-Marseille-Provence
   open data), Licence Ouverte 2.0.
 - Toulouse: Mairie de Toulouse, grands quartiers, Licence Ouverte 2.0.
+- Aix-en-Provence: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte /
+  Open Licence version 2.0.
 - Ajaccio: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
 - Amsterdam: Gemeente Amsterdam, wijken, CC0 1.0.
