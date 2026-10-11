@@ -449,6 +449,8 @@ none, this says so rather than guessing.
 - Montréal: Ville de Montréal, quartiers de référence en habitation, CC BY 4.0.
 - Munich: Landeshauptstadt München – GeodatenService, Stadtbezirke, Datenlizenz
   Deutschland – Namensnennung – 2.0.
+- Nancy: Métropole du Grand Nancy, quartiers des communes du Grand Nancy (Ville de
+  Nancy's quartiers; licence not stated by the publisher).
 - Nantes: Nantes Métropole, quartiers de la ville de Nantes, Licence Ouverte.
 - Naples: Comune di Napoli, territorio cittadino suddiviso in quartieri, IODL 2.0.
 - New York: NYC Department of City Planning (DCP), 2020 Neighborhood Tabulation

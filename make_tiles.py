@@ -3057,6 +3057,10 @@ AREA_SOURCES = [
              "/download/quartierreferencehabitation.geojson"), "nom_qr", "quartier de référence"),
     area_row("Munich", "Munich", geojson_source("https://geoportal.muenchen.de/geoserver/gsm_wfs/ows?service=WFS&version=1.0.0&request=GetFeature"
              "&typeName=gsm_wfs:vablock_stadtbezirk&outputFormat=application/json&srsName=EPSG:4326"), "sb_name", "Stadtbezirk", dissolve=True),
+    # Nancy's 11 quartiers (its ateliers de vie: Plateau de Haye, Rives de Meurthe), on the Métropole du Grand Nancy's map server;
+    # no licence stated. Its 5 territoires d'élus are too coarse.
+    area_row("Nancy", "Nancy", geojson_source("https://geo.grandnancy.eu/server/rest/services/ADMINISTRATIF_Limites/MapServer/4/query"
+             "?where=CCOCOM%3D%27395%27&outFields=NOM&outSR=4326&f=geojson"), "NOM", "quartier"),
     area_row("Nantes", "Nantes", geojson_source("https://data.nantesmetropole.fr/api/explore/v2.1/catalog/datasets/244400404_quartiers-de-la-ville-de-nantes"
              "/exports/geojson?select=nom,geo_shape"), "nom", "quartier"),
     # The 30 quartieri (Chiaia, Vomero, Posillipo) on the 2001 census sections, the newest the Comune publishes as a file.

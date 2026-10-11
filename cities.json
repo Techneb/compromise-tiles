@@ -1613,6 +1613,7 @@
   },
   {
     "city": "Nancy",
+    "streets": true,
     "district": "Nancy (whole commune)",
     "box": [
       48.6668,
