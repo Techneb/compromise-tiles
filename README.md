@@ -403,6 +403,8 @@ none, this says so rather than guessing.
   Licence v3.0; Crown copyright and database right 2022, licensed under the One
   Scotland Mapping Agreement.
 - Gothenburg, Stockholm: Statistiska centralbyrån (SCB), RegSO 2025, CC0.
+- Grenoble: Ville de Grenoble, unions de quartier (data.metropolegrenoble.fr), Open
+  Data Commons Open Database License 1.0.
 - Hamburg: Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und
   Vermessung (LGV), Stadtteile, Datenlizenz Deutschland – Namensnennung – 2.0.
 - Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.

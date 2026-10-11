@@ -1565,6 +1565,7 @@
   },
   {
     "city": "Grenoble",
+    "streets": true,
     "district": "Grenoble (whole commune)",
     "box": [
       45.1541,

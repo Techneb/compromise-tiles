@@ -1092,6 +1092,14 @@ assert [f["name"] for f in grouped] == ["Cimiez", "France-Negresco", "Saint-Roch
 assert abs(grouped[0]["geometry"].area - 2 * shapely.Polygon(square(7.2)["coordinates"][0]).area) < 1e-12   # two IRIS dissolved
 print("ok (boundaries, IRIS grouped into quartiers)")
 
+# Grenoble's CSV: each row's geo_shape is its GeoJSON geometry; a row without one is left out.
+shape = json.dumps(square(5.72)).replace('"', '""')
+make_tiles.get, real_get = lambda url: f'﻿sdec_libel,geo_shape\nMalherbe,"{shape}"\nVide,\n'.encode(), make_tiles.get
+found = make_tiles.csv_geojson_source("https://example.org/u.csv")(None)
+make_tiles.get = real_get
+assert [(p["sdec_libel"], g.geom_type) for p, g in found] == [("Malherbe", "Polygon")], found
+print("ok (boundaries, a CSV of GeoJSON geometries)")
+
 # A shared edge stays shared after the 5 m simplification: two neighbours along a wiggly street (2 m off a straight
 # line, every 10 m), simplified together; the edge's vertices are the same in both and no gap or overlap opens.
 lon0, lat0 = 13.40, 52.50

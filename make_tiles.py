@@ -2774,6 +2774,14 @@ def ckan_wkt_source(url, field):
         return [(r, shapely.wkt.loads(r[field])) for r in records if r.get(field)]
     return fetch
 
+def csv_geojson_source(url, field="geo_shape"):
+    """A CSV file whose `field` holds each row's GeoJSON geometry (Grenoble's: its data4citizen GeoJSON export
+    answers an empty collection one request in two)."""
+    def fetch(rect):
+        rows = csv.DictReader(io.StringIO(get(url).decode("utf-8-sig")))
+        return _shaped([{"properties": r, "geometry": json.loads(r[field])} for r in rows if r.get(field)])
+    return fetch
+
 def datagovsg_source(dataset):
     """data.gov.sg: poll-download answers a signed URL, valid an hour, for the GeoJSON."""
     def fetch(rect):
@@ -2963,6 +2971,9 @@ AREA_SOURCES = [
              keep=lambda p: not (p.get("AREANAME") or "").strip().startswith("Shared")),
     area_row("Gothenburg", "Gothenburg", geojson_source("https://geodata.scb.se/geoserver/stat/wfs?service=WFS&request=GetFeature&version=2.0.0&typeNames=stat:RegSO_2025"
              "&outputFormat=application/json&srsName=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("kommunkod='1480'")), "regsonamn", "RegSO"),
+    # The Ville de Grenoble's 22 unions de quartier (its 6 secteurs are too coarse), from the dataset's CSV.
+    area_row("Grenoble", "Grenoble", csv_geojson_source("https://data.metropolegrenoble.fr/sites/default/files/dataset/2023/02/22/0dcfa54a-6dad-4a31-af19-d2baaef4320e"
+             "/csv_gen_0dcfa54a_6dad_4a31_af19_d2baaef4320e_63f63698555a9.csv"), "sdec_libel", "union de quartier"),
     area_row("Hamburg", "Hamburg", ogc_source("https://api.hamburg.de/datasets/v1/verwaltungsgrenzen/collections/stadtteile/items?f=json&limit=1000"),
              "stadtteil_name", "Stadtteil"),
     area_row("Helsinki", "Helsinki", geojson_source("https://kartta.hel.fi/ws/geoserver/avoindata/wfs?service=WFS&version=2.0.0&request=GetFeature"
