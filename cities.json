@@ -111,24 +111,26 @@
   {
     "city": "Budapest",
     "streets": true,
-    "district": "Budapest (going-out core + 2 km)",
+    "district": "Budapest (whole municipality)",
     "box": [
-      47.445,
-      18.9844,
-      47.555,
-      19.1276
-    ]
+      47.3496,
+      18.9251,
+      47.6132,
+      19.335
+    ],
+    "boundary": "boundaries/budapest.geojson"
   },
   {
     "city": "Chicago",
     "streets": true,
-    "district": "Chicago (densest 150 km\u00b2 of the core)",
+    "district": "Chicago (whole municipality + the old core)",
     "box": [
-      41.8638,
-      -87.753,
-      41.9738,
-      -87.6052
-    ]
+      41.6445,
+      -87.9401,
+      42.0231,
+      -87.524
+    ],
+    "boundary": "boundaries/chicago.geojson"
   },
   {
     "city": "Copenhagen",
@@ -369,13 +371,14 @@
   {
     "city": "M\u00e1laga",
     "streets": true,
-    "district": "M\u00e1laga (going-out core + 2 km)",
+    "district": "M\u00e1laga (whole municipality + the old core)",
     "box": [
-      36.669,
-      -4.4734,
-      36.759,
-      -4.3726
-    ]
+      36.6356,
+      -4.5879,
+      36.8941,
+      -4.2605
+    ],
+    "boundary": "boundaries/malaga.geojson"
   },
   {
     "city": "Palma",
@@ -412,13 +415,14 @@
   },
   {
     "city": "Alicante",
-    "district": "Alicante (going-out core + 2 km)",
+    "district": "Alicante (whole municipality without Tabarca + the old core)",
     "box": [
-      38.319,
-      -0.5259,
-      38.383,
-      -0.4481
-    ]
+      38.2742,
+      -0.6567,
+      38.5371,
+      -0.375
+    ],
+    "boundary": "boundaries/alicante.geojson"
   },
   {
     "city": "C\u00f3rdoba",
@@ -745,13 +749,14 @@
   {
     "city": "Riga",
     "streets": true,
-    "district": "Riga (going-out core + 2 km)",
+    "district": "Riga (whole municipality)",
     "box": [
-      56.923,
-      24.0641,
-      56.985,
-      24.1839
-    ]
+      56.8573,
+      23.9325,
+      57.0862,
+      24.3245
+    ],
+    "boundary": "boundaries/riga.geojson"
   },
   {
     "city": "Eindhoven",
@@ -799,13 +804,14 @@
   {
     "city": "Hamburg",
     "streets": true,
-    "district": "Hamburg (densest 150 km\u00b2 of the core)",
+    "district": "Hamburg (whole municipality without Neuwerk)",
     "box": [
-      53.5121,
-      9.8993,
-      53.6221,
-      10.0845
-    ]
+      53.3951,
+      9.7301,
+      53.7395,
+      10.3253
+    ],
+    "boundary": "boundaries/hamburg.geojson"
   },
   {
     "city": "Stockholm",
@@ -857,13 +863,14 @@
   {
     "city": "Montr\u00e9al",
     "streets": true,
-    "district": "Montr\u00e9al (densest 150 km\u00b2 of the core)",
+    "district": "Montr\u00e9al (whole municipality + the old core)",
     "box": [
-      45.4516,
-      -73.6883,
-      45.5616,
-      -73.5313
-    ]
+      45.4102,
+      -73.9478,
+      45.7048,
+      -73.4743
+    ],
+    "boundary": "boundaries/montreal-whole.geojson"
   },
   {
     "city": "Kuala Lumpur",
@@ -880,13 +887,14 @@
   {
     "city": "Prague",
     "streets": true,
-    "district": "Prague (densest 150 km\u00b2 of the core)",
+    "district": "Prague (whole municipality + the old core)",
     "box": [
-      50.0269,
-      14.3409,
-      50.1369,
-      14.5123
-    ]
+      49.9418,
+      14.2244,
+      50.1775,
+      14.7068
+    ],
+    "boundary": "boundaries/prague.geojson"
   },
   {
     "city": "Singapore",
@@ -903,13 +911,14 @@
   {
     "city": "Munich",
     "streets": true,
-    "district": "Munich (densest 150 km\u00b2 of the core)",
+    "district": "Munich (whole municipality + the old core)",
     "box": [
-      48.0855,
-      11.4577,
-      48.1955,
-      11.6225
-    ]
+      48.0616,
+      11.3607,
+      48.2481,
+      11.723
+    ],
+    "boundary": "boundaries/munich.geojson"
   },
   {
     "city": "Seattle",
@@ -1046,13 +1055,14 @@
   {
     "city": "Edinburgh",
     "streets": true,
-    "district": "Edinburgh (going-out core + 2 km)",
+    "district": "Edinburgh (whole council area + the old core)",
     "box": [
-      55.901,
-      -3.2731,
-      56.001,
-      -3.1289
-    ]
+      55.8187,
+      -3.4496,
+      56.0017,
+      -3.0776
+    ],
+    "boundary": "boundaries/edinburgh.geojson"
   },
   {
     "city": "Gothenburg",
@@ -1215,13 +1225,14 @@
   {
     "city": "Delhi",
     "streets": true,
-    "district": "Delhi (going-out core + 2 km)",
+    "district": "Delhi (whole National Capital Territory)",
     "box": [
-      28.521,
-      77.1865,
-      28.663,
-      77.2775
-    ]
+      28.4046,
+      76.8388,
+      28.8835,
+      77.3454
+    ],
+    "boundary": "boundaries/delhi.geojson"
   },
   {
     "city": "Miami",
@@ -1249,13 +1260,14 @@
   {
     "city": "Palermo",
     "streets": true,
-    "district": "Palermo (going-out core + 2 km)",
+    "district": "Palermo (whole municipality + the old core)",
     "box": [
-      38.089,
-      13.3082,
-      38.169,
-      13.3978
-    ]
+      38.0499,
+      13.2422,
+      38.2246,
+      13.4521
+    ],
+    "boundary": "boundaries/palermo.geojson"
   },
   {
     "city": "\u0141\u00f3d\u017a",

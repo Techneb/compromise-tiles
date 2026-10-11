@@ -2012,11 +2012,11 @@ CITY_BUILDINGS = [
     building_row("Barcelona", (41.32, 41.47), (2.05, 2.23), catastro),
     building_row("Valencia", (39.40, 39.52), (-0.43, -0.30), catastro),
     building_row("Zaragoza", (41.58, 41.72), (-0.98, -0.80), catastro),
-    building_row("Málaga", (36.66, 36.78), (-4.55, -4.35), catastro),
+    building_row("Málaga", (36.6356, 36.8941), (-4.5879, -4.2605), catastro),   # the whole municipality's box (2026-10-11)
     building_row("Palma", (39.5038, 39.6583), (2.5638, 2.847), catastro),   # the whole municipality's box (2026-10-11)
     building_row("Las Palmas", (28.05, 28.18), (-15.47, -15.40), catastro),
     building_row("Murcia", (37.95, 38.03), (-1.18, -1.08), catastro),
-    building_row("Alicante", (38.32, 38.40), (-0.53, -0.43), catastro),
+    building_row("Alicante", (38.2742, 38.5371), (-0.6567, -0.375), catastro),   # the whole municipality's box (2026-10-11)
     building_row("Córdoba", (37.85, 37.92), (-4.82, -4.73), catastro),
     building_row("Valladolid", (41.60, 41.70), (-4.78, -4.68), catastro),
     building_row("Vigo", (42.19, 42.26), (-8.78, -8.67), catastro),

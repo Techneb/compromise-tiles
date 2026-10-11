@@ -81,6 +81,9 @@ assert [b["height"] for b in joburg((0, 0, 1, 1))] == [204.1]
 make_tiles.arcgis = real_arcgis
 at = lambda lat, lon: building_source(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0])
 assert at(43.3236, -1.9849) == "San Sebastián" and at(-26.2058, 28.0471) == "Johannesburg" and at(-26.1063, 28.0542) == "Johannesburg"
+# Málaga's and Alicante's Catastro boxes the whole municipalities' since 2026-10-11: Campanillas and Verdegás,
+# outside the old cores, are Catastro's.
+assert at(36.7200, -4.5600) == "Málaga" and at(38.4300, -0.5900) == "Alicante"
 
 # 2026-10-02 rows. UTM forward and back agree (Düsseldorf's Dreischeibenhaus).
 from make_tiles import wgs84_to_utm, utm_to_wgs84, mercator_to_wgs84, citygml_buildings, citygml_tiles, beoland, liguria
