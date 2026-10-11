@@ -3064,6 +3064,11 @@ AREA_SOURCES = [
     area_row("Liverpool", "Liverpool", wfs_source("https://geoserver.liverpool.gov.uk/geoserver/OpenData/ows", "OpenData:Wards"), "wardname", "ward"),
     area_row("London", "London", arcgis_source("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Wards_December_2024_Boundaries_UK_BGC/FeatureServer/0",
              ["WD24NM"], "LAD24CD LIKE 'E09%'", "FID"), "WD24NM", "ward"),
+    # Lorient Agglomération's 12 quartiers of Lorient (Kerentrech, Moustoir, Keryado); no licence stated. The Ville's own 5 (2020)
+    # group several.
+    area_row("Lorient", "Lorient", geojson_source("https://carto.lorient-agglo.bzh/server/services/Service_WMS_ISOGEO/MapServer/WFSServer?SERVICE=WFS&VERSION=2.0.0"
+             "&REQUEST=GetFeature&TYPENAMES=Service_WFS_ISOGEO:Quartiers&OUTPUTFORMAT=GEOJSON&SRSNAME=EPSG:4326"), "nom", "quartier",
+             keep=lambda p: p.get("insee") == "56121"),
     area_row("Los Angeles", "Los Angeles", geojson_source("https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/LA_Times_Neighborhoods/FeatureServer/0/query"
              "?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
     area_row("Madrid", "Madrid", shapefile_source("https://geoportal.madrid.es/fsdescargas/IDEAM_WBGEOPORTAL/LIMITES_ADMINISTRATIVOS/Barrios/Barrios.zip"),

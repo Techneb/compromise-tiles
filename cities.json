@@ -530,6 +530,7 @@
   },
   {
     "city": "Lorient",
+    "streets": true,
     "district": "Lorient (whole commune)",
     "box": [
       47.71,

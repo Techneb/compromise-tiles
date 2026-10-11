@@ -453,6 +453,8 @@ none, this says so rather than guessing.
 - London: Source: Office for National Statistics licensed under the Open
   Government Licence v.3.0, Wards (December 2024). Contains OS data © Crown
   copyright and database right 2024.
+- Lorient: Lorient Agglomération, quartiers de l'aire urbaine (licence not stated by the
+  publisher).
 - Los Angeles: Los Angeles Times, LA Times Neighborhoods, CC BY 4.0.
 - Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
 - Málaga: Ayuntamiento de Málaga, datos abiertos, Sistema de Información
