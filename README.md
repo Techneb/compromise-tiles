@@ -359,6 +359,11 @@ none, this says so rather than guessing.
   share and adapt with credit).
 - Jerusalem: © OpenStreetMap contributors, ODbL (the municipality's
   administrative boundary).
+- Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
+  Bnei Brak, Giv'at Ze'ev, Givat Shmuel, Givatayim, Har Adar, Kiryat Ono,
+  Maale Adumim, Mevaseret Zion, Or Yehuda, Petah Tikva, Ramallah, Ramat
+  HaSharon: © OpenStreetMap contributors, ODbL (each municipality's
+  administrative boundary).
 - Montréal (the agglomeration, `montreal.geojson`): Ville de Montréal,
   Limites administratives de l'agglomération de Montréal (arrondissements
   et villes liées), CC BY 4.0; its 34 polygons dissolved into one.
