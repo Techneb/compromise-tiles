@@ -350,6 +350,8 @@ none, this says so rather than guessing.
 - Ajaccio: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
 - Amsterdam: Gemeente Amsterdam, wijken, CC0 1.0.
+- Annecy: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Antwerp: Copyright Stad Antwerpen, wijken (the city's terms of use).
 - Athens: City of Athens, neighbourhoods, CC BY 4.0.
 - Auckland: Sourced from the LINZ Data Service and licensed for reuse under the

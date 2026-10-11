@@ -2812,14 +2812,17 @@ def estat_source(prefecture, wards):
 
 def iris_head(name):
     """An IRIS name's part before its first hyphen between two names: "Ariane-Monzie" Ariane, "Saint-Roch-Ricolfi"
-    Saint-Roch (a "Saint-" or "Sainte-" kept whole), "Cimiez" Cimiez."""
-    m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte))-(?=[A-ZÉÈ])", name)
+    Saint-Roch (a "Saint-", "Sainte-", "Notre-" or compass "Nord-Est" kept whole), "Cimiez" Cimiez. A numbered or
+    "partie" piece is its whole: "Encagnane 2" Encagnane, "Arbois Partie Est" Arbois (Aix's)."""
+    name = re.sub(r"\s+(?:\d+|[Pp]artie\b.*)$", "", name)
+    m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte)(?<!\bNotre)(?<!\bNord)(?<!\bSud))-(?=[A-ZÉÈ])", name)
     return m[1].strip() if m else name
 
 def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
-    Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice)."""
+    Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
+    Annecy)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2895,6 +2898,9 @@ AREA_SOURCES = [
     # Without the filter the API also answers every past version of each wijk.
     area_row("Amsterdam", "Amsterdam", geojson_source("https://api.data.amsterdam.nl/v1/gebieden/wijken/?_format=geojson&_pageSize=2000&eindGeldigheid[isnull]=true"),
              "naam", "wijk"),
+    # The commune nouvelle (Annecy-le-Vieux, Cran-Gevrier, Meythet, Pringy, Seynod since 2017) publishes no quartiers:
+    # its 51 IRIS grouped into 49 (iris_source; the three Novel are one).
+    area_row("Annecy", "Annecy", iris_source("74010"), "quartier", "IRIS", dissolve=True),
     area_row("Antwerp", "Antwerp", geojson_source("https://geodata.antwerpen.be/arcgissql/rest/services/P_Portal/portal_publiek2/MapServer/97/query"
              "?where=1%3D1&outFields=*&outSR=4326&f=geojson"),
              lambda p: re.sub(r"^Antwerpen - ", "", (p.get("wijknaam") or "").strip()), "wijk", keep=lambda p: (p.get("wijknaam") or "").strip() != "Schelde"),

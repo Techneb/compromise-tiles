@@ -1078,6 +1078,10 @@ print("ok (boundaries, cell by label point)")
 # Nice's IRIS grouped into quartiers: a head two IRIS share (the bare "Cimiez" counts) names them; a lone head does not.
 assert make_tiles.iris_head("Ariane-Monzie") == "Ariane" and make_tiles.iris_head("Saint-Roch-Ricolfi") == "Saint-Roch"
 assert make_tiles.iris_head("Saint-Augustin") == "Saint-Augustin" and make_tiles.iris_head("Madeleine Robiony") == "Madeleine Robiony"
+# Aix's: numbered and "partie" pieces are their whole; a compass point or "Notre-" is never cut.
+assert make_tiles.iris_head("Encagnane 2") == "Encagnane" and make_tiles.iris_head("Couronne Ouest partie nord") == "Couronne Ouest"
+assert make_tiles.iris_head("Arbois Partie Est") == "Arbois" and make_tiles.iris_head("Sud-Est Plateau Puyricard") == "Sud-Est Plateau Puyricard"
+assert make_tiles.iris_head("Meythet Nord-Est") == "Meythet Nord-Est" and make_tiles.iris_head("Notre-Dame 1") == "Notre-Dame"
 square = lambda x: {"type": "Polygon", "coordinates": [[[x, 43.7], [x + 0.01, 43.7], [x + 0.01, 43.71], [x, 43.7]]]}
 iris = ["Cimiez", "Cimiez-Valrose", "France-Negresco", "Saint-Roch-Ricolfi", "Saint-Roch-Jean XXIII", "Saint-Augustin"]
 make_tiles.get_json, real_get_json = lambda url: {"features": [{"properties": {"nom_iris": n}, "geometry": square(7.2 + i / 100)}

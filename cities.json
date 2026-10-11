@@ -1697,6 +1697,7 @@
   },
   {
     "city": "Annecy",
+    "streets": true,
     "district": "Annecy (whole commune)",
     "box": [
       45.828,
