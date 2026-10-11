@@ -1685,6 +1685,7 @@
   },
   {
     "city": "Metz",
+    "streets": true,
     "district": "Metz (whole commune)",
     "box": [
       49.0608,

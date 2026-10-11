@@ -3051,6 +3051,10 @@ AREA_SOURCES = [
     area_row("Manila", "OSM", osm_area_source((8, 10)), "name", None),
     area_row("Melbourne", "Melbourne", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='2'", "objectid"),
              lambda p: re.sub(r" \(Vic\.\)$", "", p.get("sal_name_2021") or ""), "suburb"),
+    # The Eurométropole de Metz's 14 quartiers of Metz (Ancienne Ville, Sablon, Borny); the same layer's 5 secteurs of
+    # Montigny-lès-Metz left out.
+    area_row("Metz", "Metz", geojson_source("https://maps.eurometropolemetz.eu/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=public:fdp_adm_quar"
+             "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "lib", "quartier", keep=lambda p: p.get("_commid") == "57463"),
     # Two neighborhoods mapped in two parts each (Baypoint, Fair Isle) merged; one feature has no label.
     area_row("Miami", "Miami", geojson_source("https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Miami_Neighborhoods_Shapefile"
              "/FeatureServer/0/query?where=1%3D1&outFields=LABEL&outSR=4326&f=geojson"), "LABEL", "neighborhood", dissolve=True),

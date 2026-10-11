@@ -443,6 +443,8 @@ none, this says so rather than guessing.
 - Madrid: Ayuntamiento de Madrid, barrios, CC BY 4.0.
 - Málaga: Ayuntamiento de Málaga, datos abiertos, Sistema de Información
   Cartográfica – Barrio, CC BY-SA 4.0.
+- Metz: Eurométropole de Metz, quartiers (DataGrandEst), Licence Ouverte / Open Licence
+  Version 2.0.
 - Miami: © City of Miami, Department of Innovation and Technology, GIS Team,
   Miami Neighborhoods, CC BY 4.0.
 - Milan: Comune di Milano, Nuclei d'Identità Locale (NIL), CC BY 4.0.
