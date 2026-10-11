@@ -429,6 +429,8 @@ none, this says so rather than guessing.
 - Las Palmas: Origen de los datos: Ayuntamiento de Las Palmas de Gran Canaria, Callejero
   Municipal, barrios, Reutilización de la información del sector público para el ámbito
   del sector público estatal.
+- Le Havre: Ville du Havre, conseils de quartier (Le Havre Seine Métropole open data),
+  Licence ODbL.
 - Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
   (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
 - Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.

@@ -1649,6 +1649,7 @@
   },
   {
     "city": "Le Havre",
+    "streets": true,
     "district": "Le Havre (whole commune)",
     "box": [
       49.4515,

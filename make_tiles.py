@@ -3026,6 +3026,11 @@ AREA_SOURCES = [
     area_row("Las Palmas", "Las Palmas", geojson_source("https://sit.laspalmasgc.es/server/rest/services/opendata/barrios/MapServer/0/query"
              "?where=1%3D1&outFields=NUCL_DS_NOMBRE&outSR=4326&f=geojson"), "NUCL_DS_NOMBRE", "barrio",
              keep=lambda p: (p.get("NUCL_DS_NOMBRE") or "").strip() != "DISEMINADO"),
+    # The Ville du Havre's 20 conseils de quartier (Sanvic, Caucriauville, Danton); the port, "Hors conseil de quartier", is left out.
+    # Every format of the portal is a zip; the shapefile's is a zip in it.
+    area_row("Le Havre", "Le Havre", lambda rect: _shapefile_features(_zip_members(_zip_members(get(
+             "https://data.lehavreseinemetropole.fr/api/v1/file/data/90/CONSEIL_QUARTIER/shp"))["OD.CONSEIL_QUARTIER.shp.zip"])),
+             "NOM", "conseil de quartier", keep=lambda p: p.get("NUM") != 0),
     area_row("Lille", "Lille", geojson_source("https://data.lillemetropole.fr/geoserver/ville_lille/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=ville_lille:limite_des_quartiers_de_lille_et_de_ses_communes_associees&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"),
              "quartier", "quartier"),   # Lille's 10 quartiers, and Lomme and Hellemmes whole
