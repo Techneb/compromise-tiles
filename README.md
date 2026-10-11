@@ -378,6 +378,8 @@ none, this says so rather than guessing.
 - Boston: Boston Maps (Analyze Boston), BPDA Neighborhood Boundaries, Open Data
   Commons Public Domain Dedication and License (PDDL).
 - Bratislava: Magistrát hlavného mesta SR, Bratislava, mestské časti, CC BY 4.0.
+- Brest: Brest métropole, quartiers administratifs de Brest, Licence Ouverte / Open
+  Licence version 2.0.
 - Brisbane: © Brisbane City Council 2025 © State of Queensland (Department of
   Resources) 2025, suburb boundaries, CC BY 4.0.
 - Brussels: Ville de Bruxelles, ibsa.brussels, perspective.brussels, Monitoring

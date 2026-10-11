@@ -2958,6 +2958,10 @@ AREA_SOURCES = [
              "/FeatureServer/5/query?where=1%3D1&outFields=name&outSR=4326&f=geojson"), "name", "neighborhood"),
     area_row("Bratislava", "Bratislava", geojson_source("https://data.bratislava.sk/api/download/v1/items/f1daafc79a9247e8b93241aa005fbea3/geojson?layers=0"),
              "NAZOV_UTJ", "mestská časť"),
+    # Brest métropole's 7 quartiers administratifs of Brest (its mairies de quartier: Bellevue, Europe, Saint-Marc); its TRIRIS are
+    # unnamed. outFields=* answers nothing.
+    area_row("Brest", "Brest", geojson_source("https://geo.brest-metropole.fr/arcgis/rest/services/public/GPB_LIM/MapServer/1610008/query"
+             "?where=1%3D1&outFields=QUARTIERS&outSR=4326&f=geojson"), "QUARTIERS", "quartier"),
     area_row("Brisbane", "Brisbane", geojson_source("https://data.brisbane.qld.gov.au/api/explore/v2.1/catalog/datasets/suburb-boundaries/exports/geojson"),
              "suburb_name", "suburb"),
     area_row("Brussels", "Brussels", geojson_source("https://opendata.bruxelles.be/api/explore/v2.1/catalog/datasets/"

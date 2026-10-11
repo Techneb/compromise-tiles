@@ -1697,6 +1697,7 @@
   },
   {
     "city": "Brest",
+    "streets": true,
     "district": "Brest (whole commune)",
     "box": [
       48.3573,
