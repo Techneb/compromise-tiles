@@ -1130,6 +1130,7 @@
   },
   {
     "city": "Liverpool",
+    "streets": true,
     "district": "Liverpool (whole municipality)",
     "box": [
       53.3117,

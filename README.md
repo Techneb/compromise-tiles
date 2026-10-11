@@ -407,6 +407,8 @@ none, this says so rather than guessing.
 - Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
   (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
 - Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.
+- Liverpool: Liverpool City Council, Liverpool Electoral Ward Boundaries, UK Open
+  Government Licence (OGL).
 - London: Source: Office for National Statistics licensed under the Open
   Government Licence v.3.0, Wards (December 2024). Contains OS data © Crown
   copyright and database right 2024.
