@@ -3043,6 +3043,9 @@ AREA_SOURCES = [
     area_row("San José", "OSM", osm_area_source((10,)), "name", None),
     # The City Clerk's Neighborhood Map Atlas, its 94 neighborhoods (Ballard, Belltown, Capitol Hill's Broadway):
     # "not intended to represent any 'official' City of Seattle neighborhood map", the ones people name.
+    # The 19 auzoak (Gros, Egia, Antigua); Erdialdea's second part is Santa Clara island.
+    area_row("San Sebastián", "San Sebastián", geojson_source("https://www.donostia.eus/geozerbitzuak/rest/services/ext/LIMITES_ADMINISTRATIVOS/MapServer/2/query"
+             "?where=1%3D1&outFields=IzenAuzo&outSR=4326&f=geojson"), "IzenAuzo", "auzoa", dissolve=True),
     area_row("Seattle", "Seattle", geojson_source("https://services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services/nma_nhoods_sub/FeatureServer/0/query"
              "?where=1%3D1&outFields=S_HOOD&outSR=4326&f=geojson"), "S_HOOD", "neighborhood"),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",

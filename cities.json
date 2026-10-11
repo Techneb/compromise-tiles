@@ -470,6 +470,7 @@
   },
   {
     "city": "San Sebasti\u00e1n",
+    "streets": true,
     "district": "San Sebasti\u00e1n (whole municipality)",
     "box": [
       43.2178,

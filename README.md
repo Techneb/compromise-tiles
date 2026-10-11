@@ -452,6 +452,8 @@ none, this says so rather than guessing.
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
 - San Francisco: DataSF, City and County of San Francisco, SF Find Neighborhoods,
   Public Domain U.S. Government.
+- San Sebastián: © Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, Donostiako
+  auzoak (licence not stated by the publisher).
 - Seattle: City of Seattle, Office of Planning and Community Development, Neighborhood
   Map Atlas Neighborhoods, PDDL.
 - Seoul: 서울특별시 (Seoul Open Data Plaza, OA-22160), administrative dong
