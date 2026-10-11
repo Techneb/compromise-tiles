@@ -339,6 +339,10 @@ none, this says so rather than guessing.
   CC BY 4.0.
 - Rome (Roma Capitale, the Vatican left out): ISTAT, Confini delle unità
   amministrative a fini statistici al 1° gennaio 2025, CC BY 4.0.
+- Tel Aviv: Tel Aviv-Yafo Municipality open data, city boundary (free to
+  share and adapt with credit).
+- Jerusalem: © OpenStreetMap contributors, ODbL (the municipality's
+  administrative boundary).
 - Montréal (the agglomeration, `montreal.geojson`): Ville de Montréal,
   Limites administratives de l'agglomération de Montréal (arrondissements
   et villes liées), CC BY 4.0; its 34 polygons dissolved into one.
