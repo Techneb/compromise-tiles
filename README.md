@@ -216,11 +216,10 @@ none, this says so rather than guessing.
 - Thessaloníki: Δήμος Θεσσαλονίκης, shops of health interest (licence: the
   Ministry of the Interior's "Ανοιχτή Άδεια", as linked by the publisher),
   2017–2019.
-- Hong Kong (wired 2026-10-11, read once the city is tiled): Food and
-  Environmental Hygiene Department, Restaurant Licences (licensed
-  restaurants with outside seating accommodation), through the Common
-  Spatial Data Infrastructure portal; DATA.GOV.HK Terms and Conditions
-  ("You are allowed to browse, download, distribute, reproduce, hyperlink
+- Hong Kong: Food and Environmental Hygiene Department, Restaurant
+  Licences (licensed restaurants with outside seating accommodation),
+  through the Common Spatial Data Infrastructure portal; DATA.GOV.HK Terms
+  and Conditions ("You are allowed to browse, download, distribute, reproduce, hyperlink
   to, and print the Data for both commercial and non-commercial purposes
   on a free-of-charge basis", with the source identified).
 
@@ -362,6 +361,13 @@ none, this says so rather than guessing.
 - Montréal (the agglomeration, `montreal.geojson`): Ville de Montréal,
   Limites administratives de l'agglomération de Montréal (arrondissements
   et villes liées), CC BY 4.0; its 34 polygons dissolved into one.
+- Hong Kong (the SAR's land, `hong-kong.geojson`): Census and Statistics
+  Department, 2021 Population Census (Statistics and Boundaries of District
+  Council Districts), through the Common Spatial Data Infrastructure portal;
+  CSDI Portal Terms and Conditions ("You are allowed to browse, download,
+  distribute, reproduce, hyperlink to and print the Data for both commercial
+  and non-commercial purposes on a free-of-charge basis", with the source
+  identified); its 18 districts dissolved into one.
 
 **Neighbourhood boundaries (`boundaries/`, by the `source` key)**
 - OSM (Barcelona, Belgrade, Budapest, Delhi, Istanbul, Jerusalem, Kraków,

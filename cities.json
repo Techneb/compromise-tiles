@@ -911,6 +911,18 @@
     "boundary": "boundaries/singapore.geojson"
   },
   {
+    "city": "Hong Kong",
+    "streets": true,
+    "district": "Hong Kong (whole SAR, land only)",
+    "box": [
+      22.1534,
+      113.835,
+      22.562,
+      114.4419
+    ],
+    "boundary": "boundaries/hong-kong.geojson"
+  },
+  {
     "city": "Munich",
     "streets": true,
     "district": "Munich (whole municipality + the old core)",
