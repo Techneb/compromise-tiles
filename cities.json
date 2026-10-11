@@ -386,6 +386,7 @@
   },
   {
     "city": "Las Palmas",
+    "streets": true,
     "district": "Las Palmas (whole municipality)",
     "box": [
       28.0244,

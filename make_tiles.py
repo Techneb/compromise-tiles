@@ -2972,6 +2972,10 @@ AREA_SOURCES = [
     area_row("Kraków", "OSM", osm_area_source((11,)), "name", None),
     area_row("Kuala Lumpur", "OSM", osm_area_source(("neighbourhood", "quarter", "suburb")), "name", None),
     area_row("Kyiv", "OSM", osm_area_source((7, 10)), "name", None),
+    # The Ayuntamiento's barrios (Vegueta, Triana, Guanarteme); each distrito's rural rest, "DISEMINADO", left out: 112.
+    area_row("Las Palmas", "Las Palmas", geojson_source("https://sit.laspalmasgc.es/server/rest/services/opendata/barrios/MapServer/0/query"
+             "?where=1%3D1&outFields=NUCL_DS_NOMBRE&outSR=4326&f=geojson"), "NUCL_DS_NOMBRE", "barrio",
+             keep=lambda p: (p.get("NUCL_DS_NOMBRE") or "").strip() != "DISEMINADO"),
     area_row("Lille", "Lille", geojson_source("https://data.lillemetropole.fr/geoserver/ville_lille/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=ville_lille:limite_des_quartiers_de_lille_et_de_ses_communes_associees&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"),
              "quartier", "quartier"),   # Lille's 10 quartiers, and Lomme and Hellemmes whole
