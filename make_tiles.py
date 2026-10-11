@@ -2155,11 +2155,13 @@ CITY_BUILDINGS = [
     # Wired 2026-10-05 (the heights survey of 2026-10-04). MLIT's Project PLATEAU 3D都市モデル, the 2025 editions (PLATEAU site
     # policy: PDL 1.0, CC BY-compatible, commercial use allowed; the credit names the model and says it was processed):
     # bldg:measuredHeight, metres (lidar 2021 in Tokyo, 2017 in Osaka), on the LoD2 ground surface, else the LoD0 footprint or
-    # roof edge (plateau_buildings). Each box is the city's tiled area (cities.json), no other tiled city near it. Tokyo: the
-    # 23 wards' files (307 meshes, 981,053 buildings in the box), which cover the box whole. Osaka: 大阪市's (129 meshes,
-    # 387,528 buildings); the box's eastern sliver past the city line (Higashiōsaka, Moriguchi) has no file and falls to OSM.
-    building_row("Tokyo", (35.6298, 35.7398), (139.6616, 139.7971), plateau([f"131{k:02d}" for k in range(1, 24)])),
-    building_row("Osaka", (34.6394, 34.7494), (135.4664, 135.6002), plateau(["27100"])),
+    # roof edge (plateau_buildings). Each box is the city's tiled area (cities.json), no other tiled city near it; widened on
+    # 2026-10-11 from the going-out core to the whole city and the old core's cells (cities.json's boundary, which holds the
+    # build). Tokyo: the 23 wards' files (688 meshes, 35.517–35.825 N, 139.5625–139.925 E), which cover the wards whole.
+    # Osaka: 大阪市's (270 meshes, 34.583–34.775 N, 135.375–135.6 E); its land west of 135.375 E (about 1 km² of
+    # Konohana-ku) and the old core's cells past the city line (Higashiōsaka, Moriguchi) have no file and fall to OSM.
+    building_row("Tokyo", (35.5209, 35.8175), (139.5629, 139.9189), plateau([f"131{k:02d}" for k in range(1, 24)])),
+    building_row("Osaka", (34.5861, 34.7689), (135.3434, 135.602), plateau(["27100"])),
     # Wired 2026-10-05 (the heights survey of 2026-10-04): three zipped Shapefiles (shapefile()), each box the city's
     # tiled area (cities.json), held to the municipality its file covers. Buenos Aires: Tejido Urbano (Subsecretaría de
     # Planeamiento, data to 2021, CC BY 2.5 AR; WGS84): altura, metres, on all 1,386,616 volumes; two read 280 and

@@ -167,13 +167,14 @@
   {
     "city": "Madrid",
     "streets": true,
-    "district": "Madrid (densest 150 km\u00b2 of the core)",
+    "district": "Madrid (whole municipality)",
     "box": [
-      40.3788,
-      -3.7654,
-      40.4888,
-      -3.6209
-    ]
+      40.3119,
+      -3.889,
+      40.6438,
+      -3.5183
+    ],
+    "boundary": "boundaries/madrid.geojson"
   },
   {
     "city": "Melbourne",
@@ -592,35 +593,38 @@
   {
     "city": "Seoul",
     "streets": true,
-    "district": "Seoul (going-out core, densest 150 km\u00b2)",
+    "district": "Seoul (whole municipality)",
     "box": [
-      37.4791,
-      126.9189,
-      37.5892,
-      127.0576
-    ]
+      37.4285,
+      126.7644,
+      37.7015,
+      127.1838
+    ],
+    "boundary": "boundaries/seoul.geojson"
   },
   {
     "city": "Tokyo",
     "streets": true,
-    "district": "Tokyo (going-out core, densest 150 km\u00b2)",
+    "district": "Tokyo (whole 23 special wards + the old core)",
     "box": [
-      35.6298,
-      139.6616,
-      35.7398,
-      139.7971
-    ]
+      35.5209,
+      139.5629,
+      35.8175,
+      139.9189
+    ],
+    "boundary": "boundaries/tokyo.geojson"
   },
   {
     "city": "Osaka",
     "streets": true,
-    "district": "Osaka (going-out core, densest 150 km\u00b2)",
+    "district": "Osaka (whole municipality + the old core)",
     "box": [
-      34.6394,
-      135.4664,
-      34.7494,
-      135.6002
-    ]
+      34.5861,
+      135.3434,
+      34.7689,
+      135.602
+    ],
+    "boundary": "boundaries/osaka.geojson"
   },
   {
     "city": "Istanbul",
@@ -648,13 +652,14 @@
   {
     "city": "Lisbon",
     "streets": true,
-    "district": "Lisbon (densest 150 km\u00b2 of the core)",
+    "district": "Lisbon (whole municipality + the old core)",
     "box": [
-      38.6517,
-      -9.243,
-      38.7617,
-      -9.1021
-    ]
+      38.65,
+      -9.244,
+      38.7968,
+      -9.0899
+    ],
+    "boundary": "boundaries/lisbon.geojson"
   },
   {
     "city": "Rome",
@@ -681,13 +686,14 @@
   {
     "city": "Bogot\u00e1",
     "streets": true,
-    "district": "Bogot\u00e1 (going-out core, densest 150 km\u00b2)",
+    "district": "Bogot\u00e1 (whole city without Sumapaz's p\u00e1ramo + the old core)",
     "box": [
-      4.5967,
-      -74.147,
-      4.7067,
-      -74.0366
-    ]
+      4.4656,
+      -74.2236,
+      4.8333,
+      -74.0101
+    ],
+    "boundary": "boundaries/bogota.geojson"
   },
   {
     "city": "Buenos Aires",
@@ -845,13 +851,14 @@
   {
     "city": "Kuala Lumpur",
     "streets": true,
-    "district": "Kuala Lumpur (going-out core + 2 km)",
+    "district": "Kuala Lumpur (whole municipality + the old core)",
     "box": [
-      3.089,
-      101.643,
-      3.203,
-      101.749
-    ]
+      3.0334,
+      101.6151,
+      3.2446,
+      101.7585
+    ],
+    "boundary": "boundaries/kuala-lumpur.geojson"
   },
   {
     "city": "Prague",
@@ -888,34 +895,37 @@
   },
   {
     "city": "Seattle",
-    "district": "Seattle (going-out core + 2 km)",
+    "district": "Seattle (whole municipality + the old core)",
     "box": [
-      47.571,
-      -122.3876,
-      47.647,
-      -122.2584
-    ]
+      47.4956,
+      -122.436,
+      47.7342,
+      -122.2359
+    ],
+    "boundary": "boundaries/seattle.geojson"
   },
   {
     "city": "Frankfurt",
-    "district": "Frankfurt (going-out core + 2 km)",
+    "district": "Frankfurt (whole municipality + the old core)",
     "box": [
-      50.075,
-      8.595,
-      50.151,
-      8.751
-    ]
+      50.0153,
+      8.4727,
+      50.2272,
+      8.8004
+    ],
+    "boundary": "boundaries/frankfurt.geojson"
   },
   {
     "city": "Helsinki",
     "streets": true,
-    "district": "Helsinki (going-out core + 2 km)",
+    "district": "Helsinki (whole municipality + the old core)",
     "box": [
-      60.135,
-      24.8649,
-      60.227,
-      25.0211
-    ]
+      60.0949,
+      24.8285,
+      60.2979,
+      25.2546
+    ],
+    "boundary": "boundaries/helsinki.geojson"
   },
   {
     "city": "Boston",
@@ -1037,13 +1047,14 @@
   },
   {
     "city": "Dhaka",
-    "district": "Dhaka (going-out core + 2 km)",
+    "district": "Dhaka (whole city: Dhaka Metropolitan)",
     "box": [
-      23.743,
-      90.3794,
-      23.821,
-      90.4526
-    ]
+      23.6681,
+      90.3297,
+      23.9001,
+      90.5126
+    ],
+    "boundary": "boundaries/dhaka.geojson"
   },
   {
     "city": "Antwerp",
@@ -1471,13 +1482,14 @@
   },
   {
     "city": "Oakland",
-    "district": "Oakland (going-out core + 2 km)",
+    "district": "Oakland (whole municipality + the old core)",
     "box": [
-      37.775,
-      -122.3037,
-      37.837,
-      -122.2183
-    ]
+      37.6992,
+      -122.3427,
+      37.8855,
+      -122.1144
+    ],
+    "boundary": "boundaries/oakland.geojson"
   },
   {
     "city": "Lyon",
