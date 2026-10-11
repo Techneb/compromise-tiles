@@ -351,6 +351,8 @@ none, this says so rather than guessing.
   Open Licence version 2.0.
 - Ajaccio: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
+- Amiens: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Amsterdam: Gemeente Amsterdam, wijken, CC0 1.0.
 - Angers: Angers Loire Métropole, quartiers de la Ville d'Angers (data.angers.fr), Open
   Database License (ODbL).

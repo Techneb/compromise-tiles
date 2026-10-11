@@ -2839,7 +2839,7 @@ def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
     Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
-    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen)."""
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims, Clermont-Ferrand, Caen, Amiens)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2915,6 +2915,9 @@ AREA_SOURCES = [
     area_row("Aix-en-Provence", "Aix-en-Provence", iris_source("13001"), "quartier", "IRIS", dissolve=True),
     # Neither the city nor the CAPA publishes quartiers, and OpenStreetMap maps none: its 24 IRIS (iris_source).
     area_row("Ajaccio", "Ajaccio", iris_source("2A004"), "quartier", "IRIS", dissolve=True),
+    # Amiens Métropole's "quartiers de la ville d'Amiens" WFS (geodata.amiens-metropole.com) was not reached (2026-10-11): its 58 IRIS
+    # grouped into 23 (iris_source; Étouvie's 4, Saint-Honoré's 5), "Amiens-Val d'Avre 1" to "3" named Val d'Avre.
+    area_row("Amiens", "Amiens", iris_source("80021"), lambda p: "Val d'Avre" if p["quartier"] == "Amiens" else p["quartier"], "IRIS", dissolve=True),
     # Without the filter the API also answers every past version of each wijk.
     area_row("Amsterdam", "Amsterdam", geojson_source("https://api.data.amsterdam.nl/v1/gebieden/wijken/?_format=geojson&_pageSize=2000&eindGeldigheid[isnull]=true"),
              "naam", "wijk"),
