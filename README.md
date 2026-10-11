@@ -452,6 +452,8 @@ none, this says so rather than guessing.
   Areas, NYC Open Data (licence not stated by the publisher).
 - Nice: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
   version 2.0.
+- Nîmes: Nîmes Métropole, Comités de Quartiers de Nîmes (licence not stated by the
+  publisher).
 - Osaka, Tokyo: 出典：政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）,
   2020 census small areas, merged into towns (e-Stat terms of use, compatible
   with CC BY 4.0).

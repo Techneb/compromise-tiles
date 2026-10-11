@@ -3062,6 +3062,11 @@ AREA_SOURCES = [
              keep=lambda p: str(p.get("ntatype")) == "0"),
     # The city publishes 6 territoires only; its 146 IRIS grouped into 131 quartiers (iris_source).
     area_row("Nice", "Nice", iris_source("06088"), "quartier", "IRIS", dissolve=True),
+    # Nîmes's 56 comités de quartier (Tour Magne, Écusson's Feuchères, Pissevin), on Nîmes Métropole's ArcGIS Online, unaccented;
+    # its 6 "non attribué" areas left out, its 7 conseils de quartier too coarse. One name is in mixed case, hence upper().
+    area_row("Nîmes", "Nîmes", geojson_source("https://services2.arcgis.com/ghqRCL5wdHSQIHfv/arcgis/rest/services/Comit%C3%A9s_de_Quartiers/FeatureServer/1/query"
+             "?where=1%3D1&outFields=COMITE_QUARTIER&outSR=4326&f=geojson"), lambda p: (p.get("COMITE_QUARTIER") or "").upper(), "comité de quartier",
+             keep=lambda p: not (p.get("COMITE_QUARTIER") or "").startswith("NON ATTRIBUE")),
     area_row("Osaka", "Osaka", estat_source("27", [w for w in range(102, 129) if w not in (105, 110, 112)]), machi, "machi",
              dissolve=lambda p: (p["CITY"], machi(p))),
     area_row("Oslo", "Oslo", oslo_source, "delbydel", "delbydel", dissolve=True),

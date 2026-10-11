@@ -1803,6 +1803,7 @@
   },
   {
     "city": "N\u00eemes",
+    "streets": true,
     "district": "N\u00eemes (whole commune)",
     "box": [
       43.7414,
