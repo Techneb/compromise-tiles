@@ -140,9 +140,11 @@ PERMIT_CITIES = [
     # municipality's (cities.json, whole since 2026-10-11, Weesp included): the city's own register, so city-wide.
     row("Amsterdam", "", "api.data.amsterdam.nl", "horeca/exploitatievergunning", "zaaknaam", [], (52.2779, 52.4311), (4.7287, 5.1077),
         shape="amsterdam"),
-    # WFS: NAME is the placement, not the café, so no name field — door rule only.
+    # WFS: NAME is the placement, not the café, so no name field — door rule only. Read whole once per run (2,993
+    # points, ~100 KB gzipped, 1.3 s, 2026-10-11): asked per block, then cell by cell after its timeouts, the
+    # whole municipality (12,650 cells) reached 2,034 in the 290-minute cap (run 38129769421).
     row("Vienna", "", "data.wien.gv.at/daten/geo", "ogdwien:SCHANIGARTENOGD", "", [], (48.10, 48.35), (16.15, 16.58),
-        shape="wfs"),
+        shape="wfs", whole=True),
     # This GeoServer refuses bbox alongside CQL_FILTER: the box folds into BBOX().
     row("Copenhagen", "", "wfs-kbhkort.kk.dk/k101/ows", "k101:raaden_over_vej_events_anonym_aktuelt", "restaurantnavn", [],
         (55.60, 55.75), (12.40, 12.70), shape="wfs", filter="sagstype='Udeservering'"),
@@ -2592,7 +2594,7 @@ def permits(c, rect):
     return surviving(items, c["city"]) if c.get("match") == "venues" else items
 
 def fetched_permits(c, rect):
-    s, w, n, e = rect
+    s, w, n, e = rect or (None,) * 4
     if c.get("shape") == "oslo": return oslo(c, rect)
     if c.get("shape") == "stockholm": return stockholm(c, rect)
     if c.get("shape") == "amsterdam": return amsterdam(c, rect)
@@ -2606,12 +2608,16 @@ def fetched_permits(c, rect):
     if c.get("shape") == "socrata":
         where = f"within_box({c['point']}, {n}, {w}, {s}, {e})" + (f" AND {socrata_filter(c['filter'])}" if c.get("filter") else "")
         return permit_items(socrata(c["host"], c["dataset"], where, ",".join(f for f in [c["name"], c["point"]] if f)), c)
+    if c.get("shape") == "wfs" and c.get("whole") and rect:  # a small layer, read whole once per run (Vienna)
+        return whole_file(c, rect, lambda c: fetched_permits(c, None))
     if c.get("shape") == "wfs":
         # WFS 1.1.0: longitude first, and the
         # bbox needs its own trailing CRS or the server silently answers zero.
         params = {"service": "WFS", "version": "1.1.0", "request": "GetFeature",
                   "typeName": c["dataset"], "outputFormat": "json", "srsName": c.get("srs", "EPSG:4326")}
-        if c.get("filter"):
+        if rect is None:  # the whole layer
+            if c.get("filter"): params["CQL_FILTER"] = c["filter"]
+        elif c.get("filter"):
             # Copenhagen's GeoServer refuses bbox alongside CQL_FILTER.
             params["CQL_FILTER"] = f"{c['filter']} AND BBOX({c.get('geom', 'wkb_geometry')},{w},{s},{e},{n},'EPSG:4326')"
         else:

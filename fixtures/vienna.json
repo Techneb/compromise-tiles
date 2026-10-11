@@ -1,0 +1,103 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "SCHANIGARTENOGD.fid-7a5ccb2f_1a12c01795a_-694c",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     16.37032032,
+     48.20732565
+    ]
+   },
+   "geometry_name": "SHAPE",
+   "properties": {
+    "OBJECTID": 26387,
+    "NAME": "Schanigarten Gehsteig",
+    "PLZ": 1010,
+    "ORT": "Wien",
+    "STRASSE": "Spiegelgasse",
+    "ONR": 9,
+    "FLAECHE": 2.7,
+    "GENEHMIGUNGSSTATUS": "Genehmigt"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "SCHANIGARTENOGD.fid-7a5ccb2f_1a12c01795a_-692e",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     16.37105235,
+     48.20889628
+    ]
+   },
+   "geometry_name": "SHAPE",
+   "properties": {
+    "OBJECTID": 26418,
+    "NAME": "Schanigarten Fußgänger/Begegnungszone",
+    "PLZ": 1010,
+    "ORT": "Wien",
+    "STRASSE": "Goldschmiedgasse",
+    "ONR": 8,
+    "FLAECHE": 83.2,
+    "GENEHMIGUNGSSTATUS": "Genehmigt"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "SCHANIGARTENOGD.fid-7a5ccb2f_1a12c01795a_-6861",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     16.37235365,
+     48.20789268
+    ]
+   },
+   "geometry_name": "SHAPE",
+   "properties": {
+    "OBJECTID": 20669,
+    "NAME": "Schanigarten Parkspur",
+    "PLZ": 1010,
+    "ORT": "Wien",
+    "STRASSE": "Singerstraße",
+    "ONR": 3,
+    "FLAECHE": 0.1,
+    "GENEHMIGUNGSSTATUS": "Genehmigt"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "SCHANIGARTENOGD.fid-7a5ccb2f_1a12c01795a_-698f",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     16.39227343,
+     48.22605105
+    ]
+   },
+   "geometry_name": "SHAPE",
+   "properties": {
+    "OBJECTID": 27603,
+    "NAME": "Schanigarten Privatgrund",
+    "PLZ": 1020,
+    "ORT": "Wien",
+    "STRASSE": "Schweidlgasse",
+    "ONR": 32,
+    "FLAECHE": 39.3,
+    "GENEHMIGUNGSSTATUS": "Genehmigt"
+   }
+  }
+ ],
+ "totalFeatures": 4,
+ "numberMatched": 4,
+ "numberReturned": 4,
+ "timeStamp": "2026-10-11T17:35:06.714Z",
+ "crs": {
+  "type": "name",
+  "properties": {
+   "name": "urn:ogc:def:crs:EPSG::4326"
+  }
+ }
+}
