@@ -98,6 +98,7 @@
   },
   {
     "city": "Bologna",
+    "streets": true,
     "district": "Bologna (whole municipality)",
     "box": [
       44.4211,
@@ -286,6 +287,7 @@
   },
   {
     "city": "Utrecht",
+    "streets": true,
     "district": "Utrecht (whole municipality)",
     "box": [
       52.0263,
@@ -321,6 +323,7 @@
   },
   {
     "city": "Wroc\u0142aw",
+    "streets": true,
     "district": "Wroc\u0142aw (going-out core + 2 km)",
     "box": [
       51.075,
@@ -387,6 +390,7 @@
   },
   {
     "city": "Las Palmas",
+    "streets": true,
     "district": "Las Palmas (whole municipality)",
     "box": [
       28.0244,
@@ -459,6 +463,7 @@
   },
   {
     "city": "Bilbao",
+    "streets": true,
     "district": "Bilbao (whole municipality)",
     "box": [
       43.2137,
@@ -470,6 +475,7 @@
   },
   {
     "city": "San Sebasti\u00e1n",
+    "streets": true,
     "district": "San Sebasti\u00e1n (whole municipality)",
     "box": [
       43.2178,
@@ -905,6 +911,7 @@
   },
   {
     "city": "Seattle",
+    "streets": true,
     "district": "Seattle (whole municipality + the old core)",
     "box": [
       47.4956,
@@ -916,6 +923,7 @@
   },
   {
     "city": "Frankfurt",
+    "streets": true,
     "district": "Frankfurt (whole municipality + the old core)",
     "box": [
       50.0153,
@@ -1057,6 +1065,7 @@
   },
   {
     "city": "Dhaka",
+    "streets": true,
     "district": "Dhaka (whole city: Dhaka Metropolitan)",
     "box": [
       23.6681,
@@ -1134,6 +1143,7 @@
   },
   {
     "city": "Liverpool",
+    "streets": true,
     "district": "Liverpool (whole municipality)",
     "box": [
       53.3117,
@@ -1236,6 +1246,7 @@
   },
   {
     "city": "Palermo",
+    "streets": true,
     "district": "Palermo (going-out core + 2 km)",
     "box": [
       38.089,

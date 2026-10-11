@@ -2745,8 +2745,9 @@ def _zip_members(raw):
     z = zipfile.ZipFile(io.BytesIO(raw))
     return {m: z.read(m) for m in z.namelist() if not m.endswith("/")}
 
-def _shapefile_features(members, encoding=None):
-    """Every polygon record of each Shapefile in a zip's members, holes and parts kept (pyshp), in lon/lat."""
+def _shapefile_features(members, encoding=None, crs=None):
+    """Every polygon record of each Shapefile in a zip's members, holes and parts kept (pyshp), in lon/lat; `crs`
+    for a Shapefile that comes without its .prj (Palermo's)."""
     import shapefile, shapely.geometry
     out = []
     for shp in (m for m in members if m.lower().endswith(".shp")):
@@ -2756,13 +2757,13 @@ def _shapefile_features(members, encoding=None):
         reader = shapefile.Reader(shp=part(".shp"), shx=part(".shx"), dbf=part(".dbf"), encoding=code)
         records = [(r.record.as_dict(), shapely.geometry.shape(r.shape.__geo_interface__)) for r in reader.iterShapeRecords()
                    if r.shape.shapeType in (5, 15, 25) and r.shape.points]
-        geoms = _crs_transform([g for _, g in records], prj.read().decode("latin-1") if prj else None)
+        geoms = _crs_transform([g for _, g in records], prj.read().decode("latin-1") if prj else crs)
         out += list(zip([p for p, _ in records], geoms))
     return out
 
-def shapefile_source(*urls, encoding=None):
+def shapefile_source(*urls, encoding=None, crs=None):
     """Zipped Shapefiles, each fetched whole (a few hundred KB)."""
-    return lambda rect: [f for url in urls for f in _shapefile_features(_zip_members(get(url)), encoding)]
+    return lambda rect: [f for url in urls for f in _shapefile_features(_zip_members(get(url)), encoding, crs)]
 
 def posted_shapefile_source(url, form, encoding=None):
     """A zipped Shapefile answered to a form POST (Seoul's portal)."""
@@ -2907,8 +2908,16 @@ AREA_SOURCES = [
     area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),
     area_row("Berlin", "Berlin", geojson_source("https://gdi.berlin.de/services/wfs/alkis_ortsteile?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
+    # GeoBilbao's barrios (Deustu's, Abando's; the open data catalogue has them as a CSV without outlines); each distrito's
+    # rural rest, "DISEMINADO", left out: 40. Without srsName it answers in UTM.
+    area_row("Bilbao", "Bilbao", geojson_source("https://api.bilbao.eus/maps?gsservice=ls&gsrequest=wfs&service=WFS&version=1.0.0&request=GetFeature"
+             "&idservice=poblacion_territorio&typeName=poblacion_territorio:Barrios&outputFormat=application/json&srsName=EPSG:4326&maxFeatures=100000"),
+             "Nombre", "barrio", keep=lambda p: (p.get("Nombre") or "").strip() != "DISEMINADO"),
     area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
              "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
+    # The Comune's 90 aree statistiche (Bolognina's Arcoveggio, Cirenaica, Irnerio), "GALVANI-1" and "GALVANI-2" one.
+    area_row("Bologna", "Bologna", geojson_source("https://opendata.comune.bologna.it/api/explore/v2.1/catalog/datasets/aree-statistiche/exports/geojson"),
+             lambda p: re.sub(r"-\d$", "", (p.get("area_statistica") or "").strip()), "area statistica", dissolve=True),
     area_row("Bordeaux", "Bordeaux", geojson_source("https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/se_quartvie_s/exports/geojson"
              "?select=libelle,geo_shape"), "libelle", "secteur de vie"),
     # The Planning Department's 26 neighborhoods ("not official neighborhood boundaries", it says): the ones people name.
@@ -2930,6 +2939,11 @@ AREA_SOURCES = [
     area_row("Copenhagen", "Copenhagen", geojson_source("https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:kvarter"
              "&outputFormat=json&SRSNAME=EPSG:4326"), "kvarternavn", "kvarter"),
     area_row("Delhi", "OSM", osm_area_source((10,)), "name", None),
+    # The 41 Dhaka Metropolitan thanas (Gulshan, Dhanmondi, Motijheel) of BBS and OCHA ROAP's 2015 admin 3, as
+    # geoBoundaries keeps it (125 MB, pinned): OCHA's current COD-AB stops at the two City Corporations, OSM maps no
+    # thanas and names in Bengali. The box's edges take in 7 upazilas around (Savar, Keraniganj).
+    area_row("Dhaka", "Dhaka", geojson_source("https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/BGD/ADM3"
+             "/geoBoundaries-BGD-ADM3.geojson"), "shapeName", "thana"),
     # Electoral divisions: "Beaumont A" to "Beaumont F" are Beaumont.
     area_row("Dublin", "Dublin", geojson_source("https://data.smartdublin.ie/dataset/2afc02f8-314b-40eb-91f0-2955f84bb912/resource/a19c6a3e-bbc8-4f20-b178-65de8e6950f1"
              "/download/electoral-divisions_cso2.shp.geojson"), lambda p: re.sub(r" [A-F]$", "", (p.get("Pllng_D") or "").strip()), "electoral division", dissolve=True),
@@ -2937,6 +2951,9 @@ AREA_SOURCES = [
              "?where=1%3D1&outFields=NATURALCOM&outSR=4326&f=geojson"), "NATURALCOM", "natural neighbourhood"),
     # ISTAT's sub-municipal areas (Rifredi, Campo di Marte); the 1995 rioni are older and misspelt. In EPSG:3003.
     area_row("Florence", "Florence", geojson_source("https://datigis.comune.fi.it/json/aree_elementari_2021.json"), "denae2021", "area elementare"),
+    # The 46 Stadtteile (Bahnhofsviertel, Sachsenhausen-Nord, Bornheim); the server refuses "application/json".
+    area_row("Frankfurt", "Frankfurt", geojson_source("https://geowebdienste.frankfurt.de/WFS_Stadtgebietsgliederung?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=Stadtgebietsgliederung:Stadtteile&SRSNAME=EPSG:4326&OUTPUTFORMAT=GEOJSON"), "STT_NAME", "Stadtteil"),
     area_row("Geneva", "Geneva", geojson_source("https://vector.sitg.ge.ch/arcgis/rest/services/Hosted/OCS_SECTEURS_STATISTIQUES/MapServer/0/query"
              "?where=no_com_federal%3D6621&outFields=nom_secteur&outSR=4326&f=geojson"), "nom_secteur", "secteur statistique"),
     area_row("Ghent", "Ghent", geojson_source("https://data.stad.gent/api/explore/v2.1/catalog/datasets/stadswijken-gent/exports/geojson"), "wijk", "stadswijk"),
@@ -2957,11 +2974,17 @@ AREA_SOURCES = [
     area_row("Kraków", "OSM", osm_area_source((11,)), "name", None),
     area_row("Kuala Lumpur", "OSM", osm_area_source(("neighbourhood", "quarter", "suburb")), "name", None),
     area_row("Kyiv", "OSM", osm_area_source((7, 10)), "name", None),
+    # The Ayuntamiento's barrios (Vegueta, Triana, Guanarteme); each distrito's rural rest, "DISEMINADO", left out: 112.
+    area_row("Las Palmas", "Las Palmas", geojson_source("https://sit.laspalmasgc.es/server/rest/services/opendata/barrios/MapServer/0/query"
+             "?where=1%3D1&outFields=NUCL_DS_NOMBRE&outSR=4326&f=geojson"), "NUCL_DS_NOMBRE", "barrio",
+             keep=lambda p: (p.get("NUCL_DS_NOMBRE") or "").strip() != "DISEMINADO"),
     area_row("Lille", "Lille", geojson_source("https://data.lillemetropole.fr/geoserver/ville_lille/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=ville_lille:limite_des_quartiers_de_lille_et_de_ses_communes_associees&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"),
              "quartier", "quartier"),   # Lille's 10 quartiers, and Lomme and Hellemmes whole
     area_row("Lisbon", "Lisbon", geojson_source("https://services.arcgis.com/1dSrzEWVQn5kHHyK/arcgis/rest/services/Limite_Cartografia/FeatureServer/0/query"
              "?outFields=NOME&where=1%3D1&outSR=4326&f=geojson"), "NOME", "freguesia"),
+    # The council's 64 wards of 2023 (Anfield, Toxteth, Penny Lane), the same as ONS's December 2025 wards.
+    area_row("Liverpool", "Liverpool", wfs_source("https://geoserver.liverpool.gov.uk/geoserver/OpenData/ows", "OpenData:Wards"), "wardname", "ward"),
     area_row("London", "London", arcgis_source("https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Wards_December_2024_Boundaries_UK_BGC/FeatureServer/0",
              ["WD24NM"], "LAD24CD LIKE 'E09%'", "FID"), "WD24NM", "ward"),
     area_row("Los Angeles", "Los Angeles", geojson_source("https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/LA_Times_Neighborhoods/FeatureServer/0/query"
@@ -3002,6 +3025,10 @@ AREA_SOURCES = [
     # The Ottawa Neighbourhood Study's Gen 3 (116, the city's open data), in capitals; Gatineau, across the river, has none.
     area_row("Ottawa", "Ottawa", geojson_source("https://services.arcgis.com/G6F8XLCl5KtAlZ2G/arcgis/rest/services/GEN3_OTT_1_3_3/FeatureServer/0/query"
              "?where=1%3D1&outFields=ONS_Name&outSR=4326&f=geojson"), "ONS_Name", "neighbourhood"),
+    # The 25 quartieri (2013; Politeama, Zisa, Tribunali-Castellammare), in Gauss-Boaga fuso Est with no .prj; "LIBERTA'"
+    # is Libertà, "SFRRACAVALLO" Sferracavallo.
+    area_row("Palermo", "Palermo", shapefile_source("https://opendata.comune.palermo.it/js/server/uploads/dataset/shp/_10012018113135.zip", crs="EPSG:3004"),
+             lambda p: re.sub(r"A'(?=\s|-|$)", "À", (p.get("DENOMINAZI") or "").strip()).replace("SFRRACAVALLO", "SFERRACAVALLO"), "quartiere"),
     area_row("Perth", "Perth", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='5'", "objectid"),
              lambda p: re.sub(r" \(WA\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
@@ -3020,6 +3047,13 @@ AREA_SOURCES = [
     # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la
     # Municipalidad de San José", and IGN's finest are the distritos.
     area_row("San José", "OSM", osm_area_source((10,)), "name", None),
+    # The City Clerk's Neighborhood Map Atlas, its 94 neighborhoods (Ballard, Belltown, Capitol Hill's Broadway):
+    # "not intended to represent any 'official' City of Seattle neighborhood map", the ones people name.
+    # The 19 auzoak (Gros, Egia, Antigua); Erdialdea's second part is Santa Clara island.
+    area_row("San Sebastián", "San Sebastián", geojson_source("https://www.donostia.eus/geozerbitzuak/rest/services/ext/LIMITES_ADMINISTRATIVOS/MapServer/2/query"
+             "?where=1%3D1&outFields=IzenAuzo&outSR=4326&f=geojson"), "IzenAuzo", "auzoa", dissolve=True),
+    area_row("Seattle", "Seattle", geojson_source("https://services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services/nma_nhoods_sub/FeatureServer/0/query"
+             "?where=1%3D1&outFields=S_HOOD&outSR=4326&f=geojson"), "S_HOOD", "neighborhood"),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
              {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
     # IDE.Sevilla's barrios (Triana's, Nervión's); "VILLEGAS" is mapped in two parts.
@@ -3050,6 +3084,9 @@ AREA_SOURCES = [
     area_row("Toronto", "Toronto", geojson_source("https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/fc443770-ef0a-4025-9c2c-2cb558bfab00"
              "/resource/0719053b-28b7-48ea-b863-068823a93aaa/download/neighbourhoods-4326.geojson"), "AREA_NAME", "neighbourhood"),
     area_row("Turin", "Turin", shapefile_source("http://geoportale.comune.torino.it/geodati/zip/zone_statistiche_geo.zip"), "DENOM", "zona statistica"),  # http only
+    # The gemeente's 111 buurten (Lombok-oost, Wittevrouwen, Oog in Al), as the city spells them; its 10 wijken are coarse.
+    area_row("Utrecht", "Utrecht", geojson_source("https://geodata.utrecht.nl/geoserver/UtrechtOpen/wfs?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=UtrechtOpen:GIS_BUURT&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "NAAM_BUURT", "buurt"),
     area_row("Valencia", "Valencia", geojson_source("https://geoportal.valencia.es/server/rest/services/OPENDATA/UrbanismoEInfraestructuras/MapServer/224/query"
              "?where=1%3D1&outFields=nombre&outSR=4326&f=geojson"), "nombre", "barri"),
     area_row("Vancouver", "Vancouver", geojson_source("https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/local-area-boundary/exports/geojson"),
@@ -3064,6 +3101,8 @@ AREA_SOURCES = [
     area_row("Washington DC", "Washington DC", geojson_source("https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Administrative_Other_Boundaries_WebMercator"
              "/MapServer/17/query?where=1%3D1&outFields=NAME,NBH_NAMES,TYPE&outSR=4326&f=geojson"), "NBH_NAMES", "neighborhood cluster",
              keep=lambda p: p.get("TYPE") == "Original"),
+    # The 48 osiedla of the city's 2016 resolution (Stare Miasto, Nadodrze, Ołbin), in Poland CS2000 zone 6.
+    area_row("Wrocław", "Wrocław", shapefile_source("https://geoportal.wroclaw.pl/www/pliki/osiedla/granice-osiedli.zip"), "NAZWAOSIED", "osiedle"),
     area_row("Zagreb", "Zagreb", shapefile_source("https://data.zagreb.hr/dataset/37fa6630-0a87-4084-b62d-ff5edab3610b/resource/482b7289-d397-4c38-9929-5d0410ad0e16"
              "/download/rpj_mo.zip", encoding="cp1250"), "JMS_IME", "mjesni odbor"),
     area_row("Zurich", "Zurich", geojson_source("https://www.ogd.stadt-zuerich.ch/wfs/geoportal/Statistische_Quartiere?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature"
