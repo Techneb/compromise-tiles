@@ -358,6 +358,8 @@ none, this says so rather than guessing.
 - Athens: City of Athens, neighbourhoods, CC BY 4.0.
 - Auckland: Sourced from the LINZ Data Service and licensed for reuse under the
   CC BY 4.0 licence (NZ Suburbs and Localities).
+- Avignon: Ville d'Avignon, limites des mairies de quartier (DataSud), Licence Ouverte /
+  Open Licence version 2.0.
 - Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.

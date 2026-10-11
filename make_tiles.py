@@ -2911,6 +2911,9 @@ AREA_SOURCES = [
     area_row("Athens", "Athens", ckan_wkt_source("https://opendata.cityofathens.gr/api/3/action/datastore_search?resource_id=0283af02-7783-4688-897b-7153da7ed2fd&limit=500",
              "polygon_geo"), lambda p: roman_part(p.get("name") or ""), "neighbourhood", keep=lambda p: str(p.get("status")) == "1", dissolve=True),
     area_row("Auckland", "Auckland", wfs_source(LINZ_WFS, "layer-113764", "LINZ_API_KEY"), "name", "suburb", key="LINZ_API_KEY"),
+    # The Ville d'Avignon's 9 mairies de quartier, on DataSud; named as it names them ("Avignon Est", "Avignon Montfavet").
+    area_row("Avignon", "Avignon", geojson_source("https://www.datasud.fr/geoserver/avignon/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=avignon:avignon_mairie_quartier&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "libmairie", "mairie de quartier"),
     area_row("Barcelona", "OSM", osm_area_source((10,)), "name", None),   # the portal is behind a bot check; OSM's barris are the city's own (2018)
     area_row("Basel", "Basel", geojson_source("https://data.bs.ch/api/explore/v2.1/catalog/datasets/100042/exports/geojson"), "wov_name", "Wohnviertel"),
     area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),

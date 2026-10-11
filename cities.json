@@ -1819,6 +1819,7 @@
   },
   {
     "city": "Avignon",
+    "streets": true,
     "district": "Avignon (whole commune)",
     "box": [
       43.8864,
