@@ -519,6 +519,7 @@
   },
   {
     "city": "Rouen",
+    "streets": true,
     "district": "Rouen (whole commune)",
     "box": [
       49.4,
@@ -1588,6 +1589,7 @@
   },
   {
     "city": "Grenoble",
+    "streets": true,
     "district": "Grenoble (whole commune)",
     "box": [
       45.1541,
@@ -1632,6 +1634,7 @@
   },
   {
     "city": "Dijon",
+    "streets": true,
     "district": "Dijon (whole commune)",
     "box": [
       47.2862,
@@ -1654,6 +1657,7 @@
   },
   {
     "city": "Rennes",
+    "streets": true,
     "district": "Rennes (whole commune)",
     "box": [
       48.0768,
@@ -1665,6 +1669,7 @@
   },
   {
     "city": "Reims",
+    "streets": true,
     "district": "Reims (whole commune)",
     "box": [
       49.2039,
@@ -1720,6 +1725,7 @@
   },
   {
     "city": "Annecy",
+    "streets": true,
     "district": "Annecy (whole commune)",
     "box": [
       45.828,
@@ -1841,6 +1847,7 @@
   },
   {
     "city": "Avignon",
+    "streets": true,
     "district": "Avignon (whole commune)",
     "box": [
       43.8864,
@@ -1863,6 +1870,7 @@
   },
   {
     "city": "Aix-en-Provence",
+    "streets": true,
     "district": "Aix-en-Provence (whole commune)",
     "box": [
       43.446,
@@ -1885,6 +1893,7 @@
   },
   {
     "city": "Biarritz",
+    "streets": true,
     "district": "Biarritz (whole commune)",
     "box": [
       43.4474,
@@ -1918,6 +1927,7 @@
   },
   {
     "city": "Versailles",
+    "streets": true,
     "district": "Versailles (whole commune)",
     "box": [
       48.7791,
@@ -1929,6 +1939,7 @@
   },
   {
     "city": "Cannes",
+    "streets": true,
     "district": "Cannes (whole commune)",
     "box": [
       43.505,
@@ -1940,6 +1951,7 @@
   },
   {
     "city": "Ajaccio",
+    "streets": true,
     "district": "Ajaccio (whole commune)",
     "box": [
       41.8739,

@@ -2777,6 +2777,14 @@ def ckan_wkt_source(url, field):
         return [(r, shapely.wkt.loads(r[field])) for r in records if r.get(field)]
     return fetch
 
+def csv_geojson_source(url, field="geo_shape"):
+    """A CSV file whose `field` holds each row's GeoJSON geometry (Grenoble's: its data4citizen GeoJSON export
+    answers an empty collection one request in two)."""
+    def fetch(rect):
+        rows = csv.DictReader(io.StringIO(get(url).decode("utf-8-sig")))
+        return _shaped([{"properties": r, "geometry": json.loads(r[field])} for r in rows if r.get(field)])
+    return fetch
+
 def datagovsg_source(dataset):
     """data.gov.sg: poll-download answers a signed URL, valid an hour, for the GeoJSON."""
     def fetch(rect):
@@ -2815,14 +2823,23 @@ def estat_source(prefecture, wards):
 
 def iris_head(name):
     """An IRIS name's part before its first hyphen between two names: "Ariane-Monzie" Ariane, "Saint-Roch-Ricolfi"
-    Saint-Roch (a "Saint-" or "Sainte-" kept whole), "Cimiez" Cimiez."""
-    m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte))-(?=[A-ZÉÈ])", name)
+    Saint-Roch (a "Saint-", "Sainte-", "Notre-" or compass "Nord-Est" kept whole), "Cimiez" Cimiez. A numbered or
+    "partie" piece is its whole: "Encagnane 2" Encagnane, "Arbois Partie Est" Arbois (Aix's); else a compass tail
+    is dropped: "Murigny Sud-Est", "Saint-Rémi Nord Est et Sud", "Cernay-Centre" (Reims's), not "Croix du Sud"'s."""
+    whole = re.sub(r"\s+(?:\d+|[Pp]artie\b.*)$", "", name)
+    tail = whole == name and re.match(r"^(.*?)((?:[\s-]+(?:Nord|Sud|Est|Ouest|Centre|et))+)$", name)
+    if tail and tail[1]:
+        whole = tail[1]
+        if whole.split()[-1] in ("du", "de", "des"): whole += re.match(r"[\s-]+\w+", tail[2])[0]
+    name = whole
+    m = re.match(r"^(.+?(?<!\bSaint)(?<!\bSainte)(?<!\bNotre)(?<!\bNord)(?<!\bSud))-(?=[A-ZÉÈ])", name)
     return m[1].strip() if m else name
 
 def iris_source(insee):
     """IGN's IRIS of a commune (Géoplateforme WFS), each with "quartier": the head of its name (iris_head) where two
     IRIS or more of the commune share it ("Ariane-Monzie" and "Ariane-Ripert" are Ariane, "Cimiez" and "Cimiez-Valrose"
-    Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice)."""
+    Cimiez), else its own name. Dissolved by it, for a city that publishes no quartiers of its own (Nice, Ajaccio,
+    Annecy, Aix-en-Provence, Biarritz, Rouen, Reims)."""
     def fetch(rect):
         found = geojson_source(IGN_WFS + "?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=STATISTICALUNITS.IRIS:contours_iris"
                                "&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326&CQL_FILTER=" + urllib.parse.quote(f"code_insee='{insee}'"))(rect)
@@ -2893,9 +2910,17 @@ AREA_SOURCES = [
     area_row("Toulouse", "Toulouse", geojson_source("https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/"
              "recensement-population-2020-grands-quartiers-familles/exports/geojson?select=grd_quart,lib_grd_quart,geo_shape"),
              "lib_grd_quart", "grand quartier"),
+    # Neither the city nor the Métropole (data.ampmetropole.fr has Marseille's quartiers only) publishes Aix's: its 54
+    # IRIS grouped into 39 (iris_source; Encagnane 1 to 4, Jas 1 to 6, Couronne Est, Nord, Sud are one each).
+    area_row("Aix-en-Provence", "Aix-en-Provence", iris_source("13001"), "quartier", "IRIS", dissolve=True),
+    # Neither the city nor the CAPA publishes quartiers, and OpenStreetMap maps none: its 24 IRIS (iris_source).
+    area_row("Ajaccio", "Ajaccio", iris_source("2A004"), "quartier", "IRIS", dissolve=True),
     # Without the filter the API also answers every past version of each wijk.
     area_row("Amsterdam", "Amsterdam", geojson_source("https://api.data.amsterdam.nl/v1/gebieden/wijken/?_format=geojson&_pageSize=2000&eindGeldigheid[isnull]=true"),
              "naam", "wijk"),
+    # The commune nouvelle (Annecy-le-Vieux, Cran-Gevrier, Meythet, Pringy, Seynod since 2017) publishes no quartiers:
+    # its 51 IRIS grouped into 47 (iris_source; the three Novel are one, the three Meythet one).
+    area_row("Annecy", "Annecy", iris_source("74010"), "quartier", "IRIS", dissolve=True),
     area_row("Antwerp", "Antwerp", geojson_source("https://geodata.antwerpen.be/arcgissql/rest/services/P_Portal/portal_publiek2/MapServer/97/query"
              "?where=1%3D1&outFields=*&outSR=4326&f=geojson"),
              lambda p: re.sub(r"^Antwerpen - ", "", (p.get("wijknaam") or "").strip()), "wijk", keep=lambda p: (p.get("wijknaam") or "").strip() != "Schelde"),
@@ -2903,11 +2928,16 @@ AREA_SOURCES = [
     area_row("Athens", "Athens", ckan_wkt_source("https://opendata.cityofathens.gr/api/3/action/datastore_search?resource_id=0283af02-7783-4688-897b-7153da7ed2fd&limit=500",
              "polygon_geo"), lambda p: roman_part(p.get("name") or ""), "neighbourhood", keep=lambda p: str(p.get("status")) == "1", dissolve=True),
     area_row("Auckland", "Auckland", wfs_source(LINZ_WFS, "layer-113764", "LINZ_API_KEY"), "name", "suburb", key="LINZ_API_KEY"),
+    # The Ville d'Avignon's 9 mairies de quartier, on DataSud; named as it names them ("Avignon Est", "Avignon Montfavet").
+    area_row("Avignon", "Avignon", geojson_source("https://www.datasud.fr/geoserver/avignon/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
+             "&TYPENAMES=avignon:avignon_mairie_quartier&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "libmairie", "mairie de quartier"),
     area_row("Barcelona", "OSM", osm_area_source((10,)), "name", None),   # the portal is behind a bot check; OSM's barris are the city's own (2018)
     area_row("Basel", "Basel", geojson_source("https://data.bs.ch/api/explore/v2.1/catalog/datasets/100042/exports/geojson"), "wov_name", "Wohnviertel"),
     area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),
     area_row("Berlin", "Berlin", geojson_source("https://gdi.berlin.de/services/wfs/alkis_ortsteile?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
+    # Neither the city nor the Pays Basque agglomeration publishes quartiers: its 12 IRIS (iris_source), none merged.
+    area_row("Biarritz", "Biarritz", iris_source("64122"), "quartier", "IRIS", dissolve=True),
     # GeoBilbao's barrios (Deustu's, Abando's; the open data catalogue has them as a CSV without outlines); each distrito's
     # rural rest, "DISEMINADO", left out: 40. Without srsName it answers in UTM.
     area_row("Bilbao", "Bilbao", geojson_source("https://api.bilbao.eus/maps?gsservice=ls&gsrequest=wfs&service=WFS&version=1.0.0&request=GetFeature"
@@ -2933,12 +2963,18 @@ AREA_SOURCES = [
     area_row("Budapest", "OSM", osm_area_source((10,)), "name", None),
     area_row("Buenos Aires", "Buenos Aires", geojson_source("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/innovacion-transformacion-digital/barrios/barrios.geojson"),
              "nombre", "barrio"),
+    # The Mairie's 12 quartiers ("quartiers politiques", not the QPV); its 63 secteurs de proximité are often a street's name.
+    area_row("Cannes", "Cannes", geojson_source("https://data.cannes.fr/api/explore/v2.1/catalog/datasets/quartiers-politiques/exports/geojson"
+             "?select=nom_quartier,geo_shape"), "nom_quartier", "quartier"),
     area_row("Cape Town", "Cape Town", geojson_source("https://gis.westerncape.gov.za/server2/rest/services/SpatialDataWarehouse/CoCT_Management_Boundaries"
              "/MapServer/15/query?where=1%3D1&outFields=SBRB_NAME&outSR=4326&f=geojson"), "SBRB_NAME", "major suburb"),
     area_row("Chicago", "Chicago", geojson_source("https://data.cityofchicago.org/resource/y6yq-dbs2.geojson?$limit=1000"), "pri_neigh", "neighborhood"),
     area_row("Copenhagen", "Copenhagen", geojson_source("https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:kvarter"
              "&outputFormat=json&SRSNAME=EPSG:4326"), "kvarternavn", "kvarter"),
     area_row("Delhi", "OSM", osm_area_source((10,)), "name", None),
+    # Dijon's 9 quartiers of its ateliers de quartier; the portal left Opendatasoft (2025), its old export is a 404.
+    area_row("Dijon", "Dijon", geojson_source("https://data.metropole-dijon.fr/sites/default/files/dataset/2025/06/20/8e39eea1-603a-4ad5-a937-8cc592b840a7"
+             "/query.geojson"), "NOM", "quartier"),
     # The 41 Dhaka Metropolitan thanas (Gulshan, Dhanmondi, Motijheel) of BBS and OCHA ROAP's 2015 admin 3, as
     # geoBoundaries keeps it (125 MB, pinned): OCHA's current COD-AB stops at the two City Corporations, OSM maps no
     # thanas and names in Bengali. The box's edges take in 7 upazilas around (Savar, Keraniganj).
@@ -2963,6 +2999,9 @@ AREA_SOURCES = [
              keep=lambda p: not (p.get("AREANAME") or "").strip().startswith("Shared")),
     area_row("Gothenburg", "Gothenburg", geojson_source("https://geodata.scb.se/geoserver/stat/wfs?service=WFS&request=GetFeature&version=2.0.0&typeNames=stat:RegSO_2025"
              "&outputFormat=application/json&srsName=EPSG:4326&CQL_FILTER=" + urllib.parse.quote("kommunkod='1480'")), "regsonamn", "RegSO"),
+    # The Ville de Grenoble's 22 unions de quartier (its 6 secteurs are too coarse), from the dataset's CSV.
+    area_row("Grenoble", "Grenoble", csv_geojson_source("https://data.metropolegrenoble.fr/sites/default/files/dataset/2023/02/22/0dcfa54a-6dad-4a31-af19-d2baaef4320e"
+             "/csv_gen_0dcfa54a_6dad_4a31_af19_d2baaef4320e_63f63698555a9.csv"), "sdec_libel", "union de quartier"),
     area_row("Hamburg", "Hamburg", ogc_source("https://api.hamburg.de/datasets/v1/verwaltungsgrenzen/collections/stadtteile/items?f=json&limit=1000"),
              "stadtteil_name", "Stadtteil"),
     area_row("Helsinki", "Helsinki", geojson_source("https://kartta.hel.fi/ws/geoserver/avoindata/wfs?service=WFS&version=2.0.0&request=GetFeature"
@@ -3034,6 +3073,11 @@ AREA_SOURCES = [
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
     area_row("Prague", "Prague", geojson_source("https://lkod-iprpraha.hub.arcgis.com/api/download/v1/items/35ede955057f4815b522ea91b488792a/geojson?layers=0"),
              "nazev_1", "městská část"),
+    # Neither the city nor the Grand Reims publishes quartiers: its 85 IRIS grouped into 50 (iris_source; Murigny's 5, Laon's 4).
+    area_row("Reims", "Reims", iris_source("51454"), "quartier", "IRIS", dissolve=True),
+    # Rennes's 45 sous-quartiers (Villejean, Bréquigny, Thabor - Paris), under its 12 quartiers' compound names.
+    area_row("Rennes", "Rennes", geojson_source("https://data.rennesmetropole.fr/api/explore/v2.1/catalog/datasets/perimetres-des-45-sous-quartiers-de-la-ville-de-rennes"
+             "/exports/geojson?select=nomsquart,geo_shape"), "nomsquart", "sous-quartier"),
     # The 58 apkaimes (Āgenskalns, Grīziņkalns), in LKS-92 with an ISO-8859-13 .cpg.
     area_row("Riga", "Riga", shapefile_source("https://data.gov.lv/dati/dataset/ddc24ef1-4db4-46ce-a035-258b6ed69d91/resource/5409870d-287f-49e0-b336-d3c4ce936f69"
              "/download/apkaimes.zip"), "apkaime", "apkaime"),
@@ -3042,6 +3086,8 @@ AREA_SOURCES = [
              "DESCRIZIONE", lambda p: (p.get("TIPOLOGIA") or "").lower() or "suddivisione"),
     area_row("Rotterdam", "Rotterdam", ogc_source("https://api.pdok.nl/cbs/wijken-en-buurten-2025/ogc/v1/collections/buurten/items?f=json&limit=1000&gemeentecode=GM0599"),
              "buurtnaam", "buurt", keep=lambda p: p.get("buurtnaam") != "Buitenwater"),
+    # Neither the city nor the Métropole Rouen Normandie publishes quartiers: its 42 IRIS grouped into 40 (iris_source).
+    area_row("Rouen", "Rouen", iris_source("76540"), "quartier", "IRIS", dissolve=True),
     # SF Find's 117 neighborhoods (Hayes Valley, Noe Valley), not the 41 Analysis Neighborhoods; data.sfgov.org moved here.
     area_row("San Francisco", "San Francisco", geojson_source("https://data.sf.gov/resource/gfpk-269f.geojson?$limit=1000"), "name", "neighborhood"),
     # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la
@@ -3091,6 +3137,9 @@ AREA_SOURCES = [
              "?where=1%3D1&outFields=nombre&outSR=4326&f=geojson"), "nombre", "barri"),
     area_row("Vancouver", "Vancouver", geojson_source("https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/local-area-boundary/exports/geojson"),
              "name", "local area"),
+    # Versailles Grand Parc's 8 quartiers municipaux of Versailles (the urbanisme department's, 2004).
+    area_row("Versailles", "Versailles", geojson_source("https://services2.arcgis.com/YECJCCLQCtaylXWh/arcgis/rest/services/VersaillesQuartiersMunicipaux"
+             "/FeatureServer/0/query?where=1%3D1&outFields=NOM&outSR=4326&f=geojson"), "NOM", "quartier"),
     area_row("Vienna", "Vienna", geojson_source("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:BEZIRKSGRENZEOGD"
              "&srsName=EPSG:4326&outputFormat=json"), "NAMEK", "Bezirk"),
     area_row("Vilnius", "Vilnius", geojson_source("https://zemelapiai.vplanas.lt/arcgis/rest/services/Open_Data/Vilniaus_miesto_ribos/MapServer/1/query"

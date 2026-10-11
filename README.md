@@ -347,14 +347,24 @@ none, this says so rather than guessing.
 - Marseille: Datactivist, quartiers de Marseille (Métropole Aix-Marseille-Provence
   open data), Licence Ouverte 2.0.
 - Toulouse: Mairie de Toulouse, grands quartiers, Licence Ouverte 2.0.
+- Aix-en-Provence: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte /
+  Open Licence version 2.0.
+- Ajaccio: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Amsterdam: Gemeente Amsterdam, wijken, CC0 1.0.
+- Annecy: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Antwerp: Copyright Stad Antwerpen, wijken (the city's terms of use).
 - Athens: City of Athens, neighbourhoods, CC BY 4.0.
 - Auckland: Sourced from the LINZ Data Service and licensed for reuse under the
   CC BY 4.0 licence (NZ Suburbs and Localities).
+- Avignon: Ville d'Avignon, limites des mairies de quartier (DataSud), Licence Ouverte /
+  Open Licence version 2.0.
 - Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.
+- Biarritz: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - Bilbao: Fuente de los datos: Ayuntamiento de Bilbao, barrios (GeoBilbao), Creative Commons
   Reconocimiento 3.0 España (CC BY 3.0 ES).
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
@@ -371,6 +381,7 @@ none, this says so rather than guessing.
 - Brussels: Ville de Bruxelles, ibsa.brussels, perspective.brussels, Monitoring
   des quartiers, CC0 1.0.
 - Buenos Aires: Gobierno de la Ciudad de Buenos Aires, barrios, CC BY 2.5 AR.
+- Cannes: Mairie de Cannes, quartiers politiques (data.cannes.fr), Licence Ouverte.
 - Cape Town: City of Cape Town, Corporate GIS, major suburbs (through the Western
   Cape Government's mirror; the City's open data terms of use).
 - Chicago: City of Chicago Data Portal, Boundaries – Neighborhoods. "This site
@@ -382,6 +393,8 @@ none, this says so rather than guessing.
   understood that the data provided at this site is being used at one's own
   risk."
 - Copenhagen: Københavns Kommune, kvarterer, CC BY 4.0.
+- Dijon: Dijon métropole, ateliers de quartiers de Dijon (Open Dijon), Licence Ouverte
+  Version 2.0.
 - Dhaka: Bangladesh Bureau of Statistics (BBS), OCHA ROAP, 2015 thanas and upazilas
   (through geoBoundaries), Creative Commons Attribution 3.0 Intergovernmental
   Organisations (CC BY 3.0 IGO).
@@ -401,6 +414,8 @@ none, this says so rather than guessing.
   Licence v3.0; Crown copyright and database right 2022, licensed under the One
   Scotland Mapping Agreement.
 - Gothenburg, Stockholm: Statistiska centralbyrån (SCB), RegSO 2025, CC0.
+- Grenoble: Ville de Grenoble, unions de quartier (data.metropolegrenoble.fr), Open
+  Data Commons Open Database License 1.0.
 - Hamburg: Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und
   Vermessung (LGV), Stadtteile, Datenlizenz Deutschland – Namensnennung – 2.0.
 - Helsinki: Helsingin kaupunki, kaupunkimittauspalvelut, osa-alueet, CC BY 4.0.
@@ -448,11 +463,16 @@ none, this says so rather than guessing.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the
   source).
 - Prague: datový podklad © IPR Praha, městské části, CC BY 4.0.
+- Reims: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
+- Rennes: Rennes Métropole, périmètres des 45 sous-quartiers de Rennes, Licence ODbL 1.0.
 - Riga: Rīgas valstspilsētas pašvaldība (data.gov.lv), Rīgas apkaimes, Creative
   Commons Attribution 4.0.
 - Rome: Roma Capitale, suddivisioni toponomastiche (licence not stated by the
   publisher).
 - Rotterdam: CBS en Kadaster, Wijken en buurten 2025 (PDOK), CC0.
+- Rouen: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
+  version 2.0.
 - San Francisco: DataSF, City and County of San Francisco, SF Find Neighborhoods,
   Public Domain U.S. Government.
 - San Sebastián: © Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, Donostiako
@@ -485,6 +505,8 @@ none, this says so rather than guessing.
   CC BY 4.0.
 - Vancouver: City of Vancouver, local area boundary. Contains information
   licensed under the Open Government Licence – Vancouver.
+- Versailles: Communauté d'Agglomération Versailles Grand Parc, quartiers municipaux
+  de Versailles, Licence Ouverte/Open License Version 2.0.
 - Vienna: Datenquelle: Stadt Wien – data.wien.gv.at, Bezirksgrenzen, CC BY 4.0.
 - Vilnius: Vilniaus miesto savivaldybė, seniūnijos (licence not stated by the
   publisher).

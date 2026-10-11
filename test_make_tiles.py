@@ -1080,6 +1080,13 @@ print("ok (boundaries, cell by label point)")
 # Nice's IRIS grouped into quartiers: a head two IRIS share (the bare "Cimiez" counts) names them; a lone head does not.
 assert make_tiles.iris_head("Ariane-Monzie") == "Ariane" and make_tiles.iris_head("Saint-Roch-Ricolfi") == "Saint-Roch"
 assert make_tiles.iris_head("Saint-Augustin") == "Saint-Augustin" and make_tiles.iris_head("Madeleine Robiony") == "Madeleine Robiony"
+# Aix's: numbered and "partie" pieces are their whole; a compass compound or "Notre-" is never cut.
+assert make_tiles.iris_head("Encagnane 2") == "Encagnane" and make_tiles.iris_head("Couronne Ouest partie nord") == "Couronne Ouest"
+assert make_tiles.iris_head("Arbois Partie Est") == "Arbois" and make_tiles.iris_head("Sud-Est Plateau Puyricard") == "Sud-Est Plateau Puyricard"
+assert make_tiles.iris_head("Plateau Nord-Puyricard") == "Plateau Nord-Puyricard" and make_tiles.iris_head("Notre-Dame 1") == "Notre-Dame"
+# Reims's: a compass tail is dropped, after a hyphen too, but not where it ends a name ("Croix du Sud").
+assert [make_tiles.iris_head(n) for n in ("Murigny Nord-Nord-Ouest", "Saint-Rémi Nord Est et Sud", "Cernay-Centre", "Croix du Sud Nord-Est",
+        "Meythet Nord-Est", "Zone Portuaire Sud")] == ["Murigny", "Saint-Rémi", "Cernay", "Croix du Sud", "Meythet", "Zone Portuaire"]
 square = lambda x: {"type": "Polygon", "coordinates": [[[x, 43.7], [x + 0.01, 43.7], [x + 0.01, 43.71], [x, 43.7]]]}
 iris = ["Cimiez", "Cimiez-Valrose", "France-Negresco", "Saint-Roch-Ricolfi", "Saint-Roch-Jean XXIII", "Saint-Augustin"]
 make_tiles.get_json, real_get_json = lambda url: {"features": [{"properties": {"nom_iris": n}, "geometry": square(7.2 + i / 100)}
@@ -1090,6 +1097,13 @@ assert [f["name"] for f in grouped] == ["Cimiez", "France-Negresco", "Saint-Roch
 assert abs(grouped[0]["geometry"].area - 2 * shapely.Polygon(square(7.2)["coordinates"][0]).area) < 1e-12   # two IRIS dissolved
 print("ok (boundaries, IRIS grouped into quartiers)")
 
+# Grenoble's CSV: each row's geo_shape is its GeoJSON geometry; a row without one is left out.
+shape = json.dumps(square(5.72)).replace('"', '""')
+make_tiles.get, real_get = lambda url: f'﻿sdec_libel,geo_shape\nMalherbe,"{shape}"\nVide,\n'.encode(), make_tiles.get
+found = make_tiles.csv_geojson_source("https://example.org/u.csv")(None)
+make_tiles.get = real_get
+assert [(p["sdec_libel"], g.geom_type) for p, g in found] == [("Malherbe", "Polygon")], found
+print("ok (boundaries, a CSV of GeoJSON geometries)")
 # A Shapefile without its .prj (Palermo's quartieri, Gauss-Boaga fuso Est) is read in the row's crs.
 import io, shapefile
 shp, shx, dbf = io.BytesIO(), io.BytesIO(), io.BytesIO()
