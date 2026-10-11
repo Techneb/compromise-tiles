@@ -1088,6 +1088,16 @@ assert [f["name"] for f in grouped] == ["Cimiez", "France-Negresco", "Saint-Roch
 assert abs(grouped[0]["geometry"].area - 2 * shapely.Polygon(square(7.2)["coordinates"][0]).area) < 1e-12   # two IRIS dissolved
 print("ok (boundaries, IRIS grouped into quartiers)")
 
+# A Shapefile without its .prj (Palermo's quartieri, Gauss-Boaga fuso Est) is read in the row's crs.
+import io, shapefile
+shp, shx, dbf = io.BytesIO(), io.BytesIO(), io.BytesIO()
+with shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON) as w:
+    w.field("DENOMINAZI", "C"); w.poly([[(2378000, 4219000), (2378000, 4220000), (2379000, 4220000), (2379000, 4219000), (2378000, 4219000)]]); w.record("ZISA")
+members = {"Quartieri.shp": shp.getvalue(), "Quartieri.shx": shx.getvalue(), "Quartieri.dbf": dbf.getvalue()}
+[(props, geometry)] = make_tiles._shapefile_features(members, crs="EPSG:3004")
+assert props["DENOMINAZI"] == "ZISA" and 13.3 < geometry.centroid.x < 13.4 and 38.1 < geometry.centroid.y < 38.2, geometry.centroid
+print("ok (boundaries, Shapefile without .prj)")
+
 # A shared edge stays shared after the 5 m simplification: two neighbours along a wiggly street (2 m off a straight
 # line, every 10 m), simplified together; the edge's vertices are the same in both and no gap or overlap opens.
 lon0, lat0 = 13.40, 52.50

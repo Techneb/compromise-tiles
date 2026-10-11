@@ -1229,6 +1229,7 @@
   },
   {
     "city": "Palermo",
+    "streets": true,
     "district": "Palermo (going-out core + 2 km)",
     "box": [
       38.089,

@@ -435,6 +435,7 @@ none, this says so rather than guessing.
   with Oslo kommune's key (licence not stated by the publisher).
 - Ottawa: Ottawa Neighbourhood Study, Neighbourhood Boundaries Gen 3. Contains
   information licensed under the Open Government Licence – City of Ottawa.
+- Palermo: Comune di Palermo, perimetrazione quartieri storici, CC BY 4.0 IT.
 - Melbourne, Perth, Sydney: Based on Australian Bureau of Statistics data,
   Suburbs and Localities (ASGS 2021), CC BY 4.0.
 - Poznań: Miasto Poznań, serwis poznan.pl, osiedla (free reuse naming the

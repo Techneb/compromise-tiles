@@ -2743,8 +2743,9 @@ def _zip_members(raw):
     z = zipfile.ZipFile(io.BytesIO(raw))
     return {m: z.read(m) for m in z.namelist() if not m.endswith("/")}
 
-def _shapefile_features(members, encoding=None):
-    """Every polygon record of each Shapefile in a zip's members, holes and parts kept (pyshp), in lon/lat."""
+def _shapefile_features(members, encoding=None, crs=None):
+    """Every polygon record of each Shapefile in a zip's members, holes and parts kept (pyshp), in lon/lat; `crs`
+    for a Shapefile that comes without its .prj (Palermo's)."""
     import shapefile, shapely.geometry
     out = []
     for shp in (m for m in members if m.lower().endswith(".shp")):
@@ -2754,13 +2755,13 @@ def _shapefile_features(members, encoding=None):
         reader = shapefile.Reader(shp=part(".shp"), shx=part(".shx"), dbf=part(".dbf"), encoding=code)
         records = [(r.record.as_dict(), shapely.geometry.shape(r.shape.__geo_interface__)) for r in reader.iterShapeRecords()
                    if r.shape.shapeType in (5, 15, 25) and r.shape.points]
-        geoms = _crs_transform([g for _, g in records], prj.read().decode("latin-1") if prj else None)
+        geoms = _crs_transform([g for _, g in records], prj.read().decode("latin-1") if prj else crs)
         out += list(zip([p for p, _ in records], geoms))
     return out
 
-def shapefile_source(*urls, encoding=None):
+def shapefile_source(*urls, encoding=None, crs=None):
     """Zipped Shapefiles, each fetched whole (a few hundred KB)."""
-    return lambda rect: [f for url in urls for f in _shapefile_features(_zip_members(get(url)), encoding)]
+    return lambda rect: [f for url in urls for f in _shapefile_features(_zip_members(get(url)), encoding, crs)]
 
 def posted_shapefile_source(url, form, encoding=None):
     """A zipped Shapefile answered to a form POST (Seoul's portal)."""
@@ -3011,6 +3012,10 @@ AREA_SOURCES = [
     # The Ottawa Neighbourhood Study's Gen 3 (116, the city's open data), in capitals; Gatineau, across the river, has none.
     area_row("Ottawa", "Ottawa", geojson_source("https://services.arcgis.com/G6F8XLCl5KtAlZ2G/arcgis/rest/services/GEN3_OTT_1_3_3/FeatureServer/0/query"
              "?where=1%3D1&outFields=ONS_Name&outSR=4326&f=geojson"), "ONS_Name", "neighbourhood"),
+    # The 25 quartieri (2013; Politeama, Zisa, Tribunali-Castellammare), in Gauss-Boaga fuso Est with no .prj; "LIBERTA'"
+    # is Libertà, "SFRRACAVALLO" Sferracavallo.
+    area_row("Palermo", "Palermo", shapefile_source("https://opendata.comune.palermo.it/js/server/uploads/dataset/shp/_10012018113135.zip", crs="EPSG:3004"),
+             lambda p: re.sub(r"A'(?=\s|-|$)", "À", (p.get("DENOMINAZI") or "").strip()).replace("SFRRACAVALLO", "SFERRACAVALLO"), "quartiere"),
     area_row("Perth", "Perth", arcgis_source(ABS_SAL, ["sal_name_2021"], "state_code_2021='5'", "objectid"),
              lambda p: re.sub(r" \(WA\)$", "", p.get("sal_name_2021") or ""), "suburb"),
     area_row("Poznań", "Poznań", geojson_source("https://www.poznan.pl/mim/plan/map_service.html?mtype=local_gov&co=osiedla"), "name", "osiedle"),
