@@ -2933,6 +2933,8 @@ AREA_SOURCES = [
              "&TYPENAMES=avignon:avignon_mairie_quartier&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "libmairie", "mairie de quartier"),
     area_row("Barcelona", "OSM", osm_area_source((10,)), "name", None),   # the portal is behind a bot check; OSM's barris are the city's own (2018)
     area_row("Basel", "Basel", geojson_source("https://data.bs.ch/api/explore/v2.1/catalog/datasets/100042/exports/geojson"), "wov_name", "Wohnviertel"),
+    # Bayonne's 26 quartiers officiels (Petit Bayonne, Saint-Esprit, Marracq); its 4 conseils de quartier are too coarse.
+    area_row("Bayonne", "Bayonne", geojson_source("https://www.bayonne.fr/fileadmin/open-data/geojson/za_quartier.geojson"), "nom", "quartier"),
     area_row("Belgrade", "OSM", osm_area_source((8,)), "name", None),
     area_row("Berlin", "Berlin", geojson_source("https://gdi.berlin.de/services/wfs/alkis_ortsteile?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),

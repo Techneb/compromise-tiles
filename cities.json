@@ -1907,6 +1907,7 @@
   },
   {
     "city": "Bayonne",
+    "streets": true,
     "district": "Bayonne (whole commune)",
     "box": [
       43.4498,

@@ -361,6 +361,8 @@ none, this says so rather than guessing.
 - Avignon: Ville d'Avignon, limites des mairies de quartier (DataSud), Licence Ouverte /
   Open Licence version 2.0.
 - Basel: Geodaten Kanton Basel-Stadt, Wohnviertel, CC BY 4.0.
+- Bayonne: Ville de Bayonne, quartiers officiels, Licence Ouverte / Open Licence version
+  2.0.
 - Berlin: Geoportal Berlin, ALKIS Berlin Ortsteile, Datenlizenz Deutschland –
   Zero 2.0.
 - Biarritz: IGN, Contours... IRIS®, grouped into quartiers, Licence Ouverte / Open Licence
