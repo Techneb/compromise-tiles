@@ -1047,6 +1047,7 @@
   },
   {
     "city": "Dhaka",
+    "streets": true,
     "district": "Dhaka (whole city: Dhaka Metropolitan)",
     "box": [
       23.6681,

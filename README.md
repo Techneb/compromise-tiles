@@ -378,6 +378,9 @@ none, this says so rather than guessing.
   understood that the data provided at this site is being used at one's own
   risk."
 - Copenhagen: Københavns Kommune, kvarterer, CC BY 4.0.
+- Dhaka: Bangladesh Bureau of Statistics (BBS), OCHA ROAP, 2015 thanas and upazilas
+  (through geoBoundaries), Creative Commons Attribution 3.0 Intergovernmental
+  Organisations (CC BY 3.0 IGO).
 - Dublin: Dublin City Council, electoral divisions (Smart Dublin), Creative
   Commons Attribution.
 - Edinburgh: Copyright City of Edinburgh Council, contains Ordnance Survey data

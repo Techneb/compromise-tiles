@@ -2928,6 +2928,11 @@ AREA_SOURCES = [
     area_row("Copenhagen", "Copenhagen", geojson_source("https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:kvarter"
              "&outputFormat=json&SRSNAME=EPSG:4326"), "kvarternavn", "kvarter"),
     area_row("Delhi", "OSM", osm_area_source((10,)), "name", None),
+    # The 41 Dhaka Metropolitan thanas (Gulshan, Dhanmondi, Motijheel) of BBS and OCHA ROAP's 2015 admin 3, as
+    # geoBoundaries keeps it (125 MB, pinned): OCHA's current COD-AB stops at the two City Corporations, OSM maps no
+    # thanas and names in Bengali. The box's edges take in 7 upazilas around (Savar, Keraniganj).
+    area_row("Dhaka", "Dhaka", geojson_source("https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/BGD/ADM3"
+             "/geoBoundaries-BGD-ADM3.geojson"), "shapeName", "thana"),
     # Electoral divisions: "Beaumont A" to "Beaumont F" are Beaumont.
     area_row("Dublin", "Dublin", geojson_source("https://data.smartdublin.ie/dataset/2afc02f8-314b-40eb-91f0-2955f84bb912/resource/a19c6a3e-bbc8-4f20-b178-65de8e6950f1"
              "/download/electoral-divisions_cso2.shp.geojson"), lambda p: re.sub(r" [A-F]$", "", (p.get("Pllng_D") or "").strip()), "electoral division", dissolve=True),
