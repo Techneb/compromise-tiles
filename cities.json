@@ -895,6 +895,7 @@
   },
   {
     "city": "Seattle",
+    "streets": true,
     "district": "Seattle (whole municipality + the old core)",
     "box": [
       47.4956,

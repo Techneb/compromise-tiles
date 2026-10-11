@@ -3023,6 +3023,10 @@ AREA_SOURCES = [
     # San José, Costa Rica: its barrios (admin_level 10); the Municipalidad's own layer is "para uso exclusivo de la
     # Municipalidad de San José", and IGN's finest are the distritos.
     area_row("San José", "OSM", osm_area_source((10,)), "name", None),
+    # The City Clerk's Neighborhood Map Atlas, its 94 neighborhoods (Ballard, Belltown, Capitol Hill's Broadway):
+    # "not intended to represent any 'official' City of Seattle neighborhood map", the ones people name.
+    area_row("Seattle", "Seattle", geojson_source("https://services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services/nma_nhoods_sub/FeatureServer/0/query"
+             "?where=1%3D1&outFields=S_HOOD&outSR=4326&f=geojson"), "S_HOOD", "neighborhood"),
     area_row("Seoul", "Seoul", posted_shapefile_source("https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?&useCache=false",
              {"infId": "OA-22160", "seq": "1", "infSeq": "3"}), "ADSTRD_NM", "행정동"),
     # IDE.Sevilla's barrios (Triana's, Nervión's); "VILLEGAS" is mapped in two parts.
