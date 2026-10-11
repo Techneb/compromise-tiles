@@ -3048,6 +3048,10 @@ AREA_SOURCES = [
     area_row("Lille", "Lille", geojson_source("https://data.lillemetropole.fr/geoserver/ville_lille/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature"
              "&TYPENAMES=ville_lille:limite_des_quartiers_de_lille_et_de_ses_communes_associees&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"),
              "quartier", "quartier"),   # Lille's 10 quartiers, and Lomme and Hellemmes whole
+    # The Ville de Limoges's 12 quartiers (Carnot, Louyat - Vigenal, La Bastide - La Brégère; IRIS aggregated for its housing
+    # policy), on Limoges Métropole's map server; no licence stated. Its 57 secteurs CIL take in other communes.
+    area_row("Limoges", "Limoges", geojson_source("https://sig.limoges-metropole.fr/servernf1/rest/services/_TER/ter_secteurs_habitat_consult/MapServer/4"
+             "/query?where=1%3D1&outFields=quart_vdl&outSR=4326&f=geojson"), "quart_vdl", "quartier"),
     area_row("Lisbon", "Lisbon", geojson_source("https://services.arcgis.com/1dSrzEWVQn5kHHyK/arcgis/rest/services/Limite_Cartografia/FeatureServer/0/query"
              "?outFields=NOME&where=1%3D1&outSR=4326&f=geojson"), "NOME", "freguesia"),
     # The council's 64 wards of 2023 (Anfield, Toxteth, Penny Lane), the same as ONS's December 2025 wards.

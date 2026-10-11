@@ -1781,6 +1781,7 @@
   },
   {
     "city": "Limoges",
+    "streets": true,
     "district": "Limoges (whole commune)",
     "box": [
       45.7886,

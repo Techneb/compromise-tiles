@@ -441,6 +441,8 @@ none, this says so rather than guessing.
   Licence ODbL.
 - Lille: Ville de Lille, limite des quartiers de Lille et de ses communes associées
   (data.lillemetropole.fr), Licence Ouverte v2.0 (Etalab).
+- Limoges: Limoges Métropole, quartiers de la Ville de Limoges (licence not stated by
+  the publisher).
 - Lisbon: Câmara Municipal de Lisboa, Limite_Cartografia (freguesias), CC0.
 - Liverpool: Liverpool City Council, Liverpool Electoral Ward Boundaries, UK Open
   Government Licence (OGL).
