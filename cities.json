@@ -320,6 +320,7 @@
   },
   {
     "city": "Wroc\u0142aw",
+    "streets": true,
     "district": "Wroc\u0142aw (going-out core + 2 km)",
     "box": [
       51.075,

@@ -481,6 +481,8 @@ none, this says so rather than guessing.
   publisher).
 - Washington DC: DC Office of Planning (https://planning.dc.gov/), Neighborhood
   Clusters, CC BY 4.0.
+- Wrocław: Gmina Wrocław, System Informacji Przestrzennej Wrocławia (geoportal.wroclaw.pl),
+  granice osiedli ("Warunki wykorzystania i przetwarzania: brak ograniczeń").
 - Zagreb: Grad Zagreb, mjesni odbori, Otvorena dozvola (the source and date of
   last change named).
 - Zurich: Stadt Zürich, statistische Quartiere, CC0.
