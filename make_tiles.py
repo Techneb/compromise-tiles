@@ -2907,6 +2907,9 @@ AREA_SOURCES = [
              "&TYPENAMES=alkis_ortsteile:ortsteile&OUTPUTFORMAT=application/json&SRSNAME=EPSG:4326"), "nam", "Ortsteil"),
     area_row("Bogotá", "Bogotá", geojson_source("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/unidadplaneamientozonal"
              "/MapServer/0/query?where=1%3D1&outFields=CODIGO_UPZ,NOMBRE&outSR=4326&f=geojson"), "NOMBRE", "UPZ"),
+    # The Comune's 90 aree statistiche (Bolognina's Arcoveggio, Cirenaica, Irnerio), "GALVANI-1" and "GALVANI-2" one.
+    area_row("Bologna", "Bologna", geojson_source("https://opendata.comune.bologna.it/api/explore/v2.1/catalog/datasets/aree-statistiche/exports/geojson"),
+             lambda p: re.sub(r"-\d$", "", (p.get("area_statistica") or "").strip()), "area statistica", dissolve=True),
     area_row("Bordeaux", "Bordeaux", geojson_source("https://opendata.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/se_quartvie_s/exports/geojson"
              "?select=libelle,geo_shape"), "libelle", "secteur de vie"),
     # The Planning Department's 26 neighborhoods ("not official neighborhood boundaries", it says): the ones people name.

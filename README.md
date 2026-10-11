@@ -357,6 +357,8 @@ none, this says so rather than guessing.
   Zero 2.0.
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital (IDECA), UPZ,
   CC BY 4.0.
+- Bologna: Comune di Bologna - U.I. Ufficio Comunale di Statistica, aree statistiche,
+  CC BY 4.0.
 - Bordeaux: Ville de Bordeaux, secteurs de vie (Bordeaux Métropole open data),
   Licence Ouverte.
 - Boston: Boston Maps (Analyze Boston), BPDA Neighborhood Boundaries, Open Data

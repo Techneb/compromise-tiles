@@ -97,6 +97,7 @@
   },
   {
     "city": "Bologna",
+    "streets": true,
     "district": "Bologna (whole municipality)",
     "box": [
       44.4211,
