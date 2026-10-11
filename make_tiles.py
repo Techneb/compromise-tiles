@@ -270,6 +270,13 @@ PERMIT_CITIES = [
     # 2026-10-11 with it to the whole municipality, which the WFS covers; no other city's cells fall in it, so no boundary.
     row("Stockholm", "", "openstreetgs.stockholm.se/geoservice/api/{key}/wfs", "od_gis:Markupplatelse_Punkt", "", [],
         (59.2296, 59.4403), (17.7696, 18.2001), shape="stockholm", key="STOCKHOLM_API_KEY"),
+    # Hong Kong: FEHD's restaurant licences (the register of data.gov.hk's LP_Restaurants XML, daily) as CSDI serves
+    # them, a keyless FeatureServer with each licence's point, so no geocoding (DATA.GOV.HK / CSDI terms: free reuse
+    # with the source named). Only licences flagged #A, "Licensed restaurant with outside seating accommodation" (501 of
+    # 17,294, 2026-10-11), in NSEARCH04 (the XML's INFO). The name is the shop sign, English or Chinese as registered.
+    # The box is the terraces'. No cities.json area yet, so a build reads it only once the city is tiled.
+    row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
+        "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
 
 def in_box(c, lat, lon): return c["lat"][0] <= lat <= c["lat"][1] and c["lon"][0] <= lon <= c["lon"][1]
