@@ -1,0 +1,72 @@
+name: Delete empty orphan tiles
+# One-off, by hand: deletes the tiles no area of master's cities.json builds that hold no data, the empty
+# arrays left in the water around Lisbon, Málaga, Seattle… (owner, 2026-10-12). Orphans with data stay: an
+# area may own them again. empty_orphans.py picks them; a dry run lists what would go. Secrets as storage.yml.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm: {description: "Type DELETE to delete; anything else is a dry run", default: "dry run", required: true}
+permissions:
+  contents: read
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      AWS_RETRY_MODE: adaptive
+      AWS_MAX_ATTEMPTS: "10"
+      ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      BUCKET: ${{ secrets.R2_BUCKET }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: master}
+      - name: List the bucket
+        run: |
+          aws s3 ls "s3://$BUCKET" --recursive --endpoint-url "$ENDPOINT" > listing.txt
+          wc -l listing.txt
+      # Only an orphan small enough to be [] is fetched (22 bytes at rest), and each is read before it is listed.
+      - name: Fetch the small orphans
+        run: |
+          python3 empty_orphans.py select listing.txt --cities cities.json --candidates candidates.txt
+          # The raw bytes as stored (gzipped): get-object does not inflate them. A failed fetch leaves no file: kept.
+          xargs -P 16 -I '{}' sh -c 'mkdir -p "fetched/$(dirname "$1")" &&
+            aws s3api get-object --bucket "$BUCKET" --key "$1" --endpoint-url "$ENDPOINT" "fetched/$1" > /dev/null ||
+            echo "not fetched: $1"' _ '{}' < candidates.txt
+      - name: Pick the empty ones
+        env: {CONFIRM: "${{ inputs.confirm }}"}
+        run: |
+          python3 empty_orphans.py report listing.txt --cities cities.json --fetched fetched \
+            --delete delete.txt --kept kept.txt --write empty-orphans.json --summary empty-orphans.md
+          cat empty-orphans.md >> "$GITHUB_STEP_SUMMARY"
+          [ "$CONFIRM" = DELETE ] || echo "**Dry run**: nothing deleted (confirm=DELETE deletes delete.txt)." | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Delete
+        if: ${{ inputs.confirm == 'DELETE' }}
+        run: |
+          [ -s delete.txt ] || { echo "nothing to delete" | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; }
+          split -l 1000 delete.txt batch-
+          for b in batch-??; do
+            python3 -c 'import json,sys; print(json.dumps({"Objects":[{"Key":k.strip()} for k in open(sys.argv[1]) if k.strip()],"Quiet":True}))' "$b" > "$b.json"
+            # Quiet: only the keys that failed come back, and any fails the step.
+            aws s3api delete-objects --bucket "$BUCKET" --delete "file://$b.json" --endpoint-url "$ENDPOINT" --output json > "$b.out"
+            python3 -c 'import json,sys; t=open(sys.argv[1]).read().strip(); e=json.loads(t).get("Errors") if t else None; sys.exit(f"{len(e)} not deleted: {e[:5]}" if e else 0)' "$b.out"
+          done
+          echo "deleted $(wc -l < delete.txt) empty orphan tiles" | tee -a "$GITHUB_STEP_SUMMARY"
+      - if: ${{ always() }}
+        run: gzip -9 listing.txt
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: empty-orphans
+          path: |
+            empty-orphans.json
+            empty-orphans.md
+            delete.txt
+            kept.txt
+            candidates.txt
+            listing.txt.gz
+          retention-days: 30
