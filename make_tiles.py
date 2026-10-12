@@ -3117,8 +3117,11 @@ AREA_SOURCES = [
     area_row("Nantes", "Nantes", geojson_source("https://data.nantesmetropole.fr/api/explore/v2.1/catalog/datasets/244400404_quartiers-de-la-ville-de-nantes"
              "/exports/geojson?select=nom,geo_shape"), "nom", "quartier"),
     # The 30 quartieri (Chiaia, Vomero, Posillipo) on the 2001 census sections, the newest the Comune publishes as a file.
-    area_row("Naples", "Naples", shapefile_source("https://trasparenza.comune.napoli.it/flex/cm/pages/ServeAttachment.php/L/IT/D/8%252Fa%252Fe%252FD.8fbafa14e575ac594a1c"
-             "/P/BLOB%3AID%3D26532/E/zip?mode=download"), "QUART", "quartiere"),
+    # Its server answers Actions' runners 403 (run 38180000936), so the file is read from a copy in this repository
+    # (`areas/naples.zip`, unchanged, IODL 2.0), taken on 2026-10-12 from trasparenza.comune.napoli.it's
+    # ServeAttachment.php/L/IT/D/8%252Fa%252Fe%252FD.8fbafa14e575ac594a1c/P/BLOB%3AID%3D26532/E/zip.
+    area_row("Naples", "Naples", shapefile_source("https://raw.githubusercontent.com/Techneb/compromise-tiles/master/areas/naples.zip"),
+             "QUART", "quartiere"),
     # ntatype 0: the residential NTAs; 5 to 9 are parks, cemeteries, airports.
     area_row("New York", "New York", geojson_source("https://data.cityofnewyork.us/resource/9nt8-h7nd.geojson?$limit=1000"), "ntaname", "NTA",
              keep=lambda p: str(p.get("ntatype")) == "0"),
