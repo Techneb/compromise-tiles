@@ -29,19 +29,23 @@ jobs:
         run: |
           aws s3 ls "s3://$BUCKET" --recursive --endpoint-url "$ENDPOINT" > listing.txt
           wc -l listing.txt
-      # Only an orphan small enough to be [] is fetched (22 bytes at rest), and each is read before it is listed.
-      - name: Fetch the small orphans
+      # An orphan of 22 bytes (an empty tile at rest) is picked from the listing; 50 of them, drawn at random, are
+      # fetched to check. Those of another size up to 64 bytes are fetched only while under 500 (empty_orphans.py).
+      - name: Fetch the sample and the other small orphans
         run: |
-          python3 empty_orphans.py select listing.txt --cities cities.json --candidates candidates.txt
-          # The raw bytes as stored (gzipped): get-object does not inflate them. A failed fetch leaves no file: kept.
-          xargs -P 16 -I '{}' sh -c 'mkdir -p "fetched/$(dirname "$1")" &&
+          python3 empty_orphans.py select listing.txt --cities cities.json --sample sample.txt --candidates candidates.txt
+          # The raw bytes as stored (gzipped): get-object does not inflate them. A failed fetch leaves no file: kept,
+          # or, in the sample, a failed check.
+          cat sample.txt candidates.txt | xargs -P 16 -I '{}' sh -c 'mkdir -p "fetched/$(dirname "$1")" &&
             aws s3api get-object --bucket "$BUCKET" --key "$1" --endpoint-url "$ENDPOINT" "fetched/$1" > /dev/null ||
-            echo "not fetched: $1"' _ '{}' < candidates.txt
+            echo "not fetched: $1"' _ '{}'
+      # Fails, with nothing in delete.txt, when any of the sample is not []: then the size is not proof.
       - name: Pick the empty ones
         env: {CONFIRM: "${{ inputs.confirm }}"}
         run: |
-          python3 empty_orphans.py report listing.txt --cities cities.json --fetched fetched \
-            --delete delete.txt --kept kept.txt --write empty-orphans.json --summary empty-orphans.md
+          python3 empty_orphans.py report listing.txt --cities cities.json --sample sample.txt --fetched fetched \
+            --delete delete.txt --kept kept.txt --write empty-orphans.json --summary empty-orphans.md ||
+            { cat empty-orphans.md >> "$GITHUB_STEP_SUMMARY"; exit 1; }
           cat empty-orphans.md >> "$GITHUB_STEP_SUMMARY"
           [ "$CONFIRM" = DELETE ] || echo "**Dry run**: nothing deleted (confirm=DELETE deletes delete.txt)." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Delete
@@ -67,6 +71,7 @@ jobs:
             empty-orphans.md
             delete.txt
             kept.txt
+            sample.txt
             candidates.txt
             listing.txt.gz
           retention-days: 30
