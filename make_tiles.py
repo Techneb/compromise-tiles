@@ -276,7 +276,8 @@ PERMIT_CITIES = [
     # them, a keyless FeatureServer with each licence's point, so no geocoding (DATA.GOV.HK / CSDI terms: free reuse
     # with the source named). Only licences flagged #A, "Licensed restaurant with outside seating accommodation" (501 of
     # 17,294, 2026-10-11), in NSEARCH04 (the XML's INFO). The name is the shop sign, English or Chinese as registered.
-    # The box is the terraces'. No cities.json area yet, so a build reads it only once the city is tiled.
+    # The box is the terraces'. The city's cities.json area (2026-10-11) is the whole SAR's land (the Census and Statistics
+    # Department's 2021 District Council districts, dissolved); no other tiled city reaches the box, so no boundary.
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
