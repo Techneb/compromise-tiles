@@ -521,6 +521,7 @@ class OSM:
                 venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
                          "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
                 if drinks_late(tags): venue["bar"] = True
+                if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
                 self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
             for f in (box, kept):
@@ -763,6 +764,12 @@ def drinks_late(tags):
     bar=yes, or open past midnight on some day (owner, 2026-10-10: La Perle and Le Progrès in the
     Marais are a restaurant and a café closing at 02:00)."""
     return tags.get("amenity") in ("cafe", "restaurant") and (tags.get("bar") == "yes" or open_past_midnight(tags.get("opening_hours")))
+
+def opening_hours(tags):
+    """OpenStreetMap's opening_hours as the tile carries it, raw for the app to parse (owner,
+    2026-10-13): trimmed, None when absent, blank or over 255 characters (OSM's own tag limit)."""
+    value = str(tags.get("opening_hours") or "").strip()
+    return value if 0 < len(value) <= 255 else None
 
 _DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
 _MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
