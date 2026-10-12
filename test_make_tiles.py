@@ -1175,6 +1175,11 @@ for malformed in ("Mo-Su sunset-02:00", "Mo-Fr 18:00+", "Lu-Ve 10:00-02:00", "Mo
 assert drinks_late({"amenity": "restaurant", "opening_hours": "Mo-Su 08:00-02:00"}) and drinks_late({"amenity": "cafe", "bar": "yes"})
 assert not drinks_late({"amenity": "cafe", "opening_hours": "Mo-Su 08:00-19:00"})
 assert not drinks_late({"amenity": "bar", "opening_hours": "Mo-Su 18:00-02:00"}), "a bar is under Bar already"
+# opening_hours rides raw in venues/ tiles: trimmed, left out when absent, blank or longer than 255 characters.
+from make_tiles import opening_hours
+assert opening_hours({"opening_hours": " Mo-Fr 18:00-02:00; PH off "}) == "Mo-Fr 18:00-02:00; PH off"
+assert opening_hours({}) is None and opening_hours({"opening_hours": "  "}) is None
+assert opening_hours({"opening_hours": "x" * 255}) == "x" * 255 and opening_hours({"opening_hours": "x" * 256}) is None
 
 # An unknown layer is refused before any download (#76): "terraces" or "numbers" alone used to build nothing for hours.
 import subprocess, sys
