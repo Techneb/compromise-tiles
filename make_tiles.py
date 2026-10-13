@@ -3577,6 +3577,7 @@ def done(out, layer, cell):
     if read(file) is None: return False
     return limit is None or time.time() - os.path.getmtime(file) < limit * 86_400
 
+UNSHADED = None  # --unshaded: the file the weekly run lists the cells no venue or terrace reaches in
 LISTED = None   # --listing: the store's keys, so the blocks it lacks are built first
 
 def in_store(cell, layers):
@@ -3632,6 +3633,38 @@ def near_buildings(cell, buildings):
 def near_terraces(cell, terraces):
     return [t for t in terraces
             if metres(cell.lat, cell.lon, t["coordinate"]["latitude"], t["coordinate"]["longitude"]) <= TERRACE_RADIUS]
+
+# Only the buildings a sunny verdict can need (owner, 2026-10-13; BUILDINGS.md): a buildings tile is written for a cell
+# within SHADE_MARGIN of a venue (a bar, pub, beer garden, café or restaurant of the extract, named or not) or of a
+# terrace (terraces-v2/). Each tile already holds every footprint within BUILDING_REACH of its cell, so a kept cell needs
+# no neighbour. The margin is for the app's venues, which are Apple's: the same bar a few tens of metres from OSM's point,
+# or a place OSM lacks beside one it has. A cell with no tile reads "unknown" in the app, never "no shadow".
+SHADE_MARGIN = 100
+
+def shade_keys(points, margin=SHADE_MARGIN):
+    """The keys of the ~200 m cells whose rect comes within `margin` metres of a (lat, lon) of `points`."""
+    keys = set()
+    for lat, lon in points:
+        k = M * math.cos(math.radians(lat))
+        for c in cells_in(*padded((lat, lon, lat, lon), margin)):
+            if math.hypot(max(c.s - lat, 0, lat - c.n) * M, max(c.w - lon, 0, lon - c.e) * k) <= margin: keys.add(c.key)
+    return keys
+
+def shade_points(cells, out):
+    """(lat, lon) of the extract's venues around the cells and of the terraces of their terraces-v2/ tiles (this run's,
+    else the published one: each holds the terraces within TERRACE_RADIUS, so together they hold every terrace near
+    the cells). None when a published tile could not be read: the caller then keeps every cell."""
+    points = {(v["coordinate"]["latitude"], v["coordinate"]["longitude"])
+              for v in _osm.near(_osm.venues, padded(union(cells), SHADE_MARGIN))}
+    todo = [c for c in cells if read(path(out, "terraces-v2", c)) is None]
+    with concurrent.futures.ThreadPoolExecutor(STORE_THREADS) as pool:
+        published = dict(zip((c.key for c in todo), pool.map(lambda c: published_items("terraces-v2", c.key), todo)))
+    for c in cells:
+        items = published[c.key] if c.key in published else read(path(out, "terraces-v2", c))
+        if isinstance(items, SourceError):
+            log(f"    {c.key}: terraces-v2/ not read ({items}); every cell keeps its buildings"); return None
+        points.update((t["coordinate"]["latitude"], t["coordinate"]["longitude"]) for t in items)
+    return points
 
 def building_source(cell):
     city = next((b for b in CITY_BUILDINGS if in_feed(b, cell.lat, cell.lon)), None)
@@ -3838,6 +3871,10 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     # A French extract means French communes; elsewhere the geo API would answer [] a cell at a time.
     french = "/europe/france" in pbf
     sources_only = set(layers) <= {"sources", "venues", "streets-main", "places", "boundaries", "transit"}
+    shaded = None   # the cells a buildings tile is written for (shade_keys); None: every cell
+    if "buildings" in layers and (points := shade_points(cells, out)) is not None:
+        shaded = shade_keys(points)
+        log(f"{label}: buildings for {sum(c.key in shaded for c in cells)} of {len(cells)} cells, those near a venue or terrace")
     if "venues" in layers:
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
@@ -3860,7 +3897,8 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
             # A box of départements (the petite couronne) keeps only their cells.
             if departements and not any(x["code"][:2] in departements for x in communes.get(c.key) or []):
                 outside.add(c.key); continue
-            if "buildings" in layers and not (done(out, "buildings", c) and done(out, "buildings-v2", c)):
+            if "buildings" in layers and (shaded is None or c.key in shaded) \
+                    and not (done(out, "buildings", c) and done(out, "buildings-v2", c)):
                 need_buildings.append(c)
             if "streets" in layers and not done(out, "streets", c): need_streets.append(c)
             if "terraces-v2" in layers and not done(out, "terraces-v2", c):
@@ -3873,6 +3911,20 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         if need_streets: do_streets(need_streets, out, failures)
         if need_terraces: do_terraces(need_terraces, communes, out, failures)
         if need_sources: do_sources(need_sources, out, failures)
+    # The weekly run: a venue or terrace new since the yearly buildings run gets its cells' buildings now. The store's
+    # listing (with buildings-v2/, tiles.yml) says which cells lack them; without one nothing is added.
+    # ponytail: a new area's first weekly run builds all its cells' buildings here, inside the same 290 minutes.
+    if "terraces-v2" in layers and "buildings" not in layers and LISTED is not None:
+        mine = [c for c in cells if c.key not in outside]
+        points = shade_points(mine, out) if mine else None
+        if points is not None:
+            keys = shade_keys(points)
+            top = [c for c in mine if c.key in keys and f"tiles/buildings-v2/{c.key}.json" not in LISTED
+                   and not done(out, "buildings-v2", c)]
+            log(f"{label}: buildings for {len(top)} cells a venue or terrace newly reaches")
+            for group in blocks(top, block): do_buildings(group, out, failures)
+            if UNSHADED:  # the cells no venue or terrace reaches: what tiles.yml's prune_buildings deletes from the store
+                with open(UNSHADED, "a") as f: f.writelines(c.key + "\n" for c in mine if c.key not in keys)
     # After the blocks, so a cell's sources/ tile written by this run's buildings or terraces is the one noted.
     if "boundaries" in layers: do_boundaries(city or label, city_entries or [{"box": rect, "_boundary": boundary}], [c for c in cells if c.key not in outside], out, failures)
     failed = {k for k, _, _ in failures}
@@ -3898,12 +3950,14 @@ def main():
                    + "; or sources, the building source of the published sources/ tiles that lack it (needs --store)")
     a.add_argument("--store", help="the published tiles' base URL (https://tiles.alephb.uk/tiles/): sources/ tiles keep its fields")
     a.add_argument("--listing", help="the store's keys (changed.py's remote.tsv): blocks with a tile missing there are built first")
+    a.add_argument("--unshaded", help="a terraces-v2 run with --listing appends here the keys of the cells no venue or terrace reaches")
     a.add_argument("--extracts", default="extracts", help="where Geofabrik extracts are kept between runs (default ./extracts)")
     args = a.parse_args()
     unknown = [l for l in args.layers.split(",") if l not in LAYERS + ("sources",)]   # numbers/ is written beside streets/
     if unknown: a.error(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources")
-    global STORE, LISTED
+    global STORE, LISTED, UNSHADED
     STORE = args.store and args.store.rstrip("/") + "/"
+    UNSHADED = args.unshaded
     if args.listing and os.path.exists(args.listing):
         with open(args.listing) as f: LISTED = {line.split("\t")[0] for line in f}
     if args.cities:

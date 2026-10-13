@@ -7,7 +7,9 @@
 # Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET; STOCKHOLM_API_KEY and LINZ_API_KEY (the build step only). Public repo, standard
 # runners: no minutes are billed. Only the tiles whose bytes differ from the store's (by ETag) are
 # uploaded; a numbers/ or boundaries/ tile the store holds for a cell the run left with none is deleted (only those two
-# layers, only in the city's own cells); dry_run builds and prints that plan without writing anything.
+# layers, only in the city's own cells); dry_run builds and prints that plan without writing anything. Buildings are built
+# only for the cells near a venue or terrace (BUILDINGS.md); the weekly run builds those a new venue or terrace reaches, and,
+# dispatched with prune_buildings, deletes the buildings-v2/ tiles of the cells none reaches.
 name: Tiles
 
 on:
@@ -28,6 +30,10 @@ on:
         default: ""
       dry_run:
         description: "Build and print what would be uploaded (new, changed, unchanged per layer); write nothing to R2 or the repository"
+        type: boolean
+        default: false
+      prune_buildings:
+        description: "With terraces-v2: also delete the buildings-v2/ tiles of the cells no venue or terrace reaches (owner-approved; dry_run first)"
         type: boolean
         default: false
 
@@ -93,7 +99,8 @@ jobs:
         run: |
           # sources/ is written beside the layers asked for, numbers/ beside streets/ (2026-10-10); the store holds buildings-v2/
           # for buildings (2026-10-08); communes/ is never uploaded, so not listed.
-          layers=$(echo "$LAYERS,sources" | tr ',' '\n' | grep -vx communes | sed 's/^buildings$/buildings-v2/; s/^streets$/streets\nnumbers/' | sort -u | tr '\n' ' ')
+          # A terraces-v2 run lists buildings-v2/ too: it builds the buildings of the cells a new venue or terrace reaches.
+          layers=$(echo "$LAYERS,sources" | sed 's/terraces-v2/terraces-v2,buildings/' | tr ',' '\n' | grep -vx communes | sed 's/^buildings$/buildings-v2/; s/^streets$/streets\nnumbers/' | sort -u | tr '\n' ' ')
           pids=""
           for l in $layers; do
             aws s3api list-objects-v2 --bucket "${{ secrets.R2_BUCKET }}" --prefix "tiles/$l/" --endpoint-url "$ENDPOINT" \
@@ -145,7 +152,7 @@ jobs:
           LINZ_API_KEY: ${{ secrets.LINZ_API_KEY }}             # Auckland's suburbs (boundaries/); unset, Auckland gets none
         run: |
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
-          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 \
+          timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 --unshaded unshaded.txt \
             --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || echo "status=$?" >> "$GITHUB_OUTPUT"   # checked after the upload
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
       - name: Coverage fragment
@@ -168,6 +175,7 @@ jobs:
         env:
           CITY: ${{ matrix.city }}
           PRUNE: ${{ !inputs.dry_run && '--prune' || '' }}
+          UNSHADED: ${{ inputs.prune_buildings && '--unshaded unshaded.txt' || '' }}
         run: |
           [ -d out ] || exit 0
           rm -rf out/communes out/buildings
@@ -175,7 +183,7 @@ jobs:
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
           [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
-          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt
+          python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt $UNSHADED
       # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
       # there is complete, and R2 keeps last week's tile for the rest.
       - name: Upload tiles to R2
@@ -204,6 +212,7 @@ jobs:
           done
       # numbers/ and boundaries/ write no file for a cell left with nothing: the keys of the city's own cells this run
       # emptied (changed.py --stale, listed in the summary above, a dry run included) go from the store, those two layers only.
+      # With prune_buildings, also the buildings-v2/ tiles of the city's own cells no venue or terrace reaches (owner, 2026-10-13).
       - name: Delete emptied tiles from R2
         if: ${{ !cancelled() && !inputs.dry_run && hashFiles('stale.txt') != '' }}
         env:
@@ -215,7 +224,7 @@ jobs:
             python3 -c 'import json,sys; print(json.dumps({"Objects":[{"Key":k.strip()} for k in open(sys.argv[1]) if k.strip()],"Quiet":True}))' "$b" > "$b.json"
             aws s3api delete-objects --bucket "${{ secrets.R2_BUCKET }}" --delete "file://$b.json" --endpoint-url "$ENDPOINT"
           done
-          echo "Deleted $(wc -l < stale.txt) emptied numbers/ and boundaries/ tiles." >> "$GITHUB_STEP_SUMMARY"
+          echo "Deleted $(wc -l < stale.txt) emptied numbers/, boundaries/ and unshaded buildings-v2/ tiles." >> "$GITHUB_STEP_SUMMARY"
       # Red once what was built is up: more than 5 % of the city's cells failed (make_tiles.py exits 1),
       # or the time cap cut the build (124). A green job used to hide both (Gijón, Genoa, London, 2026-10-07).
       - name: Check the build is complete

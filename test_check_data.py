@@ -117,6 +117,9 @@ feed = {"updated": "2026-10-04", "areas": [{"city": "A", "name": "A", "box": [0.
 store = {"1,1": (30, 5), "2,2": (None, None), "3,3": (40, 6)}
 checked, bad, missing = feed_mismatches(feed, lambda k: store[k], per_area=3, seed=1)
 assert checked == 3 and missing == ["2,2"] and [m["key"] for m in bad] == ["3,3"] and bad[0]["feed"] == [40, 7] and bad[0]["tiles"] == [40, 6]
+# A buildings tile the store lacks is a cell no venue or terrace reaches (2026-10-13): no mismatch, still listed.
+one = dict(feed, cells=[[4, 4, 2, 50, 50, 0, 0, "", 0, 0]])
+assert feed_mismatches(one, lambda k: (None, 2), per_area=1) == (1, [], ["4,4"])
 # The same seed samples the same cells; a different one may not.
 random.seed(1); first = random.sample(range(100), 3); random.seed(1); assert random.sample(range(100), 3) == first
 # terracesKnown: the venue tile spreads 100 venues over 100 cells (9 near each cell); 5 and 7 terraces pass (≥ 5, ≥ 30 % × 9), 0 does not.

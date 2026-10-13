@@ -84,7 +84,7 @@ it saves **68.2%**, 216 MB down to 69 MB, the same as on the nine tiles.
      cells that lose their buildings, and the app would switch the filter off
      there.
 
-  **Not implemented.**
+  **Not implemented then; implemented by cell on 2026-10-13**, below.
 - **gzip and brotli.** The upload already uses `gzip -9`; level 6 would be 6%
   bigger.
   - zopfli writes ordinary gzip, so the phone reads it unchanged. It saves
@@ -171,7 +171,7 @@ upload compares it with the store by ETag like every other layer.
      request it with and without `Accept-Encoding: br` first.
    - The runner needs `brotli` (apt), and the upload step needs a second
      `--content-encoding`.
-3. **Do not drop footprints far from venues or terraces, and do not simplify,
+3. **Do not simplify (and, until 2026-10-13, do not drop footprints far from venues or terraces),
    at least for now** (see above). If space runs short again, store each
    footprint in one tile only: that is the next 90%.
 
@@ -191,3 +191,37 @@ upload compares it with the store by ETag like every other layer.
   them through the coverage feed). Once buildings/ is retired they must read
   buildings-v2/: the footprint count becomes `len(tile)`, the guessed count
   the `null` heights.
+
+## Implemented: buildings only near a venue or terrace (2026-10-13)
+
+On 2026-10-13 the store held 4.35 GB, buildings-v2/ 4.03 GB of it in 914,229 tiles. The owner chose to keep only the
+buildings that can shade a venue or a terrace; outlines are not simplified and small buildings are not dropped.
+
+- **The unit is the cell, not the footprint.** A tile already holds every footprint within `BUILDING_REACH` (200 m)
+  of its cell (a shadow is followed 150 m, and a terrace lies within 30 m of its venue), and a venue is judged
+  against its own cell's tile. So a cell keeps its whole tile or has none: trimming footprints inside a kept tile
+  would let a venue missing from these tiles read "sunny" wrongly instead of "unknown".
+- **Which cells:** those within `SHADE_MARGIN` (100 m) of a venue of the extract (bar, pub, beer garden, café or
+  restaurant, named or not) or of a terrace of terraces-v2/. The margin covers a venue placed a few tens of metres
+  from OpenStreetMap's point, or one OpenStreetMap lacks next to one it has. A cell with no tile is "unknown",
+  never "no shadow".
+- **Builds.** The buildings layer writes tiles for those cells only. The weekly terraces-v2 run lists buildings-v2/
+  too and builds the buildings of the cells a new venue or terrace reaches, from the same extract and feeds. A cell
+  whose venues all close keeps its tile until a prune.
+- **Pruning the store** is a dispatch of tiles.yml with `prune_buildings` (dry run first): each city's job lists
+  its own cells no venue or terrace reaches and deletes their buildings-v2/ tiles after the upload.
+- **The feed.** coverage.json keeps the last count of a pruned cell, so the coverage pages do not shrink; the data
+  check takes a missing buildings tile as agreeing with any count.
+
+Measured on the published tiles (venue and terrace tiles read, buildings-v2/ sizes sampled, 1,500 tiles a city):
+
+| Margin | Paris | London | Berlin | Store (footprints) |
+|---:|---:|---:|---:|---:|
+| 0 m | 34 % | 22 % | 23 % | 26 % |
+| 50 m | 48 % | 37 % | 36 % | 38 % |
+| **100 m** | **58 %** | **49 %** | **47 %** | **48 %** |
+| 150 m | 67 % | 59 % | 56 % | 57 % |
+| 200 m | 73 % | 66 % | 63 % | 64 % |
+
+The share of buildings-v2/ bytes kept (footprints for the whole store, which run a few points under bytes). At
+100 m the layer goes from 4.03 GB to about 2.1 GB, the store to about 2.4 GB.
