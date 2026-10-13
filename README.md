@@ -142,12 +142,17 @@ areas flagged `"streets": true`. Each tile is an array of
   high_speed, long_distance, national, international, night, tourism, or a
   network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités, Eurostar or
   Noctilien,
-  or a ref listing train numbers, or a train's ref of four digits or more, or
-  a ref starting Frecciarossa, Frecciargento, Frecciabianca, Italo, Railjet,
-  Nightjet, EuroCity or Intercity), a coach (a network or operator starting
-  Flixbus, FlixBus or RegioJet), a night bus (a bus whose ref is N and
-  digits), a Co.Tra.L. bus (Rome's regional coaches, whose refs are route
-  codes) or under two stops is left out, and so is one whose stop names all belong to
+  or a ref listing train numbers, or a train's ref of four digits or more but
+  where the network numbers its lines so, as the Dutch Sprinters' "4000"), a
+  train whose ref starts with a high-speed brand (Frecciarossa,
+  Frecciargento, Frecciabianca, Italo, Railjet, Nightjet, EuroCity,
+  Intercity), a
+  coach (a network or operator starting Flixbus, FlixTrain, Flibco or
+  RegioJet), a Co.Tra.L. bus (Rome's regional coaches, whose refs are route
+  codes), a night
+  bus or tram (a ref of "N" and a number; Prague's trams 91–99 and buses
+  9xx), a tourist tram (Prague's 41 and 42, Amsterdam's museum tram) or
+  under two stops is left out, and so is one whose stop names all belong to
   a longer route of the same mode and ref (the other direction, a short
   working). A cell no line stops in has no file.
 
