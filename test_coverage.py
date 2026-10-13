@@ -62,4 +62,26 @@ subprocess.run([sys.executable, "coverage.py", "--out", os.path.join(d, "none"),
                check=True, capture_output=True)
 areas = json.load(open(feed))["areas"]
 assert [(a["name"], a["tiled"]) for a in areas] == [("Paris", 1), ("Boulogne-Billancourt", 1)], areas
+
+# transit/: lines per city and mode, a line counted once however many cells it is written in; a fragment carries it,
+# and the feed keeps the previous run's entry of a city this run did not rebuild.
+json.dump([{"city": "Paris", "box": [48.80, 2.20, 48.90, 2.48]}, {"city": "Montréal", "box": [45.41, -73.95, 45.70, -73.47]}], open(cities, "w"))
+os.makedirs(os.path.join(d, "out", "transit"))
+m1 = {"mode": "subway", "ref": "1", "stops": ["A", "B"], "points": [], "shape": []}
+for k, lines in {"1222,57": [m1], "1222,58": [m1, {**m1, "mode": "tram", "ref": "T3a"}],
+                 "1135,-1846": [{**m1, "ref": "2"}], "0,0": [m1]}.items():   # Montréal's cell (negative key); 0,0 no city's
+    json.dump(lines, open(os.path.join(d, "out", "transit", k + ".json"), "w"))
+frag = os.path.join(d, "frag", "fragment.json"); os.makedirs(os.path.dirname(frag))
+json.dump({"dates": [], "cells": [], "transit": {"London": {"modes": {"subway": 11}, "lines": 11, "tiles": 40, "bytes": 1, "built": "2026-10-01"},
+                                                  "Paris": {"modes": {}, "lines": 0, "tiles": 0, "bytes": 0, "built": "2026-10-01"}}}, open(prev, "w"))
+subprocess.run([sys.executable, "coverage.py", "--out", os.path.join(d, "out"), "--cities", cities, "--previous", prev, "--fragment", frag],
+               check=True, capture_output=True)
+subprocess.run([sys.executable, "coverage.py", "--fragments", os.path.dirname(frag), "--cities", cities, "--previous", prev, "--write", feed],
+               check=True, capture_output=True)
+t = json.load(open(feed))["transit"]
+assert sorted(t) == ["London", "Montréal", "Paris"], t
+assert t["London"]["lines"] == 11 and t["London"]["built"] == "2026-10-01", t
+assert (t["Paris"]["modes"], t["Paris"]["lines"], t["Paris"]["tiles"]) == ({"subway": 1, "tram": 1}, 2, 2), t
+assert (t["Montréal"]["modes"], t["Montréal"]["tiles"]) == ({"subway": 1}, 1), t
+assert t["Paris"]["bytes"] == sum(os.path.getsize(os.path.join(d, "out", "transit", k + ".json")) for k in ("1222,57", "1222,58"))
 print("ok")

@@ -25,9 +25,13 @@ Output (compact JSON):
               passing: cells with enough buildings; terracesKnown: cells with enough terraces;
               km2: area of the passing cells; goingOut: going-out cells; goingOutShare: share of the going-out cells
               holding enough terraces and buildings both
+  transit     {city: {modes: {mode: lines}, lines, tiles, bytes, built}} from transit/ (1/25° cells): a tile goes to the city
+              of the first cities.json entry whose box holds its cell's centre; a line counts once per city by
+              (mode, ref, stops); bytes are the tiles' raw JSON; built is the run's date. A city a run does not
+              rebuild keeps its entry.
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
-from storage import COARSE, FINE, areas, owners
+from storage import COARSE, FINE, MAIN, areas, owners
 
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
 TERRACE_RATIO, TERRACE_MINIMUM = 0.30, 5   # a terrace cell: terraces vs going-out venues nearby, the reader's rule
@@ -75,6 +79,23 @@ def area_box(e):
     return [e["lat"] - dlat, e["lon"] - dlon, e["lat"] + dlat, e["lon"] + dlon]
 
 
+def transit_summary(found, cities_path, today):
+    """{city: {modes, lines, tiles, bytes, built}} over the transit/ tiles `found` yields as (key, raw)."""
+    entries = json.load(open(cities_path))
+    out, seen = {}, {}
+    for k, raw in found:
+        # keys truncate toward zero: a negative key's cell lies below it, key 0's spans both sides of 0
+        y, x = ((int(v) + (int(v) > 0) * 0.5 - (int(v) < 0) * 0.5) / MAIN for v in k.split(","))
+        city = next((e["city"] for e in entries if (b := area_box(e))[0] <= y <= b[2] and b[1] <= x <= b[3]), None)
+        if city is None: continue
+        t = out.setdefault(city, {"modes": {}, "lines": 0, "tiles": 0, "bytes": 0, "built": today})
+        t["tiles"] += 1; t["bytes"] += len(raw)
+        for line in json.loads(raw):
+            if (sig := (line["mode"], line["ref"], tuple(line["stops"]))) not in seen.setdefault(city, set()):
+                seen[city].add(sig); t["modes"][line["mode"]] = t["modes"].get(line["mode"], 0) + 1; t["lines"] += 1
+    return out
+
+
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     a.add_argument("--out", help="a tiles folder to scan (this run's build)")
@@ -96,6 +117,7 @@ def main():
              for r in prev.get("cells", [])}
     venues = {f"{r[0]},{r[1]}": [r[2], r[3], day(r[4])] for r in prev.get("venueCells", [])}
     names = dict(prev.get("communes", {}))
+    transit = dict(prev.get("transit", {}))
 
     touched, touched_venues, new_names = set(), set(), {}
     # Fragments from parallel build jobs: their records overlay the previous feed (the last one wins).
@@ -104,6 +126,7 @@ def main():
             if not name.endswith(".json"): continue
             frag = json.load(open(os.path.join(folder, name)))
             cells.update(frag.get("cells", {})); venues.update(frag.get("venues", {})); names.update(frag.get("communes", {}))
+            transit.update(frag.get("transit", {}))
     # Counting keys in the bytes is enough: names never hold these quoted keys.
     for k, raw in tiles(args.out, "terraces-v2") if args.out else []:
         c = cells.setdefault(k, [0, 0, 0, None, None, ""])
@@ -136,8 +159,12 @@ def main():
             c[7] += 1 if p.get("outdoor_seating") else 0
             touched.add(ck)
 
+    new_transit = transit_summary(tiles(args.out, "transit"), args.cities, today) if args.out else {}
+    transit.update(new_transit)
+
     if args.fragment:
-        json.dump({"cells": {k: cells[k] for k in touched}, "venues": {k: venues[k] for k in touched_venues}, "communes": new_names},
+        json.dump({"cells": {k: cells[k] for k in touched}, "venues": {k: venues[k] for k in touched_venues}, "communes": new_names,
+                   "transit": new_transit},
                   open(args.fragment, "w"), ensure_ascii=False, separators=(",", ":"))
         print(f"fragment: {len(touched)} cells, {len(touched_venues)} venue cells -> {args.fragment}")
         return
@@ -235,6 +262,7 @@ def main():
         "communes": {k: names[k] for k in sorted({x for c in cells.values() for x in c[5].split()}) if k in names},
         "venueCells": [[*split(k), v[0], v[1], idx(v[2])] for k, v in sorted(venues.items())],
         "areas": result,
+        "transit": {k: transit[k] for k in sorted(transit)},
     }
     with open(args.write, "w") as f:
         json.dump(feed, f, ensure_ascii=False, separators=(",", ":"))
