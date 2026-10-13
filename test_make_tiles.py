@@ -1188,3 +1188,39 @@ for layers in ("terraces", "numbers", "venues,building"):
                        capture_output=True, text=True)
     assert r.returncode == 2 and "unknown layer" in r.stderr, (layers, r.returncode, r.stderr)
 print("ok (unknown layers)")
+
+# transit/ (2026-10-13): route relations to lines, stops in member order (platforms only where a route has no stop),
+# the other direction, a long-distance train and a bus left out; then each line whole in every ~4 km cell one of its stops is in.
+import xml.etree.ElementTree as ET
+from make_tiles import transit_lines, transit_tiles, cells_in as cells, MAIN
+relations = ET.fromstring("""<osm>
+ <relation id="1"><member type="node" ref="10" role="stop"/><member type="way" ref="90" role="platform"/>
+  <member type="node" ref="11" role="stop_exit_only"/><member type="node" ref="12" role="stop"/><member type="way" ref="91" role=""/>
+  <tag k="type" v="route"/><tag k="route" v="subway"/><tag k="ref" v="1"/></relation>
+ <relation id="2"><member type="node" ref="12" role="stop"/><member type="node" ref="10" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="subway"/><tag k="ref" v="1"/></relation>
+ <relation id="3"><member type="way" ref="90" role="platform"/><member type="node" ref="12" role="platform"/>
+  <tag k="type" v="route"/><tag k="route" v="tram"/><tag k="ref" v="T3"/><tag k="colour" v="orange"/></relation>
+ <relation id="4"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="TGV"/><tag k="service" v="high_speed"/></relation>
+ <relation id="5"><member type="node" ref="10" role="stop"/><member type="node" ref="13" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="38"/></relation>
+ <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/></relation>
+</osm>""")
+objects = ET.fromstring("""<osm>
+ <node id="10" lat="48.8500" lon="2.3000"><tag k="name" v="Alpha"/></node>
+ <node id="11" lat="48.8600" lon="2.3000"/>
+ <node id="12" lat="48.9300" lon="2.3000"><tag k="name" v="Gamma"/></node>
+ <node id="20" lat="48.86001" lon="2.30001"/><node id="21" lat="48.86003" lon="2.30003"/>
+ <way id="90"><nd ref="20"/><nd ref="21"/><tag k="name" v="Beta"/></way>
+</osm>""")
+lines = transit_lines(relations, objects)
+assert [(l["mode"], l["ref"], l["stops"], l.get("colour")) for l in lines] == [
+    ("subway", "1", ["Alpha", "", "Gamma"], "#FFBE00"), ("tram", "T3", ["Beta", "Gamma"], None)], lines
+tiles = transit_tiles(cells(48.84, 2.29, 48.95, 2.31, scale=MAIN), lines)
+assert sorted(tiles) == ["1221,57", "1223,57"], sorted(tiles)
+assert [r["ref"] for r in tiles["1221,57"]] == ["1", "T3"] and [r["ref"] for r in tiles["1223,57"]] == ["1", "T3"]
+row = tiles["1221,57"][0]
+assert row["points"][:2] == [4_885_000 - 1221 * 4000, 230_000 - 57 * 4000] and row["points"][2:4] == [1000, 0], row["points"]
+assert sum(row["points"][0::2]) + 1221 * 4000 == 4_893_000
+print("ok (transit)")

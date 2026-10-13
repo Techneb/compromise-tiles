@@ -1,6 +1,6 @@
 # Builds the tiles and uploads them to R2, one job per city in parallel, then one job merges the
 # coverage feed. Weekly: venues and terraces. Yearly: buildings and the street layers (run it by hand too when cities.json
-# gains an area). streets, streets-main, places and boundaries are built only for the areas whose entry says "streets": true;
+# gains an area). transit/ (2026-10-13) on dispatch only. streets, streets-main, places, boundaries and transit are built only for the areas whose entry says "streets": true;
 # numbers/ (house-number ranges) is written beside streets/ by the same build and uploaded with it. French builds compute communes (out/communes/) to pick a permit feed by INSEE code and
 # to name the feed's areas; they are never uploaded (2026-10-03: the app credits from sources/).
 # boundaries/ (neighbourhood outlines, 2026-10-10) needs shapely, pyproj and pyshp (requirements.txt), installed only when asked.
@@ -68,7 +68,7 @@ jobs:
           if unknown: sys.exit(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources (numbers comes with streets)")
           only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
           # A run of the street layers alone has nothing to do for a city with no flagged entry: no job for it.
-          streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places", "boundaries"}
+          streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places", "boundaries", "transit"}
           names = []
           for e in json.load(open("cities.json")):
               if streets_only and e.get("streets") is not True: continue

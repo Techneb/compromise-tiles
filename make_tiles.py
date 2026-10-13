@@ -44,6 +44,11 @@ buildings-v2/ is what the store holds (buildings/ stays local, read by coverage.
 the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
 0.5 m steps (BUILDINGS.md).
+transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (subway, tram, train, light_rail),
+"ref", "colour"? ("#RRGGBB"), "stops": [name, …], "points": [y0, x0, dy1, dx1, …]}], OpenStreetMap's route
+relations (the route_master's ref and colour where the route has none), each line whole in every cell one of its
+stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner (key / 25), each next from the
+one before. Long-distance trains and buses are left out; one direction kept where the other stops at the same names.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -627,6 +632,26 @@ class OSM:
             return self.boundaries(kept), places
         finally:
             for f in (cut, kept):
+                if os.path.exists(f): os.remove(f)
+
+    def transit(self):
+        """transit_lines() of the whole extract, not the area's box: a line runs past it, and its far stops are where
+        a transfer is made. The relations alone first, then only their stop and platform members (ways with their nodes)."""
+        routes, ids, kept = (self.pbf + x for x in (".routes.pbf", ".stops.txt", ".stops.pbf"))
+        modes = ",".join(TRANSIT_MODES)
+        try:
+            osmium("tags-filter", self.pbf, "r/route=" + modes, "r/route_master=" + modes, "-R", "-o", routes, "--overwrite")
+            relations = ET.fromstring(osmium("cat", routes, "-f", "osm"))
+            wanted = sorted({m.get("type")[0] + m.get("ref") for m in relations.iter("member")
+                             if m.get("type") in ("node", "way") and (m.get("role") or "").startswith(("stop", "platform"))})
+            if not wanted: return []
+            with open(ids, "w") as f: f.write("\n".join(wanted) + "\n")
+            # getid exits 1 when an id is not in the extract (a far stop of a line leaving the region): what is there is kept.
+            done = subprocess.run(["osmium", "getid", self.pbf, "-i", ids, "-r", "-o", kept, "--overwrite"], capture_output=True, text=True)
+            if done.returncode > 1: raise SourceError(f"osmium: {done.stderr.strip()[:200]}")
+            return transit_lines(relations, ET.fromstring(osmium("cat", kept, "-f", "osm")))
+        finally:
+            for f in (routes, ids, kept):
                 if os.path.exists(f): os.remove(f)
 
     def near(self, table, rect):
@@ -3426,10 +3451,81 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
     for c in noted: note_sources(out, c, published, boundaries=source[c.key])
 
 
+# transit/ (2026-10-13, Paris first): OpenStreetMap's public-transport route relations, so the app can show which
+# lines a trip likely takes (MapKit's transit is ETA-only). Metro, tram and rail; buses later.
+TRANSIT_MODES = ("subway", "tram", "train", "light_rail")
+TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
+TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
+TRANSIT_UNIT = 100_000     # 1e-5° steps
+STOP_ROLES = ("stop", "stop_entry_only", "stop_exit_only")
+
+def transit_lines(relations, objects):
+    """[{"mode", "ref", "colour"?, "stops": [name, …], "points": [(lat, lon), …]}] from two osmium XML roots: the route
+    and route_master relations, and their stop and platform members (ways with their nodes). A route's stops are its
+    members with a stop role in order, else its platforms (a way at its mean vertex); twins within TRANSIT_TWIN are one.
+    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT) or under two stops is left out; so is one whose
+    stop names are all on a longer kept route of the same mode and ref: the other direction, a short working."""
+    tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
+    nodes = {n.get("id"): (float(n.get("lat")), float(n.get("lon")), tags_of(n).get("name", "")) for n in objects.iter("node") if n.get("lat")}
+    ways = {}
+    for w in objects.iter("way"):
+        ring = [nodes[r.get("ref")] for r in w.iter("nd") if r.get("ref") in nodes]
+        if ring: ways[w.get("id")] = (sum(p[0] for p in ring) / len(ring), sum(p[1] for p in ring) / len(ring), tags_of(w).get("name", ""))
+    master = {}
+    for r in relations.iter("relation"):
+        if tags_of(r).get("type") == "route_master":
+            for m in r.iter("member"): master[m.get("ref")] = tags_of(r)
+    found = []
+    for r in relations.iter("relation"):
+        tags = tags_of(r)
+        mode, up = tags.get("route"), master.get(r.get("id"), {})
+        ref = (tags.get("ref") or up.get("ref") or "").strip()
+        if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
+        members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]
+        chosen = [m for m in members if m[2] in STOP_ROLES and m[0] == "node"] or [m for m in members if m[2].startswith("platform")]
+        stops = []
+        for kind, ref_id, _ in chosen:
+            at = nodes.get(ref_id) if kind == "node" else ways.get(ref_id) if kind == "way" else None
+            if not at: continue
+            if stops and metres(stops[-1][0], stops[-1][1], at[0], at[1]) <= TRANSIT_TWIN:
+                if not stops[-1][2] and at[2]: stops[-1] = (stops[-1][0], stops[-1][1], at[2])
+                continue
+            stops.append(at)
+        if len(stops) < 2: continue
+        line = {"mode": mode, "ref": ref, "stops": [s[2] for s in stops], "points": [(s[0], s[1]) for s in stops]}
+        colour = (tags.get("colour") or up.get("colour") or "").strip()
+        if re.fullmatch(r"#[0-9A-Fa-f]{6}", colour): line["colour"] = colour.upper()
+        found.append(line)
+    kept = []
+    for line in sorted(found, key=lambda l: -len(l["stops"])):
+        names = set(line["stops"])
+        if not any(k["mode"] == line["mode"] and k["ref"] == line["ref"] and names <= set(k["stops"]) for k in kept): kept.append(line)
+    return kept
+
+def transit_row(line, cell_key):
+    """A transit/ row: the line with its "points" as [y0, x0, dy1, dx1, …], 1e-5° steps, the first from the key's corner
+    (key / 25), each next from the one before."""
+    ky, kx = map(int, cell_key.split(","))
+    per, flat, y, x = TRANSIT_UNIT // MAIN, [], None, None
+    for lat, lon in line["points"]:
+        qy, qx = round(lat * TRANSIT_UNIT), round(lon * TRANSIT_UNIT)
+        flat += [qy - ky * per, qx - kx * per] if y is None else [qy - y, qx - x]
+        y, x = qy, qx
+    return dict(line, points=flat)
+
+def transit_tiles(cells, lines):
+    """{key: [row, …]} for the ~4 km cells: each line whole in every cell one of its stops falls in, so the lines near a
+    start carry every stop a transfer can be made at. Cells with no stop get no key."""
+    keys, out = {c.key for c in cells}, {}
+    for line in lines:
+        for key in sorted({f"{index(lat, MAIN)},{index(lon, MAIN)}" for lat, lon in line["points"]} & keys):
+            out.setdefault(key, []).append(transit_row(line, key))
+    return out
+
 # ---------------------------------------------------------------- the run
 
-LAYERS = ("communes", "buildings", "terraces-v2", "venues", "streets", "streets-main", "places", "boundaries")
-STREET_LAYERS = ("streets", "streets-main", "places", "boundaries")   # built only where an entry says "streets": true
+LAYERS = ("communes", "buildings", "terraces-v2", "venues", "streets", "streets-main", "places", "boundaries", "transit")
+STREET_LAYERS = ("streets", "streets-main", "places", "boundaries", "transit")   # built only where an entry says "streets": true
 # Days before a finished tile is cut again. Resuming skips a cell only while
 # its file is younger than this, so the weekly run does refresh permits
 # (they lapse) while a same-day re-run after a
@@ -3657,6 +3753,15 @@ def do_places(cells, out, failures):
         for c in cells: write(path(out, "places", c), osm_places(c))
     except SourceError as e: failures += [(c.key, "places", str(e)) for c in cells]
 
+def do_transit(cells, out, failures):
+    """The transit/ tiles of the area's ~4 km cells; a cell no line stops in has no file (an earlier run's is removed)."""
+    try: tiles = transit_tiles(cells, _osm.transit())
+    except SourceError as e:
+        failures += [(c.key, "transit", str(e)) for c in cells]; return
+    for c in cells:
+        if c.key in tiles: write(path(out, "transit", c), tiles[c.key])
+        elif os.path.exists(path(out, "transit", c)): os.remove(path(out, "transit", c))
+
 def do_sources(cells, out, failures):
     """The `sources` layer: the published sources/ tiles that lack a building source get it, found as
     the buildings layer finds it (the city feed, IGN, then OSM), its tiles not written. A cell without
@@ -3703,12 +3808,13 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
         return len(cells), [(c.key, "all", str(e)) for c in cells]
     # A French extract means French communes; elsewhere the geo API would answer [] a cell at a time.
     french = "/europe/france" in pbf
-    sources_only = set(layers) <= {"sources", "venues", "streets-main", "places", "boundaries"}
+    sources_only = set(layers) <= {"sources", "venues", "streets-main", "places", "boundaries", "transit"}
     if "venues" in layers:
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
     if "streets-main" in layers: do_main_streets([c for c in wide if not done(out, "streets-main", c)], out, failures)
     if "places" in layers: do_places([c for c in wide if not done(out, "places", c)], out, failures)
+    if "transit" in layers: do_transit(wide, out, failures)
     for group in build_order(cells, block, layers):
         communes, need_terraces, need_buildings, need_sources, need_streets = {}, [], [], [], []
         for c in group:
