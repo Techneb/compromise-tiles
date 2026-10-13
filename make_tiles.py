@@ -45,10 +45,12 @@ the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
 0.5 m steps (BUILDINGS.md).
 transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (subway, tram, train, light_rail),
-"ref", "colour"? ("#RRGGBB"), "stops": [name, …], "points": [y0, x0, dy1, dx1, …]}], OpenStreetMap's route
-relations (the route_master's ref and colour where the route has none), each line whole in every cell one of its
-stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner (key / 25), each next from the
-one before. Long-distance trains and buses are left out; one direction kept where the other stops at the same names.
+"ref", "colour"? ("#RRGGBB"), "network"?, "stops": [name, …], "points": [y0, x0, dy1, dx1, …], "shape": [[y0, x0, …], …]}],
+OpenStreetMap's route relations (the route_master's ref, colour and network where the route has none), each line
+whole in every cell one of its stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner
+(key / 25), each next from the one before; shape the track's runs coded the same way, each from the corner,
+simplified at 10 m. Long-distance trains and buses are left out; one direction kept where the other stops at the
+same names.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -636,14 +638,13 @@ class OSM:
 
     def transit(self):
         """transit_lines() of the whole extract, not the area's box: a line runs past it, and its far stops are where
-        a transfer is made. The relations alone first, then only their stop and platform members (ways with their nodes)."""
+        a transfer is made. The relations alone first, then only their node and way members (ways with their nodes)."""
         routes, ids, kept = (self.pbf + x for x in (".routes.pbf", ".stops.txt", ".stops.pbf"))
         modes = ",".join(TRANSIT_MODES)
         try:
             osmium("tags-filter", self.pbf, "r/route=" + modes, "r/route_master=" + modes, "-R", "-o", routes, "--overwrite")
             relations = ET.fromstring(osmium("cat", routes, "-f", "osm"))
-            wanted = sorted({m.get("type")[0] + m.get("ref") for m in relations.iter("member")
-                             if m.get("type") in ("node", "way") and (m.get("role") or "").startswith(("stop", "platform"))})
+            wanted = sorted({m.get("type")[0] + m.get("ref") for m in relations.iter("member") if m.get("type") in ("node", "way")})
             if not wanted: return []
             with open(ids, "w") as f: f.write("\n".join(wanted) + "\n")
             # getid exits 1 when an id is not in the extract (a far stop of a line leaving the region): what is there is kept.
@@ -3451,25 +3452,27 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
     for c in noted: note_sources(out, c, published, boundaries=source[c.key])
 
 
-# transit/ (2026-10-13, Paris first): OpenStreetMap's public-transport route relations, so the app can show which
-# lines a trip likely takes (MapKit's transit is ETA-only). Metro, tram and rail; buses later.
+# transit/ (2026-10-13): OpenStreetMap's public-transport route relations. Metro, tram and rail.
 TRANSIT_MODES = ("subway", "tram", "train", "light_rail")
 TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
 TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
 TRANSIT_UNIT = 100_000     # 1e-5° steps
+TRANSIT_TOLERANCE = 10     # metres a line's simplified track may stray from its ways (Douglas–Peucker)
 STOP_ROLES = ("stop", "stop_entry_only", "stop_exit_only")
 
 def transit_lines(relations, objects):
-    """[{"mode", "ref", "colour"?, "stops": [name, …], "points": [(lat, lon), …]}] from two osmium XML roots: the route
-    and route_master relations, and their stop and platform members (ways with their nodes). A route's stops are its
-    members with a stop role in order, else its platforms (a way at its mean vertex); twins within TRANSIT_TWIN are one.
+    """[{"mode", "ref", "colour"?, "network"?, "stops": [name, …], "points": [(lat, lon), …], "shape": [[(lat, lon), …], …]}] from
+    two osmium XML roots: the route and route_master relations, and their node and way members (ways with their nodes).
+    A route's stops are its members with a stop role in order, else its platforms (a way at its mean vertex); twins
+    within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
     A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT) or under two stops is left out; so is one whose
     stop names are all on a longer kept route of the same mode and ref: the other direction, a short working."""
     tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
     nodes = {n.get("id"): (float(n.get("lat")), float(n.get("lon")), tags_of(n).get("name", "")) for n in objects.iter("node") if n.get("lat")}
-    ways = {}
+    ways, tracks = {}, {}
     for w in objects.iter("way"):
-        ring = [nodes[r.get("ref")] for r in w.iter("nd") if r.get("ref") in nodes]
+        tracks[w.get("id")] = [r.get("ref") for r in w.iter("nd") if r.get("ref") in nodes]
+        ring = [nodes[i] for i in tracks[w.get("id")]]
         if ring: ways[w.get("id")] = (sum(p[0] for p in ring) / len(ring), sum(p[1] for p in ring) / len(ring), tags_of(w).get("name", ""))
     master = {}
     for r in relations.iter("relation"):
@@ -3492,9 +3495,13 @@ def transit_lines(relations, objects):
                 continue
             stops.append(at)
         if len(stops) < 2: continue
-        line = {"mode": mode, "ref": ref, "stops": [s[2] for s in stops], "points": [(s[0], s[1]) for s in stops]}
+        runs = chained([tracks.get(i, []) for kind, i, role in members if kind == "way" and not role.startswith(("stop", "platform"))])
+        shape = [simplified([nodes[i][:2] for i in run], TRANSIT_TOLERANCE) for run in runs]
+        line = {"mode": mode, "ref": ref, "stops": [s[2] for s in stops], "points": [(s[0], s[1]) for s in stops], "shape": shape}
         colour = (tags.get("colour") or up.get("colour") or "").strip()
         if re.fullmatch(r"#[0-9A-Fa-f]{6}", colour): line["colour"] = colour.upper()
+        network = (tags.get("network") or up.get("network") or "").strip()
+        if network: line["network"] = network
         found.append(line)
     kept = []
     for line in sorted(found, key=lambda l: -len(l["stops"])):
@@ -3502,16 +3509,33 @@ def transit_lines(relations, objects):
         if not any(k["mode"] == line["mode"] and k["ref"] == line["ref"] and names <= set(k["stops"]) for k in kept): kept.append(line)
     return kept
 
+def chained(ways):
+    """A route's track ways ([node id, …] in member order) joined into runs where an end meets the run's end (the
+    first way turned round when the second meets its start); a way meeting neither starts a run. Runs under two nodes
+    are dropped."""
+    runs, fresh = [], False
+    for w in ways:
+        if len(w) < 2: continue
+        run = runs[-1] if runs else []
+        if fresh and run[-1] not in (w[0], w[-1]) and run[0] in (w[0], w[-1]): run.reverse()
+        if run and run[-1] == w[0]: run += w[1:]; fresh = False
+        elif run and run[-1] == w[-1]: run += w[-2::-1]; fresh = False
+        else: runs.append(list(w)); fresh = True
+    return runs
+
 def transit_row(line, cell_key):
     """A transit/ row: the line with its "points" as [y0, x0, dy1, dx1, …], 1e-5° steps, the first from the key's corner
-    (key / 25), each next from the one before."""
+    (key / 25), each next from the one before; its "shape" a list of runs coded the same way, each from the corner."""
     ky, kx = map(int, cell_key.split(","))
-    per, flat, y, x = TRANSIT_UNIT // MAIN, [], None, None
-    for lat, lon in line["points"]:
-        qy, qx = round(lat * TRANSIT_UNIT), round(lon * TRANSIT_UNIT)
-        flat += [qy - ky * per, qx - kx * per] if y is None else [qy - y, qx - x]
-        y, x = qy, qx
-    return dict(line, points=flat)
+    per = TRANSIT_UNIT // MAIN
+    def flat(points):
+        out, y, x = [], None, None
+        for lat, lon in points:
+            qy, qx = round(lat * TRANSIT_UNIT), round(lon * TRANSIT_UNIT)
+            out += [qy - ky * per, qx - kx * per] if y is None else [qy - y, qx - x]
+            y, x = qy, qx
+        return out
+    return dict(line, points=flat(line["points"]), shape=[flat(run) for run in line.get("shape", [])])
 
 def transit_tiles(cells, lines):
     """{key: [row, …]} for the ~4 km cells: each line whole in every cell one of its stops falls in, so the lines near a

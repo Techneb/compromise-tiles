@@ -1195,7 +1195,7 @@ import xml.etree.ElementTree as ET
 from make_tiles import transit_lines, transit_tiles, cells_in as cells, MAIN
 relations = ET.fromstring("""<osm>
  <relation id="1"><member type="node" ref="10" role="stop"/><member type="way" ref="90" role="platform"/>
-  <member type="node" ref="11" role="stop_exit_only"/><member type="node" ref="12" role="stop"/><member type="way" ref="91" role=""/>
+  <member type="node" ref="11" role="stop_exit_only"/><member type="node" ref="12" role="stop"/><member type="way" ref="91" role=""/><member type="way" ref="92" role=""/>
   <tag k="type" v="route"/><tag k="route" v="subway"/><tag k="ref" v="1"/></relation>
  <relation id="2"><member type="node" ref="12" role="stop"/><member type="node" ref="10" role="stop"/>
   <tag k="type" v="route"/><tag k="route" v="subway"/><tag k="ref" v="1"/></relation>
@@ -1205,7 +1205,7 @@ relations = ET.fromstring("""<osm>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="TGV"/><tag k="service" v="high_speed"/></relation>
  <relation id="5"><member type="node" ref="10" role="stop"/><member type="node" ref="13" role="stop"/>
   <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="38"/></relation>
- <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/></relation>
+ <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/><tag k="network" v="Métro de Paris"/></relation>
 </osm>""")
 objects = ET.fromstring("""<osm>
  <node id="10" lat="48.8500" lon="2.3000"><tag k="name" v="Alpha"/></node>
@@ -1213,14 +1213,23 @@ objects = ET.fromstring("""<osm>
  <node id="12" lat="48.9300" lon="2.3000"><tag k="name" v="Gamma"/></node>
  <node id="20" lat="48.86001" lon="2.30001"/><node id="21" lat="48.86003" lon="2.30003"/>
  <way id="90"><nd ref="20"/><nd ref="21"/><tag k="name" v="Beta"/></way>
+ <node id="30" lat="48.8500" lon="2.3000"/><node id="31" lat="48.8600" lon="2.3003"/><node id="32" lat="48.9300" lon="2.3000"/>
+ <way id="91"><nd ref="31"/><nd ref="30"/></way><way id="92"><nd ref="32"/><nd ref="31"/></way>
 </osm>""")
 lines = transit_lines(relations, objects)
 assert [(l["mode"], l["ref"], l["stops"], l.get("colour")) for l in lines] == [
     ("subway", "1", ["Alpha", "", "Gamma"], "#FFBE00"), ("tram", "T3", ["Beta", "Gamma"], None)], lines
+assert lines[0]["network"] == "Métro de Paris" and "network" not in lines[1], lines
+# The track: way 91 turned round to meet 92, which is walked backwards; the tram has none.
+assert lines[0]["shape"] == [[(48.85, 2.3), (48.86, 2.3003), (48.93, 2.3)]] and lines[1]["shape"] == [], lines[0]["shape"]
+from make_tiles import chained
+assert chained([["a", "b"], ["c", "b"], ["c", "d"], ["x", "y"], ["z"]]) == [["a", "b", "c", "d"], ["x", "y"]]
+assert chained([["b", "a"], ["b", "c"]]) == [["a", "b", "c"]] and chained([["a", "b"], ["b", "a"]]) == [["a", "b", "a"]]
 tiles = transit_tiles(cells(48.84, 2.29, 48.95, 2.31, scale=MAIN), lines)
 assert sorted(tiles) == ["1221,57", "1223,57"], sorted(tiles)
 assert [r["ref"] for r in tiles["1221,57"]] == ["1", "T3"] and [r["ref"] for r in tiles["1223,57"]] == ["1", "T3"]
 row = tiles["1221,57"][0]
 assert row["points"][:2] == [4_885_000 - 1221 * 4000, 230_000 - 57 * 4000] and row["points"][2:4] == [1000, 0], row["points"]
 assert sum(row["points"][0::2]) + 1221 * 4000 == 4_893_000
+assert row["shape"] == [[4_885_000 - 1221 * 4000, 230_000 - 57 * 4000, 1000, 30, 7000, -30]], row["shape"]
 print("ok (transit)")

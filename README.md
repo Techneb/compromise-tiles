@@ -121,15 +121,20 @@ holding the cell's centre.
 Public-transport lines, on the same 1/25° cells and keys as `places/` (since
 2026-10-13; metro, tram and rail, no buses), built on dispatch only, for the
 areas flagged `"streets": true`. Each tile is an array of
-`{"mode", "ref", "colour"?, "stops", "points"}`:
+`{"mode", "ref", "colour"?, "network"?, "stops", "points", "shape"}`:
 
 - `mode` is OpenStreetMap's `route`: `subway`, `tram`, `train` or
   `light_rail`; `ref` the route's (else its route master's), `colour` the
   same way, as `#RRGGBB`, absent when neither has a valid one.
+  `network` the same way, absent when neither has one.
 - `stops` are the stop names in the route's order (`""` for an unnamed one);
   `points` one per stop, `[y0, x0, dy1, dx1, …]` as in `boundaries/`:
   1e-5° steps, the first from the key's corner (key / 25), each next from
   the one before.
+- `shape` is the track: the route's other way members chained in member
+  order into runs (a new run where two ways do not meet), each simplified
+  at 10 m (Douglas–Peucker) and coded as `points`, each run from the key's
+  corner. `[]` when the route has no track ways.
 - A line is written whole in every cell one of its stops falls in. A route's
   stops are its members with a stop role, else its platforms; two within
   60 m are one. A route with no ref, a long-distance train (`service`
