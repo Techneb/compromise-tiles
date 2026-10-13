@@ -1190,7 +1190,7 @@ for layers in ("terraces", "numbers", "venues,building"):
 print("ok (unknown layers)")
 
 # transit/ (2026-10-13): route relations to lines, stops in member order (platforms only where a route has no stop),
-# the other direction, a long-distance train and a bus left out; then each line whole in every ~4 km cell one of its stops is in.
+# the other direction, a long-distance train and a bus with one stop left out; then each line whole in every ~4 km cell one of its stops is in.
 import xml.etree.ElementTree as ET
 from make_tiles import transit_lines, transit_tiles, cells_in as cells, MAIN
 relations = ET.fromstring("""<osm>
@@ -1211,7 +1211,7 @@ relations = ET.fromstring("""<osm>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="6821"/><tag k="network" v="TGV InOui"/></relation>
  <relation id="7"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="Adirondack"/><tag k="network" v="Amtrak"/></relation>
- <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/><tag k="network" v="Métro de Paris"/></relation>
+ <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/><tag k="network" v="Métro de Paris"/><tag k="operator" v="RATP"/></relation>
 </osm>""")
 objects = ET.fromstring("""<osm>
  <node id="10" lat="48.8500" lon="2.3000"><tag k="name" v="Alpha"/></node>
@@ -1225,7 +1225,7 @@ objects = ET.fromstring("""<osm>
 lines = transit_lines(relations, objects)
 assert [(l["mode"], l["ref"], l["stops"], l.get("colour")) for l in lines] == [
     ("subway", "1", ["Alpha", "", "Gamma"], "#FFBE00"), ("tram", "T3", ["Beta", "Gamma"], None)], lines
-assert lines[0]["network"] == "Métro de Paris" and "network" not in lines[1], lines
+assert lines[0]["network"] == "Métro de Paris" and lines[0]["operator"] == "RATP" and "network" not in lines[1], lines
 # The track: way 91 turned round to meet 92, which is walked backwards; the tram has none.
 assert lines[0]["shape"] == [[(48.85, 2.3), (48.86, 2.3003), (48.93, 2.3)]] and lines[1]["shape"] == [], lines[0]["shape"]
 from make_tiles import chained
