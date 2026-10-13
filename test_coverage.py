@@ -96,4 +96,20 @@ json.dump({"dates": [], "cells": [], "transit": {"Versailles": {"modes": {}, "li
 subprocess.run([sys.executable, "coverage.py", "--fragments", os.path.join(d, "nofrags"), "--cities", cities, "--previous", prev, "--write", feed],
                check=True, capture_output=True)
 assert "Versailles" not in json.load(open(feed))["transit"]
+
+# The site's slim copies: areas.json (the areas, transit and the squares' index) and one file per 1° square, keyed as
+# the cells are (truncated: -0.5° and 0.5° share square 0), holding its cells, their commune names and the venue cells
+# one 2 km cell past its edge.
+from coverage import slim
+feed = {"updated": "2026-10-13", "dates": ["2026-10-01"], "communes": {"1": "A", "2": "B"}, "areas": [{"city": "A"}], "transit": {"A": {}},
+        "cells": [[24401, 1101, 0, 30, 30, 0, 0, "1", 2, 1], [24401, -250, 0, 1, 1, -1, -1, "", 0, 0], [24401, 250, 0, 1, 1, -1, -1, "", 0, 0],
+                  [-11754, -23303, 0, 1, 1, -1, -1, "", 0, 0]],
+        "venueCells": [[2440, 110, 5, 1, 0], [2449, 110, 3, 0, 0], [2450, 110, 3, 0, 0], [2470, 110, 1, 0, 0]]}
+out = os.path.join(d, "slim"); slim(feed, out)
+a = json.load(open(os.path.join(out, "areas.json")))
+assert a == {"updated": "2026-10-13", "areas": [{"city": "A"}], "transit": {"A": {}}, "blocks": {"48,2": 1, "48,0": 2, "-23,-46": 1}}, a
+assert sorted(os.listdir(os.path.join(out, "coverage"))) == ["-23,-46.json", "48,0.json", "48,2.json"]
+sq = json.load(open(os.path.join(out, "coverage", "48,2.json")))
+assert sq["cells"] == feed["cells"][:1] and sq["communes"] == {"1": "A"} and sq["dates"] == feed["dates"], sq
+assert [v[0] for v in sq["venueCells"]] == [2440, 2449, 2450], sq["venueCells"]   # 2450 is 49°'s, one cell past 48°'s edge
 print("ok")

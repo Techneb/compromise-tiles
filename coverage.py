@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Coverage feed: per-cell counts and per-area totals, merged into the previous feed.
 
-  python3 coverage.py --out out --cities cities.json --previous <url or path> --write coverage.json
+  python3 coverage.py --out out --cities cities.json --previous <url or path> --write coverage.json [--slim site]
 
 Reads the tiles a build just wrote (one JSON array per cell), replaces the records of the
 cells it finds, keeps every other record (per layer, so a run that builds only terraces and
@@ -29,6 +29,8 @@ Output (compact JSON):
               of the first cities.json entry whose box spans its cell; a line counts once per city by
               (mode, ref, stops); bytes are the tiles' raw JSON; built is the run's date. A city a run does not
               rebuild keeps its entry.
+
+--slim writes the site's slim copies of the feed into a folder (slim() below): coverage.json stays whole for its other readers.
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
 from make_tiles import cells_in
@@ -101,12 +103,33 @@ def transit_summary(found, cities_path, today, city=None):
     return out
 
 
+def slim(feed, folder):
+    """The site's pages read these instead of the whole feed (tens of MB). areas.json: updated, areas, transit, and
+    blocks {square: cells}, the index of coverage/<square>.json: the cells of one 1° square, keyed int(latKey / 500),
+    int(lonKey / 500) truncated as the cells' own keys are, with the dates and commune names they use and the venue
+    cells one 2 km cell past the square's edge (the map's 600 m sums cross it)."""
+    sq = lambda k, n: f"{int(k[0] / n)},{int(k[1] / n)}"
+    blocks, venues = {}, {}
+    for c in feed["cells"]: blocks.setdefault(sq(c, 500), []).append(c)
+    for v in feed["venueCells"]:
+        for k in {sq((v[0] + i, v[1] + j), 50) for i in (-1, 0, 1) for j in (-1, 0, 1)}: venues.setdefault(k, []).append(v)
+    os.makedirs(os.path.join(folder, "coverage"), exist_ok=True)
+    def dump(o, *path):
+        with open(os.path.join(folder, *path), "w") as f: json.dump(o, f, ensure_ascii=False, separators=(",", ":"))
+    for k, cells in blocks.items():
+        codes = {x for c in cells for x in c[7].split()}
+        dump({"updated": feed["updated"], "dates": feed["dates"], "communes": {x: n for x, n in feed["communes"].items() if x in codes},
+              "venueCells": venues.get(k, []), "cells": cells}, "coverage", k + ".json")
+    dump({"updated": feed["updated"], "areas": feed["areas"], "transit": feed["transit"], "blocks": {k: len(v) for k, v in blocks.items()}}, "areas.json")
+
+
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     a.add_argument("--out", help="a tiles folder to scan (this run's build)")
     a.add_argument("--cities", required=True)
     a.add_argument("--previous", default="")
     a.add_argument("--write", help="the feed to write")
+    a.add_argument("--slim", help="with --write: a folder for the site's slim copies (areas.json, coverage/)")
     a.add_argument("--fragment", help="write only the records this --out touched (one build job's share), no areas")
     a.add_argument("--fragments", help="a folder of fragments from parallel build jobs to overlay on --previous before the areas")
     args = a.parse_args()
@@ -275,6 +298,7 @@ def main():
     with open(args.write, "w") as f:
         json.dump(feed, f, ensure_ascii=False, separators=(",", ":"))
     print(f"{len(cells)} cells, {len(venues)} venue cells, {len(result)} areas -> {args.write}")
+    if args.slim: slim(feed, args.slim)
 
 
 if __name__ == "__main__":
