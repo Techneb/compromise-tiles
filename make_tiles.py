@@ -49,7 +49,7 @@ transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (
 OpenStreetMap's route relations (the route_master's ref, colour, network and operator where the route has none), each line
 whole in every cell one of its stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner
 (key / 25), each next from the one before; shape the track's runs coded the same way, each from the corner,
-simplified at 10 m. Long-distance trains are left out; one direction kept where the other stops at the
+simplified at 10 m. Long-distance trains, coaches, night and tourist lines are left out; one direction kept where the other stops at the
 same names.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
@@ -3457,7 +3457,19 @@ TRANSIT_MODES = ("subway", "tram", "train", "light_rail", "bus", "trolleybus", "
 TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
 # Intercity and night networks whose routes carry no service tag (Montréal, Lyon, Paris, 2026-10-13): a network starting
 # with one is left out.
-TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar", "Noctilien")
+TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar", "Noctilien",
+                       # Coaches (Amsterdam, Brussels, Prague, 2026-10-13): Flibco's routes have an operator, no network.
+                       "Flixbus", "FlixBus", "FlixTrain", "Flibco")
+# A bus, trolleybus or tram whose ref is "N" and a number is a night line (Amsterdam's N47, Brussels' Noctis N05,
+# London's N29, Berlin's N7); networks that number them otherwise are in TRANSIT_REF_OUT.
+TRANSIT_NIGHT_REF = re.compile(r"N ?\d+[A-Za-z]?")
+# {network: {mode: refs}} left out by a network's own numbering (2026-10-13): Prague's night trams 91–99 and buses
+# 901–960, its tourist trams 41 and 42; Amsterdam's museum tram (EMA).
+TRANSIT_REF_OUT = {"Pražská integrovaná doprava": {"tram": re.compile(r"9\d|4[12]"), "bus": re.compile(r"9\d\d")},
+                   "EMA": {"tram": re.compile(r".*")}}
+# Networks whose four-digit train refs are a line's series, not a train's number: the Dutch "4000" is a Sprinter line
+# (its intercity series are tagged long_distance, so only the Sprinters stay).
+TRANSIT_SERIES = ("Hoofdrailnet Nederland",)
 TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
 TRANSIT_UNIT = 100_000     # 1e-5° steps
 TRANSIT_TOLERANCE = 10     # metres a line's simplified track may stray from its ways (Douglas–Peucker)
@@ -3468,8 +3480,9 @@ def transit_lines(relations, objects):
     two osmium XML roots: the route and route_master relations, and their node and way members (ways with their nodes).
     A route's stops are its members with a stop role in order, else its platforms (a way at its mean vertex); twins
     within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
-    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, a ref of train numbers) or
-    under two stops is left out; so is one whose
+    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, a ref of train numbers but in
+    TRANSIT_SERIES), a coach, a night or tourist line (TRANSIT_NIGHT_REF, TRANSIT_REF_OUT) or under two stops is left out;
+    so is one whose
     stop names are all on a longer kept route of the same mode and ref: the other direction, a short working."""
     tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
     nodes = {n.get("id"): (float(n.get("lat")), float(n.get("lon")), tags_of(n).get("name", "")) for n in objects.iter("node") if n.get("lat")}
@@ -3488,8 +3501,12 @@ def transit_lines(relations, objects):
         mode, up = tags.get("route"), master.get(r.get("id"), {})
         ref = (tags.get("ref") or up.get("ref") or "").strip()
         if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
+        network, operator = (tags.get("network") or up.get("network") or ""), (tags.get("operator") or up.get("operator") or "")
         # A ref listing train numbers ("20;22;24"), or a train's one number ("870603"), is a timetable's, not a line's.
-        if ";" in ref or (mode == "train" and ref.isdigit() and len(ref) >= 4) or (tags.get("network") or up.get("network") or "").startswith(TRANSIT_NETWORK_OUT): continue
+        if ";" in ref or (mode == "train" and ref.isdigit() and len(ref) >= 4 and network not in TRANSIT_SERIES): continue
+        if network.startswith(TRANSIT_NETWORK_OUT) or operator.startswith(TRANSIT_NETWORK_OUT): continue
+        if mode in ("bus", "trolleybus", "tram") and TRANSIT_NIGHT_REF.fullmatch(ref): continue
+        if (out := TRANSIT_REF_OUT.get(network, {}).get(mode)) and out.fullmatch(ref): continue
         members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]
         chosen = [m for m in members if m[2] in STOP_ROLES and m[0] == "node"] or [m for m in members if m[2].startswith("platform")]
         stops = []
