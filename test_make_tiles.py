@@ -1242,6 +1242,45 @@ assert sum(row["points"][0::2]) + 1221 * 4000 == 4_893_000
 assert row["shape"] == [[4_885_000 - 1221 * 4000, 230_000 - 57 * 4000, 1000, 30, 7000, -30]], row["shape"]
 print("ok (transit)")
 
+# Madrid, Barcelona, Lisbon (2026-10-13): a train number inside a ref, night buses, coaches by network or by reach,
+# a sightseeing bus left out; a bracketed service pattern is the line's, so its short working goes.
+def route(rid, mode, ref, stops, **more):
+    tags = dict(type="route", route=mode, ref=ref, **more)
+    return (f'<relation id="{rid}">' + "".join(f'<member type="node" ref="{s}" role="stop"/>' for s in stops)
+            + "".join(f'<tag k="{k}" v="{v}"/>' for k, v in tags.items()) + "</relation>")
+relations = ET.fromstring("<osm>" + "".join([
+    route(1, "train", "C-2", [10, 11, 12], network="Cercanías Madrid"),
+    route(2, "train", "C-2 (CIVIS)", [10, 12], network="Cercanías Madrid"),
+    route(3, "train", "RE 18009", [10, 12], network="Renfe Regionales"),
+    route(4, "train", "R-1", [10, 12], network="Renfe Media Distancia"),
+    route(5, "bus", "N1", [10, 12], network="Empresa Municipal de Transportes de Madrid"),
+    route(6, "bus", "N303", [10, 12], network="Alsa"),
+    route(7, "bus", "27", [10, 12], network="Empresa Municipal de Transportes de Madrid"),
+    route(8, "bus", "208", [10, 12], network="Carris"),
+    route(9, "bus", "208", [10, 13], network="Carris Metropolitana"),
+    route(14, "bus", "728", [10, 12], network="Carris"),
+    route(15, "bus", "VAC-023", [10, 12], network="Autobuses de España"),
+    route(16, "bus", "1005", [10, 12], network="Flixbus"),
+    route(17, "bus", "100", [10, 12], network="Barcelona Bus Turístic"),
+    route(18, "bus", "L0092", [10, 12, 20], network="Alsa"),
+    route(19, "trolleybus", "N5", [10, 12]),
+    route(20, "subway", "N1", [10, 12]),
+    route(21, "bus", "661", [10, 12, 21], network="Alsa"),
+]) + "</osm>")
+objects = ET.fromstring("""<osm>
+ <node id="10" lat="40.4000" lon="-3.7000"><tag k="name" v="Sol"/></node>
+ <node id="11" lat="40.4100" lon="-3.7000"><tag k="name" v="Recoletos"/></node>
+ <node id="12" lat="40.4500" lon="-3.7000"><tag k="name" v="Chamartín"/></node>
+ <node id="13" lat="40.4600" lon="-3.7000"><tag k="name" v="Fuencarral"/></node>
+ <node id="20" lat="42.7000" lon="0.8000"><tag k="name" v="Vielha"/></node>
+ <node id="21" lat="40.5900" lon="-4.1500"><tag k="name" v="El Escorial"/></node>
+</osm>""")
+kept = [(l["mode"], l["ref"], l.get("network")) for l in transit_lines(relations, objects)]
+assert kept == [("train", "C-2", "Cercanías Madrid"), ("bus", "661", "Alsa"), ("train", "R-1", "Renfe Media Distancia"),
+                ("bus", "27", "Empresa Municipal de Transportes de Madrid"), ("bus", "208", "Carris Metropolitana"),
+                ("bus", "728", "Carris"), ("subway", "N1", None)], kept
+print("ok (transit noise)")
+
 # Buildings only near a venue or terrace (owner, 2026-10-13): the cells within SHADE_MARGIN of a point.
 import tempfile
 from make_tiles import shade_keys, shade_points, Cell, SHADE_MARGIN, write, path

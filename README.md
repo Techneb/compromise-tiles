@@ -138,14 +138,18 @@ areas flagged `"streets": true`. Each tile is an array of
   corner. `[]` when the route has no track ways.
 - A line is written whole in every cell one of its stops falls in. A route's
   stops are its members with a stop role, else its platforms; two within
-  60 m are one. A route with no ref, a long-distance train (`service`
-  high_speed, long_distance, national, international, night, tourism, or a
-  network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités, Eurostar or
-  Noctilien,
-  or a ref listing train numbers, or a train's ref of four digits or more) or
-  under two stops is left out, and so is one whose stop names all belong to
-  a longer route of the same mode and ref (the other direction, a short
-  working). A cell no line stops in has no file.
+  60 m are one. A route with no ref, a long-distance train or coach
+  (`service` high_speed, long_distance, national, international, night,
+  tourism, or a network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités,
+  Eurostar, Noctilien, Flixbus, FlixBus, Autobuses de España, Rede Nacional
+  de Expressos or Barcelona Bus Turístic, or a ref listing train numbers, or
+  a train's ref holding a number of four digits or more), a night bus (a bus
+  or trolleybus ref of "N" and a number, or Carris's 200s), a bus whose stops
+  reach more than 60 km from its first, or a route under two stops is left
+  out, and so is one whose stop names all belong to a longer route of the
+  same mode and ref (the other direction, a short working). A ref's
+  bracketed service pattern is dropped first ("C-2 (CIVIS)" is "C-2"). A
+  cell no line stops in has no file.
 
 ## Weekly data check
 
