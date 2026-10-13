@@ -80,16 +80,18 @@ def area_box(e):
     return [e["lat"] - dlat, e["lon"] - dlon, e["lat"] + dlat, e["lon"] + dlon]
 
 
-def transit_summary(found, cities_path, today):
-    """{city: {modes, lines, tiles, bytes, built}} over the transit/ tiles `found` yields as (key, raw)."""
+def transit_summary(found, cities_path, today, city=None):
+    """{city: {modes, lines, tiles, bytes, built}} over the transit/ tiles `found` yields as (key, raw). A build job
+    builds one city (`city`, its CITY): every tile it wrote is that city's, edge cells included (a box's rule gave
+    Paris's edge to Versailles, Tel Aviv's to Bat Yam)."""
     # The generator's 1/25° cells of each box, the first area winning a shared cell. Boundaries left out: storage.py's
     # owners clips every area's 200 m cells, minutes of work a fragment job would pay for a handful of tiles.
     own = {}
     for e in json.load(open(cities_path)):
         for c in cells_in(*area_box(e), scale=MAIN): own.setdefault(c.key, e["city"])
-    out, seen = {}, {}
+    out, seen, only = {}, {}, city
     for k, raw in found:
-        city = own.get(k)
+        city = only or own.get(k)
         if city is None: continue
         t = out.setdefault(city, {"modes": {}, "lines": 0, "tiles": 0, "bytes": 0, "built": today})
         t["tiles"] += 1; t["bytes"] += len(raw)
@@ -162,7 +164,7 @@ def main():
             c[7] += 1 if p.get("outdoor_seating") else 0
             touched.add(ck)
 
-    new_transit = transit_summary(tiles(args.out, "transit"), args.cities, today) if args.out else {}
+    new_transit = transit_summary(tiles(args.out, "transit"), args.cities, today, os.environ.get("CITY")) if args.out else {}
     transit.update(new_transit)
 
     if args.fragment:
@@ -265,7 +267,8 @@ def main():
         "communes": {k: names[k] for k in sorted({x for c in cells.values() for x in c[5].split()}) if k in names},
         "venueCells": [[*split(k), v[0], v[1], idx(v[2])] for k, v in sorted(venues.items())],
         "areas": result,
-        "transit": {k: transit[k] for k in sorted(transit)},
+        # transit/ is built only where an entry says "streets": true: another city's record is an edge cell miscounted.
+        "transit": {k: transit[k] for k in sorted(transit) if k in {e["city"] for e in json.load(open(args.cities)) if e.get("streets")}},
     }
     with open(args.write, "w") as f:
         json.dump(feed, f, ensure_ascii=False, separators=(",", ":"))
