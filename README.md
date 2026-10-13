@@ -120,12 +120,12 @@ holding the cell's centre.
 ### transit/
 
 Public-transport lines, on the same 1/25° cells and keys as `places/` (since
-2026-10-13; metro, tram, rail and bus), built on dispatch only, for the
+2026-10-13; metro, tram, rail, bus and cable car), built on dispatch only, for the
 areas flagged `"streets": true`. Each tile is an array of
 `{"mode", "ref", "colour"?, "network"?, "operator"?, "stops", "points", "shape"}`:
 
 - `mode` is OpenStreetMap's `route`: `subway`, `tram`, `train`,
-  `light_rail`, `bus` or `trolleybus`; `ref` the route's (else its route master's), `colour` the
+  `light_rail`, `bus`, `trolleybus` or `aerialway`; `ref` the route's (else its route master's), `colour` the
   same way, as `#RRGGBB`, absent when neither has a valid one.
   `network` and `operator` the same way, absent when neither has one.
 - `stops` are the stop names in the route's order (`""` for an unnamed one);
@@ -142,7 +142,7 @@ areas flagged `"streets": true`. Each tile is an array of
   high_speed, long_distance, national, international, night, tourism, or a
   network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités, Eurostar or
   Noctilien,
-  or a ref listing train numbers) or
+  or a ref listing train numbers, or a train's ref of four digits or more) or
   under two stops is left out, and so is one whose stop names all belong to
   a longer route of the same mode and ref (the other direction, a short
   working). A cell no line stops in has no file.
