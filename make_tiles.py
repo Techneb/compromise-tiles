@@ -49,8 +49,8 @@ transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (
 OpenStreetMap's route relations (the route_master's ref, colour, network and operator where the route has none), each line
 whole in every cell one of its stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner
 (key / 25), each next from the one before; shape the track's runs coded the same way, each from the corner,
-simplified at 10 m. Long-distance trains are left out; one direction kept where the other stops at the
-same names.
+simplified at 10 m. Long-distance trains, coaches and night buses are left out; one direction kept where the other
+stops at the same names.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
     make_tiles.py --cities cities.json --out ./tiles --layers terraces-v2,venues
@@ -3458,6 +3458,13 @@ TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international
 # Intercity and night networks whose routes carry no service tag (Montréal, Lyon, Paris, 2026-10-13): a network starting
 # with one is left out.
 TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar", "Noctilien")
+# Coaches (Vienna, Milan, Rome, 2026-10-13): FlixBus and RegioJet's long-distance buses, by network or operator.
+TRANSIT_COACH_OUT = ("Flixbus", "FlixBus", "RegioJet")
+# High-speed trains whose ref is the brand, under the infrastructure's network ("Frecciarossa", RFI): a ref starting
+# with one is left out.
+TRANSIT_REF_OUT = ("Frecciarossa", "Frecciargento", "Frecciabianca", "Italo", "Railjet", "Nightjet", "EuroCity", "Intercity")
+# Rome's regional coaches (Co.Tra.L.): their refs are route codes ("P0001" on some thirty routes), not lines.
+TRANSIT_BUS_OUT = ("Co.Tra.L", "CoTraL", "COTRAL")
 TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
 TRANSIT_UNIT = 100_000     # 1e-5° steps
 TRANSIT_TOLERANCE = 10     # metres a line's simplified track may stray from its ways (Douglas–Peucker)
@@ -3468,8 +3475,9 @@ def transit_lines(relations, objects):
     two osmium XML roots: the route and route_master relations, and their node and way members (ways with their nodes).
     A route's stops are its members with a stop role in order, else its platforms (a way at its mean vertex); twins
     within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
-    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, a ref of train numbers) or
-    under two stops is left out; so is one whose
+    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, TRANSIT_REF_OUT, a ref of
+    train numbers), a coach (TRANSIT_COACH_OUT), a night bus ("N" and digits), a TRANSIT_BUS_OUT bus or under two stops
+    is left out; so is one whose
     stop names are all on a longer kept route of the same mode and ref: the other direction, a short working."""
     tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
     nodes = {n.get("id"): (float(n.get("lat")), float(n.get("lon")), tags_of(n).get("name", "")) for n in objects.iter("node") if n.get("lat")}
@@ -3489,7 +3497,11 @@ def transit_lines(relations, objects):
         ref = (tags.get("ref") or up.get("ref") or "").strip()
         if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
         # A ref listing train numbers ("20;22;24"), or a train's one number ("870603"), is a timetable's, not a line's.
-        if ";" in ref or (mode == "train" and ref.isdigit() and len(ref) >= 4) or (tags.get("network") or up.get("network") or "").startswith(TRANSIT_NETWORK_OUT): continue
+        network, operator = tags.get("network") or up.get("network") or "", tags.get("operator") or up.get("operator") or ""
+        if ";" in ref or (mode == "train" and ref.isdigit() and len(ref) >= 4) or network.startswith(TRANSIT_NETWORK_OUT): continue
+        if network.startswith(TRANSIT_COACH_OUT) or operator.startswith(TRANSIT_COACH_OUT) or ref.startswith(TRANSIT_REF_OUT): continue
+        # A night bus ("N29", Vienna's NightLine "N6", Madrid's "N1"): the guess has no timetable, so a day trip must not take it.
+        if mode == "bus" and (re.fullmatch(r"N\d+", ref) or network.startswith(TRANSIT_BUS_OUT) or operator.startswith(TRANSIT_BUS_OUT)): continue
         members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]
         chosen = [m for m in members if m[2] in STOP_ROLES and m[0] == "node"] or [m for m in members if m[2].startswith("platform")]
         stops = []
