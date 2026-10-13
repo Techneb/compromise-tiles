@@ -44,7 +44,7 @@ buildings-v2/ is what the store holds (buildings/ stays local, read by coverage.
 the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
 0.5 m steps (BUILDINGS.md).
-transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (subway, tram, train, light_rail, bus, trolleybus),
+transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (subway, tram, train, light_rail, bus, trolleybus, aerialway),
 "ref", "colour"? ("#RRGGBB"), "network"?, "operator"?, "stops": [name, …], "points": [y0, x0, dy1, dx1, …], "shape": [[y0, x0, …], …]}],
 OpenStreetMap's route relations (the route_master's ref, colour, network and operator where the route has none), each line
 whole in every cell one of its stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner
@@ -3453,7 +3453,7 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
 
 
 # transit/ (2026-10-13): OpenStreetMap's public-transport route relations. Metro, tram, rail and bus.
-TRANSIT_MODES = ("subway", "tram", "train", "light_rail", "bus", "trolleybus")
+TRANSIT_MODES = ("subway", "tram", "train", "light_rail", "bus", "trolleybus", "aerialway")
 TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
 # Intercity and night networks whose routes carry no service tag (Montréal, Lyon, Paris, 2026-10-13): a network starting
 # with one is left out.
@@ -3488,8 +3488,8 @@ def transit_lines(relations, objects):
         mode, up = tags.get("route"), master.get(r.get("id"), {})
         ref = (tags.get("ref") or up.get("ref") or "").strip()
         if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
-        # A ref listing train numbers ("20;22;24") is a timetable's, not a line's.
-        if ";" in ref or (tags.get("network") or up.get("network") or "").startswith(TRANSIT_NETWORK_OUT): continue
+        # A ref listing train numbers ("20;22;24"), or a train's one number ("870603"), is a timetable's, not a line's.
+        if ";" in ref or (mode == "train" and ref.isdigit() and len(ref) >= 4) or (tags.get("network") or up.get("network") or "").startswith(TRANSIT_NETWORK_OUT): continue
         members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]
         chosen = [m for m in members if m[2] in STOP_ROLES and m[0] == "node"] or [m for m in members if m[2].startswith("platform")]
         stops = []
