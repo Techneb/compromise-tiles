@@ -44,12 +44,12 @@ buildings-v2/ is what the store holds (buildings/ stays local, read by coverage.
 the same footprints as
 [height or null, y0, x0, dy1, dx1, …], 1e-5° steps from key / 500, heights in
 0.5 m steps (BUILDINGS.md).
-transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (subway, tram, train, light_rail),
-"ref", "colour"? ("#RRGGBB"), "network"?, "stops": [name, …], "points": [y0, x0, dy1, dx1, …], "shape": [[y0, x0, …], …]}],
-OpenStreetMap's route relations (the route_master's ref, colour and network where the route has none), each line
+transit/ (2026-10-13), on places/'s cells and only where streets/ is: [{"mode" (subway, tram, train, light_rail, bus, trolleybus),
+"ref", "colour"? ("#RRGGBB"), "network"?, "operator"?, "stops": [name, …], "points": [y0, x0, dy1, dx1, …], "shape": [[y0, x0, …], …]}],
+OpenStreetMap's route relations (the route_master's ref, colour, network and operator where the route has none), each line
 whole in every cell one of its stops falls in; points one per stop, in 1e-5° steps, the first from the key's corner
 (key / 25), each next from the one before; shape the track's runs coded the same way, each from the corner,
-simplified at 10 m. Long-distance trains and buses are left out; one direction kept where the other stops at the
+simplified at 10 m. Long-distance trains are left out; one direction kept where the other stops at the
 same names.
 
     make_tiles.py --city Paris --lat 48.8719 --lon 2.3316 --half-km 0.5 --out ./tiles
@@ -3452,18 +3452,19 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
     for c in noted: note_sources(out, c, published, boundaries=source[c.key])
 
 
-# transit/ (2026-10-13): OpenStreetMap's public-transport route relations. Metro, tram and rail.
-TRANSIT_MODES = ("subway", "tram", "train", "light_rail")
+# transit/ (2026-10-13): OpenStreetMap's public-transport route relations. Metro, tram, rail and bus.
+TRANSIT_MODES = ("subway", "tram", "train", "light_rail", "bus", "trolleybus")
 TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
-# Intercity networks whose routes carry no service tag (Montréal, Lyon, 2026-10-13): a network starting with one is left out.
-TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar")
+# Intercity and night networks whose routes carry no service tag (Montréal, Lyon, Paris, 2026-10-13): a network starting
+# with one is left out.
+TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar", "Noctilien")
 TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
 TRANSIT_UNIT = 100_000     # 1e-5° steps
 TRANSIT_TOLERANCE = 10     # metres a line's simplified track may stray from its ways (Douglas–Peucker)
 STOP_ROLES = ("stop", "stop_entry_only", "stop_exit_only")
 
 def transit_lines(relations, objects):
-    """[{"mode", "ref", "colour"?, "network"?, "stops": [name, …], "points": [(lat, lon), …], "shape": [[(lat, lon), …], …]}] from
+    """[{"mode", "ref", "colour"?, "network"?, "operator"?, "stops": [name, …], "points": [(lat, lon), …], "shape": [[(lat, lon), …], …]}] from
     two osmium XML roots: the route and route_master relations, and their node and way members (ways with their nodes).
     A route's stops are its members with a stop role in order, else its platforms (a way at its mean vertex); twins
     within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
@@ -3505,8 +3506,9 @@ def transit_lines(relations, objects):
         line = {"mode": mode, "ref": ref, "stops": [s[2] for s in stops], "points": [(s[0], s[1]) for s in stops], "shape": shape}
         colour = (tags.get("colour") or up.get("colour") or "").strip()
         if re.fullmatch(r"#[0-9A-Fa-f]{6}", colour): line["colour"] = colour.upper()
-        network = (tags.get("network") or up.get("network") or "").strip()
-        if network: line["network"] = network
+        for key in ("network", "operator"):
+            value = (tags.get(key) or up.get(key) or "").strip()
+            if value: line[key] = value
         found.append(line)
     kept = []
     for line in sorted(found, key=lambda l: -len(l["stops"])):
