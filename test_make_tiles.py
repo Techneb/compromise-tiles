@@ -1207,6 +1207,8 @@ relations = ET.fromstring("""<osm>
   <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="38"/></relation>
  <relation id="6"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="20;22"/></relation>
+ <relation id="8"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="6821"/><tag k="network" v="TGV InOui"/></relation>
  <relation id="7"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="Adirondack"/><tag k="network" v="Amtrak"/></relation>
  <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/><tag k="network" v="Métro de Paris"/></relation>
