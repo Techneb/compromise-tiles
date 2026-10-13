@@ -1240,6 +1240,22 @@ row = tiles["1221,57"][0]
 assert row["points"][:2] == [4_885_000 - 1221 * 4000, 230_000 - 57 * 4000] and row["points"][2:4] == [1000, 0], row["points"]
 assert sum(row["points"][0::2]) + 1221 * 4000 == 4_893_000
 assert row["shape"] == [[4_885_000 - 1221 * 4000, 230_000 - 57 * 4000, 1000, 30, 7000, -30]], row["shape"]
+# Coaches, night and tourist lines (Amsterdam, Brussels, Prague, 2026-10-13) leave; a Dutch Sprinter series stays.
+def route(rid, mode, ref, **tags):
+    extra = "".join(f'<tag k="{k}" v="{v}"/>' for k, v in tags.items())
+    return (f'<relation id="{rid}"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>'
+            f'<tag k="type" v="route"/><tag k="route" v="{mode}"/><tag k="ref" v="{ref}"/>{extra}</relation>')
+pid = "Pražská integrovaná doprava"
+more = ET.fromstring("<osm>" + "".join([
+    route(1, "bus", "N47", network="Haarlem-IJmond"), route(2, "bus", "N05", network="IBXL"),
+    route(3, "bus", "Flibco", operator="Flibco"), route(4, "bus", "818", network="Flixbus"),
+    route(5, "train", "4000", network="Hoofdrailnet Nederland", service="regional"),
+    route(6, "train", "3000", network="Hoofdrailnet Nederland", service="long_distance"),
+    route(7, "tram", "91", network=pid), route(8, "tram", "42", network=pid), route(9, "bus", "907", network=pid),
+    route(10, "tram", "22", network=pid), route(11, "bus", "177", network=pid), route(12, "tram", "EMA", network="EMA"),
+    route(13, "bus", "NK", network="IBXL")]) + "</osm>")
+assert [(l["mode"], l["ref"]) for l in transit_lines(more, objects)] == [
+    ("train", "4000"), ("tram", "22"), ("bus", "177"), ("bus", "NK")], transit_lines(more, objects)
 print("ok (transit)")
 
 # Buildings only near a venue or terrace (owner, 2026-10-13): the cells within SHADE_MARGIN of a point.
