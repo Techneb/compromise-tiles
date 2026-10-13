@@ -25,7 +25,7 @@ venue or terrace (since 2026-10-13);
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the
-coverage feed (`coverage.json` on R2; the copy here stopped updating on 2026-10-13), the store's numbers
+coverage feed (`coverage.json` on R2; the copy here stopped updating on 2026-10-13; the site reads its slim copies `areas.json` and `coverage/<1° square>.json`, written beside it), the store's numbers
 (`stats.json` on R2: size and file count per layer, build time per city, written by
 `stats.py` after each build) and the tiles built
 off GitHub under `tiles/`. GitHub Actions (`.github/workflows/tiles.yml`)
@@ -138,18 +138,27 @@ areas flagged `"streets": true`. Each tile is an array of
   corner. `[]` when the route has no track ways.
 - A line is written whole in every cell one of its stops falls in. A route's
   stops are its members with a stop role, else its platforms; two within
-  60 m are one. A route with no ref, a long-distance train or coach
-  (`service` high_speed, long_distance, national, international, night,
-  tourism, or a network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités,
-  Eurostar, Noctilien, Flixbus, FlixBus, Autobuses de España, Rede Nacional
-  de Expressos or Barcelona Bus Turístic, or a ref listing train numbers, or
-  a train's ref holding a number of four digits or more), a night bus (a bus
-  or trolleybus ref of "N" and a number, or Carris's 200s), a bus whose stops
-  reach more than 60 km from its first, or a route under two stops is left
-  out, and so is one whose stop names all belong to a longer route of the
-  same mode and ref (the other direction, a short working). A ref's
-  bracketed service pattern is dropped first ("C-2 (CIVIS)" is "C-2"). A
-  cell no line stops in has no file.
+  60 m are one. A route with no ref, a long-distance train (`service`
+  high_speed, long_distance, national, international, night, tourism, or a
+  network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités, Eurostar or
+  Noctilien,
+  or a ref listing train numbers, or a train's ref holding a number of four
+  digits or more but where the network numbers its lines so, as the Dutch
+  Sprinters' "4000"), a
+  train whose ref starts with a high-speed brand (Frecciarossa,
+  Frecciargento, Frecciabianca, Italo, Railjet, Nightjet, EuroCity,
+  Intercity), a
+  coach (a network or operator starting Flixbus, FlixTrain, Flibco,
+  RegioJet, Autobuses de España, Rede Nacional de Expressos; a bus whose
+  stops reach more than 60 km from its first), a Co.Tra.L. bus (Rome's
+  regional coaches, whose refs are route codes), a night
+  bus or tram (a ref of "N" and a number; Prague's trams 91–99 and buses
+  9xx; Lisbon's Carris buses 201–210), a tourist line (Prague's trams 41
+  and 42, Amsterdam's museum tram, Barcelona Bus Turístic) or
+  under two stops is left out, and so is one whose stop names all belong to
+  a longer route of the same mode and ref (the other direction, a short
+  working). A ref's bracketed service pattern is dropped first ("C-2
+  (CIVIS)" is "C-2"). A cell no line stops in has no file.
 
 ## Weekly data check
 

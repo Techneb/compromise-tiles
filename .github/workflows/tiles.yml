@@ -309,7 +309,7 @@ jobs:
         with:
           pattern: fragment-*
           path: fragments
-      - run: python3 coverage.py --fragments fragments --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --write out-coverage.json
+      - run: python3 coverage.py --fragments fragments --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --write out-coverage.json --slim slim
       - env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -320,6 +320,11 @@ jobs:
           aws s3 cp out-coverage.json "s3://${{ secrets.R2_BUCKET }}/coverage.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
           aws s3 cp cities.json "s3://${{ secrets.R2_BUCKET }}/cities.json" --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --cache-control "public, max-age=300"
+          # The site's slim copies: the 1° squares first (a square gone from the feed leaves the store), then the index naming them.
+          aws s3 sync slim/coverage "s3://${{ secrets.R2_BUCKET }}/coverage" --delete --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --cache-control "public, max-age=300"
+          aws s3 cp slim/areas.json "s3://${{ secrets.R2_BUCKET }}/areas.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
       # The store's numbers for the site's overview page: size and file count per layer (the bucket listed in
       # parallel ranges, about 2,500 list requests) and this run's build durations per city. Never fails the feed.
