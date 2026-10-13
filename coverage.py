@@ -123,6 +123,8 @@ def main():
     venues = {f"{r[0]},{r[1]}": [r[2], r[3], day(r[4])] for r in prev.get("venueCells", [])}
     names = dict(prev.get("communes", {}))
     transit = dict(prev.get("transit", {}))
+    # One-off: until the fragment step had CITY (2026-10-13), Paris's edge cells were counted under Versailles, which no build covers.
+    if transit.get("Versailles", {}).get("built") == "2026-10-13": del transit["Versailles"]
 
     touched, touched_venues, new_names = set(), set(), {}
     # Fragments from parallel build jobs: their records overlay the previous feed (the last one wins).
