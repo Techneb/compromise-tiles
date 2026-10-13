@@ -158,6 +158,8 @@ jobs:
       - name: Coverage fragment
         if: ${{ !cancelled() }}
         continue-on-error: true
+        env:
+          CITY: ${{ matrix.city }}   # transit/ tiles are this city's (coverage.py)
         run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && hashFiles('fragment.json') != '' }}

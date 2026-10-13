@@ -91,4 +91,9 @@ assert t["Paris"]["bytes"] == sum(os.path.getsize(os.path.join(d, "out", "transi
 subprocess.run([sys.executable, "coverage.py", "--out", os.path.join(d, "out"), "--cities", cities, "--previous", prev, "--fragment", frag],
                check=True, capture_output=True, env={**os.environ, "CITY": "Paris"})
 assert sorted(json.load(open(frag))["transit"]) == ["Paris"] and json.load(open(frag))["transit"]["Paris"]["tiles"] == 4
+# The one-off: the stale Versailles entry of 2026-10-13 leaves the feed.
+json.dump({"dates": [], "cells": [], "transit": {"Versailles": {"modes": {}, "lines": 1, "tiles": 1, "bytes": 1, "built": "2026-10-13"}}}, open(prev, "w"))
+subprocess.run([sys.executable, "coverage.py", "--fragments", os.path.join(d, "nofrags"), "--cities", cities, "--previous", prev, "--write", feed],
+               check=True, capture_output=True)
+assert "Versailles" not in json.load(open(feed))["transit"]
 print("ok")
