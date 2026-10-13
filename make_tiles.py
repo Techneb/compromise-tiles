@@ -3459,7 +3459,13 @@ TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international
 # with one is left out.
 TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar", "Noctilien",
                        # Coaches (Amsterdam, Brussels, Prague, 2026-10-13): Flibco's routes have an operator, no network.
-                       "Flixbus", "FlixBus", "FlixTrain", "Flibco")
+                       "Flixbus", "FlixBus", "FlixTrain", "Flibco", "RegioJet")
+# High-speed trains whose ref is the brand, under the infrastructure's network ("Frecciarossa", RFI; Rome, Milan,
+# 2026-10-13): a ref starting with one is left out.
+TRANSIT_BRAND_OUT = ("Frecciarossa", "Frecciargento", "Frecciabianca", "Italo", "Railjet", "Nightjet", "EuroCity", "Intercity")
+# Rome's regional coaches (Co.Tra.L.), by network or operator: their refs are route codes ("P0001" on some thirty
+# routes), not lines. COTRAL's rail lines (Metromare, Roma–Viterbo) are not buses and stay.
+TRANSIT_BUS_OUT = ("Co.Tra.L", "CoTraL", "COTRAL")
 # A bus, trolleybus or tram whose ref is "N" and a number is a night line (Amsterdam's N47, Brussels' Noctis N05,
 # London's N29, Berlin's N7); networks that number them otherwise are in TRANSIT_REF_OUT.
 TRANSIT_NIGHT_REF = re.compile(r"N ?\d+[A-Za-z]?")
@@ -3481,7 +3487,8 @@ def transit_lines(relations, objects):
     A route's stops are its members with a stop role in order, else its platforms (a way at its mean vertex); twins
     within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
     A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, a ref of train numbers but in
-    TRANSIT_SERIES), a coach, a night or tourist line (TRANSIT_NIGHT_REF, TRANSIT_REF_OUT) or under two stops is left out;
+    TRANSIT_SERIES, a TRANSIT_BRAND_OUT ref), a coach, a night or tourist line (TRANSIT_NIGHT_REF, TRANSIT_REF_OUT), a
+    TRANSIT_BUS_OUT bus or under two stops is left out;
     so is one whose
     stop names are all on a longer kept route of the same mode and ref: the other direction, a short working."""
     tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
@@ -3504,7 +3511,8 @@ def transit_lines(relations, objects):
         network, operator = (tags.get("network") or up.get("network") or ""), (tags.get("operator") or up.get("operator") or "")
         # A ref listing train numbers ("20;22;24"), or a train's one number ("870603"), is a timetable's, not a line's.
         if ";" in ref or (mode == "train" and ref.isdigit() and len(ref) >= 4 and network not in TRANSIT_SERIES): continue
-        if network.startswith(TRANSIT_NETWORK_OUT) or operator.startswith(TRANSIT_NETWORK_OUT): continue
+        if network.startswith(TRANSIT_NETWORK_OUT) or operator.startswith(TRANSIT_NETWORK_OUT) or ref.startswith(TRANSIT_BRAND_OUT): continue
+        if mode == "bus" and (network.startswith(TRANSIT_BUS_OUT) or operator.startswith(TRANSIT_BUS_OUT)): continue
         if mode in ("bus", "trolleybus", "tram") and TRANSIT_NIGHT_REF.fullmatch(ref): continue
         if (out := TRANSIT_REF_OUT.get(network, {}).get(mode)) and out.fullmatch(ref): continue
         members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]

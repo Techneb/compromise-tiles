@@ -1213,6 +1213,20 @@ relations = ET.fromstring("""<osm>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="6821"/><tag k="network" v="TGV InOui"/></relation>
  <relation id="7"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
   <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="Adirondack"/><tag k="network" v="Amtrak"/></relation>
+ <relation id="11"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="N336"/><tag k="network" v="Flixbus"/></relation>
+ <relation id="12"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="RJ"/><tag k="operator" v="RegioJet"/></relation>
+ <relation id="13"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="train"/><tag k="ref" v="Frecciarossa"/><tag k="network" v="RFI"/></relation>
+ <relation id="14"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="N6"/><tag k="network" v="VOR"/></relation>
+ <relation id="15"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="P0001"/><tag k="operator" v="Co.Tra.L."/></relation>
+ <relation id="16"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="bus"/><tag k="ref" v="13A"/><tag k="network" v="VOR"/></relation>
+ <relation id="17"><member type="node" ref="10" role="stop"/><member type="node" ref="12" role="stop"/>
+  <tag k="type" v="route"/><tag k="route" v="subway"/><tag k="ref" v="Metromare"/><tag k="network" v="COTRAL"/></relation>
  <relation id="9"><member type="relation" ref="1" role=""/><tag k="type" v="route_master"/><tag k="colour" v="#ffbe00"/><tag k="network" v="Métro de Paris"/><tag k="operator" v="RATP"/></relation>
 </osm>""")
 objects = ET.fromstring("""<osm>
@@ -1225,8 +1239,11 @@ objects = ET.fromstring("""<osm>
  <way id="91"><nd ref="31"/><nd ref="30"/></way><way id="92"><nd ref="32"/><nd ref="31"/></way>
 </osm>""")
 lines = transit_lines(relations, objects)
+# Coaches (FlixBus by network, RegioJet by operator), a Frecciarossa, a night bus and Co.Tra.L.'s route codes are out;
+# a day bus of the same network and COTRAL's rail line stay.
 assert [(l["mode"], l["ref"], l["stops"], l.get("colour")) for l in lines] == [
-    ("subway", "1", ["Alpha", "", "Gamma"], "#FFBE00"), ("tram", "T3", ["Beta", "Gamma"], None)], lines
+    ("subway", "1", ["Alpha", "", "Gamma"], "#FFBE00"), ("tram", "T3", ["Beta", "Gamma"], None),
+    ("bus", "13A", ["Alpha", "Gamma"], None), ("subway", "Metromare", ["Alpha", "Gamma"], None)], lines
 assert lines[0]["network"] == "Métro de Paris" and lines[0]["operator"] == "RATP" and "network" not in lines[1], lines
 # The track: way 91 turned round to meet 92, which is walked backwards; the tram has none.
 assert lines[0]["shape"] == [[(48.85, 2.3), (48.86, 2.3003), (48.93, 2.3)]] and lines[1]["shape"] == [], lines[0]["shape"]
@@ -1235,7 +1252,7 @@ assert chained([["a", "b"], ["c", "b"], ["c", "d"], ["x", "y"], ["z"]]) == [["a"
 assert chained([["b", "a"], ["b", "c"]]) == [["a", "b", "c"]] and chained([["a", "b"], ["b", "a"]]) == [["a", "b", "a"]]
 tiles = transit_tiles(cells(48.84, 2.29, 48.95, 2.31, scale=MAIN), lines)
 assert sorted(tiles) == ["1221,57", "1223,57"], sorted(tiles)
-assert [r["ref"] for r in tiles["1221,57"]] == ["1", "T3"] and [r["ref"] for r in tiles["1223,57"]] == ["1", "T3"]
+assert [r["ref"] for r in tiles["1221,57"]] == ["1", "T3", "13A", "Metromare"] and [r["ref"] for r in tiles["1223,57"]] == ["1", "T3", "13A", "Metromare"]
 row = tiles["1221,57"][0]
 assert row["points"][:2] == [4_885_000 - 1221 * 4000, 230_000 - 57 * 4000] and row["points"][2:4] == [1000, 0], row["points"]
 assert sum(row["points"][0::2]) + 1221 * 4000 == 4_893_000

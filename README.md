@@ -144,7 +144,12 @@ areas flagged `"streets": true`. Each tile is an array of
   Noctilien,
   or a ref listing train numbers, or a train's ref of four digits or more but
   where the network numbers its lines so, as the Dutch Sprinters' "4000"), a
-  coach (a network or operator starting Flixbus, FlixTrain or Flibco), a night
+  train whose ref starts with a high-speed brand (Frecciarossa,
+  Frecciargento, Frecciabianca, Italo, Railjet, Nightjet, EuroCity,
+  Intercity), a
+  coach (a network or operator starting Flixbus, FlixTrain, Flibco or
+  RegioJet), a Co.Tra.L. bus (Rome's regional coaches, whose refs are route
+  codes), a night
   bus or tram (a ref of "N" and a number; Prague's trams 91–99 and buses
   9xx), a tourist tram (Prague's 41 and 42, Amsterdam's museum tram) or
   under two stops is left out, and so is one whose stop names all belong to
