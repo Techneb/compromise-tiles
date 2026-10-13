@@ -3455,7 +3455,8 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
 # transit/ (2026-10-13): OpenStreetMap's public-transport route relations. Metro, tram and rail.
 TRANSIT_MODES = ("subway", "tram", "train", "light_rail")
 TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
-TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak")   # intercity trains with no service tag (Montréal, 2026-10-13)
+# Intercity networks whose routes carry no service tag (Montréal, Lyon, 2026-10-13): a network starting with one is left out.
+TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eurostar")
 TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
 TRANSIT_UNIT = 100_000     # 1e-5° steps
 TRANSIT_TOLERANCE = 10     # metres a line's simplified track may stray from its ways (Douglas–Peucker)
@@ -3487,7 +3488,7 @@ def transit_lines(relations, objects):
         ref = (tags.get("ref") or up.get("ref") or "").strip()
         if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
         # A ref listing train numbers ("20;22;24") is a timetable's, not a line's.
-        if ";" in ref or (tags.get("network") or up.get("network")) in TRANSIT_NETWORK_OUT: continue
+        if ";" in ref or (tags.get("network") or up.get("network") or "").startswith(TRANSIT_NETWORK_OUT): continue
         members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]
         chosen = [m for m in members if m[2] in STOP_ROLES and m[0] == "node"] or [m for m in members if m[2].startswith("platform")]
         stops = []

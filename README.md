@@ -139,7 +139,8 @@ areas flagged `"streets": true`. Each tile is an array of
   stops are its members with a stop role, else its platforms; two within
   60 m are one. A route with no ref, a long-distance train (`service`
   high_speed, long_distance, national, international, night, tourism, or a
-  VIA Rail or Amtrak route, or a ref listing train numbers) or
+  network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités or Eurostar,
+  or a ref listing train numbers) or
   under two stops is left out, and so is one whose stop names all belong to
   a longer route of the same mode and ref (the other direction, a short
   working). A cell no line stops in has no file.
