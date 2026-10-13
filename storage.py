@@ -17,7 +17,7 @@ from make_tiles import COARSE, FINE, MAIN, cells_in, clip, index
 
 LAYER_SCALE = {"buildings": FINE, "buildings-v2": FINE, "terraces-v2": FINE, "communes": FINE, "sources": FINE, "streets": FINE, "numbers": FINE, "venues": COARSE, "streets-main": MAIN, "places": MAIN, "boundaries": MAIN, "transit": MAIN}
 READ = {  # what a reader takes: the app's tile folders, then the files the app and the site read at the root
-    "tiles": set(LAYER_SCALE) - {"communes"},  # communes/: no longer uploaded or read (2026-10-03), a deletion candidate
+    "tiles": set(LAYER_SCALE) - {"communes", "buildings"},  # communes/ (2026-10-03) and buildings/ (2026-10-08): no longer uploaded or read
     "root": {"config.json", "coverage.json", "cities.json", "counts.json", "stats.json"},
 }
 NO_AREA = "(no area in cities.json)"

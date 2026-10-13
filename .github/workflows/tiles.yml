@@ -37,13 +37,13 @@ on:
         type: boolean
         default: false
 
-# One run at a time: the feed job merges into the published coverage.json and must not race another run.
+# One run at a time, whatever the branch: the feed job merges into the published coverage.json and must not race another run.
 concurrency:
-  group: ${{ github.ref_name == 'master' && 'tiles' || format('tiles-{0}', github.ref_name) }}
+  group: tiles
   cancel-in-progress: false
 
 permissions:
-  contents: write   # the feed job commits coverage.json back, a fallback copy of the feed for the site
+  contents: read
   actions: read     # the feed job reads this run's build jobs for stats.json
 
 env:
@@ -161,6 +161,7 @@ jobs:
         run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && hashFiles('fragment.json') != '' }}
+        continue-on-error: true   # a lost fragment must not hold back the tiles
         with:
           name: fragment-${{ strategy.job-index }}
           path: fragment.json
@@ -184,10 +185,11 @@ jobs:
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
           [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
           python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt $UNSHADED
-      # Uploaded even when the build exits non-zero: a failed cell leaves no file, so what is
-      # there is complete, and R2 keeps last week's tile for the rest.
+      # Uploaded even when the build exits non-zero or hits its time cap (the build step records the status and
+      # succeeds): a failed cell leaves no file, so what is there is complete, and R2 keeps last week's tile for the rest.
+      # Never after a failed step (success() implied): a gzip cut short would leave plain JSON in out/, stored as gzip.
       - name: Upload tiles to R2
-        if: ${{ !cancelled() && !inputs.dry_run }}
+        if: ${{ !inputs.dry_run }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -214,7 +216,7 @@ jobs:
       # emptied (changed.py --stale, listed in the summary above, a dry run included) go from the store, those two layers only.
       # With prune_buildings, also the buildings-v2/ tiles of the city's own cells no venue or terrace reaches (owner, 2026-10-13).
       - name: Delete emptied tiles from R2
-        if: ${{ !cancelled() && !inputs.dry_run && hashFiles('stale.txt') != '' }}
+        if: ${{ !inputs.dry_run && hashFiles('stale.txt') != '' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -222,7 +224,9 @@ jobs:
           split -l 1000 stale.txt stale-
           for b in stale-??; do
             python3 -c 'import json,sys; print(json.dumps({"Objects":[{"Key":k.strip()} for k in open(sys.argv[1]) if k.strip()],"Quiet":True}))' "$b" > "$b.json"
-            aws s3api delete-objects --bucket "${{ secrets.R2_BUCKET }}" --delete "file://$b.json" --endpoint-url "$ENDPOINT"
+            # Quiet: only the keys that failed come back, and any fails the step.
+            aws s3api delete-objects --bucket "${{ secrets.R2_BUCKET }}" --delete "file://$b.json" --endpoint-url "$ENDPOINT" --output json > "$b.out"
+            python3 -c 'import json,sys; t=open(sys.argv[1]).read().strip(); e=json.loads(t).get("Errors") if t else None; sys.exit(f"{len(e)} not deleted: {e[:5]}" if e else 0)' "$b.out"
           done
           echo "Deleted $(wc -l < stale.txt) emptied numbers/, boundaries/ and unshaded buildings-v2/ tiles." >> "$GITHUB_STEP_SUMMARY"
       # Red once what was built is up: more than 5 % of the city's cells failed (make_tiles.py exits 1),
@@ -246,9 +250,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Only the cells of the cities built off GitHub (storage.py's owners): tiles/ also holds snapshots of cities the
-      # build jobs make every week (before 2026-10-04), which would overwrite their fresh tiles. buildings-v2/ before
-      # the fragment: coverage.py counts that layer only, and the repository holds buildings/.
+      # Only buildings/ (converted to buildings-v2/), only in the cells of the cities built off GitHub (storage.py's owners):
+      # the other layers under tiles/ are old snapshots of what the weekly build makes, and would overwrite its fresh tiles.
+      # buildings-v2/ before the fragment: coverage.py counts that layer only.
       - env:
           REPO_CITIES: Tel Aviv   # comma-separated, as in cities.json
         run: |
@@ -256,7 +260,7 @@ jobs:
           import os, shutil
           from storage import LAYER_SCALE, TILE, owners
           repo, cells = {c.strip() for c in os.environ["REPO_CITIES"].split(",")}, owners("cities.json")
-          for layer in sorted(l for l in os.listdir("tiles") if os.path.isdir(os.path.join("tiles", l))):
+          for layer in ["buildings"]:
               names = sorted(os.listdir(os.path.join("tiles", layer)))
               kept = [n for n in names if (m := TILE.match(f"tiles/{layer}/{n}")) and cells[LAYER_SCALE[layer]].get((int(m[2]), int(m[3]))) in repo]
               os.makedirs(os.path.join("out", layer), exist_ok=True)
@@ -278,7 +282,6 @@ jobs:
           AWS_RETRY_MODE: adaptive
           AWS_MAX_ATTEMPTS: "10"
         run: |
-          rm -rf out/communes   # read by the fragment above, never uploaded
           find out -name '*.json' -print0 | xargs -0 -P4 -n200 gzip -9n
           find out -name '*.json.gz' | while read -r f; do mv "$f" "${f%.gz}"; done
           # Same as the build's upload: R2 refuses a few PUTs even with retries (repo_upload, 2026-10-07);
@@ -330,13 +333,3 @@ jobs:
             --previous "https://tiles.alephb.uk/stats.json" --run "${{ github.run_id }}" --repo "${{ github.repository }}" --write stats.json
           aws s3 cp stats.json "s3://${{ secrets.R2_BUCKET }}/stats.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
-      # The feed also lives in this repository, a fallback for the site's page. Small file.
-      - name: Commit coverage.json
-        continue-on-error: true
-        run: |
-          cp out-coverage.json coverage.json
-          git config user.name "compromise-tiles bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add coverage.json
-          git commit -m "coverage.json $(date -u +%F) [skip ci]" || exit 0
-          git pull --rebase origin master && git push
