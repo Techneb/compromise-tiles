@@ -290,7 +290,8 @@ def compare(records, previous, probes):
 def feed_mismatches(feed, tile_counts, per_area=2, seed=1):
     """check_feed.py's cell check: `per_area` cells sampled per area of the feed, each recounted from its tiles.
     `tile_counts(key)` gives (buildings, terraces) from the store, None for a tile the store lacks. A missing tile
-    agrees with a count of 0 (a cell whose layer was never built). Returns (checked, [mismatch], [missing key])."""
+    agrees with a count of 0 (a cell whose layer was never built), a missing buildings tile with any (BUILDINGS.md: a cell
+    no venue or terrace reaches). Returns (checked, [mismatch], [missing key])."""
     random.seed(seed)
     cells = {(c[0], c[1]): c for c in feed["cells"]}
     checked, bad, missing = 0, [], []
@@ -302,7 +303,8 @@ def feed_mismatches(feed, tile_counts, per_area=2, seed=1):
             buildings, terraces = tile_counts(key)
             checked += 1
             if buildings is None or terraces is None: missing.append(key)
-            ok_b = buildings == c[3] or (buildings is None and c[3] == 0)
+            # No buildings tile agrees with any count: a cell no venue or terrace reaches has none (2026-10-13).
+            ok_b = buildings == c[3] or buildings is None
             ok_t = terraces == c[2] or (terraces is None and c[2] == 0)
             if not (ok_b and ok_t):
                 bad.append({"key": key, "area": f"{area['city']} / {area['name']}", "feed": [c[3], c[2]], "tiles": [buildings, terraces]})

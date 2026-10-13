@@ -1233,3 +1233,35 @@ assert row["points"][:2] == [4_885_000 - 1221 * 4000, 230_000 - 57 * 4000] and r
 assert sum(row["points"][0::2]) + 1221 * 4000 == 4_893_000
 assert row["shape"] == [[4_885_000 - 1221 * 4000, 230_000 - 57 * 4000, 1000, 30, 7000, -30]], row["shape"]
 print("ok (transit)")
+
+# Buildings only near a venue or terrace (owner, 2026-10-13): the cells within SHADE_MARGIN of a point.
+import tempfile
+from make_tiles import shade_keys, shade_points, Cell, SHADE_MARGIN, write, path
+cell = Cell(24430, 1170)                                   # Paris: ~222 m north-south, ~146 m east-west
+inside = (cell.lat, cell.lon)
+assert shade_keys([inside], 0) == {"24430,1170"}
+# From its centre, 100 m reaches the cells east and west (73 m away), not north and south (111 m); 150 m all eight.
+assert shade_keys([inside]) == {"24430,1169", "24430,1170", "24430,1171"} and SHADE_MARGIN == 100
+assert shade_keys([inside], 150) == {f"{24430 + i},{1170 + j}" for i in (-1, 0, 1) for j in (-1, 0, 1)}
+# 50 m north of the cell's edge: its own cell and the one below; at 0 m only its own.
+north = (cell.n + 50 / 111_320, cell.lon)
+assert shade_keys([north], 0) == {"24431,1170"} and "24430,1170" in shade_keys([north], 60) and "24430,1170" not in shade_keys([north], 40)
+assert shade_keys([], 100) == set()
+# The points: the extract's venues near the cells and the terraces of their tiles, this run's before the store's.
+class FakeOSM:
+    venues = {}
+    def near(self, table, rect): return [{"coordinate": {"latitude": 48.8601, "longitude": 2.3401}}]
+make_tiles._osm, real_published_items = FakeOSM(), make_tiles.published_items
+asked = []
+def fake_store(layer, key, bust=False):
+    asked.append((layer, key))
+    return [{"coordinate": {"latitude": 48.8, "longitude": 2.3}}]
+make_tiles.published_items = fake_store
+with tempfile.TemporaryDirectory() as out:
+    a, b = Cell(24430, 1170), Cell(24430, 1171)
+    write(path(out, "terraces-v2", a), [{"kind": "TERRASSE", "coordinate": {"latitude": 48.86, "longitude": 2.34}}])
+    assert shade_points([a, b], out) == {(48.8601, 2.3401), (48.86, 2.34), (48.8, 2.3)} and asked == [("terraces-v2", "24430,1171")]
+    make_tiles.published_items = lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503")
+    assert shade_points([a, b], out) is None   # a terrace tile not read: no cell is left without buildings
+make_tiles.published_items, make_tiles._osm = real_published_items, None
+print("ok (shade)")

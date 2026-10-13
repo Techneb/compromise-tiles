@@ -16,6 +16,9 @@ deletion: their builds write no file for a cell with nothing, so the upload alon
 outline served. Only in the city's own cells (its flagged areas' boxes that no other flagged city's box reaches,
 nor comes within a cell of for boundaries/): numbers/ where this run wrote the cell's streets/ tile, boundaries/
 once it wrote any (a failed source writes none).
+
+With --unshaded (make_tiles.py's list of the cells no venue or terrace reaches, a weekly run's), --stale also lists
+the store's buildings-v2/ keys of those cells, for deletion (tiles.yml's prune_buildings): only cells no other city builds.
 """
 import argparse, hashlib, json, os
 
@@ -78,6 +81,13 @@ def stale(remote, out, cities, city):
     return found
 
 
+def unshaded(remote, keys, cities_path, city):
+    """The store's buildings-v2/ keys of the cells in `keys` that no area of another city builds."""
+    from storage import areas
+    others = {c.key for e, cells in areas(cities_path) if e["city"] != city for c in cells}
+    return sorted(k for k in (f"tiles/buildings-v2/{k}.json" for k in set(keys) - others) if k in remote)
+
+
 def summary(totals):
     lines = ["| Layer | New | Changed | Unchanged | Upload KB |", "|---|---:|---:|---:|---:|"]
     for layer, t in sorted(totals.items()):
@@ -94,6 +104,7 @@ def main():
     a.add_argument("--summary", help="append the table to this file (such as $GITHUB_STEP_SUMMARY)")
     a.add_argument("--cities", default="cities.json", help="with --city: the whole list, to tell the city's own cells")
     a.add_argument("--city", help="the city this --out was built for: list its emptied numbers/ and boundaries/ keys")
+    a.add_argument("--unshaded", help="with --city: make_tiles.py's --unshaded file; their buildings-v2/ keys join --stale")
     a.add_argument("--stale", default="stale.txt", help="with --city: where to write those keys, one a line (no file when none)")
     args = a.parse_args()
     remote = {}
@@ -101,6 +112,8 @@ def main():
         with open(args.listing) as f: remote = etags(f)
     # Before --prune, which removes the unchanged streets/ and numbers/ files this reads.
     gone = stale(remote, args.out, json.load(open(args.cities)), args.city) if args.city else []
+    if args.city and args.unshaded and os.path.exists(args.unshaded):
+        with open(args.unshaded) as f: gone += unshaded(remote, f.read().split(), args.cities, args.city)
     rows, totals = plan(local(args.out), remote)
     if args.prune:
         for _, path, s in rows:
@@ -109,8 +122,8 @@ def main():
     if gone:
         with open(args.stale, "w") as f: f.writelines(k + "\n" for k in gone)
         table += "\nEmptied this run, deleted from the store after the upload (not in a dry run): " + ", ".join(
-            f"`{l}` {sum(k.split('/')[1] == l for k in gone):,}" for l in STALE) + "\n"
-        print("\n".join(gone))
+            f"`{l}` {sum(k.split('/')[1] == l for k in gone):,}" for l in STALE + ("buildings-v2",)) + "\n"
+        print("\n".join(k for k in gone if "/buildings-v2/" not in k))   # those can be tens of thousands: counted above
     print(table, end="")
     if args.summary:
         with open(args.summary, "a") as f: f.write(table)

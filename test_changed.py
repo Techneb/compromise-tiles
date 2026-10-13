@@ -70,4 +70,18 @@ assert not os.path.exists(os.path.join(d, "numbers/5001,5001.json"))
 os.remove(stale_file)
 run("--cities", cities_file, "--city", "D", "--stale", stale_file)   # nothing emptied: no file, so the workflow deletes nothing
 assert not os.path.exists(stale_file)
+# --unshaded: the store's buildings-v2/ keys of the cells no venue or terrace reaches, none another city builds.
+from changed import unshaded
+json.dump([{"city": "A", "box": [10.0, 10.0, 10.1, 10.1]}, {"city": "B", "box": [10.09, 10.09, 10.2, 10.2]}], open(cities_file, "w"))
+store = {f"tiles/buildings-v2/{k}.json": h(b"[1]") for k in ("5000,5000", "5001,5001", "5046,5046")}
+# 5046 is B's too; 5002 has no tile on the store; 5001 is reached (not listed).
+assert unshaded(store, ["5000,5000", "5046,5046", "5002,5002"], cities_file, "A") == ["tiles/buildings-v2/5000,5000.json"]
+open(listing_file, "w").writelines(f'{k}\t"{v}"\n' for k, v in store.items())
+unshaded_file = os.path.join(d, "unshaded.txt")
+open(unshaded_file, "w").write("5000,5000\n5046,5046\n")
+out = run("--cities", cities_file, "--city", "A", "--stale", stale_file).stdout.decode()
+assert not os.path.exists(stale_file)                 # without --unshaded (no prune_buildings) nothing goes
+out = run("--cities", cities_file, "--city", "A", "--stale", stale_file, "--unshaded", unshaded_file).stdout.decode()
+assert open(stale_file).read() == "tiles/buildings-v2/5000,5000.json\n" and "`buildings-v2` 1" in out, out
 print("ok")
+
