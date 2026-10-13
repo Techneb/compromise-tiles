@@ -26,11 +26,12 @@ Output (compact JSON):
               km2: area of the passing cells; goingOut: going-out cells; goingOutShare: share of the going-out cells
               holding enough terraces and buildings both
   transit     {city: {modes: {mode: lines}, lines, tiles, bytes, built}} from transit/ (1/25° cells): a tile goes to the city
-              of the first cities.json entry whose box holds its cell's centre; a line counts once per city by
+              of the first cities.json entry whose box spans its cell; a line counts once per city by
               (mode, ref, stops); bytes are the tiles' raw JSON; built is the run's date. A city a run does not
               rebuild keeps its entry.
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
+from make_tiles import cells_in
 from storage import COARSE, FINE, MAIN, areas, owners
 
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
@@ -81,12 +82,14 @@ def area_box(e):
 
 def transit_summary(found, cities_path, today):
     """{city: {modes, lines, tiles, bytes, built}} over the transit/ tiles `found` yields as (key, raw)."""
-    entries = json.load(open(cities_path))
+    # The generator's 1/25° cells of each box, the first area winning a shared cell. Boundaries left out: storage.py's
+    # owners clips every area's 200 m cells, minutes of work a fragment job would pay for a handful of tiles.
+    own = {}
+    for e in json.load(open(cities_path)):
+        for c in cells_in(*area_box(e), scale=MAIN): own.setdefault(c.key, e["city"])
     out, seen = {}, {}
     for k, raw in found:
-        # keys truncate toward zero: a negative key's cell lies below it, key 0's spans both sides of 0
-        y, x = ((int(v) + (int(v) > 0) * 0.5 - (int(v) < 0) * 0.5) / MAIN for v in k.split(","))
-        city = next((e["city"] for e in entries if (b := area_box(e))[0] <= y <= b[2] and b[1] <= x <= b[3]), None)
+        city = own.get(k)
         if city is None: continue
         t = out.setdefault(city, {"modes": {}, "lines": 0, "tiles": 0, "bytes": 0, "built": today})
         t["tiles"] += 1; t["bytes"] += len(raw)
