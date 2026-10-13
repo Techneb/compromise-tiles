@@ -3455,6 +3455,7 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
 # transit/ (2026-10-13): OpenStreetMap's public-transport route relations. Metro, tram and rail.
 TRANSIT_MODES = ("subway", "tram", "train", "light_rail")
 TRANSIT_SERVICE_OUT = ("high_speed", "long_distance", "national", "international", "night", "tourism")
+TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak")   # intercity trains with no service tag (Montréal, 2026-10-13)
 TRANSIT_TWIN = 60          # metres: a stop and the next this close are one (a stop_position and its platform)
 TRANSIT_UNIT = 100_000     # 1e-5° steps
 TRANSIT_TOLERANCE = 10     # metres a line's simplified track may stray from its ways (Douglas–Peucker)
@@ -3465,7 +3466,8 @@ def transit_lines(relations, objects):
     two osmium XML roots: the route and route_master relations, and their node and way members (ways with their nodes).
     A route's stops are its members with a stop role in order, else its platforms (a way at its mean vertex); twins
     within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
-    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT) or under two stops is left out; so is one whose
+    A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, a ref of train numbers) or
+    under two stops is left out; so is one whose
     stop names are all on a longer kept route of the same mode and ref: the other direction, a short working."""
     tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
     nodes = {n.get("id"): (float(n.get("lat")), float(n.get("lon")), tags_of(n).get("name", "")) for n in objects.iter("node") if n.get("lat")}
@@ -3484,6 +3486,8 @@ def transit_lines(relations, objects):
         mode, up = tags.get("route"), master.get(r.get("id"), {})
         ref = (tags.get("ref") or up.get("ref") or "").strip()
         if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
+        # A ref listing train numbers ("20;22;24") is a timetable's, not a line's.
+        if ";" in ref or (tags.get("network") or up.get("network")) in TRANSIT_NETWORK_OUT: continue
         members = [(m.get("type"), m.get("ref"), m.get("role") or "") for m in r.iter("member")]
         chosen = [m for m in members if m[2] in STOP_ROLES and m[0] == "node"] or [m for m in members if m[2].startswith("platform")]
         stops = []
