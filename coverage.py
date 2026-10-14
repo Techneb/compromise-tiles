@@ -7,9 +7,8 @@ Reads the tiles a build just wrote (one JSON array per cell), replaces the recor
 cells it finds, keeps every other record (per layer, so a run that builds only terraces and
 venues keeps the building counts), then drops the records of the cells no area builds now and totals each area of cities.json over
 the cells it builds (its box, inside its boundary when it has one, the first area winning a shared
-cell: storage.py's owners, the generator's cut), never over its box. The sunny filter
-is available where a 200 m cell holds enough buildings (`passing`); where it also holds enough
-terraces (`terracesKnown`) the filter judges terraces, elsewhere the side of the street.
+cell: storage.py's owners, the generator's cut), never over its box. A 200 m cell is `passing`
+with enough buildings, `terracesKnown` with enough terraces too.
 
 Output (compact JSON):
   updated     ISO date of this run

@@ -21,7 +21,7 @@ building whose source gives no height is written at 15 m with
 no flag); it stays local. The store holds `buildings-v2/`, the same
 footprints as integer deltas, a third of the bytes (since 2026-10-08), for the cells near a
 venue or terrace (since 2026-10-13);
-[BUILDINGS.md](BUILDINGS.md) gives its format and the size study behind it.
+[BUILDINGS.md](BUILDINGS.md) gives its format and which cells have one.
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the
