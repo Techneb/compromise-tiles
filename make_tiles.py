@@ -86,10 +86,9 @@ GAP = 1.0                     # seconds between two requests to one host
 TIMEOUT = 60
 DEAD_AFTER = 3                # a host that exhausted its retries this many times in a row is skipped for the run
 TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the density gate is calibrated on
-# Every footprint whose box comes within this of the cell: a terrace is
-# matched within 30 m of a venue and a shadow ray walks 150 m from it toward
-# the sun — 180 m, plus a margin (Opéra, 2026-09-24: 690 KB → 280 KB a cell
-# against a 400 m reach). Raise it if either reach grows.
+# Every footprint whose box comes within this of the cell: the app's reach
+# plus a margin (its docs; Opéra, 2026-09-24: 690 KB → 280 KB a cell against
+# a 400 m reach). Raise it if that reach grows.
 BUILDING_REACH = 200
 BUILDING_PAD = 250            # fetched around a block: some feeds select by a footprint's centre, not its outline
 
@@ -3672,11 +3671,9 @@ def near_terraces(cell, terraces):
     return [t for t in terraces
             if metres(cell.lat, cell.lon, t["coordinate"]["latitude"], t["coordinate"]["longitude"]) <= TERRACE_RADIUS]
 
-# Only the buildings a sunny verdict can need (owner, 2026-10-13; BUILDINGS.md): a buildings tile is written for a cell
-# within SHADE_MARGIN of a venue (a bar, pub, beer garden, café or restaurant of the extract, named or not) or of a
-# terrace (terraces-v2/). Each tile already holds every footprint within BUILDING_REACH of its cell, so a kept cell needs
-# no neighbour. The margin is for the app's venues, which are Apple's: the same bar a few tens of metres from OSM's point,
-# or a place OSM lacks beside one it has. A cell with no tile reads "unknown" in the app, never "no shadow".
+# A buildings tile is written only for a cell within SHADE_MARGIN of a venue (a bar, pub, beer garden, café or restaurant
+# of the extract, named or not) or of a terrace (terraces-v2/) (owner, 2026-10-13; BUILDINGS.md). Each tile already holds
+# every footprint within BUILDING_REACH of its cell, so a kept cell needs no neighbour.
 SHADE_MARGIN = 100
 
 def shade_keys(points, margin=SHADE_MARGIN):
