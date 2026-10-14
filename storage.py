@@ -66,7 +66,7 @@ def tally(objects, cells):
     for key, size in objects:
         total[0] += size; total[1] += 1
         add(prefix, key.split("/", 1)[0] + ("/" if "/" in key else ""), size)
-        if key.startswith("tiles/"):
+        if key.startswith("tiles/") and key.count("/") > 1:   # a file right under tiles/ (.keep) is no layer
             name = key.split("/")[1]
             add(layer, name, size)
             m = TILE.match(key)

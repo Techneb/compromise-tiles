@@ -38,14 +38,14 @@ jobs:
       matrix:
         part: [1, 2, 3, 4, 5, 6]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       # London's lidar row measures on OpenStreetMap's footprints: the extract is cut with osmium.
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       - env:
           STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, its row is skipped
           ONLY: ${{ inputs.only }}   # through env, not the script's text: a quote in it would run as shell
         run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "$ONLY" --write "part-${{ matrix.part }}.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ !cancelled() }}
         with:
           name: part-${{ matrix.part }}
@@ -58,9 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: python3 check_data.py feed --write feed.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ !cancelled() }}
         with:
           name: feed
@@ -75,8 +75,8 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: artifacts
       - id: report
@@ -116,7 +116,7 @@ jobs:
           git add data-check.json
           git commit -m "data-check.json $(date -u +%F) [skip ci]" || exit 0
           git pull --rebase origin master && git push
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: data-check
           path: |

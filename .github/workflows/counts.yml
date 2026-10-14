@@ -40,13 +40,13 @@ jobs:
       matrix:
         part: [1, 2, 3, 4]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # --drop: each extract is deleted once its cities are counted, the runner's disk is small.
       - env:
           ONLY: ${{ inputs.only }}   # through env, not the script's text: a quote in it would run as shell
         run: python3 counts.py --cities "$CITIES" --part "${{ matrix.part }}/4" --extracts extracts --write counts.json --drop --only "$ONLY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: counts-part-${{ matrix.part }}
           path: counts.json
@@ -55,8 +55,8 @@ jobs:
     needs: counts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: counts-part-*
           path: parts
@@ -75,7 +75,7 @@ jobs:
           aws s3 cp counts.json "s3://${{ secrets.R2_BUCKET }}/counts.json" --only-show-errors \
             --endpoint-url "https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com" \
             --content-type application/json --cache-control "public, max-age=300"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: counts
           path: |

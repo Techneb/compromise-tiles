@@ -30,4 +30,7 @@ assert orphans(parse(listing), owners(cities)) == ["tiles/buildings-v2/1,1.json"
 # boundaries/ is read, on places/'s 1/25° cells (#76): not flagged unread, and its keys found an owner.
 t = tally(parse(["2026-10-10 03:12:45        500 tiles/boundaries/1221,58.json\n"]), owners(cities))
 assert t["cities"] == [{"layer": "boundaries", "city": "Paris", "bytes": 500, "objects": 1}] and not unread(t), t
+# A file right under tiles/ (the folder's .keep) counts in the totals, not as a layer.
+t = tally(parse(["2026-10-10 03:12:45          0 tiles/.keep\n"]), owners(cities))
+assert t["objects"] == 1 and t["layers"] == {} and t["cities"] == [] and not unread(t), t
 print("ok")
