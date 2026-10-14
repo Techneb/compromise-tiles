@@ -187,6 +187,14 @@ jobs:
           echo "### $CITY" >> "$GITHUB_STEP_SUMMARY"
           [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
           python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt $UNSHADED
+      # A dry run keeps the keys it would delete (stale.txt), for the prune's counts and sizes (2026-10-14).
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.dry_run && !cancelled() && hashFiles('stale.txt') != '' }}
+        continue-on-error: true
+        with:
+          name: stale-${{ strategy.job-index }}
+          path: stale.txt
+          retention-days: 7
       # Uploaded even when the build exits non-zero or hits its time cap (the build step records the status and
       # succeeds): a failed cell leaves no file, so what is there is complete, and R2 keeps last week's tile for the rest.
       # Never after a failed step (success() implied): a gzip cut short would leave plain JSON in out/, stored as gzip.
