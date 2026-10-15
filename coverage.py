@@ -19,11 +19,17 @@ Output (compact JSON):
               from the build's own communes/ files (never uploaded; a cell keeps its codes in the feed)
   communes    {INSEE code: name}
   venueCells  [latKey50, lonKey50, venues, withTerrace, date]  2 km cells keyed int(lat*50), int(lon*50)
-  areas       [{name, city, box: [s, w, n, e] (the entry's), tiled, passing, places, seats, terracesKnown, km2, goingOut, goingOutShare, lastBuilt}]
+  areas       [{name, city, box: [s, w, n, e] (the entry's), tiled, passing, places, seats, terracesKnown, km2, goingOut, goingOutShare, lastBuilt,
+              buildings, withHeight, layers}]
               (a départements entry gives one area per commune, never an aggregate)
               passing: cells with enough buildings; terracesKnown: cells with enough terraces;
               km2: area of the passing cells; goingOut: going-out cells; goingOutShare: share of the going-out cells
-              holding enough terraces and buildings both
+              holding enough terraces and buildings both; buildings, withHeight: the cells' sums (a tile also
+              holds its neighbours' footprints, for their shade: a share, withHeight / buildings, not a count);
+              layers {terraces-v2|buildings-v2|venues: {tiles, oldest, newest}}: the area's tiles of that layer with a build date
+  built       {city: {layer: {tiles, date}}}: the tiles of each layer the city's last build of it wrote (the layers the cells
+              above do not date: streets, streets-main, numbers, places, boundaries, sources, transit), from the build
+              jobs' fragments (2026-10-15); a city a run does not rebuild keeps its entry, a layer it does not build too
   transit     {city: {modes: {mode: lines}, lines, tiles, bytes, built}} from transit/ (1/25° cells): a tile goes to the city
               of the first cities.json entry whose box spans its cell; a line counts once per city by
               (mode, ref, stops); bytes are the tiles' raw JSON; built is the run's date. A city a run does not
@@ -103,18 +109,44 @@ def transit_summary(found, cities_path, today, city=None):
     return out
 
 
-SUMS = ("tiled", "passing", "places", "seats", "terracesKnown", "goingOut")
+# The layers a fragment counts (built): those the cells do not date. communes/ and buildings/ are never uploaded.
+COUNTED = ("streets", "streets-main", "numbers", "places", "boundaries", "sources", "transit")
+
+
+def layer_counts(out, today):
+    """{layer: {tiles, date}} for the COUNTED layers this build wrote a tile of."""
+    found = {layer: sum(1 for _ in tiles(out, layer)) for layer in COUNTED}
+    return {layer: {"tiles": n, "date": today} for layer, n in found.items() if n}
+
+
+def span(dates):
+    """{tiles, oldest, newest} over the build dates given (None: never built), None when none is dated."""
+    ds = [d for d in dates if d]
+    return {"tiles": len(ds), "oldest": min(ds), "newest": max(ds)} if ds else None
+
+
+def merge_span(a, b):
+    if not (a and b): return a or b
+    return {"tiles": a["tiles"] + b["tiles"], "oldest": min(a["oldest"], b["oldest"]), "newest": max(a["newest"], b["newest"])}
+
+
+SUMS = ("tiled", "passing", "places", "seats", "terracesKnown", "goingOut", "buildings", "withHeight")
 
 
 def summary(feed, entries):
     """{updated, cities: {city: record}}: per city of cities.json or of an area, its areas' totals (SUMS, km2), their names
     and the box holding them, the newest
     lastBuilt, whether the build reads a permit feed or a city heights feed for it, whether an entry has the street
-    layers or a municipal boundary, and its transit lines (absent when none was built)."""
+    layers or a municipal boundary, and its transit lines (absent when none was built). Since 2026-10-15 also: goingOutCovered
+    (the going-out cells holding enough terraces and buildings both), permitFeed (its permit feed's host, null for none),
+    layers {layer: {tiles, oldest, newest}} (the cells' layers summed over its areas, the counted ones from the feed's
+    built) and transitModes."""
     permits, heights = {r["city"] for r in PERMIT_CITIES}, {r["city"] for r in CITY_BUILDINGS}
+    hosts = {r["city"]: r["host"] for r in PERMIT_CITIES}
     out = {}
     new = lambda city: out.setdefault(city, {"areas": [], "box": None, **{k: 0 for k in SUMS}, "km2": 0.0, "built": "",
-                                             "permits": city in permits, "cityHeights": city in heights, "streets": False, "outline": False})
+                                             "permits": city in permits, "cityHeights": city in heights, "streets": False, "outline": False,
+                                             "goingOutCovered": 0, "permitFeed": hosts.get(city), "layers": {}})
     for e in entries:
         c = new(e["city"])
         c["streets"] |= e.get("streets") is True
@@ -128,9 +160,16 @@ def summary(feed, entries):
         for k in SUMS: c[k] += a.get(k) or 0
         c["km2"] += a.get("km2") or 0
         c["built"] = max(c["built"], a.get("lastBuilt") or "")
+        c["goingOutCovered"] += round((a.get("goingOutShare") or 0) * (a.get("goingOut") or 0))
+        for layer, sp in (a.get("layers") or {}).items(): c["layers"][layer] = merge_span(c["layers"].get(layer), sp)
     for city, t in feed.get("transit", {}).items():
-        if city in out: out[city]["transit"] = t["lines"]
-    for c in out.values(): c["km2"] = round(c["km2"], 1)
+        if city in out: out[city]["transit"], out[city]["transitModes"] = t["lines"], t.get("modes", {})
+    for city, layers in feed.get("built", {}).items():
+        if city in out:
+            for layer, b in layers.items(): out[city]["layers"][layer] = {"tiles": b["tiles"], "oldest": b["date"], "newest": b["date"]}
+    for c in out.values():
+        c["km2"] = round(c["km2"], 1)
+        c["layers"] = {k: v for k, v in sorted(c["layers"].items()) if v}
     return {"updated": feed["updated"], "cities": out}
 
 
@@ -179,12 +218,13 @@ def main():
     names = dict(prev.get("communes", {}))
     transit = dict(prev.get("transit", {}))
 
-    touched, touched_venues, new_names = set(), set(), {}
+    touched, touched_venues, new_names, fragments = set(), set(), {}, []
     # Fragments from parallel build jobs: their records overlay the previous feed (the last one wins).
     for folder, _, files in os.walk(args.fragments or "/nonexistent"):
         for name in sorted(files):
             if not name.endswith(".json"): continue
             frag = json.load(open(os.path.join(folder, name)))
+            fragments.append(frag)
             cells.update(frag.get("cells", {})); venues.update(frag.get("venues", {})); names.update(frag.get("communes", {}))
             transit.update(frag.get("transit", {}))
     # Counting keys in the bytes is enough: names never hold these quoted keys.
@@ -221,10 +261,15 @@ def main():
 
     new_transit = transit_summary(tiles(args.out, "transit"), args.cities, today, os.environ.get("CITY")) if args.out else {}
     transit.update(new_transit)
+    built = {c: dict(v) for c, v in prev.get("built", {}).items()}
+    for frag in fragments:
+        for city, layers in frag.get("built", {}).items(): built.setdefault(city, {}).update(layers)
+    new_built = {os.environ["CITY"]: layer_counts(args.out, today)} if args.out and os.environ.get("CITY") else {}
+    for city, layers in new_built.items(): built.setdefault(city, {}).update(layers)
 
     if args.fragment:
         json.dump({"cells": {k: cells[k] for k in touched}, "venues": {k: venues[k] for k in touched_venues}, "communes": new_names,
-                   "transit": new_transit},
+                   "transit": new_transit, "built": new_built},
                   open(args.fragment, "w"), ensure_ascii=False, separators=(",", ":"))
         print(f"fragment: {len(touched)} cells, {len(touched_venues)} venue cells -> {args.fragment}")
         return
@@ -255,8 +300,8 @@ def main():
     # A record of a cell no area builds now is a tile of an area dropped, moved or cut to its boundary since:
     # deleted from the store or left there unread, it is no coverage, so it leaves the feed (the map draws
     # every record). The same cut as storage.py's, so the feed and the store's deletion list agree.
-    built = areas(args.cities)
-    own = owners(args.cities, built=built)
+    area_cells = areas(args.cities)
+    own = owners(args.cities, built=area_cells)
     key = lambda k: tuple(map(int, k.split(",")))
     kept = {k: c for k, c in cells.items() if key(k) in own[FINE]}
     kept_venues = {k: v for k, v in venues.items() if key(k) in own[COARSE]}
@@ -265,10 +310,10 @@ def main():
 
     passes = lambda c: c[1] >= FLOOR
     result, taken = [], set()
-    for e, area_cells in built:
+    for e, its_cells in area_cells:
         box = area_box(e)
         keys = []
-        for cell in area_cells:  # the area's own cells, a cell another area counted first left to it
+        for cell in its_cells:  # the area's own cells, a cell another area counted first left to it
             c = cells.get(cell.key)
             if c is None or cell.key in taken:
                 continue
@@ -295,6 +340,10 @@ def main():
                 "goingOutShare": round(sum(terraces_known(ky, kx, c) and passes(c) for ky, kx, c in out_cells) / len(out_cells), 3)
                 if out_cells else None,
                 "lastBuilt": max(dates) if dates else None,
+                "buildings": sum(c[1] for _, _, c in keys),
+                "withHeight": sum(c[2] for _, _, c in keys),
+                "layers": {"terraces-v2": span(c[3] for _, _, c in keys), "buildings-v2": span(c[4] for _, _, c in keys),
+                           "venues": span((venues.get(k) or [0, 0, None])[2] for k in {f"{int(ky / 10)},{int(kx / 10)}" for ky, kx, _ in keys})},
             }
         if e.get("departements"):
             # No aggregate for a départements entry (owner, 2026-09-27): each commune is its own
@@ -324,6 +373,7 @@ def main():
         "areas": result,
         # transit/ is built only where an entry says "streets": true: another city's record is an edge cell miscounted.
         "transit": {k: transit[k] for k in sorted(transit) if k in {e["city"] for e in json.load(open(args.cities)) if e.get("streets")}},
+        "built": {k: built[k] for k in sorted(built) if k in {e["city"] for e in json.load(open(args.cities))}},
     }
     with open(args.write, "w") as f:
         json.dump(feed, f, ensure_ascii=False, separators=(",", ":"))
