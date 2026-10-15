@@ -107,4 +107,23 @@ assert sorted(os.listdir(os.path.join(out, "coverage"))) == ["-23,-46.json", "48
 sq = json.load(open(os.path.join(out, "coverage", "48,2.json")))
 assert sq["cells"] == feed["cells"][:1] and sq["communes"] == {"1": "A"} and sq["dates"] == feed["dates"], sq
 assert [v[0] for v in sq["venueCells"]] == [2440, 2449, 2450], sq["venueCells"]   # 2450 is 49°'s, one cell past 48°'s edge
+
+# summary.json: one record per city of cities.json, its areas summed; transit only where lines were built.
+from coverage import summary
+feed = {"updated": "2026-10-15", "transit": {"Paris": {"lines": 1599}, "Elsewhere": {"lines": 3}},
+        "areas": [{"name": "Intra-muros", "city": "Paris", "tiled": 10, "passing": 9, "places": 50, "seats": 5, "terracesKnown": 4,
+                   "km2": 1.25, "goingOut": 8, "lastBuilt": "2026-10-12", "box": [48.8, 2.2, 48.9, 2.4]},
+                  {"name": "Petite couronne", "city": "Paris", "tiled": 5, "passing": 1, "places": 0, "seats": 0, "terracesKnown": 0,
+                   "km2": 0.5, "goingOut": 0, "lastBuilt": "2026-10-14", "box": [48.7, 2.1, 48.85, 2.6]}]}
+got = summary(feed, [{"city": "Paris", "streets": True}, {"city": "Paris"}, {"city": "Périgny", "boundary": "boundaries/perigny.geojson"}])
+assert got["updated"] == "2026-10-15" and set(got["cities"]) == {"Paris", "Périgny"}, got
+assert set(summary(dict(feed, areas=feed["areas"] + [{"name": "Pantin", "city": "Pantin", "box": [1, 2, 3, 4]}]), [])["cities"]) == {"Paris", "Pantin"}
+p = got["cities"]["Paris"]
+assert (p["areas"], p["tiled"], p["passing"], p["places"], p["km2"], p["built"], p["streets"], p["outline"], p["transit"], p["permits"]) == \
+    (["Intra-muros", "Petite couronne"], 15, 10, 50, 1.8, "2026-10-14", True, False, 1599, True), p
+q = got["cities"]["Périgny"]
+assert p["box"] == [48.7, 2.1, 48.9, 2.6], p
+assert q["areas"] == [] and q["box"] is None and q["outline"] and not q["streets"] and "transit" not in q and not q["cityHeights"], q
+out = os.path.join(d, "slim2"); slim(dict(feed, cells=[], venueCells=[], communes={}, dates=[]), out, [{"city": "Paris"}])
+assert json.load(open(os.path.join(out, "summary.json")))["cities"]["Paris"]["goingOut"] == 8
 print("ok")

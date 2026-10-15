@@ -25,7 +25,7 @@ venue or terrace (since 2026-10-13);
 
 This repository holds the generator (`make_tiles.py`), the areas it
 builds (`cities.json`, with municipal boundaries in `boundaries/`), the
-coverage feed (`coverage.json` on R2; the copy here stopped updating on 2026-10-13; the site reads its slim copies `areas.json` and `coverage/<1° square>.json`, written beside it), the store's numbers
+coverage feed (`coverage.json` on R2; the copy here stopped updating on 2026-10-13; the site reads its slim copies `areas.json`, `summary.json` (per-city totals) and `coverage/<1° square>.json`, written beside it), the store's numbers
 (`stats.json` on R2: size and file count per layer, build time per city, written by
 `stats.py` after each build) and the tiles built
 off GitHub under `tiles/`. GitHub Actions (`.github/workflows/tiles.yml`)

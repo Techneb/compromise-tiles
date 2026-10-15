@@ -30,9 +30,10 @@ Output (compact JSON):
               rebuild keeps its entry.
 
 --slim writes the site's slim copies of the feed into a folder (slim() below): coverage.json stays whole for its other readers.
+With --cities it also writes summary.json there: one record per city of cities.json (summary() below).
 """
 import argparse, datetime, json, math, os, re, urllib.error, urllib.request
-from make_tiles import cells_in
+from make_tiles import CITY_BUILDINGS, PERMIT_CITIES, cells_in
 from storage import COARSE, FINE, MAIN, areas, owners
 
 FLOOR = 20        # buildings a cell needs for the filter; terraces too where no venue tile gives a denominator
@@ -102,7 +103,38 @@ def transit_summary(found, cities_path, today, city=None):
     return out
 
 
-def slim(feed, folder):
+SUMS = ("tiled", "passing", "places", "seats", "terracesKnown", "goingOut")
+
+
+def summary(feed, entries):
+    """{updated, cities: {city: record}}: per city of cities.json or of an area, its areas' totals (SUMS, km2), their names
+    and the box holding them, the newest
+    lastBuilt, whether the build reads a permit feed or a city heights feed for it, whether an entry has the street
+    layers or a municipal boundary, and its transit lines (absent when none was built)."""
+    permits, heights = {r["city"] for r in PERMIT_CITIES}, {r["city"] for r in CITY_BUILDINGS}
+    out = {}
+    new = lambda city: out.setdefault(city, {"areas": [], "box": None, **{k: 0 for k in SUMS}, "km2": 0.0, "built": "",
+                                             "permits": city in permits, "cityHeights": city in heights, "streets": False, "outline": False})
+    for e in entries:
+        c = new(e["city"])
+        c["streets"] |= e.get("streets") is True
+        c["outline"] |= bool(e.get("boundary"))
+    for a in feed["areas"]:   # a départements entry's areas are its communes, each a record of its own
+        c = new(a["city"])
+        c["areas"].append(a["name"])
+        if a.get("box"):
+            b = c["box"] or a["box"]
+            c["box"] = [min(b[0], a["box"][0]), min(b[1], a["box"][1]), max(b[2], a["box"][2]), max(b[3], a["box"][3])]
+        for k in SUMS: c[k] += a.get(k) or 0
+        c["km2"] += a.get("km2") or 0
+        c["built"] = max(c["built"], a.get("lastBuilt") or "")
+    for city, t in feed.get("transit", {}).items():
+        if city in out: out[city]["transit"] = t["lines"]
+    for c in out.values(): c["km2"] = round(c["km2"], 1)
+    return {"updated": feed["updated"], "cities": out}
+
+
+def slim(feed, folder, entries=None):
     """The site's pages read these instead of the whole feed (tens of MB). areas.json: updated, areas, transit, and
     blocks {square: cells}, the index of coverage/<square>.json: the cells of one 1° square, keyed int(latKey / 500),
     int(lonKey / 500) truncated as the cells' own keys are, with the dates and commune names they use and the venue
@@ -120,6 +152,7 @@ def slim(feed, folder):
         dump({"updated": feed["updated"], "dates": feed["dates"], "communes": {x: n for x, n in feed["communes"].items() if x in codes},
               "venueCells": venues.get(k, []), "cells": cells}, "coverage", k + ".json")
     dump({"updated": feed["updated"], "areas": feed["areas"], "transit": feed["transit"], "blocks": {k: len(v) for k, v in blocks.items()}}, "areas.json")
+    if entries is not None: dump(summary(feed, entries), "summary.json")
 
 
 def main():
@@ -295,7 +328,7 @@ def main():
     with open(args.write, "w") as f:
         json.dump(feed, f, ensure_ascii=False, separators=(",", ":"))
     print(f"{len(cells)} cells, {len(venues)} venue cells, {len(result)} areas -> {args.write}")
-    if args.slim: slim(feed, args.slim)
+    if args.slim: slim(feed, args.slim, json.load(open(args.cities)))
 
 
 if __name__ == "__main__":
