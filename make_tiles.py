@@ -2017,7 +2017,7 @@ CITY_BUILDINGS = [
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
         "structure_extrusion"), lambda p: p.get("structure_extrusion"))),
     building_row("Amsterdam", (52.2779, 52.4311), (4.7287, 5.1077), bag3d),   # 3DBAG is national: the whole municipality's box
-    building_row("Rotterdam", (51.86, 51.99), (4.37, 4.60), bag3d),
+    building_row("Rotterdam", (51.8421, 52.002), (3.9614, 4.6019), bag3d),
     building_row("The Hague", (52.00, 52.13), (4.18, 4.42), bag3d),
     building_row("Utrecht", (52.03, 52.14), (4.97, 5.20), bag3d),
     building_row("Berlin", (52.33, 52.68), (13.08, 13.77), lambda r: footprints(wfs(
@@ -2149,7 +2149,7 @@ CITY_BUILDINGS = [
         lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)),
     # Regione Liguria's region-wide NC5 3D footprints (CC BY 4.0; Torre Piacentini 99.9 m); where NC5
     # has nothing (Pegli, Voltri) the cell falls to OSM. The box is Genoa's cities.json area.
-    building_row("Genoa", (44.371, 44.441), (8.8399, 9.0141), liguria),
+    building_row("Genoa", (44.371, 44.52), (8.6657, 9.0956), liguria),
     # Sofiaplan's "Сгради 18.12.2009" (the 2009 cadastre's buildings; licence not stated by the publisher, wired
     # 2026-10-02 on the owner's decision): sgr_text's leading number is floors (26МСБЖ, Park Hotel Moskva: 78 m),
     # none is one floor. Towers built since 2009 are missing. The box is the layer's.

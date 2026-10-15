@@ -209,13 +209,14 @@
   {
     "city": "Rotterdam",
     "streets": true,
-    "district": "Rotterdam (going-out core + 2 km)",
+    "district": "Rotterdam (whole municipality + the old core)",
     "box": [
-      51.869,
-      4.4119,
-      51.955,
-      4.5441
-    ]
+      51.8421,
+      3.9614,
+      52.002,
+      4.6019
+    ],
+    "boundary": "boundaries/rotterdam.geojson"
   },
   {
     "city": "San Francisco",
@@ -603,13 +604,14 @@
   },
   {
     "city": "Philadelphia",
-    "district": "Philadelphia (going-out core + 2 km)",
+    "district": "Philadelphia (whole municipality + the old core)",
     "box": [
-      39.905,
-      -75.2464,
-      40.003,
-      -75.0996
-    ]
+      39.867,
+      -75.2803,
+      40.138,
+      -74.9558
+    ],
+    "boundary": "boundaries/philadelphia.geojson"
   },
   {
     "city": "Seoul",
@@ -1197,13 +1199,14 @@
   },
   {
     "city": "Cologne",
-    "district": "Cologne (going-out core + 2 km)",
+    "district": "Cologne (whole municipality + the old core)",
     "box": [
-      50.887,
-      6.8685,
-      50.987,
-      7.0095
-    ]
+      50.8304,
+      6.7725,
+      51.085,
+      7.1621
+    ],
+    "boundary": "boundaries/cologne.geojson"
   },
   {
     "city": "Dublin",
@@ -1230,13 +1233,14 @@
   {
     "city": "Auckland",
     "streets": true,
-    "district": "Auckland (going-out core + 2 km)",
+    "district": "Auckland (whole built-up area + the old core)",
     "box": [
-      -36.913,
-      174.7085,
-      -36.821,
-      174.8095
-    ]
+      -37.2674,
+      174.4236,
+      -36.2728,
+      175.0989
+    ],
+    "boundary": "boundaries/auckland.geojson"
   },
   {
     "city": "Birmingham",
@@ -1272,13 +1276,14 @@
   {
     "city": "Glasgow",
     "streets": true,
-    "district": "Glasgow (going-out core + 2 km)",
+    "district": "Glasgow (whole municipality + the old core)",
     "box": [
-      55.829,
-      -4.351,
-      55.899,
-      -4.195
-    ]
+      55.7812,
+      -4.3924,
+      55.9297,
+      -4.0717
+    ],
+    "boundary": "boundaries/glasgow.geojson"
   },
   {
     "city": "Edinburgh",
@@ -1295,13 +1300,14 @@
   {
     "city": "Gothenburg",
     "streets": true,
-    "district": "Gothenburg (going-out core + 2 km)",
+    "district": "Gothenburg (whole municipality + the old core)",
     "box": [
-      57.665,
-      11.8734,
-      57.743,
-      12.0426
-    ]
+      57.5083,
+      11.5944,
+      57.866,
+      12.2417
+    ],
+    "boundary": "boundaries/gothenburg.geojson"
   },
   {
     "city": "Dhaka",
@@ -1318,24 +1324,26 @@
   {
     "city": "Antwerp",
     "streets": true,
-    "district": "Antwerp (going-out core + 2 km)",
+    "district": "Antwerp (whole municipality + the old core)",
     "box": [
-      51.175,
-      4.3543,
-      51.255,
-      4.4817
-    ]
+      51.1432,
+      4.2175,
+      51.3777,
+      4.5091
+    ],
+    "boundary": "boundaries/antwerp.geojson"
   },
   {
     "city": "Brisbane",
     "streets": true,
-    "district": "Brisbane (going-out core + 2 km)",
+    "district": "Brisbane (whole municipality)",
     "box": [
-      -27.521,
-      152.9688,
-      -27.425,
-      153.0832
-    ]
+      -27.6603,
+      152.6796,
+      -27.022,
+      153.4683
+    ],
+    "boundary": "boundaries/brisbane.geojson"
   },
   {
     "city": "Sheffield",
@@ -1419,13 +1427,14 @@
   {
     "city": "Ghent",
     "streets": true,
-    "district": "Ghent (going-out core + 2 km)",
+    "district": "Ghent (whole municipality + the old core)",
     "box": [
-      51.011,
-      3.6704,
-      51.089,
-      3.7776
-    ]
+      50.9795,
+      3.5797,
+      51.1889,
+      3.8494
+    ],
+    "boundary": "boundaries/ghent.geojson"
   },
   {
     "city": "Bordeaux",
@@ -1716,13 +1725,14 @@
   },
   {
     "city": "Genoa",
-    "district": "Genoa (going-out core + 2 km)",
+    "district": "Genoa (whole municipality + the old core)",
     "box": [
-      44.371,
-      8.8399,
-      44.441,
-      9.0141
-    ]
+      44.379,
+      8.6657,
+      44.5199,
+      9.0956
+    ],
+    "boundary": "boundaries/genoa.geojson"
   },
   {
     "city": "Sofia",

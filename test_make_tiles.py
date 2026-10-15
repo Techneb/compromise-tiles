@@ -86,6 +86,8 @@ assert at(43.3236, -1.9849) == "San Sebastián" and at(-26.2058, 28.0471) == "Jo
 assert at(36.7200, -4.5600) == "Málaga" and at(38.4300, -0.5900) == "Alicante"
 # Cape Town's and São Paulo's boxes their whole cities' since 2026-10-15: Somerset West and Parelheiros.
 assert at(-34.0800, 18.8500) == "Cape Town" and at(-23.8300, -46.7300) == "São Paulo"
+# Rotterdam's and Genoa's since 2026-10-15: Hoek van Holland and Voltri, outside the old cores, are in their rows.
+assert at(51.9800, 4.1300) == "Rotterdam" and at(44.4280, 8.7500) == "Genoa"
 
 # 2026-10-02 rows. UTM forward and back agree (Düsseldorf's Dreischeibenhaus).
 from make_tiles import wgs84_to_utm, utm_to_wgs84, mercator_to_wgs84, citygml_buildings, citygml_tiles, beoland, liguria
