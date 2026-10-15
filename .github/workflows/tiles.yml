@@ -340,6 +340,8 @@ jobs:
             --content-type application/json --cache-control "public, max-age=300"
           aws s3 cp slim/areas.json "s3://${{ secrets.R2_BUCKET }}/areas.json" --only-show-errors --endpoint-url "$ENDPOINT" \
             --content-type application/json --cache-control "public, max-age=300"
+          aws s3 cp slim/summary.json "s3://${{ secrets.R2_BUCKET }}/summary.json" --only-show-errors --endpoint-url "$ENDPOINT" \
+            --content-type application/json --cache-control "public, max-age=300"
       # The store's numbers for the site's overview page: size and file count per layer (the bucket listed in
       # parallel ranges, about 2,500 list requests) and this run's build durations per city. Never fails the feed.
       - name: Stats

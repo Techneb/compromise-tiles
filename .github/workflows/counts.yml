@@ -7,9 +7,9 @@
 # the artifact and in the log (ROW lines), and `candidates.py merge` copies them into that file.
 name: Counts
 
+# On dispatch only since 2026-10-15 (no new cities): a tiled city's going-out cells come from the tile build's summary.json;
+# this count is still the only one over a municipality only part tiled, and over the candidates.
 on:
-  schedule:
-    - cron: "11 5 3 * *"   # the 3rd of each month, 05:11 UTC
   workflow_dispatch:
     inputs:
       only:
