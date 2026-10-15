@@ -2030,10 +2030,10 @@ CITY_BUILDINGS = [
     building_row("Denver", (39.66, 39.80), (-105.05, -104.87), lambda r: footprints(arcgis(
         "https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_PROP_BUILDINGOUTLINES_A/FeatureServer/111",
         r, ["BLDG_HEIGH"]), lambda p: p["BLDG_HEIGH"] * 0.3048 if p.get("BLDG_HEIGH") else None)),
-    building_row("Cape Town", (-34.20, -33.55), (18.30, 18.80), lambda r: footprints(arcgis(
+    building_row("Cape Town", (-34.36, -33.47), (18.30, 19.01), lambda r: footprints(arcgis(
         "https://esapqa.capetown.gov.za/agsext/rest/services/Theme_Based/ODP_SPLIT_6/FeatureServer/2", r, ["BLD_HGT"]),
         lambda p: p.get("BLD_HGT"))),
-    building_row("São Paulo", (-23.65, -23.49), (-46.74, -46.59), lambda r: footprints(wfs(
+    building_row("São Paulo", (-24.01, -23.35), (-46.83, -46.36), lambda r: footprints(wfs(
         "https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/ows", {"TYPENAMES": "geoportal:edificacao",
         "OUTPUTFORMAT": "application/json", "SRSNAME": "EPSG:4326", "PROPERTYNAME": "ge_poligono,qt_altura_edificacao"}, r),
         lambda p: p.get("qt_altura_edificacao"))),
@@ -2243,7 +2243,7 @@ CITY_BUILDINGS = [
     # 2023; the licence asks that the source be named), the same rule. Monuments drawn as other classes (the Colosseum)
     # are not volumes. Held to Roma Capitale (ISTAT's 2025 limits, CC BY 4.0): the Vatican, which the file leaves out,
     # stays OSM.
-    building_row("Rome", (41.8417, 41.9517), (12.4256, 12.5734), boundary=boundary("rome"),
+    building_row("Rome", (41.6556, 42.1411), (12.2344, 12.8558), boundary=boundary("rome"),
                  fetch=shapefile(LAZIO_DBGT, "UN_VOL", "rome", DBT_FIELDS, dbt_height, headers=lazio_token)),
 ]
 

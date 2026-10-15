@@ -84,6 +84,8 @@ assert at(43.3236, -1.9849) == "San Sebastián" and at(-26.2058, 28.0471) == "Jo
 # Málaga's and Alicante's Catastro boxes the whole municipalities' since 2026-10-11: Campanillas and Verdegás,
 # outside the old cores, are Catastro's.
 assert at(36.7200, -4.5600) == "Málaga" and at(38.4300, -0.5900) == "Alicante"
+# Cape Town's and São Paulo's boxes their whole cities' since 2026-10-15: Somerset West and Parelheiros.
+assert at(-34.0800, 18.8500) == "Cape Town" and at(-23.8300, -46.7300) == "São Paulo"
 
 # 2026-10-02 rows. UTM forward and back agree (Düsseldorf's Dreischeibenhaus).
 from make_tiles import wgs84_to_utm, utm_to_wgs84, mercator_to_wgs84, citygml_buildings, citygml_tiles, beoland, liguria
@@ -710,6 +712,8 @@ assert at(45.4848, 9.2016) == "Milan" and at(45.5400, 9.2300) != "Milan" and at(
 # Each box the whole city since 2026-10-11: Villa Lugano and Gratosoglio, outside the old cores, are the cities' own.
 assert at(-34.6800, -58.4700) == "Buenos Aires" and at(45.4100, 9.1750) == "Milan"
 assert at(41.8986, 12.4769) == "Rome" and at(41.9029, 12.4534) == "OSM"
+# Rome whole since 2026-10-15: Ostia, outside the old core, is Rome's own.
+assert at(41.7350, 12.2900) == "Rome"
 print("ok (Shapefile rows)")
 # Streets: the kept ways, simplified, cut at the cells' edges, written in 1e-5° steps.
 from make_tiles import street_kind, simplified, clipped, street_line, street_tiles, entry_layers, Cell
