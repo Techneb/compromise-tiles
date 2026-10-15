@@ -494,24 +494,26 @@
   {
     "city": "Vilnius",
     "streets": true,
-    "district": "Vilnius (centre, 5 km)",
+    "district": "Vilnius (whole municipality)",
     "box": [
-      54.662,
-      25.24,
-      54.712,
-      25.32
-    ]
+      54.5689,
+      25.0245,
+      54.8324,
+      25.4815
+    ],
+    "boundary": "boundaries/vilnius.geojson"
   },
   {
     "city": "Oslo",
     "streets": true,
-    "district": "Oslo (centre, 5 km)",
+    "district": "Oslo (whole municipality + the old core)",
     "box": [
-      59.895,
-      10.7,
-      59.935,
-      10.8
-    ]
+      59.8093,
+      10.4891,
+      60.1352,
+      10.9514
+    ],
+    "boundary": "boundaries/oslo.geojson"
   },
   {
     "city": "Anglet",
@@ -648,7 +650,7 @@
   {
     "city": "Istanbul",
     "streets": true,
-    "district": "Istanbul (built-up area)",
+    "district": "Istanbul (whole city: its built-up area)",
     "box": [
       40.8022,
       28.3904,
@@ -684,13 +686,14 @@
   {
     "city": "Rome",
     "streets": true,
-    "district": "Rome (densest 150 km\u00b2 of the core)",
+    "district": "Rome (whole municipality)",
     "box": [
-      41.8417,
-      12.4256,
-      41.9517,
-      12.5734
-    ]
+      41.6556,
+      12.2344,
+      42.1411,
+      12.8558
+    ],
+    "boundary": "boundaries/rome-whole.geojson"
   },
   {
     "city": "Manila",
@@ -740,13 +743,14 @@
   {
     "city": "Toronto",
     "streets": true,
-    "district": "Toronto (densest 150 km\u00b2 of the core)",
+    "district": "Toronto (whole municipality + the old core)",
     "box": [
-      43.6333,
-      -79.4739,
-      43.7433,
-      -79.3218
-    ]
+      43.58,
+      -79.6393,
+      43.8555,
+      -79.1152
+    ],
+    "boundary": "boundaries/toronto-whole.geojson"
   },
   {
     "city": "Riga",
@@ -1182,13 +1186,14 @@
   {
     "city": "Boston",
     "streets": true,
-    "district": "Boston (going-out core + 2 km)",
+    "district": "Boston (whole municipality + the old core)",
     "box": [
-      42.315,
-      -71.1553,
-      42.423,
-      -71.0107
-    ]
+      42.2279,
+      -71.1913,
+      42.424,
+      -70.8685
+    ],
+    "boundary": "boundaries/boston.geojson"
   },
   {
     "city": "Cologne",
@@ -1391,13 +1396,14 @@
   {
     "city": "Ottawa",
     "streets": true,
-    "district": "Ottawa (going-out core + 2 km)",
+    "district": "Ottawa (whole built-up area + the old core)",
     "box": [
-      45.373,
-      -75.7666,
-      45.451,
-      -75.6514
-    ]
+      45.1159,
+      -76.184,
+      45.5247,
+      -75.337
+    ],
+    "boundary": "boundaries/ottawa.geojson"
   },
   {
     "city": "Perth",
@@ -1732,13 +1738,14 @@
   {
     "city": "Bratislava",
     "streets": true,
-    "district": "Bratislava (going-out core + 2 km)",
+    "district": "Bratislava (whole municipality + the old core)",
     "box": [
-      48.095,
-      17.0621,
-      48.193,
-      17.2119
-    ]
+      48.0066,
+      16.946,
+      48.2651,
+      17.2846
+    ],
+    "boundary": "boundaries/bratislava.geojson"
   },
   {
     "city": "Oakland",
@@ -2249,23 +2256,25 @@
   {
     "city": "Cape Town",
     "streets": true,
-    "district": "Cape Town (going-out core + 2 km)",
+    "district": "Cape Town (whole built-up area + the old core)",
     "box": [
-      -33.955,
-      18.3833,
-      -33.883,
-      18.4487
-    ]
+      -34.2153,
+      18.3183,
+      -33.5386,
+      18.938
+    ],
+    "boundary": "boundaries/cape-town.geojson"
   },
   {
     "city": "S\u00e3o Paulo",
     "streets": true,
-    "district": "S\u00e3o Paulo (going-out core + 2 km)",
+    "district": "S\u00e3o Paulo (whole municipality)",
     "box": [
-      -23.607,
-      -46.7286,
-      -23.509,
-      -46.6074
-    ]
+      -24.0079,
+      -46.8263,
+      -23.3577,
+      -46.365
+    ],
+    "boundary": "boundaries/sao-paulo.geojson"
   }
 ]
