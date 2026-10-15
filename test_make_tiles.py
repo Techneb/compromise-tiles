@@ -1345,3 +1345,33 @@ with tempfile.TemporaryDirectory() as out:
     assert shade_points([a, b], out) is None   # a terrace tile not read: no cell is left without buildings
 make_tiles.published_items, make_tiles._osm = real_published_items, None
 print("ok (shade)")
+
+# Small places keep every buildings tile (owner, 2026-10-15): a commune (admin_level 8) with fewer than 5 venues.
+from make_tiles import small_place_keys, cells_in, buckets, SMALL_PLACE_VENUES, OSM
+def square(s, w, n, e): return {"type": "Polygon", "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]]}
+def venue(lat, lon): return {"coordinate": {"latitude": lat, "longitude": lon}}
+def table(vs):
+    t = {}
+    for v in vs: t.setdefault(buckets(v["coordinate"]["latitude"], v["coordinate"]["longitude"], v["coordinate"]["latitude"], v["coordinate"]["longitude"])[0], []).append(v)
+    return t
+village, town, county = square(48.700, 2.550, 48.704, 2.556), square(48.710, 2.550, 48.714, 2.556), square(48.690, 2.540, 48.720, 2.570)
+edge = square(48.720, 2.550, 48.740, 2.556)   # reaches past the box: its venues past it are read from the whole extract
+fake = OSM.__new__(OSM)
+fake.box = (48.69, 2.54, 48.73, 2.57)
+fake.venues = table([venue(48.701, 2.551 + i / 1000) for i in range(SMALL_PLACE_VENUES - 1)]
+                    + [venue(48.711, 2.551 + i / 1000) for i in range(SMALL_PLACE_VENUES)])
+fake.areas = lambda rect: ([{"admin_level": 8, "geometry": village}, {"admin_level": 8, "geometry": town},
+                            {"admin_level": 7, "geometry": county}, {"admin_level": 8, "geometry": edge},
+                            {"admin_level": 8, "geometry": None}], [])
+fake.venues_in = lambda rect: [venue(48.735, 2.551 + i / 1000) for i in range(SMALL_PLACE_VENUES)]
+make_tiles._osm = fake
+cells = cells_in(48.69, 2.54, 48.73, 2.57)
+keys = small_place_keys(cells, (48.69, 2.54, 48.73, 2.57))
+assert keys == {c.key for c in cells if make_tiles.contains(village, c.lat, c.lon)} and keys, keys   # 4 venues: small; 5: not
+fake.venues_in = lambda rect: []                                                                   # the edge commune has none
+assert small_place_keys(cells, (48.69, 2.54, 48.73, 2.57)) == keys | {c.key for c in cells if make_tiles.contains(edge, c.lat, c.lon)}
+def broken(rect): raise make_tiles.SourceError("osmium: no space")
+fake.areas = broken
+assert small_place_keys(cells, (48.69, 2.54, 48.73, 2.57)) is None   # communes not read: the caller keeps every cell
+make_tiles._osm = None
+print("ok (small places)")

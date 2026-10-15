@@ -498,12 +498,32 @@ def features(pbf, kinds="point,polygon", ids=False):
     for line in export.split("\n"):  # not splitlines(): it breaks on the \x1e that opens each record
         if line.strip("\x1e"): yield json.loads(line.lstrip("\x1e"))
 
+def read_venues(pbf, kept):
+    """The venues (AMENITIES) of a pbf, an area at its outer ring's mean vertex as the terrace permits; `kept` is a scratch file."""
+    osmium("tags-filter", pbf, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
+    out = []
+    for feature in features(kept):
+        tags, geometry = feature["properties"], feature["geometry"]
+        if tags.get("amenity") not in AMENITIES: continue
+        if geometry["type"] == "Point": lon, lat = geometry["coordinates"][:2]
+        else:
+            ring = next(outer_rings(geometry), None)
+            if not ring: continue
+            lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
+        venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
+                 "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
+        if drinks_late(tags): venue["bar"] = True
+        if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
+        out.append(venue)
+    return out
+
 class OSM:
     """An extract around one area: its venues in memory, bucketed by ~1 km, and its buildings cut
     from disk a block at a time — a whole box of them does not fit in memory (Paris intra-muros
     peaked at 3.5 GB held; the petite couronne is ten times the area)."""
     def __init__(self, pbf, rect):
         s, w, n, e = rect
+        self.box = rect
         self.venues, self.walls, self.roads, self.last = {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
         self.named, self.admin, self._places = pbf + ".places.pbf", pbf + ".admin.pbf", None
         self.numbers, self.pbf = pbf + ".numbers.pbf", pbf
@@ -515,20 +535,20 @@ class OSM:
             osmium("tags-filter", box, "nwr/place=" + ",".join(PLACE_KINDS), "-o", self.named, "--overwrite")
             osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
             osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
-            osmium("tags-filter", box, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
-            for feature in features(kept):
-                tags, geometry = feature["properties"], feature["geometry"]
-                if tags.get("amenity") not in AMENITIES: continue
-                if geometry["type"] == "Point": lon, lat = geometry["coordinates"][:2]
-                else:  # an area at its mean vertex, as the terrace permits
-                    ring = next(outer_rings(geometry), None)
-                    if not ring: continue
-                    lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
-                venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
-                         "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
-                if drinks_late(tags): venue["bar"] = True
-                if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
+            for venue in read_venues(box, kept):
+                lat, lon = venue["coordinate"]["latitude"], venue["coordinate"]["longitude"]
                 self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
+        finally:
+            for f in (box, kept):
+                if os.path.exists(f): os.remove(f)
+
+    def venues_in(self, rect):
+        """The extract's venues in a rect, read again from the whole extract: past the area's box (small_place_keys)."""
+        s, w, n, e = rect
+        box, kept = self.pbf + ".far.pbf", self.pbf + ".far-venues.pbf"
+        try:
+            osmium("extract", "-b", f"{w},{s},{e},{n}", self.pbf, "-o", box, "--overwrite")
+            return read_venues(box, kept)
         finally:
             for f in (box, kept):
                 if os.path.exists(f): os.remove(f)
@@ -3614,7 +3634,7 @@ def done(out, layer, cell):
     if read(file) is None: return False
     return limit is None or time.time() - os.path.getmtime(file) < limit * 86_400
 
-UNSHADED = None  # --unshaded: the file the weekly run lists the cells no venue or terrace reaches in
+UNSHADED = None  # --unshaded: the file the weekly run lists the cells no venue or terrace reaches and no small place holds in
 LISTED = None   # --listing: the store's keys, so the blocks it lacks are built first
 
 def in_store(cell, layers):
@@ -3700,6 +3720,43 @@ def shade_points(cells, out):
             log(f"    {c.key}: terraces-v2/ not read ({items}); every cell keeps its buildings"); return None
         points.update((t["coordinate"]["latitude"], t["coordinate"]["longitude"]) for t in items)
     return points
+
+# A small place keeps every buildings tile (owner, 2026-10-15): a commune (OSM admin_level 8) holding fewer than SMALL_PLACE_VENUES
+# of the extract's venues (the same as SHADE_MARGIN's), so a venue OSM lacks there (Périgny, 2026-10-14) still has its shade.
+SMALL_PLACE_LEVEL, SMALL_PLACE_VENUES = 8, 5
+
+def small_place_keys(cells, rect):
+    """The keys of the cells whose centre lies in a small commune meeting the rect, None when the communes could not be read."""
+    by_key, held = {c.key: c for c in cells}, []
+    try:
+        for b in _osm.areas(rect)[0]:
+            if b["admin_level"] != SMALL_PLACE_LEVEL or not (g := b["geometry"]): continue
+            keys = {c.key for k in cells_in(*bounds(g)) if (c := by_key.get(k.key)) and contains(g, c.lat, c.lon)}
+            if keys: held.append((g, keys))
+        # A commune reaching past the area's box (Saint-Germain-en-Laye past the petite couronne's) has venues the box left
+        # out: those communes' venues are read again from the whole extract, at once.
+        s, w, n, e = _osm.box
+        far = [g for g, _ in held if not (s <= (x := bounds(g))[0] and w <= x[1] and x[2] <= n and x[3] <= e)]
+        far_venues = {}
+        if far:
+            boxes = [bounds(g) for g in far]
+            for v in _osm.venues_in((min(x[0] for x in boxes), min(x[1] for x in boxes), max(x[2] for x in boxes), max(x[3] for x in boxes))):
+                lat, lon = v["coordinate"]["latitude"], v["coordinate"]["longitude"]
+                far_venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(v)
+    except SourceError as e:
+        log(f"    communes not read ({e}); every cell keeps its buildings"); return None
+    small = set()
+    for g, keys in held:
+        table = far_venues if any(g is f for f in far) else _osm.venues
+        inside = (v for v in _osm.near(table, bounds(g)) if contains(g, v["coordinate"]["latitude"], v["coordinate"]["longitude"]))
+        if sum(1 for _ in zip(range(SMALL_PLACE_VENUES), inside)) < SMALL_PLACE_VENUES: small |= keys
+    return small
+
+def shaded_keys(cells, out, rect):
+    """The cells a buildings tile is written for: near a venue or terrace (shade_keys), or in a small place. None: every cell."""
+    points = shade_points(cells, out)
+    small = small_place_keys(cells, rect) if points is not None else None
+    return None if small is None else shade_keys(points) | small
 
 def building_source(cell):
     city = next((b for b in CITY_BUILDINGS if in_feed(b, cell.lat, cell.lon)), None)
@@ -3907,9 +3964,8 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     french = "/europe/france" in pbf
     sources_only = set(layers) <= {"sources", "venues", "streets-main", "places", "boundaries", "transit"}
     shaded = None   # the cells a buildings tile is written for (shade_keys); None: every cell
-    if "buildings" in layers and (points := shade_points(cells, out)) is not None:
-        shaded = shade_keys(points)
-        log(f"{label}: buildings for {sum(c.key in shaded for c in cells)} of {len(cells)} cells, those near a venue or terrace")
+    if "buildings" in layers and (shaded := shaded_keys(cells, out, rect)) is not None:
+        log(f"{label}: buildings for {sum(c.key in shaded for c in cells)} of {len(cells)} cells, those near a venue or terrace or in a small place")
     if "venues" in layers:
         for c in coarse:
             if not done(out, "venues", c): write(path(out, "venues", c), osm_venues(c))
@@ -3951,12 +4007,11 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     # ponytail: a new area's first weekly run builds all its cells' buildings here, inside the same 290 minutes.
     if "terraces-v2" in layers and "buildings" not in layers and LISTED is not None:
         mine = [c for c in cells if c.key not in outside]
-        points = shade_points(mine, out) if mine else None
-        if points is not None:
-            keys = shade_keys(points)
+        keys = shaded_keys(mine, out, rect) if mine else None
+        if keys is not None:
             top = [c for c in mine if c.key in keys and f"tiles/buildings-v2/{c.key}.json" not in LISTED
                    and not done(out, "buildings-v2", c)]
-            log(f"{label}: buildings for {len(top)} cells a venue or terrace newly reaches")
+            log(f"{label}: buildings for {len(top)} cells a venue or terrace newly reaches or a small place holds")
             for group in blocks(top, block): do_buildings(group, out, failures)
             if UNSHADED:  # the cells no venue or terrace reaches: what tiles.yml's prune_buildings deletes from the store
                 with open(UNSHADED, "a") as f: f.writelines(c.key + "\n" for c in mine if c.key not in keys)
