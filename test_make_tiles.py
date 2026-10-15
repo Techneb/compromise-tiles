@@ -88,6 +88,9 @@ assert at(36.7200, -4.5600) == "Málaga" and at(38.4300, -0.5900) == "Alicante"
 assert at(-34.0800, 18.8500) == "Cape Town" and at(-23.8300, -46.7300) == "São Paulo"
 # Rotterdam's and Genoa's since 2026-10-15: Hoek van Holland and Voltri, outside the old cores, are in their rows.
 assert at(51.9800, 4.1300) == "Rotterdam" and at(44.4280, 8.7500) == "Genoa"
+# Batch 6's: Benrath, Langwasser, Almaden, Green Valley Ranch and Leśnica.
+assert at(51.1630, 6.8750) == "Düsseldorf" and at(49.3900, 11.1300) == "Nuremberg" and at(37.2200, -121.8600) == "San Jose"
+assert at(39.7900, -104.7600) == "Denver" and at(51.1400, 16.8700) == "Wrocław"
 
 # 2026-10-02 rows. UTM forward and back agree (Düsseldorf's Dreischeibenhaus).
 from make_tiles import wgs84_to_utm, utm_to_wgs84, mercator_to_wgs84, citygml_buildings, citygml_tiles, beoland, liguria
