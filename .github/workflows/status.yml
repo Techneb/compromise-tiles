@@ -47,6 +47,7 @@ jobs:
             docs/sunny-filter
             tools/coverage
             MeetCore/Sources/MeetCore/ListingLinks.swift
+            MeetCore/Sources/MeetCore/ListingSites*.swift
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - if: ${{ steps.token.outputs.ok == 'true' }}

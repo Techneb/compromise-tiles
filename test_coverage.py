@@ -126,4 +126,19 @@ assert p["box"] == [48.7, 2.1, 48.9, 2.6], p
 assert q["areas"] == [] and q["box"] is None and q["outline"] and not q["streets"] and "transit" not in q and not q["cityHeights"], q
 out = os.path.join(d, "slim2"); slim(dict(feed, cells=[], venueCells=[], communes={}, dates=[]), out, [{"city": "Paris"}])
 assert json.load(open(os.path.join(out, "summary.json")))["cities"]["Paris"]["goingOut"] == 8
+
+# Per-layer tiles and dates (2026-10-15): the areas' cell layers merged, the fragments' counted layers beside them.
+from coverage import layer_counts, span
+feed["areas"][0].update(goingOutShare=0.5, layers={"terraces-v2": span(["2026-10-12", "2026-10-01", None]), "venues": None})
+feed["areas"][1]["layers"] = {"terraces-v2": span(["2026-10-14"])}
+feed["transit"]["Paris"]["modes"] = {"bus": 1599}
+feed["built"] = {"Paris": {"streets": {"tiles": 7, "date": "2026-09-30"}}}
+p = summary(feed, [{"city": "Paris"}])["cities"]["Paris"]
+assert p["layers"] == {"streets": {"tiles": 7, "oldest": "2026-09-30", "newest": "2026-09-30"},
+                       "terraces-v2": {"tiles": 3, "oldest": "2026-10-01", "newest": "2026-10-14"}}, p["layers"]
+assert p["goingOutCovered"] == 4 and p["permitFeed"] == "parisdata.opendatasoft.com" and p["transitModes"] == {"bus": 1599}, p
+o = tempfile.mkdtemp(); os.makedirs(os.path.join(o, "streets")); os.makedirs(os.path.join(o, "venues"))
+for n in ("1,1", "1,2"): open(os.path.join(o, "streets", n + ".json"), "w").write("[]")
+open(os.path.join(o, "venues", "1,1.json"), "w").write("[]")
+assert layer_counts(o, "2026-10-15") == {"streets": {"tiles": 2, "date": "2026-10-15"}}
 print("ok")
