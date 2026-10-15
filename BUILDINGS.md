@@ -31,7 +31,8 @@ A tile holds every footprint within `BUILDING_REACH` (200 m) of its cell.
 
 Since 2026-10-13, only the cells within `SHADE_MARGIN` (100 m) of a venue of
 the extract (bar, pub, beer garden, café or restaurant) or of a terrace of
-terraces-v2/. The weekly terraces-v2 run builds the buildings of the cells a
+terraces-v2/, and, since 2026-10-15, every cell of a commune (OSM admin_level 8)
+with fewer than 5 such venues. The weekly terraces-v2 run builds the buildings of the cells a
 new venue or terrace reaches. A dispatch of `tiles.yml` with
 `prune_buildings` (dry run first) deletes the buildings-v2/ tiles of a
 city's own cells that none reaches, after the upload. `coverage.json` keeps
