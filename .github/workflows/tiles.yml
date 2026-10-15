@@ -60,7 +60,7 @@ jobs:
       cities: ${{ steps.plan.outputs.cities }}
       layers: ${{ steps.plan.outputs.layers }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - id: plan
         env:
           ONLY: ${{ inputs.only }}
@@ -73,10 +73,13 @@ jobs:
           unknown = [l for l in os.environ["LAYERS"].split(",") if l not in LAYERS + ("sources",)]
           if unknown: sys.exit(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources (numbers comes with streets)")
           only = [c.strip() for c in os.environ.get("ONLY", "").split(",") if c.strip()]
+          entries = json.load(open("cities.json"))
+          missing = [c for c in only if c not in {e["city"] for e in entries}]
+          if missing: sys.exit(f"not in cities.json: {', '.join(map(repr, missing))}")
           # A run of the street layers alone has nothing to do for a city with no flagged entry: no job for it.
           streets_only = {l.strip() for l in os.environ["LAYERS"].split(",") if l.strip()} <= {"streets", "streets-main", "places", "boundaries", "transit"}
           names = []
-          for e in json.load(open("cities.json")):
+          for e in entries:
               if streets_only and e.get("streets") is not True: continue
               if (not only or e["city"] in only) and e["city"] not in names: names.append(e["city"])
           print("cities=" + json.dumps(names))
@@ -110,7 +113,7 @@ jobs:
           cat remote-*.tsv > remote.tsv
           n=$(grep -c . remote.tsv || true)
           echo "Listed $n keys under: $layers (about $(( n / 1000 + $(echo $layers | wc -w) )) list requests)" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ hashFiles('remote.tsv') != '' }}
         with:
           name: remote
@@ -128,13 +131,13 @@ jobs:
       matrix:
         city: ${{ fromJson(needs.plan.outputs.cities) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # boundaries/ alone needs packages (shapely ≥ 2.1 for coverage_simplify); in the user's site, the system's Python left as it is.
       - if: ${{ contains(format(',{0},', needs.plan.outputs.layers), ',boundaries,') }}
         run: python3 -m pip install --user --break-system-packages -q -r requirements.txt
       # The store's listing, read twice: the build starts with the blocks the store lacks, the upload compares with it.
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: ${{ !cancelled() }}
         continue-on-error: true
         with:
@@ -154,20 +157,13 @@ jobs:
           python3 -c 'import json,os; cities=json.load(open("cities.json")); json.dump([c for c in cities if c["city"]==os.environ["CITY"]], open("cities-run.json","w"))'
           timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 --unshaded unshaded.txt \
             --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || echo "status=$?" >> "$GITHUB_OUTPUT"   # checked after the upload
-      # This city's cells for the feed, merged by the feed job below (small; the tiles stay here).
+      # This city's cells for the feed, merged by the feed job below (small; the tiles stay here), handed over after the upload.
       - name: Coverage fragment
         if: ${{ !cancelled() }}
         continue-on-error: true
         env:
           CITY: ${{ matrix.city }}   # transit/ tiles are this city's (coverage.py)
         run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() && hashFiles('fragment.json') != '' }}
-        continue-on-error: true   # a lost fragment must not hold back the tiles
-        with:
-          name: fragment-${{ strategy.job-index }}
-          path: fragment.json
-          retention-days: 3
       # Gzipped at rest and served with Content-Encoding: the phone's URLSession inflates it.
       # -n leaves out the name and time, so an unchanged tile gzips to the same bytes.
       # Compared with the store's ETags: only new and changed tiles are kept for the upload.
@@ -188,7 +184,7 @@ jobs:
           [ -f remote.tsv ] || echo "No listing of the store: every tile is uploaded." | tee -a "$GITHUB_STEP_SUMMARY"
           python3 changed.py --listing remote.tsv --out out $PRUNE --summary "$GITHUB_STEP_SUMMARY" --cities cities.json --city "$CITY" --stale stale.txt $UNSHADED
       # A dry run keeps the keys it would delete (stale.txt), for the prune's counts and sizes (2026-10-14).
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: ${{ inputs.dry_run && !cancelled() && hashFiles('stale.txt') != '' }}
         continue-on-error: true
         with:
@@ -222,6 +218,14 @@ jobs:
           sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
             sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
           done
+      # The fragment only once the tiles are up: a failed upload must not date the city's cells today in coverage.json.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ !inputs.dry_run && hashFiles('fragment.json') != '' }}
+        continue-on-error: true   # a lost fragment must not hold back the rest
+        with:
+          name: fragment-${{ strategy.job-index }}
+          path: fragment.json
+          retention-days: 3
       # numbers/ and boundaries/ write no file for a cell left with nothing: the keys of the city's own cells this run
       # emptied (changed.py --stale, listed in the summary above, a dry run included) go from the store, those two layers only.
       # With prune_buildings, also the buildings-v2/ tiles of the city's own cells no venue or terrace reaches (owner, 2026-10-13).
@@ -259,7 +263,7 @@ jobs:
     if: ${{ inputs.repo_tiles && !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       # Only buildings/ (converted to buildings-v2/), only in the cells of the cities built off GitHub (storage.py's owners):
       # the other layers under tiles/ are old snapshots of what the weekly build makes, and would overwrite its fresh tiles.
       # buildings-v2/ before the fragment: coverage.py counts that layer only.
@@ -281,11 +285,6 @@ jobs:
           python3 buildings_v2.py out/buildings out/buildings-v2   # the committed tiles, in the app's v2 format only
           rm -rf out/buildings
       - run: python3 coverage.py --out out --cities cities.json --previous "https://tiles.alephb.uk/coverage.json" --fragment fragment.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: fragment-repo
-          path: fragment.json
-          retention-days: 3
       - env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -305,15 +304,22 @@ jobs:
           sed -n 's/^upload failed: \(out\/[^ ]*\) to .*/\1/p' upload.log | while read -r f; do
             sleep 2; up "$f" "s3://${{ secrets.R2_BUCKET }}/tiles/${f#out/}" || exit 1
           done
+      # After the upload, as in build.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fragment-repo
+          path: fragment.json
+          retention-days: 3
 
   # The coverage feed the site's map reads: every job's fragment merged into the published feed, once.
   feed:
     needs: [plan, build, repo_upload]
-    if: ${{ !cancelled() && !inputs.dry_run }}
+    # Not when the plan failed or chose no city: nothing new to merge.
+    if: ${{ !cancelled() && !inputs.dry_run && needs.plan.result == 'success' && (needs.plan.outputs.cities != '[]' || inputs.repo_tiles) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: fragment-*
           path: fragments
