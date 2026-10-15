@@ -91,6 +91,8 @@ assert at(51.9800, 4.1300) == "Rotterdam" and at(44.4280, 8.7500) == "Genoa"
 # Batch 6's: Benrath, Langwasser, Almaden, Green Valley Ranch and Leśnica.
 assert at(51.1630, 6.8750) == "Düsseldorf" and at(49.3900, 11.1300) == "Nuremberg" and at(37.2200, -121.8600) == "San Jose"
 assert at(39.7900, -104.7600) == "Denver" and at(51.1400, 16.8700) == "Wrocław"
+# Batch 7's Catastro boxes: Casetas (Zaragoza), Puente Duero (Valladolid) and Porceyo (Gijón).
+assert at(41.7200, -1.0300) == "Zaragoza" and at(41.5600, -4.7500) == "Valladolid" and at(43.5050, -5.7500) == "Gijón"
 
 # 2026-10-02 rows. UTM forward and back agree (Düsseldorf's Dreischeibenhaus).
 from make_tiles import wgs84_to_utm, utm_to_wgs84, mercator_to_wgs84, citygml_buildings, citygml_tiles, beoland, liguria
