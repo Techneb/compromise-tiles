@@ -525,6 +525,17 @@
     "city": "Anglet",
     "district": "Anglet (whole commune)",
     "box": [
+      43.4495,
+      -1.5487,
+      43.529,
+      -1.4898
+    ],
+    "boundary": "boundaries/anglet.geojson"
+  },
+  {
+    "city": "Anglet",
+    "district": "Anglet and its neighbours (the box around it)",
+    "box": [
       43.47,
       -1.56,
       43.54,
@@ -536,6 +547,18 @@
     "streets": true,
     "district": "Rouen (whole commune)",
     "box": [
+      49.4172,
+      1.03,
+      49.4653,
+      1.1522
+    ],
+    "boundary": "boundaries/rouen.geojson"
+  },
+  {
+    "city": "Rouen",
+    "streets": true,
+    "district": "Rouen and its neighbours (the box around it)",
+    "box": [
       49.4,
       1.03,
       49.48,
@@ -546,6 +569,18 @@
     "city": "Lorient",
     "streets": true,
     "district": "Lorient (whole commune)",
+    "box": [
+      47.7242,
+      -3.4105,
+      47.7745,
+      -3.3501
+    ],
+    "boundary": "boundaries/lorient.geojson"
+  },
+  {
+    "city": "Lorient",
+    "streets": true,
+    "district": "Lorient and its neighbours (the box around it)",
     "box": [
       47.71,
       -3.4,
@@ -1591,6 +1626,18 @@
     "streets": true,
     "district": "San Jos\u00e9 (municipality)",
     "box": [
+      9.8998,
+      -84.1801,
+      9.9721,
+      -84.0468
+    ],
+    "boundary": "boundaries/san-jose-cr.geojson"
+  },
+  {
+    "city": "San Jos\u00e9",
+    "streets": true,
+    "district": "San Jos\u00e9 and its neighbours (the box around it)",
+    "box": [
       9.9005,
       -84.1499,
       9.9658,
@@ -1612,6 +1659,18 @@
     "city": "Thessalon\u00edki",
     "streets": true,
     "district": "Thessalon\u00edki (municipality)",
+    "box": [
+      40.5861,
+      22.8995,
+      40.6531,
+      22.9913
+    ],
+    "boundary": "boundaries/thessaloniki.geojson"
+  },
+  {
+    "city": "Thessalon\u00edki",
+    "streets": true,
+    "district": "Thessalon\u00edki and its neighbours (the box around it)",
     "box": [
       40.59,
       22.92,

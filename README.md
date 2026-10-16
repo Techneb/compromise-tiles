@@ -388,6 +388,15 @@ none, this says so rather than guessing.
 **City boundaries (`boundaries/`)**
 - Paris (the city, `paris.geojson`): Ville de Paris, Arrondissements,
   Open Database License (ODbL); its 20 arrondissements dissolved into one.
+- Rouen: Métropole Rouen Normandie, Cadastre – Communes (the DGFiP cadastre;
+  licence not stated by the publisher).
+- Lorient: Ville de Lorient, Découpage géographique des quartiers, through
+  opendata56.fr, Licence Ouverte 2.0; its quartiers dissolved into one.
+- Anglet: Etalab geo API (IGN Admin Express), Licence Ouverte 2.0.
+- San José (Costa Rica, `san-jose-cr.geojson`): © OpenStreetMap contributors,
+  ODbL (the cantón's administrative boundary).
+- Thessaloníki: Δήμος Θεσσαλονίκης, δημοτικές κοινότητες (the municipality's
+  open licence); dissolved into one.
 - Berlin: Geoportal Berlin, ALKIS Land Berlin, Datenlizenz Deutschland –
   Zero 2.0.
 - New York: NYC Department of City Planning, Borough Boundaries, NYC Open
