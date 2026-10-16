@@ -397,6 +397,12 @@ none, this says so rather than guessing.
   ODbL (the cantón's administrative boundary).
 - Thessaloníki: Δήμος Θεσσαλονίκης, δημοτικές κοινότητες (the municipality's
   open licence); dissolved into one.
+- Vancouver: City of Vancouver, City boundary. Contains information licensed
+  under the Open Government Licence – Vancouver.
+- The other whole-city files made since 2026-10-15 (Rome to Johannesburg, Zurich
+  to Poznań): © OpenStreetMap contributors, ODbL (each municipality's
+  administrative boundary), cut to land with the OSM land polygons
+  (osmdata.openstreetmap.de, ODbL).
 - Berlin: Geoportal Berlin, ALKIS Land Berlin, Datenlizenz Deutschland –
   Zero 2.0.
 - New York: NYC Department of City Planning, Borough Boundaries, NYC Open
