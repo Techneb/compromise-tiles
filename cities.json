@@ -365,6 +365,7 @@
   },
   {
     "city": "Zaragoza",
+    "streets": true,
     "district": "Zaragoza (whole municipality)",
     "box": [
       41.4516,
@@ -446,6 +447,7 @@
   },
   {
     "city": "Valladolid",
+    "streets": true,
     "district": "Valladolid (whole municipality + the old core)",
     "box": [
       41.5231,
@@ -469,6 +471,7 @@
   },
   {
     "city": "Gij\u00f3n",
+    "streets": true,
     "district": "Gij\u00f3n (whole municipality + the old core)",
     "box": [
       43.4415,
@@ -857,6 +860,7 @@
   },
   {
     "city": "Eindhoven",
+    "streets": true,
     "district": "Eindhoven (whole municipality + the old core)",
     "box": [
       51.4,
@@ -1360,6 +1364,7 @@
   },
   {
     "city": "Birmingham",
+    "streets": true,
     "district": "Birmingham (whole municipality)",
     "box": [
       52.381,
@@ -1371,6 +1376,7 @@
   },
   {
     "city": "Leeds",
+    "streets": true,
     "district": "Leeds (whole municipality)",
     "box": [
       53.6989,
@@ -1477,6 +1483,7 @@
   },
   {
     "city": "Sheffield",
+    "streets": true,
     "district": "Sheffield (whole municipality)",
     "box": [
       53.3045,
