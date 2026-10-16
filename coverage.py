@@ -151,8 +151,11 @@ def summary(feed, entries):
         c = new(e["city"])
         c["streets"] |= e.get("streets") is True
         c["outline"] |= bool(e.get("boundary"))
+    named = {e["city"] for e in entries}
     for a in feed["areas"]:   # a départements entry's areas are its communes, each a record of its own
         c = new(a["city"])
+        # A commune of a départements entry is held to its commune: the build keeps a cell by its INSEE code.
+        c["outline"] |= a["city"] not in named
         c["areas"].append(a["name"])
         if a.get("box"):
             b = c["box"] or a["box"]
