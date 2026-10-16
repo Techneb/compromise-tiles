@@ -388,6 +388,7 @@
   },
   {
     "city": "Palma",
+    "streets": true,
     "district": "Palma (whole municipality without Cabrera + the old core)",
     "box": [
       39.5038,
@@ -411,6 +412,7 @@
   },
   {
     "city": "Murcia",
+    "streets": true,
     "district": "Murcia (going-out core + 1 km)",
     "box": [
       37.971,
@@ -421,6 +423,7 @@
   },
   {
     "city": "Alicante",
+    "streets": true,
     "district": "Alicante (whole municipality without Tabarca + the old core)",
     "box": [
       38.2742,
@@ -432,6 +435,7 @@
   },
   {
     "city": "C\u00f3rdoba",
+    "streets": true,
     "district": "C\u00f3rdoba (going-out core + 2 km)",
     "box": [
       37.853,
@@ -453,6 +457,7 @@
   },
   {
     "city": "Vigo",
+    "streets": true,
     "district": "Vigo (whole municipality)",
     "box": [
       42.1324,
@@ -523,6 +528,7 @@
   },
   {
     "city": "Anglet",
+    "streets": true,
     "district": "Anglet (whole commune)",
     "box": [
       43.4495,
@@ -534,6 +540,7 @@
   },
   {
     "city": "Anglet",
+    "streets": true,
     "district": "Anglet and its neighbours (the box around it)",
     "box": [
       43.47,
@@ -590,6 +597,7 @@
   },
   {
     "city": "Calgary",
+    "streets": true,
     "district": "Calgary (whole municipality)",
     "box": [
       50.8425,
@@ -623,6 +631,7 @@
   },
   {
     "city": "Austin",
+    "streets": true,
     "district": "Austin (whole municipality + the old core)",
     "box": [
       30.0985,
@@ -646,6 +655,7 @@
   },
   {
     "city": "Philadelphia",
+    "streets": true,
     "district": "Philadelphia (whole municipality + the old core)",
     "box": [
       39.867,
@@ -776,6 +786,7 @@
   },
   {
     "city": "Adelaide",
+    "streets": true,
     "district": "Adelaide (going-out core + 2 km)",
     "box": [
       -34.953,
@@ -832,6 +843,7 @@
   },
   {
     "city": "Holon",
+    "streets": true,
     "district": "Holon (whole municipality)",
     "box": [
       31.9887,
@@ -843,6 +855,7 @@
   },
   {
     "city": "Herzliya",
+    "streets": true,
     "district": "Herzliya (whole municipality)",
     "box": [
       32.144,
@@ -854,6 +867,7 @@
   },
   {
     "city": "Ramat HaSharon",
+    "streets": true,
     "district": "Ramat HaSharon (whole municipality)",
     "box": [
       32.1119,
@@ -876,6 +890,7 @@
   },
   {
     "city": "Or Yehuda",
+    "streets": true,
     "district": "Or Yehuda (whole municipality)",
     "box": [
       32.0165,
@@ -920,6 +935,7 @@
   },
   {
     "city": "Petah Tikva",
+    "streets": true,
     "district": "Petah Tikva (whole municipality)",
     "box": [
       32.0541,
@@ -931,6 +947,7 @@
   },
   {
     "city": "Kiryat Ono",
+    "streets": true,
     "district": "Kiryat Ono (whole municipality)",
     "box": [
       32.0332,
@@ -942,6 +959,7 @@
   },
   {
     "city": "Azor",
+    "streets": true,
     "district": "Azor (whole municipality)",
     "box": [
       32.0105,
@@ -953,6 +971,7 @@
   },
   {
     "city": "Mevaseret Zion",
+    "streets": true,
     "district": "Mevaseret Zion (whole municipality)",
     "box": [
       31.7813,
@@ -964,6 +983,7 @@
   },
   {
     "city": "Bethlehem",
+    "streets": true,
     "district": "Bethlehem (whole municipality)",
     "box": [
       31.6907,
@@ -997,6 +1017,7 @@
   },
   {
     "city": "Albireh",
+    "streets": true,
     "district": "Albireh (whole municipality)",
     "box": [
       31.8812,
@@ -1030,6 +1051,7 @@
   },
   {
     "city": "Ramallah",
+    "streets": true,
     "district": "Ramallah (whole municipality)",
     "box": [
       31.8838,
@@ -1242,6 +1264,7 @@
   },
   {
     "city": "Cologne",
+    "streets": true,
     "district": "Cologne (whole municipality + the old core)",
     "box": [
       50.8304,
@@ -1265,6 +1288,7 @@
   },
   {
     "city": "Stuttgart",
+    "streets": true,
     "district": "Stuttgart (whole municipality + the old core)",
     "box": [
       48.692,
@@ -1416,6 +1440,7 @@
   },
   {
     "city": "Bristol",
+    "streets": true,
     "district": "Bristol (going-out core + 2 km)",
     "box": [
       51.419,
@@ -1556,6 +1581,7 @@
   },
   {
     "city": "\u0141\u00f3d\u017a",
+    "streets": true,
     "district": "\u0141\u00f3d\u017a (whole municipality)",
     "box": [
       51.6861,
@@ -1567,6 +1593,7 @@
   },
   {
     "city": "Szczecin",
+    "streets": true,
     "district": "Szczecin (going-out core + 2 km)",
     "box": [
       53.403,
@@ -1589,6 +1616,7 @@
   },
   {
     "city": "D\u00fcsseldorf",
+    "streets": true,
     "district": "D\u00fcsseldorf (whole municipality + the old core)",
     "box": [
       51.1243,
@@ -1646,6 +1674,7 @@
   },
   {
     "city": "San Jose",
+    "streets": true,
     "district": "San Jose (whole municipality)",
     "box": [
       37.1231,
@@ -1680,6 +1709,7 @@
   },
   {
     "city": "Nuremberg",
+    "streets": true,
     "district": "Nuremberg (whole municipality + the old core)",
     "box": [
       49.3314,
@@ -1691,6 +1721,7 @@
   },
   {
     "city": "Genoa",
+    "streets": true,
     "district": "Genoa (whole municipality + the old core)",
     "box": [
       44.379,
@@ -1725,6 +1756,7 @@
   },
   {
     "city": "Oakland",
+    "streets": true,
     "district": "Oakland (whole municipality + the old core)",
     "box": [
       37.6992,
@@ -2096,6 +2128,7 @@
   },
   {
     "city": "Pau",
+    "streets": true,
     "district": "Pau (whole commune)",
     "box": [
       43.2857,
@@ -2119,6 +2152,7 @@
   },
   {
     "city": "Perpignan",
+    "streets": true,
     "district": "Perpignan (whole commune)",
     "box": [
       42.6492,
@@ -2154,6 +2188,7 @@
   },
   {
     "city": "Mulhouse",
+    "streets": true,
     "district": "Mulhouse (whole commune)",
     "box": [
       47.7218,
@@ -2212,6 +2247,7 @@
   },
   {
     "city": "Edmonton",
+    "streets": true,
     "district": "Edmonton (whole municipality)",
     "box": [
       53.3372,
@@ -2223,6 +2259,7 @@
   },
   {
     "city": "Denver",
+    "streets": true,
     "district": "Denver (whole municipality)",
     "box": [
       39.6143,
