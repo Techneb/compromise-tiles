@@ -386,6 +386,8 @@ none, this says so rather than guessing.
   (Licence Ouverte 2.0) when the geo API does not answer.
 
 **City boundaries (`boundaries/`)**
+- Paris (the city, `paris.geojson`): Ville de Paris, Arrondissements,
+  Open Database License (ODbL); its 20 arrondissements dissolved into one.
 - Berlin: Geoportal Berlin, ALKIS Land Berlin, Datenlizenz Deutschland –
   Zero 2.0.
 - New York: NYC Department of City Planning, Borough Boundaries, NYC Open

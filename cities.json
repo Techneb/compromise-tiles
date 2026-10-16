@@ -8,7 +8,8 @@
       2.224,
       48.902,
       2.47
-    ]
+    ],
+    "boundary": "boundaries/paris.geojson"
   },
   {
     "city": "Paris",
