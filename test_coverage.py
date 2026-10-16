@@ -118,6 +118,8 @@ feed = {"updated": "2026-10-15", "transit": {"Paris": {"lines": 1599}, "Elsewher
 got = summary(feed, [{"city": "Paris", "streets": True}, {"city": "Paris"}, {"city": "Périgny", "boundary": "boundaries/perigny.geojson"}])
 assert got["updated"] == "2026-10-15" and set(got["cities"]) == {"Paris", "Périgny"}, got
 assert set(summary(dict(feed, areas=feed["areas"] + [{"name": "Pantin", "city": "Pantin", "box": [1, 2, 3, 4]}]), [])["cities"]) == {"Paris", "Pantin"}
+# A départements entry's commune (no entry of its own) is held to its commune, so it has an outline.
+assert summary(dict(feed, areas=feed["areas"] + [{"name": "Pantin", "city": "Pantin"}]), [{"city": "Paris"}])["cities"]["Pantin"]["outline"]
 p = got["cities"]["Paris"]
 assert (p["areas"], p["tiled"], p["passing"], p["places"], p["km2"], p["built"], p["streets"], p["outline"], p["transit"], p["permits"]) == \
     (["Intra-muros", "Petite couronne"], 15, 10, 50, 1.8, "2026-10-14", True, False, 1599, True), p
