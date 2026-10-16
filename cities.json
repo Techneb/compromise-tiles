@@ -329,13 +329,14 @@
   {
     "city": "Wroc\u0142aw",
     "streets": true,
-    "district": "Wroc\u0142aw (going-out core + 2 km)",
+    "district": "Wroc\u0142aw (whole municipality)",
     "box": [
-      51.075,
-      16.9864,
-      51.143,
-      17.0956
-    ]
+      51.0426,
+      16.8073,
+      51.2101,
+      17.1763
+    ],
+    "boundary": "boundaries/wroclaw.geojson"
   },
   {
     "city": "Barcelona",
@@ -550,13 +551,14 @@
   },
   {
     "city": "Calgary",
-    "district": "Calgary (going-out core + 2 km)",
+    "district": "Calgary (whole municipality)",
     "box": [
-      51.013,
-      -114.1276,
-      51.075,
-      -114.0104
-    ]
+      50.8425,
+      -114.3158,
+      51.2125,
+      -113.86
+    ],
+    "boundary": "boundaries/calgary.geojson"
   },
   {
     "city": "Vancouver",
@@ -582,13 +584,14 @@
   },
   {
     "city": "Austin",
-    "district": "Austin (going-out core + 2 km)",
+    "district": "Austin (whole municipality + the old core)",
     "box": [
-      30.215,
-      -97.8158,
-      30.293,
-      -97.6902
-    ]
+      30.0985,
+      -97.9368,
+      30.5167,
+      -97.5605
+    ],
+    "boundary": "boundaries/austin.geojson"
   },
   {
     "city": "Los Angeles",
@@ -1222,13 +1225,14 @@
   },
   {
     "city": "Stuttgart",
-    "district": "Stuttgart (going-out core + 2 km)",
+    "district": "Stuttgart (whole municipality + the old core)",
     "box": [
-      48.739,
-      9.1197,
-      48.833,
-      9.2563
-    ]
+      48.692,
+      9.0386,
+      48.8664,
+      9.3161
+    ],
+    "boundary": "boundaries/stuttgart.geojson"
   },
   {
     "city": "Auckland",
@@ -1509,13 +1513,14 @@
   },
   {
     "city": "\u0141\u00f3d\u017a",
-    "district": "\u0141\u00f3d\u017a (going-out core + 2 km)",
+    "district": "\u0141\u00f3d\u017a (whole municipality)",
     "box": [
-      51.727,
-      19.414,
-      51.801,
-      19.5
-    ]
+      51.6861,
+      19.3208,
+      51.8599,
+      19.64
+    ],
+    "boundary": "boundaries/lodz.geojson"
   },
   {
     "city": "Szczecin",
@@ -1650,13 +1655,14 @@
   },
   {
     "city": "D\u00fcsseldorf",
-    "district": "D\u00fcsseldorf (going-out core + 2 km)",
+    "district": "D\u00fcsseldorf (whole municipality + the old core)",
     "box": [
-      51.179,
-      6.7203,
-      51.269,
-      6.8497
-    ]
+      51.1243,
+      6.6888,
+      51.3525,
+      6.94
+    ],
+    "boundary": "boundaries/dusseldorf.geojson"
   },
   {
     "city": "Zagreb",
@@ -1694,13 +1700,14 @@
   },
   {
     "city": "San Jose",
-    "district": "San Jose (going-out core + 2 km)",
+    "district": "San Jose (whole municipality)",
     "box": [
-      37.309,
-      -121.9236,
-      37.359,
-      -121.8544
-    ]
+      37.1231,
+      -122.0463,
+      37.4691,
+      -121.5858
+    ],
+    "boundary": "boundaries/san-jose.geojson"
   },
   {
     "city": "Thessalon\u00edki",
@@ -1715,13 +1722,14 @@
   },
   {
     "city": "Nuremberg",
-    "district": "Nuremberg (going-out core + 2 km)",
+    "district": "Nuremberg (whole municipality + the old core)",
     "box": [
-      49.409,
-      11.0034,
-      49.491,
-      11.1366
-    ]
+      49.3314,
+      10.9887,
+      49.5408,
+      11.2826
+    ],
+    "boundary": "boundaries/nuremberg.geojson"
   },
   {
     "city": "Genoa",
@@ -2245,23 +2253,25 @@
   },
   {
     "city": "Edmonton",
-    "district": "Edmonton (going-out core + 2 km)",
+    "district": "Edmonton (whole municipality)",
     "box": [
-      53.519,
-      -113.5472,
-      53.575,
-      -113.4528
-    ]
+      53.3372,
+      -113.7139,
+      53.7163,
+      -113.2714
+    ],
+    "boundary": "boundaries/edmonton-whole.geojson"
   },
   {
     "city": "Denver",
-    "district": "Denver (going-out core + 2 km)",
+    "district": "Denver (whole municipality)",
     "box": [
-      39.691,
-      -105.0504,
-      39.791,
-      -104.9196
-    ]
+      39.6143,
+      -105.1099,
+      39.9143,
+      -104.5997
+    ],
+    "boundary": "boundaries/denver.geojson"
   },
   {
     "city": "Cape Town",

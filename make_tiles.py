@@ -2027,7 +2027,7 @@ CITY_BUILDINGS = [
         "https://vector.sitg.ge.ch/arcgis/rest/services/CAD_BATIMENT_HORSOL/FeatureServer/0", r, ["HAUTEUR"]),
         lambda p: p.get("HAUTEUR"))),
     # BLDG_HEIGH is feet.
-    building_row("Denver", (39.66, 39.80), (-105.05, -104.87), lambda r: footprints(arcgis(
+    building_row("Denver", (39.6143, 39.9143), (-105.1099, -104.5997), lambda r: footprints(arcgis(
         "https://services1.arcgis.com/zdB7qR0BtYrg0Xpl/arcgis/rest/services/ODC_PROP_BUILDINGOUTLINES_A/FeatureServer/111",
         r, ["BLDG_HEIGH"]), lambda p: p["BLDG_HEIGH"] * 0.3048 if p.get("BLDG_HEIGH") else None)),
     building_row("Cape Town", (-34.36, -33.47), (18.30, 19.01), lambda r: footprints(arcgis(
@@ -2037,7 +2037,7 @@ CITY_BUILDINGS = [
         "https://wfs.geosampa.prefeitura.sp.gov.br/geoserver/ows", {"TYPENAMES": "geoportal:edificacao",
         "OUTPUTFORMAT": "application/json", "SRSNAME": "EPSG:4326", "PROPERTYNAME": "ge_poligono,qt_altura_edificacao"}, r),
         lambda p: p.get("qt_altura_edificacao"))),
-    building_row("Wrocław", (51.08, 51.16), (16.95, 17.10), lambda r: footprints(arcgis(
+    building_row("Wrocław", (51.0426, 51.2101), (16.8073, 17.1763), lambda r: footprints(arcgis(
         "https://gis.um.wroc.pl/portal_srv/rest/services/SMH_2022_Budynki/MapServer/0", r, ["HA"]), lambda p: p.get("HA"))),
     # Ramat Gan, Holon, Herzliya (ArcGIS Online, no licence stated): floors × 3 m. Before Tel Aviv's
     # box, which covers Ramat Gan whole; each held to its municipal boundary (OSM, admin level 8).
@@ -2128,9 +2128,9 @@ CITY_BUILDINGS = [
         lambda p: (p.get("max_hgt") or p.get("approx_hgt") or 0) * 0.3048 or None)),
     # Wired 2026-10-02. Statewide LoD2 models (Düsseldorf: Dreischeibenhaus 93.6 m; Nuremberg: Business
     # Tower 131.6 m), so the box is the city's cities.json area.
-    building_row("Düsseldorf", (51.179, 51.269), (6.7203, 6.8497), citygml_tiles(
+    building_row("Düsseldorf", (51.1243, 51.3525), (6.6888, 6.94), citygml_tiles(
         "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
-    building_row("Nuremberg", (49.409, 49.491), (11.0034, 11.1366), citygml_tiles(
+    building_row("Nuremberg", (49.3314, 49.5408), (10.9887, 11.2826), citygml_tiles(
         "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
     # ZG3D 2022 (Otvorena dozvola): Z_Delta is metres from ground to top (the cathedral 103.5 m). The box is the layer's.
     building_row("Zagreb", (45.622, 45.969), (15.771, 16.229), lambda r: footprints(arcgis(
@@ -2144,7 +2144,7 @@ CITY_BUILDINGS = [
         ["CantPisos"], where="PISO=1"), lambda p: number(p.get("CantPisos")) * 3.5 if number(p.get("CantPisos")) else None)),
     # Santa Clara County's 2020 lidar footprints (county-wide, no licence stated): Building_H is feet above
     # ground (houses 10–30, City Hall 285.6). The box is San Jose's cities.json area.
-    building_row("San Jose", (37.309, 37.359), (-121.9236, -121.8544), lambda r: footprints(arcgis(
+    building_row("San Jose", (37.1231, 37.4691), (-122.0463, -121.5858), lambda r: footprints(arcgis(
         "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40", r, ["Building_H"]),
         lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)),
     # Regione Liguria's region-wide NC5 3D footprints (CC BY 4.0; Torre Piacentini 99.9 m); where NC5
