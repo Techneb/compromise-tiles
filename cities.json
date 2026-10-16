@@ -610,7 +610,19 @@
   {
     "city": "Vancouver",
     "streets": true,
-    "district": "Vancouver (densest 150 km\u00b2 of the core)",
+    "district": "Vancouver (whole municipality)",
+    "box": [
+      49.1983,
+      -123.2248,
+      49.3141,
+      -123.0231
+    ],
+    "boundary": "boundaries/vancouver.geojson"
+  },
+  {
+    "city": "Vancouver",
+    "streets": true,
+    "district": "Vancouver and its neighbours (the box around it)",
     "box": [
       49.2228,
       -123.1656,
@@ -621,7 +633,19 @@
   {
     "city": "Zurich",
     "streets": true,
-    "district": "Zurich (going-out core + 2 km)",
+    "district": "Zurich (whole municipality)",
+    "box": [
+      47.3202,
+      8.448,
+      47.4347,
+      8.6255
+    ],
+    "boundary": "boundaries/zurich.geojson"
+  },
+  {
+    "city": "Zurich",
+    "streets": true,
+    "district": "Zurich and its neighbours (the box around it)",
     "box": [
       47.329,
       8.4545,
@@ -752,7 +776,19 @@
   {
     "city": "Manila",
     "streets": true,
-    "district": "Manila (going-out core, densest 150 km\u00b2)",
+    "district": "Manila (whole municipality)",
+    "box": [
+      14.5526,
+      120.9314,
+      14.639,
+      121.0262
+    ],
+    "boundary": "boundaries/manila.geojson"
+  },
+  {
+    "city": "Manila",
+    "streets": true,
+    "district": "Manila and its neighbours (the box around it)",
     "box": [
       14.5333,
       120.9736,
@@ -1110,7 +1146,19 @@
   {
     "city": "Sydney",
     "streets": true,
-    "district": "Sydney (going-out core + 2 km)",
+    "district": "Sydney (whole municipality)",
+    "box": [
+      -33.9244,
+      151.1748,
+      -33.8536,
+      151.2331
+    ],
+    "boundary": "boundaries/sydney.geojson"
+  },
+  {
+    "city": "Sydney",
+    "streets": true,
+    "district": "Sydney and its neighbours (the box around it)",
     "box": [
       -33.937,
       151.1274,
@@ -1335,7 +1383,19 @@
   {
     "city": "Washington DC",
     "streets": true,
-    "district": "Washington DC (densest 150 km\u00b2 of the core)",
+    "district": "Washington DC (whole municipality)",
+    "box": [
+      38.7916,
+      -77.1198,
+      38.996,
+      -76.9093
+    ],
+    "boundary": "boundaries/washington-dc.geojson"
+  },
+  {
+    "city": "Washington DC",
+    "streets": true,
+    "district": "Washington DC and its neighbours (the box around it)",
     "box": [
       38.857,
       -77.1201,
@@ -1488,7 +1548,19 @@
   {
     "city": "Perth",
     "streets": true,
-    "district": "Perth (going-out core + 2 km)",
+    "district": "Perth (whole municipality)",
+    "box": [
+      -31.9968,
+      115.811,
+      -31.9414,
+      115.8891
+    ],
+    "boundary": "boundaries/perth.geojson"
+  },
+  {
+    "city": "Perth",
+    "streets": true,
+    "district": "Perth and its neighbours (the box around it)",
     "box": [
       -31.979,
       115.8158,
@@ -1559,7 +1631,19 @@
   {
     "city": "Pozna\u0144",
     "streets": true,
-    "district": "Pozna\u0144 (going-out core + 2 km)",
+    "district": "Pozna\u0144 (whole municipality)",
+    "box": [
+      52.2919,
+      16.7315,
+      52.5094,
+      17.0718
+    ],
+    "boundary": "boundaries/poznan.geojson"
+  },
+  {
+    "city": "Pozna\u0144",
+    "streets": true,
+    "district": "Pozna\u0144 and its neighbours (the box around it)",
     "box": [
       52.375,
       16.8596,
@@ -1629,7 +1713,19 @@
   {
     "city": "Zagreb",
     "streets": true,
-    "district": "Zagreb (going-out core + 2 km)",
+    "district": "Zagreb (whole municipality)",
+    "box": [
+      45.6139,
+      15.7732,
+      45.9692,
+      16.2396
+    ],
+    "boundary": "boundaries/zagreb.geojson"
+  },
+  {
+    "city": "Zagreb",
+    "streets": true,
+    "district": "Zagreb and its neighbours (the box around it)",
     "box": [
       45.761,
       15.8612,
@@ -1734,7 +1830,19 @@
   {
     "city": "Sofia",
     "streets": true,
-    "district": "Sofia (going-out core + 2 km)",
+    "district": "Sofia (whole municipality)",
+    "box": [
+      42.4123,
+      23.0511,
+      42.8966,
+      23.6787
+    ],
+    "boundary": "boundaries/sofia.geojson"
+  },
+  {
+    "city": "Sofia",
+    "streets": true,
+    "district": "Sofia and its neighbours (the box around it)",
     "box": [
       42.637,
       23.2506,
