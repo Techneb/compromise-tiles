@@ -38,7 +38,7 @@ Output (compact JSON):
 --slim writes the site's slim copies of the feed into a folder (slim() below): coverage.json stays whole for its other readers.
 With --cities it also writes summary.json there: one record per city of cities.json (summary() below).
 """
-import argparse, datetime, json, math, os, re, urllib.error, urllib.request
+import argparse, datetime, http.client, json, math, os, re, time, urllib.request
 from make_tiles import CITY_BUILDINGS, PERMIT_CITIES, cells_in
 from storage import COARSE, FINE, MAIN, areas, owners
 
@@ -55,24 +55,29 @@ def tiles(out, layer):
                 yield name[:-5], f.read()
 
 
-def load_previous(src):
+def load_previous(src, tries=4, wait=15):
+    if src.startswith(("http://", "https://")):
+        # The store's host refuses urllib's default User-Agent with a 403, file or no file.
+        req = urllib.request.Request(src, headers={"User-Agent": "compromise-tiles-coverage"})
+        for n in range(1, tries + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    return json.load(r)
+            # A cut body (IncompleteRead, Aix-en-Provence 2026-10-17), a reset, a 5xx, a challenge page: tried again,
+            # then raised. Never started empty: a store that did not answer must not reset every record to this run's cells.
+            except (OSError, ValueError, http.client.HTTPException) as e:
+                if getattr(e, "code", None) == 404:
+                    print(f"previous feed absent ({e.code}); starting empty")
+                    return {}
+                if n == tries: raise
+                print(f"previous feed not read ({e!r}), try {n} of {tries}; again in {wait * n} s")
+                time.sleep(wait * n)
     try:
-        if src.startswith(("http://", "https://")):
-            # The store's host refuses urllib's default User-Agent with a 403, file or no file.
-            req = urllib.request.Request(src, headers={"User-Agent": "compromise-tiles-coverage"})
-            with urllib.request.urlopen(req, timeout=60) as r:
-                return json.load(r)
         with open(src) as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:  # a local file absent or unreadable: start empty
-        if src.startswith(("http://", "https://")): raise  # a 200 with a challenge page or a cut body is not an absent feed
         print(f"previous feed not read ({e}); starting empty")
         return {}
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"previous feed absent ({e.code}); starting empty")
-            return {}
-        raise  # a store that did not answer must not reset every record to this run's cells
 
 
 def cell_km2(ky):

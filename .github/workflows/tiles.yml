@@ -158,7 +158,9 @@ jobs:
           timeout 290m python3 make_tiles.py --cities cities-run.json --out out --layers "$LAYERS" --block 5 --unshaded unshaded.txt \
             --store "https://tiles.alephb.uk/tiles/" $([ -f remote.tsv ] && echo --listing remote.tsv) || echo "status=$?" >> "$GITHUB_OUTPUT"   # checked after the upload
       # This city's cells for the feed, merged by the feed job below (small; the tiles stay here), handed over after the upload.
+      # continue-on-error so the tiles still go up; the job turns red at its end (Check the feed fragment).
       - name: Coverage fragment
+        id: fragment
         if: ${{ !cancelled() }}
         continue-on-error: true
         env:
@@ -255,6 +257,16 @@ jobs:
           else why="more than 5 % of its cells failed (exit $STATUS): see Failures in the build step"; fi
           echo "### ❌ $CITY: $why" >> "$GITHUB_STEP_SUMMARY"
           echo "::error title=$CITY is short::$why"
+          exit 1
+
+      # A failed fragment drops the city's record from the feed: red, not green (Aix-en-Provence, 2026-10-17).
+      - name: Check the feed fragment
+        if: ${{ !cancelled() && steps.fragment.outcome == 'failure' }}
+        env:
+          CITY: ${{ matrix.city }}
+        run: |
+          echo "### ❌ $CITY: no feed fragment, its record is not in coverage.json: see Coverage fragment; run the city again" >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=$CITY has no feed record::the Coverage fragment step failed"
           exit 1
 
   # The tiles committed in this repository for the cities built off GitHub, uploaded as they are, with their feed fragment.
