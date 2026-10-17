@@ -919,6 +919,7 @@
   },
   {
     "city": "Bnei Brak",
+    "streets": true,
     "district": "Bnei Brak (whole municipality)",
     "box": [
       32.069,
@@ -953,6 +954,7 @@
   },
   {
     "city": "Givat Shmuel",
+    "streets": true,
     "district": "Givat Shmuel (whole municipality)",
     "box": [
       32.0657,
@@ -964,6 +966,7 @@
   },
   {
     "city": "Bat Yam",
+    "streets": true,
     "district": "Bat Yam (whole municipality)",
     "box": [
       31.9924,
@@ -1035,6 +1038,7 @@
   },
   {
     "city": "Giv'at Ze'ev",
+    "streets": true,
     "district": "Giv'at Ze'ev (whole municipality)",
     "box": [
       31.8249,
@@ -1046,6 +1050,7 @@
   },
   {
     "city": "Beit Sahur",
+    "streets": true,
     "district": "Beit Sahur (whole municipality)",
     "box": [
       31.6895,
@@ -1069,6 +1074,7 @@
   },
   {
     "city": "Beitar Ilit",
+    "streets": true,
     "district": "Beitar Ilit (whole municipality)",
     "box": [
       31.6881,
@@ -1080,6 +1086,7 @@
   },
   {
     "city": "Abu Gosh",
+    "streets": true,
     "district": "Abu Gosh (whole municipality)",
     "box": [
       31.799,
@@ -1103,6 +1110,7 @@
   },
   {
     "city": "Har Adar",
+    "streets": true,
     "district": "Har Adar (whole municipality)",
     "box": [
       31.8202,
@@ -1114,6 +1122,7 @@
   },
   {
     "city": "Maale Adumim",
+    "streets": true,
     "district": "Maale Adumim (whole municipality)",
     "box": [
       31.7467,
