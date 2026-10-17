@@ -2,8 +2,13 @@
 import http.server, json, os, tempfile, threading
 from coverage import load_previous
 
+cuts = [1]   # /cut.json comes cut once, then whole
 class Store(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
+        if self.path == "/cut.json":  # a Content-Length longer than the body: http.client.IncompleteRead
+            body, short = b'{"cells": [[1, 2]]}', bool(cuts and cuts.pop())
+            self.send_response(200); self.send_header("Content-Length", str(len(body) + 10 * short)); self.end_headers()
+            self.wfile.write(body); return
         body = {"/feed.json": b'{"cells": []}', "/challenge.json": b"<html>Just a moment...</html>"}.get(self.path)
         self.send_response(200 if body else 404); self.end_headers(); self.wfile.write(body or b"")
     def log_message(self, *a): pass
@@ -14,8 +19,9 @@ url = f"http://127.0.0.1:{server.server_port}"
 
 assert load_previous(url + "/feed.json") == {"cells": []}
 assert load_previous(url + "/absent.json") == {}   # 404: no feed yet, start empty
+assert load_previous(url + "/cut.json", wait=0) == {"cells": [[1, 2]]}   # a cut download is tried again (Aix-en-Provence)
 try:  # a 200 that is not the feed (a challenge page, a cut body) must not reset every record (#76)
-    load_previous(url + "/challenge.json"); raise AssertionError("an unreadable feed from the store started empty")
+    load_previous(url + "/challenge.json", wait=0); raise AssertionError("an unreadable feed from the store started empty")
 except json.JSONDecodeError: pass
 d = tempfile.mkdtemp()
 assert load_previous(os.path.join(d, "none.json")) == {}   # a local file: absent or unreadable still starts empty
