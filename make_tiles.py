@@ -3481,10 +3481,13 @@ TRANSIT_NETWORK_OUT = ("VIA Rail", "Amtrak", "TGV", "Ouigo", "Intercités", "Eur
                        "Flixbus", "FlixBus", "FlixTrain", "Flibco", "RegioJet",
                        # Coaches and a sightseeing bus (Madrid, Barcelona, Lisbon, 2026-10-13): Spain's state
                        # long-distance concessions ("VAC-023"), Portugal's national express network.
-                       "Autobuses de España", "Rede Nacional de Expressos", "Barcelona Bus Turístic",
-                       # Sightseeing buses (Paris, 2026-10-19): network and operator both the brand, refs "rouge",
-                       # "Bleue", no service or tourism tag.
-                       "Big Bus", "Open Tour")
+                       "Autobuses de España", "Rede Nacional de Expressos", "Barcelona Bus Turístic")
+# Sightseeing buses and heritage trams whose routes carry no service=tourism or tourism=yes (2026-10-19, every city's
+# published tiles: Big Bus and Open Tour in Paris and Lyon, City Sightseeing in Glasgow, Turin and Palma, Kuala Lumpur's
+# hop-on hop-off, Cologne's network "tourism", Denver's heritage trolley, Rotterdam's museum tram): matched anywhere in
+# the network or operator, any case. Not a bare "touris": coach firms named so run ordinary lines (Clermont's P32,
+# Munich's 459, Zagreb's 160).
+TRANSIT_TOURIST = re.compile(r"big bus|open ?tour|sightseeing|hop.?on|tootbus|^tourism$|museum|heritage", re.I)
 # High-speed trains whose ref is the brand, under the infrastructure's network ("Frecciarossa", RFI; Rome, Milan,
 # 2026-10-13): a ref starting with one is left out.
 TRANSIT_BRAND_OUT = ("Frecciarossa", "Frecciargento", "Frecciabianca", "Italo", "Railjet", "Nightjet", "EuroCity", "Intercity")
@@ -3518,7 +3521,7 @@ def transit_lines(relations, objects):
     within TRANSIT_TWIN are one. Its shape is its other ways, chained in member order (chained()), simplified.
     A route with no ref, a long-distance train (TRANSIT_SERVICE_OUT, TRANSIT_NETWORK_OUT, a ref holding a train's
     number but in TRANSIT_SERIES, a TRANSIT_BRAND_OUT ref), a coach (by network, or stops past TRANSIT_BUS_REACH), a
-    night or tourist line (TRANSIT_NIGHT_REF, TRANSIT_REF_OUT, tourism=yes), a TRANSIT_BUS_OUT bus or under two stops is left out;
+    night or tourist line (TRANSIT_NIGHT_REF, TRANSIT_REF_OUT, tourism=yes, TRANSIT_TOURIST), a TRANSIT_BUS_OUT bus or under two stops is left out;
     so is one whose stop names are all on a longer kept route of the same mode and ref: the other direction, a short
     working. A ref's bracketed service pattern is dropped first (TRANSIT_REF_SUFFIX)."""
     tags_of = lambda e: {x.get("k"): x.get("v") for x in e.iter("tag")}
@@ -3540,6 +3543,7 @@ def transit_lines(relations, objects):
         ref = TRANSIT_REF_SUFFIX.sub("", ref) or ref
         if tags.get("type") != "route" or mode not in TRANSIT_MODES or not ref or tags.get("service") in TRANSIT_SERVICE_OUT: continue
         if (tags.get("tourism") or up.get("tourism")) == "yes": continue   # a tourist route (Versailles' road train)
+        if TRANSIT_TOURIST.search(tags.get("network") or up.get("network") or "") or TRANSIT_TOURIST.search(tags.get("operator") or up.get("operator") or ""): continue
         network, operator = (tags.get("network") or up.get("network") or ""), (tags.get("operator") or up.get("operator") or "")
         # A ref listing train numbers ("20;22;24"), or a train's number ("870603", Madrid's "RE 18009"), is a timetable's,
         # not a line's.
