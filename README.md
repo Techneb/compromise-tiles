@@ -154,12 +154,17 @@ areas flagged `"streets": true`. Each tile is an array of
   regional coaches, whose refs are route codes), a night
   bus or tram (a ref of "N" and a number; Prague's trams 91–99 and buses
   9xx; Lisbon's Carris buses 201–210), a tourist line (Prague's trams 41
-  and 42, Amsterdam's museum tram, Barcelona Bus Turístic, a network or
-  operator starting Big Bus or Open Tour, a route tagged `tourism=yes`) or
+  and 42, Amsterdam's museum tram, Barcelona Bus Turístic, a route tagged `tourism=yes`, a network or
+  operator holding Big Bus, Open Tour, Sightseeing, Hop-on, Tootbus,
+  Museum or Heritage, or a network of just "tourism") or
   under two stops is left out, and so is one whose stop names all belong to
   a longer route of the same mode and ref (the other direction, a short
   working). A ref's bracketed service pattern is dropped first ("C-2
   (CIVIS)" is "C-2"). A cell no line stops in has no file.
+
+Pending: rebuild the transit tiles of Lyon, Glasgow, Turin, Palma, Kuala
+Lumpur, Cologne, Denver and Rotterdam on 2026-11-01 (sightseeing and heritage
+lines left out since 2026-10-19; Paris rebuilt that day).
 
 ## Weekly data check
 

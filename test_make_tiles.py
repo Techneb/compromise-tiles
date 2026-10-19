@@ -1314,6 +1314,10 @@ relations = ET.fromstring("<osm>" + "".join([
     route(22, "bus", "rouge", [10, 12], network="Big Bus", operator="Big Bus"),
     route(23, "bus", "Verte", [10, 12], operator="Open Tour"),
     route(24, "bus", "PT", [10, 12], network="local", tourism="yes"),
+    route(25, "bus", "CSS-A", [10, 12], network="City_Sightseeing"),
+    route(26, "bus", "HOP", [10, 12], network="Hop-on Hop-off Bus"),
+    route(27, "tram", "10", [10, 12], network="no", operator="Rotterdams Openbaar Vervoer Museum"),
+    route(28, "bus", "P32", [10, 12], network="SMTC-AC", operator="Nenot Intertourisme"),
 ]) + "</osm>")
 objects = ET.fromstring("""<osm>
  <node id="10" lat="40.4000" lon="-3.7000"><tag k="name" v="Sol"/></node>
@@ -1326,7 +1330,7 @@ objects = ET.fromstring("""<osm>
 kept = [(l["mode"], l["ref"], l.get("network")) for l in transit_lines(relations, objects)]
 assert kept == [("train", "C-2", "Cercanías Madrid"), ("bus", "661", "Alsa"), ("train", "R-1", "Renfe Media Distancia"),
                 ("bus", "27", "Empresa Municipal de Transportes de Madrid"), ("bus", "208", "Carris Metropolitana"),
-                ("bus", "728", "Carris"), ("subway", "N1", None)], kept
+                ("bus", "728", "Carris"), ("subway", "N1", None), ("bus", "P32", "SMTC-AC")], kept
 print("ok (transit noise)")
 
 # Buildings only near a venue or terrace (owner, 2026-10-13): the cells within SHADE_MARGIN of a point.
