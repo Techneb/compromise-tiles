@@ -1,16 +1,16 @@
 {
- "run": "2026-10-12",
+ "run": "2026-10-19",
  "rows": {
   "permits/Paris": {
    "key": "24430,1174",
    "status": "ok",
-   "count": 680,
+   "count": 679,
    "fetched": 972,
    "named": 0.941,
-   "seconds": 1.2,
+   "seconds": 0.7,
    "tile": {
     "status": "ok",
-    "count": 675,
+    "count": 679,
     "named": 0.941,
     "source": "Paris"
    },
@@ -22,7 +22,7 @@
    "count": 55,
    "fetched": 64,
    "named": 1.0,
-   "seconds": 0.8,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 55,
@@ -37,10 +37,10 @@
    "count": 46,
    "fetched": 50,
    "named": 1.0,
-   "seconds": 0.6,
+   "seconds": 2.0,
    "tile": {
     "status": "ok",
-    "count": 46,
+    "count": 45,
     "named": 1.0,
     "source": "San Francisco"
    },
@@ -52,10 +52,10 @@
    "count": 542,
    "fetched": 750,
    "named": 1.0,
-   "seconds": 2.1,
+   "seconds": 2.0,
    "tile": {
     "status": "ok",
-    "count": 540,
+    "count": 542,
     "named": 1.0,
     "source": "Geneva"
    },
@@ -68,7 +68,7 @@
    "fetched": 163,
    "named": 1.0,
    "total": 442,
-   "seconds": 0.4,
+   "seconds": 0.2,
    "tile": {
     "status": "ok",
     "count": 112,
@@ -82,7 +82,7 @@
    "count": 154,
    "fetched": 226,
    "named": 0.981,
-   "seconds": 1.9,
+   "seconds": 1.7,
    "tile": {
     "status": "ok",
     "count": 154,
@@ -97,7 +97,7 @@
    "count": 15,
    "fetched": 24,
    "named": 0.467,
-   "seconds": 0.3,
+   "seconds": 0.6,
    "tile": {
     "status": "ok",
     "count": 15,
@@ -112,12 +112,9 @@
    "count": 2614,
    "fetched": 2960,
    "height": 1.0,
-   "seconds": 2.1,
+   "seconds": 1.6,
    "tile": {
-    "status": "ok",
-    "count": 2614,
-    "height": 1.0,
-    "with_height": 2614,
+    "status": "HTTP 404",
     "source": "Amsterdam"
    },
    "licence": null
@@ -128,12 +125,9 @@
    "count": 1114,
    "fetched": 1438,
    "height": 0.999,
-   "seconds": 1.8,
+   "seconds": 1.9,
    "tile": {
-    "status": "ok",
-    "count": 1114,
-    "height": 0.999,
-    "with_height": 1113,
+    "status": "HTTP 404",
     "source": "Denver"
    },
    "licence": null
@@ -144,7 +138,7 @@
    "count": 741,
    "fetched": 952,
    "height": 0.999,
-   "seconds": 1.4,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
     "count": 741,
@@ -160,7 +154,7 @@
    "count": 5363,
    "fetched": 6800,
    "height": 0.791,
-   "seconds": 169.3,
+   "seconds": 211.9,
    "tile": {
     "status": "ok",
     "count": 5264,
@@ -175,7 +169,7 @@
    "count": 6096,
    "fetched": 7938,
    "height": 0.835,
-   "seconds": 160.2,
+   "seconds": 219.4,
    "tile": {
     "status": "ok",
     "count": 6035,
@@ -190,12 +184,9 @@
    "count": 1214,
    "fetched": 1393,
    "height": 1.0,
-   "seconds": 6.9,
+   "seconds": 6.6,
    "tile": {
-    "status": "ok",
-    "count": 1208,
-    "height": 1.0,
-    "with_height": 1208,
+    "status": "HTTP 404",
     "source": "Johannesburg"
    },
    "licence": null
@@ -206,12 +197,9 @@
    "count": 934,
    "fetched": 1182,
    "height": 1.0,
-   "seconds": 1.3,
+   "seconds": 1.5,
    "tile": {
-    "status": "ok",
-    "count": 934,
-    "height": 1.0,
-    "with_height": 934,
+    "status": "HTTP 404",
     "source": "Calgary"
    },
    "licence": "See Terms of Use"
@@ -222,12 +210,9 @@
    "count": 2909,
    "fetched": 3867,
    "height": 1.0,
-   "seconds": 1.8,
+   "seconds": 2.7,
    "tile": {
-    "status": "ok",
-    "count": 2909,
-    "height": 1.0,
-    "with_height": 2909,
+    "status": "HTTP 404",
     "source": "Philadelphia"
    },
    "licence": null
@@ -238,7 +223,7 @@
    "count": 876,
    "fetched": 1215,
    "height": 1.0,
-   "seconds": 8.1,
+   "seconds": 0.4,
    "tile": {
     "status": "ok",
     "count": 876,
@@ -254,12 +239,9 @@
    "count": 1097,
    "fetched": 1449,
    "height": 1.0,
-   "seconds": 1.4,
+   "seconds": 1.1,
    "tile": {
-    "status": "ok",
-    "count": 1097,
-    "height": 1.0,
-    "with_height": 1097,
+    "status": "HTTP 404",
     "source": "Edmonton"
    },
    "licence": "See Terms of Use"
@@ -270,12 +252,12 @@
    "count": 280,
    "fetched": 1587,
    "height": 1.0,
-   "seconds": 61.4,
+   "seconds": 65.4,
    "tile": {
     "status": "ok",
-    "count": 279,
+    "count": 280,
     "height": 1.0,
-    "with_height": 279,
+    "with_height": 280,
     "source": "Sheffield+OSM"
    }
   },
@@ -285,12 +267,9 @@
    "count": 3567,
    "fetched": 4080,
    "height": 0.998,
-   "seconds": 494.8,
+   "seconds": 532.6,
    "tile": {
-    "status": "ok",
-    "count": 3524,
-    "height": 1.0,
-    "with_height": 3524,
+    "status": "HTTP 404",
     "source": "Buenos Aires"
    },
    "licence": "CC-BY-2.5-AR"
@@ -298,13 +277,13 @@
   "permits/Toulouse": {
    "key": "21802,722",
    "status": "ok",
-   "count": 257,
-   "fetched": 389,
+   "count": 254,
+   "fetched": 387,
    "named": 1.0,
-   "seconds": 1.1,
+   "seconds": 1.0,
    "tile": {
     "status": "ok",
-    "count": 259,
+    "count": 256,
     "named": 1.0,
     "source": "Toulouse"
    },
@@ -316,7 +295,7 @@
    "count": 68,
    "fetched": 100,
    "named": 1.0,
-   "seconds": 0.4,
+   "seconds": 0.6,
    "tile": {
     "status": "ok",
     "count": 68,
@@ -345,11 +324,11 @@
    "count": 160,
    "fetched": 221,
    "named": 0.994,
-   "total": 1568,
-   "seconds": 2.3,
+   "total": 1575,
+   "seconds": 2.4,
    "tile": {
     "status": "ok",
-    "count": 163,
+    "count": 160,
     "named": 0.994,
     "source": "Seville"
    }
@@ -361,7 +340,7 @@
    "fetched": 72,
    "named": 1.0,
    "total": 338,
-   "seconds": 0.4,
+   "seconds": 0.2,
    "tile": {
     "status": "ok",
     "count": 47,
@@ -379,21 +358,21 @@
    "seconds": 1.2,
    "tile": {
     "status": "ok",
-    "count": 323,
-    "named": 0.988,
+    "count": 322,
+    "named": 0.991,
     "source": "La Rochelle"
    }
   },
   "permits/Kensington and Chelsea": {
    "key": "25749,-99",
    "status": "ok",
-   "count": 7,
-   "fetched": 7,
+   "count": 5,
+   "fetched": 5,
    "named": 1.0,
-   "seconds": 6.8,
+   "seconds": 6.3,
    "tile": {
     "status": "ok",
-    "count": 8,
+    "count": 5,
     "named": 1.0,
     "source": "Kensington and Chelsea"
    },
@@ -405,7 +384,7 @@
    "count": 3132,
    "fetched": 3996,
    "height": 1.0,
-   "seconds": 1.8,
+   "seconds": 1.6,
    "tile": {
     "status": "ok",
     "count": 3132,
@@ -417,9 +396,11 @@
   },
   "buildings/Cape Town": {
    "key": "-16965,9224",
-   "status": "dead",
-   "error": "SourceError: esapqa.capetown.gov.za: TimeoutError: The read operation timed out",
-   "seconds": 376.1,
+   "status": "ok",
+   "count": 981,
+   "fetched": 1372,
+   "height": 0.971,
+   "seconds": 10.9,
    "tile": {
     "status": "ok",
     "count": 981,
@@ -427,17 +408,14 @@
     "with_height": 953,
     "source": "Cape Town"
    },
-   "licence": null
+   "licence": "Information & Knowledge Management Dept., Geospatial Section, 1st Floor, Keller House, 121 Loop Street, Cape Town. \nContact: Ms. Lara Röttcher, Tel. 021 487 2599, email: lara.rottcher@capetown.gov.za. \nData distributed by City Maps public counter, 7th Floor, Keller House, 121 Loop Street, Cape Town."
   },
   "buildings/Tel Aviv": {
    "key": "16025,17395",
    "status": "skipped",
    "error": "answers only from Israel (HTTP 571 elsewhere), as make_tiles.py notes",
    "tile": {
-    "status": "ok",
-    "count": 1777,
-    "height": 1.0,
-    "with_height": 1777,
+    "status": "HTTP 404",
     "source": "Tel Aviv"
    }
   },
@@ -447,7 +425,7 @@
    "count": 4525,
    "fetched": 5902,
    "height": 0.798,
-   "seconds": 93.1,
+   "seconds": 194.1,
    "tile": {
     "status": "ok",
     "count": 4472,
@@ -462,12 +440,9 @@
    "count": 3674,
    "fetched": 4310,
    "height": 0.983,
-   "seconds": 60.9,
+   "seconds": 57.1,
    "tile": {
-    "status": "ok",
-    "count": 3671,
-    "height": 1.0,
-    "with_height": 3671,
+    "status": "HTTP 404",
     "source": "Córdoba"
    }
   },
@@ -477,7 +452,7 @@
    "count": 1574,
    "fetched": 1993,
    "height": 0.985,
-   "seconds": 2.1,
+   "seconds": 4.5,
    "tile": {
     "status": "ok",
     "count": 1574,
@@ -493,12 +468,9 @@
    "count": 788,
    "fetched": 948,
    "height": 1.0,
-   "seconds": 0.7,
+   "seconds": 0.6,
    "tile": {
-    "status": "ok",
-    "count": 788,
-    "height": 1.0,
-    "with_height": 788,
+    "status": "HTTP 404",
     "source": "Vancouver"
    },
    "licence": "Open Government Licence - Vancouver"
@@ -509,12 +481,9 @@
    "count": 2200,
    "fetched": 2764,
    "height": 1.0,
-   "seconds": 118.8,
+   "seconds": 10.9,
    "tile": {
-    "status": "ok",
-    "count": 2174,
-    "height": 1.0,
-    "with_height": 2174,
+    "status": "HTTP 404",
     "source": "Düsseldorf"
    }
   },
@@ -540,12 +509,9 @@
    "count": 2036,
    "fetched": 5817,
    "height": 1.0,
-   "seconds": 52.7,
+   "seconds": 65.8,
    "tile": {
-    "status": "ok",
-    "count": 2351,
-    "height": 0.866,
-    "with_height": 2036,
+    "status": "HTTP 404",
     "source": "London+OSM"
    }
   },
@@ -555,7 +521,7 @@
    "count": 327,
    "fetched": 416,
    "height": 1.0,
-   "seconds": 14.4,
+   "seconds": 1293.1,
    "tile": {
     "status": "ok",
     "count": 327,
@@ -570,7 +536,7 @@
    "count": 1752,
    "fetched": 2271,
    "height": 0.995,
-   "seconds": 17.3,
+   "seconds": 15.7,
    "tile": {
     "status": "ok",
     "count": 1751,
@@ -583,8 +549,8 @@
   "permits/Strasbourg": {
    "key": "24290,3872",
    "status": "ok",
-   "count": 232,
-   "fetched": 308,
+   "count": 231,
+   "fetched": 307,
    "named": 1.0,
    "seconds": 1.7,
    "tile": {
@@ -601,7 +567,7 @@
    "count": 306,
    "fetched": 471,
    "named": 1.0,
-   "seconds": 1.3,
+   "seconds": 0.8,
    "tile": {
     "status": "ok",
     "count": 306,
@@ -616,7 +582,7 @@
    "count": 167,
    "fetched": 253,
    "named": 0.0,
-   "total": 2993,
+   "total": 2998,
    "seconds": 1.3,
    "tile": {
     "status": "ok",
@@ -629,13 +595,13 @@
   "permits/Vilnius": {
    "key": "27341,12641",
    "status": "ok",
-   "count": 70,
-   "fetched": 129,
+   "count": 49,
+   "fetched": 99,
    "named": 1.0,
    "seconds": 1.0,
    "tile": {
     "status": "ok",
-    "count": 79,
+    "count": 51,
     "named": 1.0,
     "source": "Vilnius"
    },
@@ -648,7 +614,7 @@
    "fetched": 98,
    "named": 1.0,
    "total": 1636,
-   "seconds": 0.3,
+   "seconds": 0.5,
    "tile": {
     "status": "ok",
     "count": 73,
@@ -663,7 +629,7 @@
    "count": 60,
    "fetched": 81,
    "named": 1.0,
-   "seconds": 1.7,
+   "seconds": 17.7,
    "tile": {
     "status": "ok",
     "count": 60,
@@ -693,12 +659,9 @@
    "count": 2417,
    "fetched": 2952,
    "height": 1.0,
-   "seconds": 2.0,
+   "seconds": 1.1,
    "tile": {
-    "status": "ok",
-    "count": 2417,
-    "height": 1.0,
-    "with_height": 2417,
+    "status": "HTTP 404",
     "source": "The Hague"
    },
    "licence": null
@@ -709,12 +672,9 @@
    "count": 2259,
    "fetched": 2851,
    "height": 0.99,
-   "seconds": 7.6,
+   "seconds": 3.0,
    "tile": {
-    "status": "ok",
-    "count": 2259,
-    "height": 0.99,
-    "with_height": 2236,
+    "status": "HTTP 404",
     "source": "São Paulo"
    },
    "licence": "NONE"
@@ -725,7 +685,7 @@
    "count": 2160,
    "fetched": 2544,
    "height": 1.0,
-   "seconds": 2.6,
+   "seconds": 2.9,
    "tile": {
     "status": "ok",
     "count": 2159,
@@ -741,7 +701,7 @@
    "count": 3681,
    "fetched": 4599,
    "height": 0.922,
-   "seconds": 125.0,
+   "seconds": 154.1,
    "tile": {
     "status": "ok",
     "count": 3655,
@@ -756,12 +716,12 @@
    "count": 4338,
    "fetched": 5406,
    "height": 0.809,
-   "seconds": 53.3,
+   "seconds": 153.3,
    "tile": {
     "status": "ok",
-    "count": 3642,
+    "count": 4259,
     "height": 1.0,
-    "with_height": 3642,
+    "with_height": 4259,
     "source": "Valladolid"
    }
   },
@@ -771,7 +731,7 @@
    "count": 560,
    "fetched": 692,
    "height": 0.995,
-   "seconds": 2.2,
+   "seconds": 3.4,
    "tile": {
     "status": "ok",
     "count": 556,
@@ -787,7 +747,7 @@
    "count": 1053,
    "fetched": 1271,
    "height": 0.993,
-   "seconds": 1.9,
+   "seconds": 2.0,
    "tile": {
     "status": "ok",
     "count": 1047,
@@ -803,12 +763,9 @@
    "count": 1464,
    "fetched": 1863,
    "height": 0.999,
-   "seconds": 35.6,
+   "seconds": 19.0,
    "tile": {
-    "status": "ok",
-    "count": 1464,
-    "height": 1.0,
-    "with_height": 1464,
+    "status": "HTTP 404",
     "source": "Nuremberg"
    }
   },
@@ -818,12 +775,9 @@
    "count": 1714,
    "fetched": 2041,
    "height": 1.0,
-   "seconds": 3.1,
+   "seconds": 3.2,
    "tile": {
-    "status": "ok",
-    "count": 1713,
-    "height": 1.0,
-    "with_height": 1713,
+    "status": "HTTP 404",
     "source": "Sofia"
    },
    "licence": null
@@ -834,7 +788,7 @@
    "count": 147,
    "fetched": 1249,
    "height": 0.986,
-   "seconds": 33.5,
+   "seconds": 48.2,
    "tile": {
     "status": "ok",
     "count": 148,
@@ -849,7 +803,7 @@
    "count": 120,
    "fetched": 163,
    "height": 0.975,
-   "seconds": 4.3,
+   "seconds": 518.5,
    "tile": {
     "status": "ok",
     "count": 120,
@@ -864,7 +818,7 @@
    "count": 311,
    "fetched": 468,
    "height": 1.0,
-   "seconds": 18.5,
+   "seconds": 23.2,
    "tile": {
     "status": "ok",
     "count": 311,
@@ -879,7 +833,7 @@
    "count": 28,
    "fetched": 28,
    "named": 1.0,
-   "seconds": 0.9,
+   "seconds": 0.8,
    "tile": {
     "status": "ok",
     "count": 28,
@@ -891,14 +845,14 @@
   "permits/Camden": {
    "key": "25760,-69",
    "status": "ok",
-   "count": 44,
-   "fetched": 50,
-   "named": 0.909,
-   "seconds": 0.9,
+   "count": 46,
+   "fetched": 52,
+   "named": 0.913,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
-    "count": 42,
-    "named": 0.905,
+    "count": 46,
+    "named": 0.913,
     "source": "Camden"
    },
    "licence": "UK Open Government Licence v3"
@@ -906,13 +860,13 @@
   "permits/Copenhagen": {
    "key": "27839,6287",
    "status": "ok",
-   "count": 435,
-   "fetched": 628,
+   "count": 430,
+   "fetched": 620,
    "named": 1.0,
-   "seconds": 1.3,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
-    "count": 438,
+    "count": 435,
     "named": 1.0,
     "source": "Copenhagen"
    },
@@ -921,13 +875,13 @@
   "permits/Oslo": {
    "key": "29957,5374",
    "status": "ok",
-   "count": 126,
-   "fetched": 177,
+   "count": 125,
+   "fetched": 179,
    "named": 1.0,
    "seconds": 1.8,
    "tile": {
     "status": "ok",
-    "count": 126,
+    "count": 125,
     "named": 1.0,
     "source": "Oslo"
    },
@@ -939,7 +893,7 @@
    "count": 69,
    "fetched": 76,
    "named": 1.0,
-   "seconds": 1.3,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
     "count": 69,
@@ -952,10 +906,10 @@
    "key": "28849,5975",
    "status": "ok",
    "count": 36,
-   "fetched": 47,
+   "fetched": 46,
    "named": 1.0,
-   "total": 446,
-   "seconds": 1.2,
+   "total": 445,
+   "seconds": 1.5,
    "tile": {
     "status": "ok",
     "count": 36,
@@ -969,7 +923,7 @@
    "count": 83,
    "fetched": 145,
    "named": 0.0,
-   "seconds": 17.0,
+   "seconds": 15.8,
    "tile": {
     "status": "ok",
     "count": 83,
@@ -984,7 +938,7 @@
    "count": 2883,
    "fetched": 3831,
    "height": 1.0,
-   "seconds": 1.7,
+   "seconds": 1.3,
    "tile": {
     "status": "ok",
     "count": 2883,
@@ -1000,12 +954,9 @@
    "count": 688,
    "fetched": 846,
    "height": 1.0,
-   "seconds": 3.3,
+   "seconds": 3.0,
    "tile": {
-    "status": "ok",
-    "count": 685,
-    "height": 1.0,
-    "with_height": 685,
+    "status": "HTTP 404",
     "source": "Wrocław"
    },
    "licence": null
@@ -1016,7 +967,7 @@
    "count": 5365,
    "fetched": 6994,
    "height": 0.884,
-   "seconds": 497.6,
+   "seconds": 493.7,
    "tile": {
     "status": "ok",
     "count": 5182,
@@ -1031,7 +982,7 @@
    "count": 7942,
    "fetched": 10247,
    "height": 0.795,
-   "seconds": 172.5,
+   "seconds": 177.1,
    "tile": {
     "status": "ok",
     "count": 7838,
@@ -1046,7 +997,7 @@
    "count": 3936,
    "fetched": 5176,
    "height": 0.878,
-   "seconds": 96.5,
+   "seconds": 110.8,
    "tile": {
     "status": "ok",
     "count": 3889,
@@ -1061,12 +1012,9 @@
    "count": 2004,
    "fetched": 2562,
    "height": 1.0,
-   "seconds": 3.3,
+   "seconds": 4.3,
    "tile": {
-    "status": "ok",
-    "count": 2004,
-    "height": 1.0,
-    "with_height": 2004,
+    "status": "HTTP 404",
     "source": "New York"
    },
    "licence": null
@@ -1079,10 +1027,7 @@
    "height": 0.862,
    "seconds": 2.2,
    "tile": {
-    "status": "ok",
-    "count": 711,
-    "height": 0.862,
-    "with_height": 613,
+    "status": "HTTP 404",
     "source": "Austin"
    },
    "licence": null
@@ -1109,7 +1054,7 @@
    "count": 562,
    "fetched": 677,
    "height": 0.998,
-   "seconds": 1.7,
+   "seconds": 1.6,
    "tile": {
     "status": "ok",
     "count": 1055,
@@ -1125,7 +1070,7 @@
    "count": 232,
    "fetched": 3140,
    "height": 0.987,
-   "seconds": 37.0,
+   "seconds": 77.0,
    "tile": {
     "status": "ok",
     "count": 236,
@@ -1140,7 +1085,7 @@
    "count": 3276,
    "fetched": 3614,
    "height": 0.989,
-   "seconds": 2.3,
+   "seconds": 2.6,
    "tile": {
     "status": "ok",
     "count": 3163,
@@ -1156,7 +1101,7 @@
    "count": 181,
    "fetched": 267,
    "named": 1.0,
-   "seconds": 0.7,
+   "seconds": 1.0,
    "tile": {
     "status": "ok",
     "count": 181,
@@ -1171,10 +1116,10 @@
    "count": 94,
    "fetched": 139,
    "named": 1.0,
-   "seconds": 0.6,
+   "seconds": 1.5,
    "tile": {
     "status": "ok",
-    "count": 93,
+    "count": 94,
     "named": 1.0,
     "source": "New York"
    },
@@ -1186,8 +1131,8 @@
    "count": 221,
    "fetched": 333,
    "named": 1.0,
-   "total": 6570,
-   "seconds": 0.9,
+   "total": 6575,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
     "count": 221,
@@ -1202,7 +1147,7 @@
    "fetched": 351,
    "named": 0.0,
    "total": 6942,
-   "seconds": 11.5,
+   "seconds": 5.6,
    "tile": {
     "status": "ok",
     "count": 213,
@@ -1217,7 +1162,7 @@
    "count": 155,
    "fetched": 195,
    "named": 1.0,
-   "seconds": 6.1,
+   "seconds": 7.7,
    "tile": {
     "status": "ok",
     "count": 155,
@@ -1247,9 +1192,12 @@
    "count": 39,
    "fetched": 39,
    "named": 1.0,
-   "seconds": 1.0,
+   "seconds": 1.3,
    "tile": {
-    "status": "HTTP 404"
+    "status": "ok",
+    "count": 39,
+    "named": 1.0,
+    "source": "Hong Kong"
    },
    "licence": null
   },
@@ -1261,10 +1209,7 @@
    "height": 1.0,
    "seconds": 1.6,
    "tile": {
-    "status": "ok",
-    "count": 1908,
-    "height": 1.0,
-    "with_height": 1908,
+    "status": "HTTP 404",
     "source": "Berlin"
    },
    "licence": "Für die Nutzung der Daten ist die Datenlizenz Deutschland - Zero - Version 2.0 anzuwenden. Die Lizenz ist über https://www.govdata.de/dl-de/zero-2-0 abrufbar. / Es gelten keine Zugriffsbeschränkungen."
@@ -1275,7 +1220,7 @@
    "count": 552,
    "fetched": 741,
    "height": 0.996,
-   "seconds": 1.2,
+   "seconds": 1.5,
    "tile": {
     "status": "ok",
     "count": 551,
@@ -1291,7 +1236,7 @@
    "count": 5831,
    "fetched": 7567,
    "height": 0.887,
-   "seconds": 216.5,
+   "seconds": 267.6,
    "tile": {
     "status": "ok",
     "count": 5787,
@@ -1306,7 +1251,7 @@
    "count": 6001,
    "fetched": 7732,
    "height": 0.943,
-   "seconds": 69.4,
+   "seconds": 71.8,
    "tile": {
     "status": "ok",
     "count": 5941,
@@ -1321,7 +1266,7 @@
    "count": 4453,
    "fetched": 5361,
    "height": 0.792,
-   "seconds": 41.5,
+   "seconds": 108.0,
    "tile": {
     "status": "ok",
     "count": 4365,
@@ -1336,12 +1281,9 @@
    "count": 1361,
    "fetched": 1872,
    "height": 0.477,
-   "seconds": 2.5,
+   "seconds": 17.4,
    "tile": {
-    "status": "ok",
-    "count": 1361,
-    "height": 0.477,
-    "with_height": 649,
+    "status": "HTTP 404",
     "source": "Chicago"
    },
    "licence": "See Terms of Use"
@@ -1352,12 +1294,9 @@
    "count": 981,
    "fetched": 1258,
    "height": 0.997,
-   "seconds": 1.7,
+   "seconds": 2.6,
    "tile": {
-    "status": "ok",
-    "count": 981,
-    "height": 0.997,
-    "with_height": 978,
+    "status": "HTTP 404",
     "source": "Los Angeles"
    },
    "licence": null
@@ -1368,7 +1307,7 @@
    "count": 1018,
    "fetched": 1368,
    "height": 0.999,
-   "seconds": 14.7,
+   "seconds": 10.0,
    "tile": {
     "status": "ok",
     "count": 1018,
@@ -1383,7 +1322,7 @@
    "count": 347,
    "fetched": 422,
    "height": 1.0,
-   "seconds": 0.5,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 700,
@@ -1397,9 +1336,9 @@
    "key": "26899,-774",
    "status": "ok",
    "count": 272,
-   "fetched": 1204,
+   "fetched": 1206,
    "height": 0.989,
-   "seconds": 62.4,
+   "seconds": 70.6,
    "tile": {
     "status": "ok",
     "count": 272,
@@ -1414,7 +1353,7 @@
    "count": 872,
    "fetched": 1136,
    "height": 0.971,
-   "seconds": 89.2,
+   "seconds": 72.5,
    "tile": {
     "status": "ok",
     "count": 868,
@@ -1429,7 +1368,7 @@
    "count": 77,
    "fetched": 82,
    "named": 0.0,
-   "seconds": 0.9,
+   "seconds": 1.7,
    "tile": {
     "status": "ok",
     "count": 77,
@@ -1444,7 +1383,7 @@
    "count": 65,
    "fetched": 92,
    "named": 1.0,
-   "seconds": 0.8,
+   "seconds": 2.6,
    "tile": {
     "status": "ok",
     "count": 65,
@@ -1459,10 +1398,10 @@
    "count": 208,
    "fetched": 258,
    "named": 1.0,
-   "seconds": 2.3,
+   "seconds": 2.0,
    "tile": {
     "status": "ok",
-    "count": 206,
+    "count": 208,
     "named": 1.0,
     "source": "Basel"
    },
@@ -1475,7 +1414,7 @@
    "fetched": 17,
    "named": 0.0,
    "total": 417,
-   "seconds": 0.1,
+   "seconds": 0.2,
    "tile": {
     "status": "ok",
     "count": 13,
@@ -1489,7 +1428,7 @@
    "count": 315,
    "fetched": 397,
    "named": 0.0,
-   "seconds": 0.7,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 315,
@@ -1519,12 +1458,9 @@
    "count": 2144,
    "fetched": 2660,
    "height": 1.0,
-   "seconds": 1.9,
+   "seconds": 1.5,
    "tile": {
-    "status": "ok",
-    "count": 2143,
-    "height": 1.0,
-    "with_height": 2143,
+    "status": "HTTP 404",
     "source": "Melbourne"
    },
    "licence": "CC BY"
@@ -1535,7 +1471,7 @@
    "count": 660,
    "fetched": 820,
    "height": 0.988,
-   "seconds": 1.3,
+   "seconds": 2.0,
    "tile": {
     "status": "ok",
     "count": 659,
@@ -1551,12 +1487,9 @@
    "count": 787,
    "fetched": 1046,
    "height": 0.986,
-   "seconds": 1.4,
+   "seconds": 1.8,
    "tile": {
-    "status": "ok",
-    "count": 787,
-    "height": 1.0,
-    "with_height": 787,
+    "status": "HTTP 404",
     "source": "Holon"
    },
    "licence": null
@@ -1567,7 +1500,7 @@
    "count": 4422,
    "fetched": 6017,
    "height": 0.885,
-   "seconds": 226.7,
+   "seconds": 311.2,
    "tile": {
     "status": "ok",
     "count": 4409,
@@ -1582,7 +1515,7 @@
    "count": 3048,
    "fetched": 3669,
    "height": 0.803,
-   "seconds": 102.2,
+   "seconds": 117.8,
    "tile": {
     "status": "ok",
     "count": 2953,
@@ -1597,7 +1530,7 @@
    "count": 587,
    "fetched": 704,
    "height": 0.942,
-   "seconds": 10.3,
+   "seconds": 15.2,
    "tile": {
     "status": "ok",
     "count": 587,
@@ -1613,7 +1546,7 @@
    "count": 1465,
    "fetched": 1910,
    "height": 1.0,
-   "seconds": 0.8,
+   "seconds": 3.1,
    "tile": {
     "status": "ok",
     "count": 1465,
@@ -1629,12 +1562,9 @@
    "count": 684,
    "fetched": 869,
    "height": 1.0,
-   "seconds": 7.0,
+   "seconds": 8.7,
    "tile": {
-    "status": "ok",
-    "count": 684,
-    "height": 1.0,
-    "with_height": 684,
+    "status": "HTTP 404",
     "source": "Hamburg"
    }
   },
@@ -1644,7 +1574,7 @@
    "count": 2228,
    "fetched": 2878,
    "height": 1.0,
-   "seconds": 3.1,
+   "seconds": 2.8,
    "tile": {
     "status": "ok",
     "count": 2225,
@@ -1660,12 +1590,9 @@
    "count": 450,
    "fetched": 565,
    "height": 1.0,
-   "seconds": 9.4,
+   "seconds": 1183.8,
    "tile": {
-    "status": "ok",
-    "count": 450,
-    "height": 1.0,
-    "with_height": 450,
+    "status": "HTTP 404",
     "source": "Vaughan"
    }
   },
@@ -1673,9 +1600,9 @@
    "key": "26702,-1495",
    "status": "ok",
    "count": 186,
-   "fetched": 1261,
+   "fetched": 1262,
    "height": 0.989,
-   "seconds": 51.0,
+   "seconds": 58.6,
    "tile": {
     "status": "ok",
     "count": 188,
@@ -1690,7 +1617,7 @@
    "count": 403,
    "fetched": 542,
    "height": 0.97,
-   "seconds": 5.8,
+   "seconds": 4.7,
    "tile": {
     "status": "ok",
     "count": 400,
@@ -1701,10 +1628,10 @@
   }
  },
  "feed": {
-  "updated": "2026-10-12",
-  "seed": 42,
-  "checked": 638,
-  "mismatches": 79,
-  "missing": 0
+  "updated": "2026-10-17",
+  "seed": 43,
+  "checked": 648,
+  "mismatches": 32,
+  "missing": 424
  }
 }
