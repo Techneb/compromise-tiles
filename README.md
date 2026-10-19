@@ -162,10 +162,6 @@ areas flagged `"streets": true`. Each tile is an array of
   working). A ref's bracketed service pattern is dropped first ("C-2
   (CIVIS)" is "C-2"). A cell no line stops in has no file.
 
-Pending: rebuild the transit tiles of Lyon, Glasgow, Turin, Palma, Kuala
-Lumpur, Cologne, Denver and Rotterdam on 2026-11-01 (sightseeing and heritage
-lines left out since 2026-10-19; Paris rebuilt that day).
-
 ## Weekly data check
 
 `.github/workflows/data-check.yml` runs `check_data.py` every Monday at
