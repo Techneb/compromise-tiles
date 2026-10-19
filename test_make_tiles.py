@@ -1310,6 +1310,10 @@ relations = ET.fromstring("<osm>" + "".join([
     route(19, "trolleybus", "N5", [10, 12]),
     route(20, "subway", "N1", [10, 12]),
     route(21, "bus", "661", [10, 12, 21], network="Alsa"),
+    # Paris's sightseeing buses (2026-10-19): Big Bus by network, Open Tour by operator, a tourism=yes route.
+    route(22, "bus", "rouge", [10, 12], network="Big Bus", operator="Big Bus"),
+    route(23, "bus", "Verte", [10, 12], operator="Open Tour"),
+    route(24, "bus", "PT", [10, 12], network="local", tourism="yes"),
 ]) + "</osm>")
 objects = ET.fromstring("""<osm>
  <node id="10" lat="40.4000" lon="-3.7000"><tag k="name" v="Sol"/></node>
