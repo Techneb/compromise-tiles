@@ -1,31 +1,5 @@
 [
  {
-  "city": "Moscow",
-  "country": "Russia",
-  "lat": 55.752,
-  "lon": 37.6178,
-  "population": 10381222,
-  "timezone": "Europe/Moscow",
-  "geonames": 524901,
-  "goingOutCells": 3425,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Saint Petersburg",
-  "country": "Russia",
-  "lat": 59.9386,
-  "lon": 30.3141,
-  "population": 5351935,
-  "timezone": "Europe/Moscow",
-  "geonames": 498817,
-  "goingOutCells": 2479,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Houston",
   "country": "United States",
   "lat": 29.7633,
@@ -78,19 +52,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Minsk",
-  "country": "Belarus",
-  "lat": 53.9002,
-  "lon": 27.5665,
-  "population": 1742124,
-  "timezone": "Europe/Minsk",
-  "geonames": 625144,
-  "goingOutCells": 871,
-  "terraceShare": 0.017,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Puebla",
   "country": "Mexico",
   "lat": 19.0478,
@@ -128,15 +89,6 @@
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Novosibirsk",
-  "country": "Russia",
-  "lat": 55.0226,
-  "lon": 82.9317,
-  "population": 1612833,
-  "timezone": "Asia/Novosibirsk",
-  "geonames": 1496747
  },
  {
   "city": "Santiago de Querétaro",
@@ -189,15 +141,6 @@
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Yekaterinburg",
-  "country": "Russia",
-  "lat": 56.8573,
-  "lon": 60.6153,
-  "population": 1495066,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 1486209
  },
  {
   "city": "Zapopan",
@@ -265,32 +208,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Nizhniy Novgorod",
-  "country": "Russia",
-  "lat": 56.3287,
-  "lon": 44.002,
-  "population": 1259013,
-  "timezone": "Europe/Moscow",
-  "geonames": 520555,
-  "goingOutCells": 252,
-  "terraceShare": 0.044,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Kazan",
-  "country": "Russia",
-  "lat": 55.7887,
-  "lon": 49.1221,
-  "population": 1243500,
-  "timezone": "Europe/Moscow",
-  "geonames": 551487,
-  "goingOutCells": 499,
-  "terraceShare": 0.016,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Port-au-Prince",
   "country": "Haiti",
   "lat": 18.5435,
@@ -302,15 +219,6 @@
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Chelyabinsk",
-  "country": "Russia",
-  "lat": 55.1611,
-  "lon": 61.4288,
-  "population": 1202371,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 1508291
  },
  {
   "city": "Mérida",
@@ -334,28 +242,6 @@
   "timezone": "America/Santo_Domingo",
   "geonames": 3492914,
   "goingOutCells": 34,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Omsk",
-  "country": "Russia",
-  "lat": 54.9924,
-  "lon": 73.3686,
-  "population": 1172070,
-  "timezone": "Asia/Omsk",
-  "geonames": 1496153
- },
- {
-  "city": "Samara",
-  "country": "Russia",
-  "lat": 53.2077,
-  "lon": 50.1355,
-  "population": 1163399,
-  "timezone": "Europe/Samara",
-  "geonames": 499099,
-  "goingOutCells": 169,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -387,41 +273,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Rostov-on-Don",
-  "country": "Russia",
-  "lat": 47.22,
-  "lon": 39.7077,
-  "population": 1130305,
-  "timezone": "Europe/Moscow",
-  "geonames": 501175,
-  "goingOutCells": 127,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Ufa",
-  "country": "Russia",
-  "lat": 54.7431,
-  "lon": 55.9678,
-  "population": 1120547,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 479561,
-  "goingOutCells": 181,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Krasnoyarsk",
-  "country": "Russia",
-  "lat": 56.0374,
-  "lon": 92.9314,
-  "population": 1090811,
-  "timezone": "Asia/Krasnoyarsk",
-  "geonames": 1502026
- },
- {
   "city": "Ciudad Nezahualcoyotl",
   "country": "Mexico",
   "lat": 19.4006,
@@ -435,19 +286,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Voronezh",
-  "country": "Russia",
-  "lat": 51.6683,
-  "lon": 39.192,
-  "population": 1047549,
-  "timezone": "Europe/Moscow",
-  "geonames": 472045,
-  "goingOutCells": 139,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Mexicali",
   "country": "Mexico",
   "lat": 32.6278,
@@ -456,19 +294,6 @@
   "timezone": "America/Tijuana",
   "geonames": 3996069,
   "goingOutCells": 35,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Volgograd",
-  "country": "Russia",
-  "lat": 48.7138,
-  "lon": 44.4976,
-  "population": 1013533,
-  "timezone": "Europe/Volgograd",
-  "geonames": 472757,
-  "goingOutCells": 93,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -548,19 +373,6 @@
   "geonames": 3598132,
   "goingOutCells": 232,
   "terraceShare": 0.026,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Perm",
-  "country": "Russia",
-  "lat": 58.0105,
-  "lon": 56.2502,
-  "population": 982419,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 511196,
-  "goingOutCells": 194,
-  "terraceShare": 0.005,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -656,19 +468,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Krasnodar",
-  "country": "Russia",
-  "lat": 45.0453,
-  "lon": 38.9818,
-  "population": 899541,
-  "timezone": "Europe/Moscow",
-  "geonames": 542420,
-  "goingOutCells": 172,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Cancún",
   "country": "Mexico",
   "lat": 21.1743,
@@ -703,19 +502,6 @@
   "timezone": "America/Tegucigalpa",
   "geonames": 3600949,
   "goingOutCells": 115,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Saratov",
-  "country": "Russia",
-  "lat": 51.5405,
-  "lon": 45.9901,
-  "population": 844858,
-  "timezone": "Europe/Saratov",
-  "geonames": 498677,
-  "goingOutCells": 157,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -771,15 +557,6 @@
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Tyumen",
-  "country": "Russia",
-  "lat": 57.1522,
-  "lon": 65.5272,
-  "population": 768358,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 1488754
  },
  {
   "city": "Winnipeg",
@@ -899,19 +676,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Tolyatti",
-  "country": "Russia",
-  "lat": 53.5303,
-  "lon": 49.3461,
-  "population": 702879,
-  "timezone": "Europe/Samara",
-  "geonames": 482283,
-  "goingOutCells": 18,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Sarajevo",
   "country": "Bosnia and Herzegovina",
   "lat": 43.8486,
@@ -972,19 +736,6 @@
   "timezone": "America/Mexico_City",
   "geonames": 3533462,
   "goingOutCells": 25,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Izhevsk",
-  "country": "Russia",
-  "lat": 56.8522,
-  "lon": 53.1986,
-  "population": 648213,
-  "timezone": "Europe/Samara",
-  "geonames": 554840,
-  "goingOutCells": 134,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -1055,28 +806,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Barnaul",
-  "country": "Russia",
-  "lat": 53.362,
-  "lon": 83.7279,
-  "population": 632372,
-  "timezone": "Asia/Barnaul",
-  "geonames": 1510853
- },
- {
-  "city": "Ulyanovsk",
-  "country": "Russia",
-  "lat": 54.3282,
-  "lon": 48.3866,
-  "population": 626540,
-  "timezone": "Europe/Ulyanovsk",
-  "geonames": 479123,
-  "goingOutCells": 81,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Louisville",
   "country": "United States",
   "lat": 38.2542,
@@ -1088,15 +817,6 @@
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Irkutsk",
-  "country": "Russia",
-  "lat": 52.2957,
-  "lon": 104.2908,
-  "population": 623869,
-  "timezone": "Asia/Irkutsk",
-  "geonames": 2023469
  },
  {
   "city": "Düsseldorf",
@@ -1125,37 +845,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Khabarovsk",
-  "country": "Russia",
-  "lat": 48.462,
-  "lon": 135.0971,
-  "population": 618150,
-  "timezone": "Asia/Vladivostok",
-  "geonames": 2022890
- },
- {
-  "city": "Yaroslavl",
-  "country": "Russia",
-  "lat": 57.6299,
-  "lon": 39.8737,
-  "population": 608722,
-  "timezone": "Europe/Moscow",
-  "geonames": 468902,
-  "goingOutCells": 126,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Vladivostok",
-  "country": "Russia",
-  "lat": 43.1056,
-  "lon": 131.8735,
-  "population": 604901,
-  "timezone": "Asia/Vladivostok",
-  "geonames": 2013348
- },
- {
   "city": "Tuxtla",
   "country": "Mexico",
   "lat": 16.7536,
@@ -1177,19 +866,6 @@
   "timezone": "Europe/Kyiv",
   "geonames": 703845,
   "goingOutCells": 77,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Makhachkala",
-  "country": "Russia",
-  "lat": 42.9778,
-  "lon": 47.5003,
-  "population": 596356,
-  "timezone": "Europe/Moscow",
-  "geonames": 532096,
-  "goingOutCells": 212,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -1260,15 +936,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Tomsk",
-  "country": "Russia",
-  "lat": 56.5005,
-  "lon": 84.9822,
-  "population": 574002,
-  "timezone": "Asia/Tomsk",
-  "geonames": 1489425
- },
- {
   "city": "Hamilton",
   "country": "Canada",
   "lat": 43.2501,
@@ -1304,19 +971,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Orenburg",
-  "country": "Russia",
-  "lat": 51.7671,
-  "lon": 55.0988,
-  "population": 564773,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 515003,
-  "goingOutCells": 57,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Albuquerque",
   "country": "United States",
   "lat": 35.0845,
@@ -1341,15 +995,6 @@
   "terraceShare": 0.443,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Kemerovo",
-  "country": "Russia",
-  "lat": 55.3542,
-  "lon": 86.1043,
-  "population": 558973,
-  "timezone": "Asia/Novokuznetsk",
-  "geonames": 1503901
  },
  {
   "city": "Santiago de Cuba",
@@ -1443,41 +1088,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Novokuznetsk",
-  "country": "Russia",
-  "lat": 53.7575,
-  "lon": 87.136,
-  "population": 539616,
-  "timezone": "Asia/Novokuznetsk",
-  "geonames": 1496990
- },
- {
-  "city": "Ryazan’",
-  "country": "Russia",
-  "lat": 54.627,
-  "lon": 39.7041,
-  "population": 538962,
-  "timezone": "Europe/Moscow",
-  "geonames": 500096,
-  "goingOutCells": 87,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Astrakhan",
-  "country": "Russia",
-  "lat": 46.3497,
-  "lon": 48.0408,
-  "population": 533925,
-  "timezone": "Europe/Astrakhan",
-  "geonames": 580497,
-  "goingOutCells": 37,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Québec",
   "country": "Canada",
   "lat": 46.8123,
@@ -1513,19 +1123,6 @@
   "geonames": 5389489,
   "goingOutCells": 213,
   "terraceShare": 0.066,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Penza",
-  "country": "Russia",
-  "lat": 53.1957,
-  "lon": 45.0108,
-  "population": 523553,
-  "timezone": "Europe/Moscow",
-  "geonames": 511565,
-  "goingOutCells": 83,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -1595,32 +1192,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Naberezhnyye Chelny",
-  "country": "Russia",
-  "lat": 55.7372,
-  "lon": 52.4196,
-  "population": 509870,
-  "timezone": "Europe/Moscow",
-  "geonames": 523750,
-  "goingOutCells": 26,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Lipetsk",
-  "country": "Russia",
-  "lat": 52.5876,
-  "lon": 39.5515,
-  "population": 509735,
-  "timezone": "Europe/Moscow",
-  "geonames": 535121,
-  "goingOutCells": 93,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Newcastle",
   "country": "Australia",
   "lat": -32.9295,
@@ -1630,19 +1201,6 @@
   "geonames": 2155472,
   "goingOutCells": 121,
   "terraceShare": 0.083,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Kirov",
-  "country": "Russia",
-  "lat": 58.5981,
-  "lon": 49.6578,
-  "population": 507155,
-  "timezone": "Europe/Kirov",
-  "geonames": 548408,
-  "goingOutCells": 53,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -1673,32 +1231,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Homyel'",
-  "country": "Belarus",
-  "lat": 52.4345,
-  "lon": 30.9754,
-  "population": 501193,
-  "timezone": "Europe/Minsk",
-  "geonames": 627907,
-  "goingOutCells": 95,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Cheboksary",
-  "country": "Russia",
-  "lat": 56.1322,
-  "lon": 47.246,
-  "population": 492331,
-  "timezone": "Europe/Moscow",
-  "geonames": 569696,
-  "goingOutCells": 87,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Toluca",
   "country": "Mexico",
   "lat": 19.2879,
@@ -1720,19 +1252,6 @@
   "timezone": "America/Chicago",
   "geonames": 5074472,
   "goingOutCells": 129,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Tula",
-  "country": "Russia",
-  "lat": 54.1961,
-  "lon": 37.6182,
-  "population": 482873,
-  "timezone": "Europe/Moscow",
-  "geonames": 480562,
-  "goingOutCells": 91,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -1760,19 +1279,6 @@
   "geonames": 4393217,
   "goingOutCells": 207,
   "terraceShare": 0.019,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Kaliningrad",
-  "country": "Russia",
-  "lat": 54.7064,
-  "lon": 20.511,
-  "population": 475056,
-  "timezone": "Europe/Kaliningrad",
-  "geonames": 554234,
-  "goingOutCells": 201,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -1894,19 +1400,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Kursk",
-  "country": "Russia",
-  "lat": 51.7269,
-  "lon": 36.1846,
-  "population": 448733,
-  "timezone": "Europe/Moscow",
-  "geonames": 538560,
-  "goingOutCells": 73,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Ensenada",
   "country": "Mexico",
   "lat": 31.8715,
@@ -1916,19 +1409,6 @@
   "geonames": 4006702,
   "goingOutCells": 31,
   "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Stavropol",
-  "country": "Russia",
-  "lat": 45.0344,
-  "lon": 41.9642,
-  "population": 433931,
-  "timezone": "Europe/Moscow",
-  "geonames": 487846,
-  "goingOutCells": 98,
-  "terraceShare": 0.02,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -1954,19 +1434,6 @@
   "timezone": "America/Mexico_City",
   "geonames": 3514783,
   "goingOutCells": 191,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Bryansk",
-  "country": "Russia",
-  "lat": 53.271,
-  "lon": 34.3214,
-  "population": 427236,
-  "timezone": "Europe/Moscow",
-  "geonames": 571476,
-  "goingOutCells": 15,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -2006,19 +1473,6 @@
   "timezone": "America/Toronto",
   "geonames": 6058560,
   "goingOutCells": 112,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Tver",
-  "country": "Russia",
-  "lat": 56.8584,
-  "lon": 35.9006,
-  "population": 420065,
-  "timezone": "Europe/Moscow",
-  "geonames": 480060,
-  "goingOutCells": 62,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -2102,15 +1556,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Magnitogorsk",
-  "country": "Russia",
-  "lat": 53.3981,
-  "lon": 59.0066,
-  "population": 413351,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 532288
- },
- {
   "city": "Tulsa",
   "country": "United States",
   "lat": 36.154,
@@ -2159,19 +1604,6 @@
   "geonames": 3703443,
   "goingOutCells": 288,
   "terraceShare": 0.021,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Ivanovo",
-  "country": "Russia",
-  "lat": 56.9999,
-  "lon": 40.9726,
-  "population": 406113,
-  "timezone": "Europe/Moscow",
-  "geonames": 555312,
-  "goingOutCells": 30,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -2306,15 +1738,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Nizhny Tagil",
-  "country": "Russia",
-  "lat": 57.9194,
-  "lon": 59.965,
-  "population": 381116,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 520494
- },
- {
   "city": "Irapuato",
   "country": "Mexico",
   "lat": 20.671,
@@ -2419,19 +1842,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Hrodna",
-  "country": "Belarus",
-  "lat": 53.6758,
-  "lon": 23.8289,
-  "population": 363718,
-  "timezone": "Europe/Minsk",
-  "geonames": 627904,
-  "goingOutCells": 101,
-  "terraceShare": 0.396,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "New Orleans",
   "country": "United States",
   "lat": 29.9547,
@@ -2471,15 +1881,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Ulan-Ude",
-  "country": "Russia",
-  "lat": 51.8265,
-  "lon": 107.5998,
-  "population": 360278,
-  "timezone": "Asia/Irkutsk",
-  "geonames": 2014407
- },
- {
   "city": "Aurora",
   "country": "United States",
   "lat": 39.7294,
@@ -2489,32 +1890,6 @@
   "geonames": 5412347,
   "goingOutCells": 286,
   "terraceShare": 0.031,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Vitebsk",
-  "country": "Belarus",
-  "lat": 55.1904,
-  "lon": 30.2049,
-  "population": 358927,
-  "timezone": "Europe/Minsk",
-  "geonames": 620127,
-  "goingOutCells": 64,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Vladimir",
-  "country": "Russia",
-  "lat": 56.1385,
-  "lon": 40.3998,
-  "population": 357024,
-  "timezone": "Europe/Moscow",
-  "geonames": 473247,
-  "goingOutCells": 59,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -2545,19 +1920,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Mahilyow",
-  "country": "Belarus",
-  "lat": 53.9088,
-  "lon": 30.3404,
-  "population": 352896,
-  "timezone": "Europe/Minsk",
-  "geonames": 625665,
-  "goingOutCells": 50,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Honolulu",
   "country": "United States",
   "lat": 21.3069,
@@ -2584,28 +1946,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Arkhangel’sk",
-  "country": "Russia",
-  "lat": 64.5461,
-  "lon": 40.5518,
-  "population": 349742,
-  "timezone": "Europe/Moscow",
-  "geonames": 581049,
-  "goingOutCells": 279,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Chita",
-  "country": "Russia",
-  "lat": 52.0431,
-  "lon": 113.4917,
-  "population": 349005,
-  "timezone": "Asia/Chita",
-  "geonames": 2025339
- },
- {
   "city": "Belfast",
   "country": "United Kingdom",
   "lat": 54.5968,
@@ -2627,19 +1967,6 @@
   "timezone": "America/Havana",
   "geonames": 3566067,
   "goingOutCells": 44,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Brest (Belarus)",
-  "country": "Belarus",
-  "lat": 52.1089,
-  "lon": 23.7175,
-  "population": 347138,
-  "timezone": "Europe/Minsk",
-  "geonames": 629634,
-  "goingOutCells": 104,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -2671,19 +1998,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Belgorod",
-  "country": "Russia",
-  "lat": 50.6034,
-  "lon": 36.5809,
-  "population": 345289,
-  "timezone": "Europe/Moscow",
-  "geonames": 578072,
-  "goingOutCells": 42,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Logan City",
   "country": "Australia",
   "lat": -27.6392,
@@ -2692,19 +2006,6 @@
   "timezone": "Australia/Brisbane",
   "geonames": 7281838,
   "goingOutCells": 67,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Kaluga",
-  "country": "Russia",
-  "lat": 54.5306,
-  "lon": 36.27,
-  "population": 340851,
-  "timezone": "Europe/Moscow",
-  "geonames": 553915,
-  "goingOutCells": 106,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -2866,19 +2167,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Smolensk",
-  "country": "Russia",
-  "lat": 54.7783,
-  "lon": 32.0509,
-  "population": 330025,
-  "timezone": "Europe/Moscow",
-  "geonames": 491687,
-  "goingOutCells": 60,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Plovdiv",
   "country": "Bulgaria",
   "lat": 42.1539,
@@ -2905,19 +2193,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Sochi",
-  "country": "Russia",
-  "lat": 43.597,
-  "lon": 39.7248,
-  "population": 327608,
-  "timezone": "Europe/Moscow",
-  "geonames": 491422,
-  "goingOutCells": 197,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Espoo",
   "country": "Finland",
   "lat": 60.2052,
@@ -2940,19 +2215,6 @@
   "geonames": 2641170,
   "goingOutCells": 428,
   "terraceShare": 0.028,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Volzhsky",
-  "country": "Russia",
-  "lat": 48.7858,
-  "lon": 44.7797,
-  "population": 323293,
-  "timezone": "Europe/Volgograd",
-  "geonames": 472231,
-  "goingOutCells": 14,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -2991,19 +2253,6 @@
   "timezone": "America/Havana",
   "geonames": 3556969,
   "goingOutCells": 55,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Saransk",
-  "country": "Russia",
-  "lat": 54.1848,
-  "lon": 45.1717,
-  "population": 318841,
-  "timezone": "Europe/Moscow",
-  "geonames": 498698,
-  "goingOutCells": 36,
   "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
@@ -3100,19 +2349,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Cherepovets",
-  "country": "Russia",
-  "lat": 59.1333,
-  "lon": 37.9,
-  "population": 315738,
-  "timezone": "Europe/Moscow",
-  "geonames": 569223,
-  "goingOutCells": 40,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Kingston upon Hull",
   "country": "United Kingdom",
   "lat": 53.7446,
@@ -3135,19 +2371,6 @@
   "geonames": 2639912,
   "goingOutCells": 127,
   "terraceShare": 0.094,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Vologda",
-  "country": "Russia",
-  "lat": 59.2239,
-  "lon": 39.884,
-  "population": 312420,
-  "timezone": "Europe/Moscow",
-  "geonames": 472459,
-  "goingOutCells": 65,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -3189,15 +2412,6 @@
   "terraceShare": null,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Kurgan",
-  "country": "Russia",
-  "lat": 55.449,
-  "lon": 65.3434,
-  "population": 309285,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 1501321
  },
  {
   "city": "Tampico",
@@ -3244,19 +2458,6 @@
   "geonames": 2873891,
   "goingOutCells": 419,
   "terraceShare": 0.468,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Vladikavkaz",
-  "country": "Russia",
-  "lat": 43.041,
-  "lon": 44.6699,
-  "population": 306258,
-  "timezone": "Europe/Moscow",
-  "geonames": 473249,
-  "goingOutCells": 46,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -3313,19 +2514,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Orël",
-  "country": "Russia",
-  "lat": 52.9688,
-  "lon": 36.0791,
-  "population": 303696,
-  "timezone": "Europe/Moscow",
-  "geonames": 515012,
-  "goingOutCells": 18,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Graz",
   "country": "Austria",
   "lat": 47.0673,
@@ -3363,15 +2551,6 @@
   "terraceShare": 0.562,
   "extent": "24 km square",
   "counted": "2026-09-30"
- },
- {
-  "city": "Surgut",
-  "country": "Russia",
-  "lat": 61.2576,
-  "lon": 73.4177,
-  "population": 300367,
-  "timezone": "Asia/Yekaterinburg",
-  "geonames": 1490624
  },
  {
   "city": "Swansea",

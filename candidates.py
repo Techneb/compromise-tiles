@@ -9,7 +9,7 @@ row (counts-cities.json) and every city over 300,000 in Europe, North America an
 the second list from GeoNames (cities15000 and countryInfo, CC BY 4.0, downloaded when no folder is given):
 
   - population at least POPULATION, on a continent of CONTINENTS (GeoNames' country continent: Russia is
-    Europe, Turkey Asia);
+    Europe, Turkey Asia), outside SKIP (owner, 2026-10-20);
   - not a section of a place (feature code PPLX: Pest, Hamburg-Nord, a Bucharest sector), nor a borough in
     PART_OF (Queens, a Mexico City alcaldía);
   - not already listed: its name (or one of GeoNames' alternate names) is a counts-cities.json city of the
@@ -37,6 +37,7 @@ GEONAMES = "https://download.geonames.org/export/dump/"
 POPULATION = 300_000
 CONTINENTS = {"EU", "NA", "OC"}
 HALF_KM = 12  # the counts job's square around a city's point (counts.HALF_KM)
+SKIP = {"China", "Russia", "Belarus"}  # never listed nor counted (owner, 2026-10-20)
 COUNTRY = {"The Netherlands": "Netherlands"}  # GeoNames' name -> the one cities.csv uses
 # Boroughs GeoNames files as places of their own, whose point lies just past a listed city's square (checked 2026-09-30).
 PART_OF = {"Queens": "New York", "The Bronx": "New York", "Staten Island": "New York",
@@ -89,7 +90,7 @@ def select(city_lines, country_lines, listed):
         f = line.split("\t")
         if len(f) < 19: continue
         population, code = int(f[14] or 0), f[8]
-        if population < POPULATION or continent.get(code) not in CONTINENTS or f[7] == "PPLX": continue
+        if population < POPULATION or continent.get(code) not in CONTINENTS or f[7] == "PPLX" or country[code] in SKIP: continue
         places.append({"city": f[1], "country": country[code], "lat": round(float(f[4]), 4), "lon": round(float(f[5]), 4),
                        "population": population, "timezone": f[17], "geonames": int(f[0]),
                        "_names": {fold(f[1]), fold(f[2])} | {fold(a) for a in f[3].split(",") if a}})
