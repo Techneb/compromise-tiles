@@ -2081,6 +2081,11 @@ CITY_BUILDINGS = [
     building_row("Herzliya", (32.144, 32.203), (34.787, 34.865), boundary=boundary("herzliya"), fetch=lambda r: footprints(arcgis(
         "https://services3.arcgis.com/9qGhZGtb39XMVQyR/arcgis/rest/services/herzliya_reka_2023/FeatureServer/3", r,
         ["Num_floors"]), lambda p: number(p.get("Num_floors")) * 3 if number(p.get("Num_floors")) else None)),
+    # Netanya (2026-10-21): the municipality's קונטור מבנים layer (ArcGIS Online, no licence stated), NUM_FLOORS × 3 m
+    # (13,810 of 14,000 with floors; ELEV is an elevator flag, not a height). Held to the municipal boundary (OSM).
+    building_row("Netanya", (32.2549, 32.3606), (34.8247, 34.8961), boundary=boundary("netanya"), fetch=lambda r: footprints(arcgis(
+        "https://services5.arcgis.com/ySpO9UsTrqoVbhLe/arcgis/rest/services/%D7%A7%D7%95%D7%A0%D7%98%D7%95%D7%A8_%D7%9E%D7%91%D7%A0%D7%99%D7%9D/FeatureServer/709",
+        r, ["NUM_FLOORS"], oid="OBJECTID_12"), lambda p: number(p.get("NUM_FLOORS")) * 3 if number(p.get("NUM_FLOORS")) else None)),
     # Metres, else floors × 3 m. Answers only from Israel (HTTP 571 elsewhere): from the cloud every
     # Tel Aviv cell fails and no tile is written — never an OSM tile in its place.
     building_row("Tel Aviv", (32.02, 32.16), (34.73, 34.86), lambda r: footprints(arcgis(

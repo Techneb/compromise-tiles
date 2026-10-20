@@ -304,6 +304,8 @@ none, this says so rather than guessing.
   publisher).
 - Herzliya: Herzliya Municipality, buildings layer (licence not stated by
   the publisher).
+- Netanya: Netanya Municipality, buildings layer (licence not stated by
+  the publisher).
 - Hamburg: Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und
   Vermessung (LGV), 3D-Gebäudemodell LoD2-DE, Datenlizenz Deutschland –
   Namensnennung – 2.0.
