@@ -1493,6 +1493,32 @@ def citygml_tiles(url, km, zone=32, odd_e=False):
         return out
     return fetch
 
+def citygml_archive(url, name, km):
+    """LoD2 CityGML tiles of `km` km in UTM 32N held in one archive (Bremen's: a zip holding a stored zip of
+    the tiles), downloaded once a run (kept a month) and read tile by tile from inside it, the tile `name`
+    ({e}, {n}: its south-west corner in km) matched at the end of a member's path."""
+    def tiles():
+        if url not in _citygml:
+            outer = zipfile.ZipFile(download(url, os.path.join("extracts", "citygml"), max_days=30))
+            inner = next(m for m in outer.namelist() if m.lower().endswith(".zip"))
+            _citygml[url] = zipfile.ZipFile(outer.open(inner))
+        return _citygml[url]
+    def fetch(rect):
+        s, w, n, e = rect
+        z = tiles()
+        corners = [wgs84_to_utm(la, lo, 32) for la in (s, n) for lo in (w, e)]
+        span = lambda i: range(int(min(c[i] for c in corners) // 1000 // km * km), int(max(c[i] for c in corners) // 1000) + 1, km)
+        out = []
+        for x in span(0):
+            for y in span(1):
+                key = (url, x, y)
+                if key not in _citygml:
+                    member = next((m for m in z.namelist() if m.endswith(name.format(e=x, n=y))), None)
+                    _citygml[key] = citygml_buildings(z.read(member)) if member else []
+                out += [b for b in _citygml[key] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+        return out
+    return fetch
+
 # MLIT's Project PLATEAU (3D都市モデル): CityGML 2.0 per city, one building file per 1 km mesh, listed by the
 # PLATEAU data catalogue's keyless API per city code (Osaka: 27100; Tokyo: each of the 23 wards, 13101–13123,
 # a mesh on a ward border having a file per ward). The store holds the files gzipped and serves them so when
@@ -2198,6 +2224,10 @@ CITY_BUILDINGS = [
     # Saxony's LoD2 (GeoSN; no licence on the download, credited Datenlizenz Deutschland – Namensnennung – 2.0, the
     # stricter reading): 2 km zipped tiles in UTM 33N, through the download app's public share. Baden-Württemberg's
     # (LGL, Datenlizenz Deutschland in each zip, read the same way): 2 km zips at odd eastings of 1 km GMLs.
+    # Bremen: Landesamt GeoInformation Bremen's LoD2 (CC BY 4.0), one 403 MB zip of the city's 2 km tiles, read whole.
+    building_row("Bremen", (53.0111, 53.6102), (8.4815, 8.9909), boundary=boundary("bremen"),
+                 fetch=citygml_archive("https://gdi2.geo.bremen.de/inspire/download/LoD/data/LOD2_CITYGML_HB.zip",
+                                       "LoD2_32_{e}_{n}_2_HB.gml", 2)),
     building_row("Leipzig", (51.2381, 51.4482), (12.2366, 12.5425), boundary=boundary("leipzig"), fetch=citygml_tiles(
         "https://geocloud.landesvermessung.sachsen.de/public.php/dav/files/AyJqXpJAZJXomCb/lod2_33{e}_{n}_2_sn_citygml.zip", 2, zone=33)),
     building_row("Dresden", (50.9749, 51.1777), (13.5793, 13.9661), boundary=boundary("dresden"), fetch=citygml_tiles(

@@ -3230,5 +3230,17 @@
       8.59
     ],
     "boundary": "boundaries/mannheim.geojson"
+  },
+  {
+    "city": "Bremen",
+    "streets": true,
+    "district": "Bremen (whole municipality)",
+    "box": [
+      53.0111,
+      8.4815,
+      53.6102,
+      8.9909
+    ],
+    "boundary": "boundaries/bremen.geojson"
   }
 ]

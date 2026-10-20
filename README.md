@@ -371,6 +371,7 @@ none, this says so rather than guessing.
   Namensnennung – Version 2.0).
 - Mannheim: LGL Baden-Württemberg, 3D-Gebäudemodell LoD2 (Datenlizenz
   Deutschland – Namensnennung – Version 2.0).
+- Bremen: Landesamt GeoInformation Bremen, 3D-Gebäudemodell LoD2 (CC BY 4.0).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
   – Version 2.0).
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
@@ -446,7 +447,7 @@ none, this says so rather than guessing.
 - Be'er Sheva, Haifa, Minneapolis, Mississauga, Netanya, Newcastle upon Tyne,
   Rishon LeZion, San Diego, Taipei, Markham, Hamilton, London (Ontario),
   Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
-  Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim:
+  Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim, Bremen:
   © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
