@@ -707,5 +707,17 @@
  "permits/Tucson": {
   "key": "16111,-55484",
   "picked": "2026-10-21"
+ },
+ "buildings/Leipzig": {
+  "key": "25670,6187",
+  "picked": "2026-10-21"
+ },
+ "buildings/Dresden": {
+  "key": "25525,6868",
+  "picked": "2026-10-21"
+ },
+ "buildings/Mannheim": {
+  "key": "24743,4233",
+  "picked": "2026-10-21"
  }
 }

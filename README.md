@@ -367,6 +367,10 @@ none, this says so rather than guessing.
   Zero – Version 2.0).
 - Nuremberg, Augsburg: Datenquelle: Bayerische Vermessungsverwaltung –
   www.geodaten.bayern.de, 3D-Gebäudemodelle LoD2 (CC BY 4.0).
+- Leipzig, Dresden: GeoSN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
+  Namensnennung – Version 2.0).
+- Mannheim: LGL Baden-Württemberg, 3D-Gebäudemodell LoD2 (Datenlizenz
+  Deutschland – Namensnennung – Version 2.0).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
   – Version 2.0).
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
@@ -442,7 +446,8 @@ none, this says so rather than guessing.
 - Be'er Sheva, Haifa, Minneapolis, Mississauga, Netanya, Newcastle upon Tyne,
   Rishon LeZion, San Diego, Taipei, Markham, Hamilton, London (Ontario),
   Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
-  Hannover, Augsburg, Brno, Wellington, Catania, Tucson: © OpenStreetMap contributors, ODbL (each municipality's
+  Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim:
+  © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
   Bnei Brak, Giv'at Ze'ev, Givat Shmuel, Givatayim, Har Adar, Kiryat Ono,

@@ -78,7 +78,7 @@ shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zlib, zoneinfo
+import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -1464,20 +1464,28 @@ def citygml_buildings(raw, zone=32):
 
 _citygml = {}  # tile URL → its buildings, each tile parsed once a run
 
-def citygml_tiles(url, km):
-    """A fetch over LoD2 CityGML tiles of `km` km in UTM 32N, named by their south-west corner in km: each
+def citygml_tiles(url, km, zone=32, odd_e=False):
+    """A fetch over LoD2 CityGML tiles of `km` km in UTM `zone`N, named by their south-west corner in km: each
     tile a box touches is downloaded and parsed once a run, then served from memory. A tile the publisher
-    does not have (404: no building there) is empty."""
+    does not have (404: no building there) is empty. A .zip tile (Saxony's, Baden-Württemberg's) is read member
+    by member; `odd_e` for a grid whose eastings are odd kilometres (Baden-Württemberg's 2 km zips)."""
+    def parse(raw):
+        if not url.endswith(".zip"): return citygml_buildings(raw, zone)
+        with zipfile.ZipFile(io.BytesIO(raw)) as z:
+            return [b for m in z.namelist() if m.lower().endswith((".gml", ".xml")) for b in citygml_buildings(z.read(m), zone)]
     def fetch(rect):
         s, w, n, e = rect
-        corners = [wgs84_to_utm(la, lo, 32) for la in (s, n) for lo in (w, e)]
-        span = lambda i: range(int(min(c[i] for c in corners) // 1000 // km * km), int(max(c[i] for c in corners) // 1000) + 1, km)
+        corners = [wgs84_to_utm(la, lo, zone) for la in (s, n) for lo in (w, e)]
+        def span(i):
+            lo, hi = int(min(c[i] for c in corners) // 1000), int(max(c[i] for c in corners) // 1000)
+            start = (lo - 1) // km * km + 1 if (odd_e and i == 0) else lo // km * km
+            return range(start, hi + 1, km)
         out = []
         for x in span(0):
             for y in span(1):
                 u = url.format(e=x, n=y)
                 if u not in _citygml:
-                    try: _citygml[u] = citygml_buildings(get(u))
+                    try: _citygml[u] = parse(get(u))
                     except SourceError as err:
                         if "HTTP 404" not in str(err): raise
                         _citygml[u] = []
@@ -2187,6 +2195,15 @@ CITY_BUILDINGS = [
         "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
     building_row("Nuremberg", (49.3314, 49.5408), (10.9887, 11.2826), citygml_tiles(
         "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+    # Saxony's LoD2 (GeoSN; no licence on the download, credited Datenlizenz Deutschland – Namensnennung – 2.0, the
+    # stricter reading): 2 km zipped tiles in UTM 33N, through the download app's public share. Baden-Württemberg's
+    # (LGL, Datenlizenz Deutschland in each zip, read the same way): 2 km zips at odd eastings of 1 km GMLs.
+    building_row("Leipzig", (51.2381, 51.4482), (12.2366, 12.5425), boundary=boundary("leipzig"), fetch=citygml_tiles(
+        "https://geocloud.landesvermessung.sachsen.de/public.php/dav/files/AyJqXpJAZJXomCb/lod2_33{e}_{n}_2_sn_citygml.zip", 2, zone=33)),
+    building_row("Dresden", (50.9749, 51.1777), (13.5793, 13.9661), boundary=boundary("dresden"), fetch=citygml_tiles(
+        "https://geocloud.landesvermessung.sachsen.de/public.php/dav/files/AyJqXpJAZJXomCb/lod2_33{e}_{n}_2_sn_citygml.zip", 2, zone=33)),
+    building_row("Mannheim", (49.4103, 49.5905), (8.4141, 8.59), boundary=boundary("mannheim"), fetch=citygml_tiles(
+        "https://opengeodata.lgl-bw.de/data/lod2/LoD2_32_{e}_{n}_2_bw.zip", 2, odd_e=True)),
     # The overnight run's LoD2 rows (2026-10-21), each the whole city, held to its OSM boundary: NRW's statewide
     # model (as Düsseldorf's) for seven cities, LGLN's 1 km tiles for Hannover, Bavaria's (as Nuremberg's) for Augsburg.
     building_row("Essen", (51.3475, 51.5343), (6.8943, 7.1377), boundary=boundary("essen"), fetch=citygml_tiles(
