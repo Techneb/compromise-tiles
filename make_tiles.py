@@ -820,7 +820,9 @@ def opening_hours(tags):
 def details(tags):
     """The OSM tags behind a spot's subtitle (owner, 2026-10-20), short and left out when absent:
     cuisine as up to three lowercased ;-separated values, sport's first value, and True for
-    microbrewery, live_music and cocktails tagged yes and drink:wine/drink:beer tagged yes or served."""
+    microbrewery, live_music and cocktails tagged yes, drink:wine/drink:beer tagged yes or served, and
+    diet:vegan, diet:vegetarian and diet:gluten_free as their value when yes or only. They also feed
+    the app's keyword match (cocktail, pizza, vegan…)."""
     out = {}
     cuisine = [v.strip().lower() for v in str(tags.get("cuisine") or "").split(";") if v.strip()][:3]
     if cuisine: out["cuisine"] = ";".join(cuisine)
@@ -830,6 +832,8 @@ def details(tags):
         if tags.get(key) == "yes": out[key] = True
     for key in ("drink:wine", "drink:beer"):
         if tags.get(key) in ("yes", "served"): out[key] = True
+    for key in ("diet:vegan", "diet:vegetarian", "diet:gluten_free"):
+        if tags.get(key) in ("yes", "only"): out[key] = tags[key]
     return out
 
 _DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
