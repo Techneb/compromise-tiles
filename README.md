@@ -272,6 +272,12 @@ none, this says so rather than guessing.
   Open Data Commons Public Domain Dedication and License (PDDL).
 - Tucson: City of Tucson, Patio Expansions (licence not stated by the
   publisher).
+- Pittsburgh: City of Pittsburgh, Department of Mobility and Infrastructure,
+  Outdoor Dining (licence not stated by the publisher).
+- Long Beach: City of Long Beach, Parklets (licence not stated by the publisher;
+  the City's Open Data terms of use).
+- Detroit: City of Detroit, Right of Way Encroachments (licence not stated by the
+  publisher).
 - Québec: Ville de Québec, Permis délivrés à la Ville de Québec (Données
   Québec), Attribution (CC-BY 4.0).
 
@@ -372,6 +378,18 @@ none, this says so rather than guessing.
 - Mannheim: LGL Baden-Württemberg, 3D-Gebäudemodell LoD2 (Datenlizenz
   Deutschland – Namensnennung – Version 2.0).
 - Bremen: Landesamt GeoInformation Bremen, 3D-Gebäudemodell LoD2 (CC BY 4.0).
+- Detroit: Southeast Michigan Council of Governments (SEMCOG), Buildings 2024
+  (SEMCOG Copyright License Agreement). © SEMCOG.
+- Columbus: City of Columbus, Building Footprints (licence not stated by the publisher).
+- Anaheim: City of Anaheim, Building Footprint (CC BY 4.0, as quoted by the publisher).
+- Las Vegas: City of Las Vegas, Downtown Building Heights (licence not stated by the
+  publisher).
+- Honolulu: City and County of Honolulu, HoLIS Building Footprints (licence not stated
+  by the publisher).
+- Cincinnati: CAGIS, Hamilton County Building Footprints (licence not stated by the
+  publisher).
+- Nashville: Metropolitan Government of Nashville and Davidson County, Building
+  Footprints (licence not stated by the publisher).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
   – Version 2.0).
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
@@ -447,7 +465,8 @@ none, this says so rather than guessing.
 - Be'er Sheva, Haifa, Minneapolis, Mississauga, Netanya, Newcastle upon Tyne,
   Rishon LeZion, San Diego, Taipei, Markham, Hamilton, London (Ontario),
   Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
-  Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim, Bremen:
+  Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim, Bremen, Detroit, Pittsburgh,
+  Columbus, Anaheim, Las Vegas, Long Beach, Cincinnati, Nashville:
   © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
