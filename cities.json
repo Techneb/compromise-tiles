@@ -3027,5 +3027,172 @@
       44.705,
       -63.53
     ]
+  },
+  {
+    "city": "Wellington",
+    "streets": true,
+    "district": "Wellington (whole municipality)",
+    "box": [
+      -41.3624,
+      174.6131,
+      -41.1435,
+      174.8955
+    ],
+    "boundary": "boundaries/wellington.geojson"
+  },
+  {
+    "city": "Catania",
+    "streets": true,
+    "district": "Catania (whole municipality)",
+    "box": [
+      37.3583,
+      14.9358,
+      37.5624,
+      15.1258
+    ],
+    "boundary": "boundaries/catania.geojson"
+  },
+  {
+    "city": "Tucson",
+    "streets": true,
+    "district": "Tucson (whole municipality)",
+    "box": [
+      31.9904,
+      -111.0583,
+      32.321,
+      -110.7082
+    ],
+    "boundary": "boundaries/tucson.geojson"
+  },
+  {
+    "city": "Christchurch",
+    "streets": true,
+    "district": "Christchurch (the urban area, without Banks Peninsula)",
+    "box": [
+      -43.6,
+      172.5,
+      -43.42,
+      172.78
+    ]
+  },
+  {
+    "city": "Essen",
+    "streets": true,
+    "district": "Essen (whole municipality)",
+    "box": [
+      51.3475,
+      6.8943,
+      51.5343,
+      7.1377
+    ],
+    "boundary": "boundaries/essen.geojson"
+  },
+  {
+    "city": "Dortmund",
+    "streets": true,
+    "district": "Dortmund (whole municipality)",
+    "box": [
+      51.4157,
+      7.3023,
+      51.6001,
+      7.6382
+    ],
+    "boundary": "boundaries/dortmund.geojson"
+  },
+  {
+    "city": "Wuppertal",
+    "streets": true,
+    "district": "Wuppertal (whole municipality)",
+    "box": [
+      51.1657,
+      7.014,
+      51.3181,
+      7.3135
+    ],
+    "boundary": "boundaries/wuppertal.geojson"
+  },
+  {
+    "city": "Duisburg",
+    "streets": true,
+    "district": "Duisburg (whole municipality)",
+    "box": [
+      51.3333,
+      6.6256,
+      51.5601,
+      6.8303
+    ],
+    "boundary": "boundaries/duisburg.geojson"
+  },
+  {
+    "city": "Bochum",
+    "streets": true,
+    "district": "Bochum (whole municipality)",
+    "box": [
+      51.4105,
+      7.102,
+      51.5314,
+      7.3494
+    ],
+    "boundary": "boundaries/bochum.geojson"
+  },
+  {
+    "city": "Bielefeld",
+    "streets": true,
+    "district": "Bielefeld (whole municipality)",
+    "box": [
+      51.9148,
+      8.3778,
+      52.1148,
+      8.6634
+    ],
+    "boundary": "boundaries/bielefeld.geojson"
+  },
+  {
+    "city": "Bonn",
+    "streets": true,
+    "district": "Bonn (whole municipality)",
+    "box": [
+      50.6326,
+      7.0225,
+      50.7745,
+      7.2107
+    ],
+    "boundary": "boundaries/bonn.geojson"
+  },
+  {
+    "city": "Hannover",
+    "streets": true,
+    "district": "Hannover (whole municipality)",
+    "box": [
+      52.3048,
+      9.6044,
+      52.4544,
+      9.9186
+    ],
+    "boundary": "boundaries/hannover.geojson"
+  },
+  {
+    "city": "Augsburg",
+    "streets": true,
+    "district": "Augsburg (whole municipality)",
+    "box": [
+      48.2581,
+      10.7633,
+      48.4587,
+      10.9594
+    ],
+    "boundary": "boundaries/augsburg.geojson"
+  },
+  {
+    "city": "Brno",
+    "streets": true,
+    "district": "Brno (whole municipality)",
+    "box": [
+      49.1098,
+      16.4279,
+      49.2944,
+      16.7279
+    ],
+    "boundary": "boundaries/brno.geojson"
   }
 ]

@@ -651,5 +651,61 @@
  "buildings/Halifax": {
   "key": "22324,-31787",
   "picked": "2026-10-21"
+ },
+ "buildings/Essen": {
+  "key": "25727,3505",
+  "picked": "2026-10-21"
+ },
+ "buildings/Dortmund": {
+  "key": "25756,3732",
+  "picked": "2026-10-21"
+ },
+ "buildings/Wuppertal": {
+  "key": "25628,3575",
+  "picked": "2026-10-21"
+ },
+ "buildings/Duisburg": {
+  "key": "25717,3381",
+  "picked": "2026-10-21"
+ },
+ "buildings/Bochum": {
+  "key": "25740,3608",
+  "picked": "2026-10-21"
+ },
+ "buildings/Bielefeld": {
+  "key": "26010,4267",
+  "picked": "2026-10-21"
+ },
+ "buildings/Bonn": {
+  "key": "25368,3549",
+  "picked": "2026-10-21"
+ },
+ "buildings/Hannover": {
+  "key": "26185,4866",
+  "picked": "2026-10-21"
+ },
+ "buildings/Augsburg": {
+  "key": "24184,5448",
+  "picked": "2026-10-21"
+ },
+ "buildings/Brno": {
+  "key": "24596,8304",
+  "picked": "2026-10-21"
+ },
+ "buildings/Christchurch": {
+  "key": "-21765,86318",
+  "picked": "2026-10-21"
+ },
+ "buildings/Wellington": {
+  "key": "-20644,87388",
+  "picked": "2026-10-21"
+ },
+ "buildings/Catania": {
+  "key": "18751,7543",
+  "picked": "2026-10-21"
+ },
+ "permits/Tucson": {
+  "key": "16111,-55484",
+  "picked": "2026-10-21"
  }
 }

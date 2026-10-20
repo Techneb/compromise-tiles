@@ -304,6 +304,11 @@ PERMIT_CITIES = [
         keep=["Café-terrasse", "Café-terrasse accessoire à un restaurant ou un débit d'alcool",
               "Café-terrasse accessoire à un restaurant, un débit d'alcool ou une aire de dégustation",
               "Aménagement d'un café-terrasse en cour latérale ou arrière"], as_kind="TERRASSE", boundary=boundary("quebec")),
+    # Tucson: the City's Patio Expansions (ArcGIS Online, no licence stated), the 2020-21 programme's implemented patios,
+    # 35 named points, frozen since 2022: kept only where a venue of today stands under the name (match="venues", as
+    # Los Angeles). The box is the city's.
+    row("Tucson", "", "services3.arcgis.com/9coHY2fvuFjG9HQX/arcgis/rest/services", "Patio_Expansions_view/FeatureServer/0",
+        "Name", [], (31.99, 32.33), (-111.06, -110.70), shape="arcgis", match="venues", filter="Implemented = 'Yes'"),
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
@@ -2182,6 +2187,44 @@ CITY_BUILDINGS = [
         "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
     building_row("Nuremberg", (49.3314, 49.5408), (10.9887, 11.2826), citygml_tiles(
         "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+    # The overnight run's LoD2 rows (2026-10-21), each the whole city, held to its OSM boundary: NRW's statewide
+    # model (as Düsseldorf's) for seven cities, LGLN's 1 km tiles for Hannover, Bavaria's (as Nuremberg's) for Augsburg.
+    building_row("Essen", (51.3475, 51.5343), (6.8943, 7.1377), boundary=boundary("essen"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Dortmund", (51.4157, 51.6001), (7.3023, 7.6382), boundary=boundary("dortmund"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Wuppertal", (51.1657, 51.3181), (7.014, 7.3135), boundary=boundary("wuppertal"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Duisburg", (51.3333, 51.5601), (6.6256, 6.8303), boundary=boundary("duisburg"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Bochum", (51.4105, 51.5314), (7.102, 7.3494), boundary=boundary("bochum"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Bielefeld", (51.9148, 52.1148), (8.3778, 8.6634), boundary=boundary("bielefeld"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Bonn", (50.6326, 50.7745), (7.0225, 7.2107), boundary=boundary("bonn"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Hannover", (52.3048, 52.4544), (9.6044, 9.9186), boundary=boundary("hannover"), fetch=citygml_tiles(
+        "https://lod2.opengeodata.lgln.niedersachsen.de/LoD2_32_{e}_{n}_1_ni.gml", 1)),
+    building_row("Augsburg", (48.2581, 48.4587), (10.7633, 10.9594), boundary=boundary("augsburg"), fetch=citygml_tiles(
+        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+    # Brno's Výška budov (data.brno.cz, CC BY): vyska_komp, metres (228 of 236 at náměstí Svobody).
+    building_row("Brno", (49.1098, 49.2944), (16.4279, 16.7279), boundary=boundary("brno"), fetch=lambda r: footprints(arcgis(
+        "https://services6.arcgis.com/fUWVlHWZNxUvTUh8/arcgis/rest/services/V%C3%BD%C5%A1ka_budov/FeatureServer/0", r,
+        ["vyska_komp"], oid="FID"), lambda p: number(p.get("vyska_komp")))),
+    # Christchurch City Council's Building layer (CC BY 4.0): drvLiDARHeight, metres, 2019 lidar (94 of 96 at Cathedral
+    # Square); the tiled box is the urban area. Wellington City Council's footprints (CC BY 4.0): approx_hei, metres.
+    building_row("Christchurch", (-43.6, -43.42), (172.5, 172.78), fetch=lambda r: footprints(arcgis(
+        "https://gis.ccc.govt.nz/server/rest/services/OpenData/Property/FeatureServer/12", r,
+        ["drvLiDARHeight"], oid="BuildingID"), lambda p: number(p.get("drvLiDARHeight")))),
+    building_row("Wellington", (-41.3624, -41.1435), (174.6131, 174.8955), boundary=boundary("wellington"), fetch=lambda r: footprints(arcgis(
+        "https://gis.wcc.govt.nz/arcgis/rest/services/PropertyAndBoundaries/BuildingFootprints/MapServer/0", r,
+        ["approx_hei"], oid="OBJECTID_1"), lambda p: number(p.get("approx_hei")))),
+    # Catania: Regione Siciliana's 1:2000 DBTRS volumetric units (SITR; no licence on the layer, the geoportal's CC BY 4.0
+    # footer, credited "Regione Siciliana - SITR"): eaves minus ground, metres (399 of 399 at Piazza del Duomo).
+    building_row("Catania", (37.3583, 37.5624), (14.9358, 15.1258), boundary=boundary("catania"), fetch=lambda r: footprints(arcgis(
+        "https://map.sitr.regione.sicilia.it/gis/rest/services/ctn_2000/cart2000_dbtrs/MapServer/30", r,
+        ["quotaterra", "quotagrond"]), lambda p: (number(p.get("quotagrond")) or 0) - (number(p.get("quotaterra")) or 0)
+        if number(p.get("quotagrond")) and number(p.get("quotaterra")) is not None else None)),
     # ZG3D 2022 (Otvorena dozvola): Z_Delta is metres from ground to top (the cathedral 103.5 m). The box is the layer's.
     building_row("Zagreb", (45.622, 45.969), (15.771, 16.229), lambda r: footprints(arcgis(
         "https://services8.arcgis.com/Usi0jGQwMmBUpFjr/arcgis/rest/services/ZG3D_2022_3d_model_GZ/FeatureServer/0", r,
