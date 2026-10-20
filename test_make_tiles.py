@@ -242,6 +242,15 @@ assert [t.get("name") for t in got] == ["LE RECIF", "LE BISTROT DE MEME", "LA CO
 assert abs(got[0]["coordinate"]["latitude"] - 46.14127796782068) < 1e-9 and abs(got[0]["coordinate"]["longitude"] + 1.1708002829565918) < 1e-9
 assert permits(rochelle, (46.15, -1.18, 46.16, -1.17)) == [got[2]]   # the file is read once, then cut to the cell
 make_tiles.get = real_get
+# San Diego: the same whole-CSV reader, the point a pair of columns; only the issued café approvals, every one an
+# open-air TERRASSE with no name (the row reads no name column), a row with no point dropped.
+make_tiles.get = lambda url, **k: open("fixtures/san-diego.csv", "rb").read()
+sd = next(c for c in PERMIT_CITIES if c["city"] == "San Diego")
+got = permits(sd, (32.69, -117.28, 32.97, -117.10))
+assert [t["coordinate"] for t in got] == [{"latitude": 32.720675, "longitude": -117.167837},
+                                          {"latitude": 32.761526, "longitude": -117.146621}]
+assert all(t["kind"] == "TERRASSE" and "name" not in t for t in got)
+make_tiles.get = real_get
 # Barcelona: the newest CSV resource (listed first) read through CKAN's datastore API, paged by offset to the
 # total (its download URL answers a bot-detection page); a row without a point is dropped.
 asked.clear()
