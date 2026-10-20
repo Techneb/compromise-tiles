@@ -9,7 +9,7 @@ The tiles are served from Cloudflare R2 at
 `tiles/<layer>/<key>.json` (gzipped at rest), with `config.json` at the
 root. Layers: `buildings/` and `terraces-v2/` per ~200 m
 cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
-point, amenity, outdoor seating, source); `sources/` per ~200 m cell
+point, amenity, outdoor seating, source, optional OSM details); `sources/` per ~200 m cell
 names the permit feed, building source and neighbourhood boundaries each cell was built from;
 `streets/` per ~200 m cell holds street lines and `numbers/` on the same
 cells their house-number ranges, `streets-main/` per

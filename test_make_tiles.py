@@ -1191,6 +1191,14 @@ from make_tiles import opening_hours
 assert opening_hours({"opening_hours": " Mo-Fr 18:00-02:00; PH off "}) == "Mo-Fr 18:00-02:00; PH off"
 assert opening_hours({}) is None and opening_hours({"opening_hours": "  "}) is None
 assert opening_hours({"opening_hours": "x" * 255}) == "x" * 255 and opening_hours({"opening_hours": "x" * 256}) is None
+# The subtitle's tags ride short in venues/ tiles, left out when absent or not a yes.
+from make_tiles import details
+assert details({"cuisine": " Italian; pizza ;;burger;kebab", "sport": "soccer;rugby", "microbrewery": "yes", "live_music": "yes",
+                "cocktails": "yes", "drink:wine": "served", "drink:beer": "yes",
+                "diet:vegan": "only", "diet:vegetarian": "yes", "diet:gluten_free": "limited"}) == {
+    "cuisine": "italian;pizza;burger", "sport": "soccer", "microbrewery": True, "live_music": True, "cocktails": True,
+    "drink:wine": True, "drink:beer": True, "diet:vegan": "only", "diet:vegetarian": "yes"}
+assert details({}) == {} and details({"cuisine": " ; ", "microbrewery": "no", "live_music": "sometimes", "drink:wine": "retail"}) == {}
 
 # An unknown layer is refused before any download (#76): "terraces" or "numbers" alone used to build nothing for hours.
 import subprocess, sys

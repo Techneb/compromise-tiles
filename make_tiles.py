@@ -514,6 +514,7 @@ def read_venues(pbf, kept):
                  "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
         if drinks_late(tags): venue["bar"] = True
         if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
+        venue.update(details(tags))
         out.append(venue)
     return out
 
@@ -815,6 +816,25 @@ def opening_hours(tags):
     2026-10-13): trimmed, None when absent, blank or over 255 characters (OSM's own tag limit)."""
     value = str(tags.get("opening_hours") or "").strip()
     return value if 0 < len(value) <= 255 else None
+
+def details(tags):
+    """The OSM tags behind a spot's subtitle (owner, 2026-10-20), short and left out when absent:
+    cuisine as up to three lowercased ;-separated values, sport's first value, and True for
+    microbrewery, live_music and cocktails tagged yes, drink:wine/drink:beer tagged yes or served, and
+    diet:vegan, diet:vegetarian and diet:gluten_free as their value when yes or only. They also feed
+    the app's keyword match (cocktail, pizza, vegan…)."""
+    out = {}
+    cuisine = [v.strip().lower() for v in str(tags.get("cuisine") or "").split(";") if v.strip()][:3]
+    if cuisine: out["cuisine"] = ";".join(cuisine)
+    sport = next((v.strip().lower() for v in str(tags.get("sport") or "").split(";") if v.strip()), None)
+    if sport: out["sport"] = sport
+    for key in ("microbrewery", "live_music", "cocktails"):
+        if tags.get(key) == "yes": out[key] = True
+    for key in ("drink:wine", "drink:beer"):
+        if tags.get(key) in ("yes", "served"): out[key] = True
+    for key in ("diet:vegan", "diet:vegetarian", "diet:gluten_free"):
+        if tags.get(key) in ("yes", "only"): out[key] = tags[key]
+    return out
 
 _DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
 _MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
