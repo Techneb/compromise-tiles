@@ -270,6 +270,8 @@ none, this says so rather than guessing.
   on a free-of-charge basis", with the source identified).
 - San Diego: City of San Diego, Development Permits (data.sandiego.gov),
   Open Data Commons Public Domain Dedication and License (PDDL).
+- Tucson: City of Tucson, Patio Expansions (licence not stated by the
+  publisher).
 - Québec: Ville de Québec, Permis délivrés à la Ville de Québec (Données
   Québec), Attribution (CC-BY 4.0).
 
@@ -360,10 +362,18 @@ none, this says so rather than guessing.
 - Milan: Comune di Milano, Database Topografico (DBT) 2020, CC BY 4.0.
 - Rome: Regione Lazio, Database Geotopografico (DBGT) 2020, Roma. Fonte:
   Regione Lazio.
-- Düsseldorf: Geobasis NRW, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
+- Düsseldorf, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn: Geobasis
+  NRW, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
   Zero – Version 2.0).
-- Nuremberg: Datenquelle: Bayerische Vermessungsverwaltung –
+- Nuremberg, Augsburg: Datenquelle: Bayerische Vermessungsverwaltung –
   www.geodaten.bayern.de, 3D-Gebäudemodelle LoD2 (CC BY 4.0).
+- Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
+  – Version 2.0).
+- Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
+- Christchurch: Christchurch City Council, Building (CC BY 4.0).
+- Wellington: Wellington City Council, Building Footprints (CC BY 4.0).
+- Catania: Regione Siciliana - SITR, Carta Tecnica 1:2000 DBTRS (CC BY 4.0, the
+  geoportal's terms).
 - Zagreb: Grad Zagreb, ZG3D 2022 3D model Grada Zagreba (Otvorena dozvola).
 - Belgrade: Beoland, Beograd 3D (licence not stated by the publisher).
 - San José: Municipalidad de San José, SIG_SER_3D_Edificaciones ("Definidos
@@ -431,7 +441,8 @@ none, this says so rather than guessing.
   administrative boundary).
 - Be'er Sheva, Haifa, Minneapolis, Mississauga, Netanya, Newcastle upon Tyne,
   Rishon LeZion, San Diego, Taipei, Markham, Hamilton, London (Ontario),
-  Winnipeg, Québec: © OpenStreetMap contributors, ODbL (each municipality's
+  Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
+  Hannover, Augsburg, Brno, Wellington, Catania, Tucson: © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
   Bnei Brak, Giv'at Ze'ev, Givat Shmuel, Givatayim, Har Adar, Kiryat Ono,
