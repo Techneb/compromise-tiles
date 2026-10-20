@@ -723,5 +723,46 @@
  "buildings/Bremen": {
   "key": "26537,4403",
   "picked": "2026-10-21"
+ },
+ "buildings/Detroit": {
+  "key": "21165,-41523",
+  "picked": "2026-10-21"
+ },
+ "buildings/Columbus": {
+  "key": "19990,-41501",
+  "picked": "2026-10-21",
+  "combine": true
+ },
+ "buildings/Anaheim": {
+  "key": "16917,-58954",
+  "picked": "2026-10-21"
+ },
+ "buildings/Las Vegas": {
+  "key": "18083,-57572",
+  "picked": "2026-10-21"
+ },
+ "buildings/Honolulu": {
+  "key": "10653,-78929",
+  "picked": "2026-10-21"
+ },
+ "buildings/Cincinnati": {
+  "key": "19551,-42256",
+  "picked": "2026-10-21"
+ },
+ "buildings/Nashville": {
+  "key": "18081,-43390",
+  "picked": "2026-10-21"
+ },
+ "permits/Pittsburgh": {
+  "key": "20220,-40001",
+  "picked": "2026-10-21"
+ },
+ "permits/Long Beach": {
+  "key": "16884,-59096",
+  "picked": "2026-10-21"
+ },
+ "permits/Detroit": {
+  "key": "21165,-41523",
+  "picked": "2026-10-21"
  }
 }

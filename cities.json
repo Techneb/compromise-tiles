@@ -3242,5 +3242,112 @@
       8.9909
     ],
     "boundary": "boundaries/bremen.geojson"
+  },
+  {
+    "city": "Detroit",
+    "streets": true,
+    "district": "Detroit (whole municipality)",
+    "box": [
+      42.2551,
+      -83.288,
+      42.4504,
+      -82.9104
+    ],
+    "boundary": "boundaries/detroit.geojson"
+  },
+  {
+    "city": "Pittsburgh",
+    "streets": true,
+    "district": "Pittsburgh (whole municipality)",
+    "box": [
+      40.3615,
+      -80.0956,
+      40.5012,
+      -79.8657
+    ],
+    "boundary": "boundaries/pittsburgh.geojson"
+  },
+  {
+    "city": "Columbus",
+    "streets": true,
+    "district": "Columbus (whole municipality)",
+    "box": [
+      39.8086,
+      -83.2102,
+      40.1573,
+      -82.7713
+    ],
+    "boundary": "boundaries/columbus-oh.geojson"
+  },
+  {
+    "city": "Anaheim",
+    "streets": true,
+    "district": "Anaheim (whole municipality)",
+    "box": [
+      33.7889,
+      -118.0174,
+      33.8791,
+      -117.6739
+    ],
+    "boundary": "boundaries/anaheim.geojson"
+  },
+  {
+    "city": "Las Vegas",
+    "streets": true,
+    "district": "Las Vegas (whole municipality)",
+    "box": [
+      36.1295,
+      -115.4066,
+      36.4015,
+      -115.062
+    ],
+    "boundary": "boundaries/las-vegas.geojson"
+  },
+  {
+    "city": "Long Beach",
+    "streets": true,
+    "district": "Long Beach (whole municipality)",
+    "box": [
+      33.6905,
+      -118.249,
+      33.8856,
+      -118.0632
+    ],
+    "boundary": "boundaries/long-beach.geojson"
+  },
+  {
+    "city": "Cincinnati",
+    "streets": true,
+    "district": "Cincinnati (whole municipality)",
+    "box": [
+      39.052,
+      -84.7124,
+      39.2211,
+      -84.3695
+    ],
+    "boundary": "boundaries/cincinnati.geojson"
+  },
+  {
+    "city": "Nashville",
+    "streets": true,
+    "district": "Nashville (whole municipality)",
+    "box": [
+      35.9677,
+      -87.0548,
+      36.4056,
+      -86.5155
+    ],
+    "boundary": "boundaries/nashville.geojson"
+  },
+  {
+    "city": "Honolulu",
+    "streets": true,
+    "district": "Honolulu (the urban core, Kalihi to Kahala)",
+    "box": [
+      21.26,
+      -157.89,
+      21.35,
+      -157.76
+    ]
   }
 ]

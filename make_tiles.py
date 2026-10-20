@@ -309,6 +309,18 @@ PERMIT_CITIES = [
     # Los Angeles). The box is the city's.
     row("Tucson", "", "services3.arcgis.com/9coHY2fvuFjG9HQX/arcgis/rest/services", "Patio_Expansions_view/FeatureServer/0",
         "Name", [], (31.99, 32.33), (-111.06, -110.70), shape="arcgis", match="venues", filter="Implemented = 'Yes'"),
+    # The overnight run's US permit rows (2026-10-21), no licence stated on any (credited to the publisher). None names
+    # the venue in a field of its own, so the door rule, except Long Beach's parklets (Business). Pittsburgh: DOMI's
+    # outdoor dining permits, issued (the service is republished under a new name every few months: the weekly data
+    # check flags it). Long Beach: deployed parklets. Detroit: the right-of-way encroachments of a café, patio or
+    # outdoor-seating kind, each polygon at its mean vertex (Petitioner is never read: it can name a person).
+    row("Pittsburgh", "", "services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services", "Outdoor_Dining_August_2026/FeatureServer/8",
+        "", [], (40.36, 40.51), (-80.10, -79.86), shape="arcgis", filter="Statusdescription = 'Issued'", boundary=boundary("pittsburgh")),
+    row("Long Beach", "", "services6.arcgis.com/yCArG7wGXGyWLqav/arcgis/rest/services", "Temporary_Parklets_Edit/FeatureServer/0",
+        "Business", [], (33.69, 33.89), (-118.25, -118.06), shape="arcgis", filter="Status = 'Deployed'", boundary=boundary("long-beach")),
+    row("Detroit", "", "services2.arcgis.com/qvkbeam7Wirps6zC/arcgis/rest/services", "Encroachments_view_only/FeatureServer/0",
+        "", [], (42.25, 42.46), (-83.29, -82.91), shape="arcgis", oid="FID", boundary=boundary("detroit"),
+        filter="LOWER(ORIG_TYPE) LIKE '%cafe%' OR LOWER(ORIG_TYPE) LIKE '%patio%' OR LOWER(ORIG_TYPE) LIKE '%outdoor%'"),
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
@@ -2225,6 +2237,34 @@ CITY_BUILDINGS = [
     # stricter reading): 2 km zipped tiles in UTM 33N, through the download app's public share. Baden-Württemberg's
     # (LGL, Datenlizenz Deutschland in each zip, read the same way): 2 km zips at odd eastings of 1 km GMLs.
     # Bremen: Landesamt GeoInformation Bremen's LoD2 (CC BY 4.0), one 403 MB zip of the city's 2 km tiles, read whole.
+    # The overnight run's US rows (2026-10-21), each the whole city held to its OSM boundary (Honolulu: the urban core's
+    # box); feet × 0.3048 unless said. Licences: none stated (a disclaimer at most), credited to the publisher, the
+    # stricter reading; Anaheim's item quotes the CC BY deed, read as CC BY 4.0; Detroit's is SEMCOG's Copyright
+    # License Agreement, its notice shown in the credit.
+    building_row("Detroit", (42.2551, 42.4504), (-83.288, -82.9104), boundary=boundary("detroit"), fetch=lambda r: footprints(arcgis(
+        "https://gis.semcog.org/server/rest/services/Hosted/Buildings_2024/FeatureServer/2", r,
+        ["median_hgt"], oid="objectid"), lambda p: number(p.get("median_hgt")) * 0.3048 if number(p.get("median_hgt")) else None)),
+    # Columbus: FLOORS × 3 m, empty downtown, so combined with OSM's footprints.
+    building_row("Columbus", (39.8086, 40.1573), (-83.2102, -82.7713), boundary=boundary("columbus-oh"), combine="floors", fetch=lambda r: footprints(arcgis(
+        "https://maps2.columbus.gov/arcgis/rest/services/Schemas/RegionalLayers/MapServer/4", r,
+        ["FLOORS"], oid="OBJECTID"), lambda p: number(p.get("FLOORS")) * 3 if number(p.get("FLOORS")) else None, guess=False)),
+    building_row("Anaheim", (33.7889, 33.8791), (-118.0174, -117.6739), boundary=boundary("anaheim"), fetch=lambda r: footprints(arcgis(
+        "https://gis.anaheim.net/map/rest/services/OpenData2/FeatureServer/47", r,
+        ["BUILDINGHEIGHT"], oid="OBJECTID"), lambda p: number(p.get("BUILDINGHEIGHT")) * 0.3048 if number(p.get("BUILDINGHEIGHT")) else None)),
+    # Las Vegas: downtown only; a cell it leaves empty asks OSM next.
+    building_row("Las Vegas", (36.1295, 36.4015), (-115.4066, -115.062), boundary=boundary("las-vegas"), fetch=lambda r: footprints(arcgis(
+        "https://services1.arcgis.com/F1v0ufATbBQScMtY/arcgis/rest/services/BuildingFoot_Downtown_Building_Heights/FeatureServer/173", r,
+        ["HEIGHT"], oid="OBJECTID"), lambda p: number(p.get("HEIGHT")) * 0.3048 if number(p.get("HEIGHT")) else None)),
+    # Honolulu: HoLIS gis_height (never the owner fields).
+    building_row("Honolulu", (21.26, 21.35), (-157.89, -157.76), fetch=lambda r: footprints(arcgis(
+        "https://services.arcgis.com/tNJpAOha4mODLkXz/arcgis/rest/services/Structures_Facilities/FeatureServer/0", r,
+        ["gis_height"], oid="objectid"), lambda p: number(p.get("gis_height")) * 0.3048 if number(p.get("gis_height")) else None)),
+    building_row("Cincinnati", (39.052, 39.2211), (-84.7124, -84.3695), boundary=boundary("cincinnati"), fetch=lambda r: footprints(arcgis(
+        "https://services.arcgis.com/JyZag7oO4NteHGiq/arcgis/rest/services/Open_Data_Feature_Collection/FeatureServer/58", r,
+        ["HEIGHT_IN_FEET"], oid="OBJECTID"), lambda p: number(p.get("HEIGHT_IN_FEET")) * 0.3048 if number(p.get("HEIGHT_IN_FEET")) else None)),
+    building_row("Nashville", (35.9677, 36.4056), (-87.0548, -86.5155), boundary=boundary("nashville"), fetch=lambda r: footprints(arcgis(
+        "https://services2.arcgis.com/HdTo6HJqh92wn4D8/arcgis/rest/services/Building_Footprints_view/FeatureServer/0", r,
+        ["Height"], oid="OBJECTID"), lambda p: number(p.get("Height")) * 0.3048 if number(p.get("Height")) else None)),
     building_row("Bremen", (53.0111, 53.6102), (8.4815, 8.9909), boundary=boundary("bremen"),
                  fetch=citygml_archive("https://gdi2.geo.bremen.de/inspire/download/LoD/data/LOD2_CITYGML_HB.zip",
                                        "LoD2_32_{e}_{n}_2_HB.gml", 2)),
