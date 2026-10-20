@@ -3194,5 +3194,41 @@
       16.7279
     ],
     "boundary": "boundaries/brno.geojson"
+  },
+  {
+    "city": "Leipzig",
+    "streets": true,
+    "district": "Leipzig (whole municipality)",
+    "box": [
+      51.2381,
+      12.2366,
+      51.4482,
+      12.5425
+    ],
+    "boundary": "boundaries/leipzig.geojson"
+  },
+  {
+    "city": "Dresden",
+    "streets": true,
+    "district": "Dresden (whole municipality)",
+    "box": [
+      50.9749,
+      13.5793,
+      51.1777,
+      13.9661
+    ],
+    "boundary": "boundaries/dresden.geojson"
+  },
+  {
+    "city": "Mannheim",
+    "streets": true,
+    "district": "Mannheim (whole municipality)",
+    "box": [
+      49.4103,
+      8.4141,
+      49.5905,
+      8.59
+    ],
+    "boundary": "boundaries/mannheim.geojson"
   }
 ]

@@ -125,6 +125,15 @@ make_tiles.get = fake_get
 fetch = citygml_tiles("https://t/{e}_{n}.gml", 2)
 assert fetch((49.4315, 11.119, 49.4345, 11.124)) == [] and sorted(asked) == ["https://t/652_5476.gml", "https://t/654_5476.gml"]
 assert len(citygml_tiles("https://u/{e}_{n}.gml", 1)((51.2250, 6.7747, 51.2253, 6.7752))) == 2   # the fixture, inside
+# A zipped tile (Baden-Württemberg's 2 km zips at odd eastings, Saxony's): every GML member read; the odd grid's tile
+# for easting 344 km starts at 343.
+import io, zipfile as _zf
+buf = io.BytesIO()
+with _zf.ZipFile(buf, "w") as z: z.writestr("a_1_BW.gml", gml); z.writestr("b_1_BW.gml", gml); z.writestr("licence.pdf", b"")
+asked.clear()
+make_tiles.get = lambda url, **k: (asked.append(url), buf.getvalue())[1]
+assert len(citygml_tiles("https://z/{e}_{n}.zip", 2, odd_e=True)((51.2250, 6.7747, 51.2253, 6.7752))) == 4
+assert asked == ["https://z/343_5676.zip"]
 # Belgrade's multipatch: the footprint's clockwise ring (a counter-clockwise one is a hole), height = extent top − bottom.
 def fake_get(url, data=None, parse=None, **k):
     cw = [[20.4588, 44.8167], [20.4594, 44.8167], [20.4594, 44.8163], [20.4588, 44.8167]]
