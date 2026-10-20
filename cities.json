@@ -2416,5 +2416,545 @@
       -46.365
     ],
     "boundary": "boundaries/sao-paulo.geojson"
+  },
+  {
+    "city": "Antibes",
+    "streets": true,
+    "district": "Antibes (whole commune)",
+    "box": [
+      43.5419,
+      7.0645,
+      43.6228,
+      7.1451
+    ],
+    "boundary": "boundaries/antibes.geojson"
+  },
+  {
+    "city": "Saint-Malo",
+    "streets": true,
+    "district": "Saint-Malo (whole commune)",
+    "box": [
+      48.5982,
+      -2.0767,
+      48.6949,
+      -1.9366
+    ],
+    "boundary": "boundaries/saint-malo.geojson"
+  },
+  {
+    "city": "Colmar",
+    "streets": true,
+    "district": "Colmar (whole commune)",
+    "box": [
+      48.0406,
+      7.3155,
+      48.1823,
+      7.4693
+    ],
+    "boundary": "boundaries/colmar.geojson"
+  },
+  {
+    "city": "Carcassonne",
+    "streets": true,
+    "district": "Carcassonne (whole commune)",
+    "box": [
+      43.1712,
+      2.2617,
+      43.2444,
+      2.4365
+    ],
+    "boundary": "boundaries/carcassonne.geojson"
+  },
+  {
+    "city": "Lourdes",
+    "streets": true,
+    "district": "Lourdes (whole commune)",
+    "box": [
+      43.0661,
+      -0.1468,
+      43.1519,
+      -0.0143
+    ],
+    "boundary": "boundaries/lourdes.geojson"
+  },
+  {
+    "city": "Arles",
+    "streets": true,
+    "district": "Arles (whole commune)",
+    "box": [
+      43.3277,
+      4.4262,
+      43.7605,
+      4.8764
+    ],
+    "boundary": "boundaries/arles.geojson"
+  },
+  {
+    "city": "San Diego",
+    "streets": true,
+    "district": "San Diego (whole municipality)",
+    "box": [
+      32.5347,
+      -117.3099,
+      33.1142,
+      -116.9057
+    ],
+    "boundary": "boundaries/san-diego.geojson"
+  },
+  {
+    "city": "Mississauga",
+    "streets": true,
+    "district": "Mississauga (whole municipality)",
+    "box": [
+      43.4789,
+      -79.8104,
+      43.7371,
+      -79.5385
+    ],
+    "boundary": "boundaries/mississauga.geojson"
+  },
+  {
+    "city": "Newcastle upon Tyne",
+    "streets": true,
+    "district": "Newcastle upon Tyne (whole municipality)",
+    "box": [
+      54.959,
+      -1.7757,
+      55.0794,
+      -1.5291
+    ],
+    "boundary": "boundaries/newcastle-upon-tyne.geojson"
+  },
+  {
+    "city": "Minneapolis",
+    "streets": true,
+    "district": "Minneapolis (whole municipality)",
+    "box": [
+      44.8906,
+      -93.3292,
+      45.0513,
+      -93.1938
+    ],
+    "boundary": "boundaries/minneapolis.geojson"
+  },
+  {
+    "city": "Haifa",
+    "streets": true,
+    "district": "Haifa (whole municipality)",
+    "box": [
+      32.7579,
+      34.9486,
+      32.8476,
+      35.0798
+    ],
+    "boundary": "boundaries/haifa.geojson"
+  },
+  {
+    "city": "Be'er Sheva",
+    "streets": true,
+    "district": "Be'er Sheva (whole municipality)",
+    "box": [
+      31.1926,
+      34.7339,
+      31.3235,
+      34.8549
+    ],
+    "boundary": "boundaries/beer-sheva.geojson"
+  },
+  {
+    "city": "Netanya",
+    "streets": true,
+    "district": "Netanya (whole municipality)",
+    "box": [
+      32.2549,
+      34.8247,
+      32.3606,
+      34.8961
+    ],
+    "boundary": "boundaries/netanya.geojson"
+  },
+  {
+    "city": "Taipei",
+    "streets": true,
+    "district": "Taipei (whole municipality)",
+    "box": [
+      24.9605,
+      121.4571,
+      25.2103,
+      121.6659
+    ],
+    "boundary": "boundaries/taipei.geojson"
+  },
+  {
+    "city": "Rishon LeZion",
+    "streets": true,
+    "district": "Rishon LeZion (whole municipality)",
+    "box": [
+      31.9399,
+      34.7084,
+      32.01,
+      34.8491
+    ],
+    "boundary": "boundaries/rishon-lezion.geojson"
+  },
+  {
+    "city": "Lahore",
+    "district": "Lahore (Gulberg, MM Alam Road)",
+    "box": [
+      31.5004,
+      74.3417,
+      31.5144,
+      74.3581
+    ]
+  },
+  {
+    "city": "Lahore",
+    "district": "Lahore (Gulberg Main Market)",
+    "box": [
+      31.5172,
+      74.3379,
+      31.5312,
+      74.3543
+    ]
+  },
+  {
+    "city": "Lahore",
+    "district": "Lahore (Walled City)",
+    "box": [
+      31.5802,
+      74.3034,
+      31.5942,
+      74.3198
+    ]
+  },
+  {
+    "city": "Lahore",
+    "district": "Lahore (Mall Road)",
+    "box": [
+      31.5485,
+      74.3242,
+      31.5625,
+      74.3406
+    ]
+  },
+  {
+    "city": "Bangalore",
+    "district": "Bangalore (Indiranagar)",
+    "box": [
+      12.9742,
+      77.6336,
+      12.9882,
+      77.648
+    ]
+  },
+  {
+    "city": "Bangalore",
+    "district": "Bangalore (Koramangala)",
+    "box": [
+      12.928,
+      77.6049,
+      12.942,
+      77.6193
+    ]
+  },
+  {
+    "city": "Bangalore",
+    "district": "Bangalore (Church Street / MG Road)",
+    "box": [
+      12.9686,
+      77.5955,
+      12.9826,
+      77.6099
+    ]
+  },
+  {
+    "city": "Bangalore",
+    "district": "Bangalore (Jayanagar)",
+    "box": [
+      12.9196,
+      77.5763,
+      12.9336,
+      77.5907
+    ]
+  },
+  {
+    "city": "Rio de Janeiro",
+    "district": "Rio de Janeiro (Lapa)",
+    "box": [
+      -22.92,
+      -43.1876,
+      -22.906,
+      -43.1724
+    ]
+  },
+  {
+    "city": "Rio de Janeiro",
+    "district": "Rio de Janeiro (Leblon)",
+    "box": [
+      -22.9919,
+      -43.2311,
+      -22.9779,
+      -43.2159
+    ]
+  },
+  {
+    "city": "Rio de Janeiro",
+    "district": "Rio de Janeiro (Humait\u00e1 / Botafogo)",
+    "box": [
+      -22.962,
+      -43.2044,
+      -22.948,
+      -43.1892
+    ]
+  },
+  {
+    "city": "Rio de Janeiro",
+    "district": "Rio de Janeiro (Ipanema)",
+    "box": [
+      -22.9922,
+      -43.2054,
+      -22.9782,
+      -43.1902
+    ]
+  },
+  {
+    "city": "Jakarta",
+    "district": "Jakarta (Kemang)",
+    "box": [
+      -6.2747,
+      106.8088,
+      -6.2607,
+      106.8228
+    ]
+  },
+  {
+    "city": "Jakarta",
+    "district": "Jakarta (Senopati)",
+    "box": [
+      -6.2364,
+      106.7965,
+      -6.2224,
+      106.8105
+    ]
+  },
+  {
+    "city": "Jakarta",
+    "district": "Jakarta (Menteng)",
+    "box": [
+      -6.2064,
+      106.8256,
+      -6.1924,
+      106.8396
+    ]
+  },
+  {
+    "city": "Jakarta",
+    "district": "Jakarta (Kota Tua)",
+    "box": [
+      -6.1417,
+      106.8062,
+      -6.1277,
+      106.8202
+    ]
+  },
+  {
+    "city": "Lima",
+    "district": "Lima (Miraflores)",
+    "box": [
+      -12.1288,
+      -77.0376,
+      -12.1148,
+      -77.0232
+    ]
+  },
+  {
+    "city": "Lima",
+    "district": "Lima (Barranco)",
+    "box": [
+      -12.1562,
+      -77.0298,
+      -12.1422,
+      -77.0154
+    ]
+  },
+  {
+    "city": "Lima",
+    "district": "Lima (San Isidro)",
+    "box": [
+      -12.1082,
+      -77.042,
+      -12.0942,
+      -77.0276
+    ]
+  },
+  {
+    "city": "Lima",
+    "district": "Lima (Centro)",
+    "box": [
+      -12.0587,
+      -77.0418,
+      -12.0447,
+      -77.0274
+    ]
+  },
+  {
+    "city": "Bangkok",
+    "district": "Bangkok (Thong Lo)",
+    "box": [
+      13.7172,
+      100.5713,
+      13.7312,
+      100.5857
+    ]
+  },
+  {
+    "city": "Bangkok",
+    "district": "Bangkok (Khao San Road)",
+    "box": [
+      13.7519,
+      100.4901,
+      13.7659,
+      100.5045
+    ]
+  },
+  {
+    "city": "Bangkok",
+    "district": "Bangkok (Silom)",
+    "box": [
+      13.7216,
+      100.5271,
+      13.7356,
+      100.5415
+    ]
+  },
+  {
+    "city": "Bangkok",
+    "district": "Bangkok (Ari)",
+    "box": [
+      13.7727,
+      100.5374,
+      13.7867,
+      100.5518
+    ]
+  },
+  {
+    "city": "Tehran",
+    "district": "Tehran (Tajrish)",
+    "box": [
+      35.8002,
+      51.4202,
+      35.8142,
+      51.4374
+    ]
+  },
+  {
+    "city": "Tehran",
+    "district": "Tehran (Mellat Park)",
+    "box": [
+      35.7711,
+      51.4014,
+      35.7851,
+      51.4186
+    ]
+  },
+  {
+    "city": "Tehran",
+    "district": "Tehran (Saadat Abad)",
+    "box": [
+      35.7747,
+      51.3667,
+      35.7887,
+      51.3839
+    ]
+  },
+  {
+    "city": "Tehran",
+    "district": "Tehran (Iranshahr)",
+    "box": [
+      35.7027,
+      51.4124,
+      35.7167,
+      51.4296
+    ]
+  },
+  {
+    "city": "San Luis Potos\u00ed",
+    "district": "San Luis Potos\u00ed (Centro Hist\u00f3rico)",
+    "box": [
+      22.1447,
+      -100.9841,
+      22.1587,
+      -100.9689
+    ]
+  },
+  {
+    "city": "San Luis Potos\u00ed",
+    "district": "San Luis Potos\u00ed (Avenida Carranza)",
+    "box": [
+      22.1461,
+      -100.9963,
+      22.1601,
+      -100.9811
+    ]
+  },
+  {
+    "city": "Naucalpan de Ju\u00e1rez",
+    "district": "Naucalpan de Ju\u00e1rez (Ciudad Sat\u00e9lite)",
+    "box": [
+      19.5026,
+      -99.2416,
+      19.5166,
+      -99.2268
+    ]
+  },
+  {
+    "city": "Naucalpan de Ju\u00e1rez",
+    "district": "Naucalpan de Ju\u00e1rez (Centro de Naucalpan)",
+    "box": [
+      19.4717,
+      -99.246,
+      19.4857,
+      -99.2312
+    ]
+  },
+  {
+    "city": "Bradford",
+    "district": "Bradford (City Centre)",
+    "box": [
+      53.7855,
+      -1.7644,
+      53.7995,
+      -1.7406
+    ]
+  },
+  {
+    "city": "Bradford",
+    "district": "Bradford (Little Germany)",
+    "box": [
+      53.7895,
+      -1.7659,
+      53.8035,
+      -1.7421
+    ]
+  },
+  {
+    "city": "Atlanta",
+    "district": "Atlanta (Midtown)",
+    "box": [
+      33.7746,
+      -84.3919,
+      33.7886,
+      -84.3751
+    ]
+  },
+  {
+    "city": "Atlanta",
+    "district": "Atlanta (Little Five Points)",
+    "box": [
+      33.7576,
+      -84.3578,
+      33.7716,
+      -84.341
+    ]
   }
 ]

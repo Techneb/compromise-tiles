@@ -268,6 +268,8 @@ none, this says so rather than guessing.
   and Conditions ("You are allowed to browse, download, distribute, reproduce, hyperlink
   to, and print the Data for both commercial and non-commercial purposes
   on a free-of-charge basis", with the source identified).
+- San Diego: City of San Diego, Development Permits (data.sandiego.gov),
+  Open Data Commons Public Domain Dedication and License (PDDL).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
@@ -395,6 +397,8 @@ none, this says so rather than guessing.
 - Lorient: Ville de Lorient, Découpage géographique des quartiers, through
   opendata56.fr, Licence Ouverte 2.0; its quartiers dissolved into one.
 - Anglet: Etalab geo API (IGN Admin Express), Licence Ouverte 2.0.
+- Antibes, Arles, Carcassonne, Colmar, Lourdes, Saint-Malo: Etalab geo API
+  (IGN Admin Express), Licence Ouverte 2.0.
 - San José (Costa Rica, `san-jose-cr.geojson`): © OpenStreetMap contributors,
   ODbL (the cantón's administrative boundary).
 - Thessaloníki: Δήμος Θεσσαλονίκης, δημοτικές κοινότητες (the municipality's
@@ -421,6 +425,9 @@ none, this says so rather than guessing.
   share and adapt with credit).
 - Jerusalem: © OpenStreetMap contributors, ODbL (the municipality's
   administrative boundary).
+- Be'er Sheva, Haifa, Minneapolis, Mississauga, Netanya, Newcastle upon Tyne,
+  Rishon LeZion, San Diego, Taipei: © OpenStreetMap contributors, ODbL (each
+  municipality's administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
   Bnei Brak, Giv'at Ze'ev, Givat Shmuel, Givatayim, Har Adar, Kiryat Ono,
   Maale Adumim, Mevaseret Zion, Or Yehuda, Petah Tikva, Ramallah, Ramat

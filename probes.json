@@ -615,5 +615,9 @@
  "buildings/Rome": {
   "key": "20946,6243",
   "picked": "2026-10-05"
+ },
+ "permits/San Diego": {
+  "key": "16360,-58583",
+  "picked": "2026-10-21"
  }
 }

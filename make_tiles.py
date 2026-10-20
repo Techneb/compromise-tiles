@@ -284,6 +284,17 @@ PERMIT_CITIES = [
     # 17,294, 2026-10-11), in NSEARCH04 (the XML's INFO). The name is the shop sign, English or Chinese as registered.
     # The box is the terraces'. The city's cities.json area (2026-10-11) is the whole SAR's land (the Census and Statistics
     # Department's 2021 District Council districts, dissolved); no other tiled city reaches the box, so no boundary.
+    # San Diego (2026-10-21): the City's Development Services approvals of active projects (data.sandiego.gov
+    # "Development Permits", one CSV of every approval, ODC-PDDL on the dataset's page; daily), fetched whole once per
+    # run (~270 MB): the Sidewalk Cafe Agreement and Permit approvals that read Issued (167 of 263 on 2026-10-21, at
+    # 212 points, 42 in the Gaslamp Quarter). No venue name (APPROVAL_PERMIT_HOLDER names people and is never read), so
+    # the door rule; the expiry is the approval's, not the agreement's. The Spaces as Places layer (streetaries,
+    # DSDPermits MapServer/3 on webmaps.sandiego.gov) is fresher but its host refuses the Mac. The box is the cafés',
+    # held to the city (OpenStreetMap's boundary, ODbL), which keeps National City off it.
+    row("San Diego", "", "seshat.datasd.org", "development_permits/approvals_active_datasd.csv", "", ["APPROVAL_TYPE"],
+        (32.69, 32.97), (-117.28, -117.10), shape="csv", point=("GIS_LATITUDE", "GIS_LONGITUDE"),
+        keep=["Sidewalk Cafe Agreement", "Sidewalk Cafe Permit"], where={"APPROVAL_STATUS": ["Issued"]}, as_kind="TERRASSE",
+        boundary=boundary("san-diego")),
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
@@ -2564,18 +2575,22 @@ def barcelona_all(c):
     return out
 
 def csv_all(c):
-    """A whole CSV (La Rochelle): comma-separated, quoted, a BOM; the point a "lat,lon" column, the kind a
-    column kept only for the values in `keep`, those in `covered` written TERRASSE FERMEE."""
+    """A whole CSV (La Rochelle, San Diego): comma-separated, quoted, a BOM; the point a "lat,lon" column, or a
+    (lat, lon) pair of columns, the kind a column kept only for the values in `keep`, those in `covered` written
+    TERRASSE FERMEE, and `as_kind` naming the kind written for every kept row; `where` keeps a row only when
+    each of its columns holds one of the listed values; no `name` column, no name (the door rule)."""
     text = get(f"https://{c['host']}/{c['dataset']}").decode("utf-8-sig")
     kind, out = c["kinds"][0], []
     for r in csv.DictReader(io.StringIO(text)):
         if r[kind] not in c["keep"]: continue
-        lat, _, lon = (r[c["point"]] or "").partition(",")
+        if any(r.get(k) not in v for k, v in c.get("where", {}).items()): continue
+        if isinstance(c["point"], tuple): lat, lon = (r[k] or "" for k in c["point"])
+        else: lat, _, lon = (r[c["point"]] or "").partition(",")
         lat, lon = number(lat.strip()), number(lon.strip())
         if lat is None or lon is None: continue
-        item = {"kind": "TERRASSE FERMEE" if r[kind] in c.get("covered", []) else r[kind],
+        item = {"kind": "TERRASSE FERMEE" if r[kind] in c.get("covered", []) else c.get("as_kind", r[kind]),
                 "coordinate": {"latitude": lat, "longitude": lon}}
-        if r[c["name"]]: item["name"] = r[c["name"]]
+        if c["name"] and r[c["name"]]: item["name"] = r[c["name"]]
         out.append(item)
     if not out: raise SourceError(f"{c['city']}: no terrace parsed")  # as for Madrid
     return out
