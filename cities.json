@@ -2956,5 +2956,76 @@
       33.7716,
       -84.341
     ]
+  },
+  {
+    "city": "Hamilton",
+    "streets": true,
+    "district": "Hamilton (whole municipality)",
+    "box": [
+      43.0505,
+      -80.2486,
+      43.4707,
+      -79.6221
+    ],
+    "boundary": "boundaries/hamilton-on.geojson"
+  },
+  {
+    "city": "London (Canada)",
+    "streets": true,
+    "district": "London (Canada) (whole municipality)",
+    "box": [
+      42.8245,
+      -81.3907,
+      43.0731,
+      -81.107
+    ],
+    "boundary": "boundaries/london-ca.geojson"
+  },
+  {
+    "city": "Winnipeg",
+    "streets": true,
+    "district": "Winnipeg (whole municipality)",
+    "box": [
+      49.7135,
+      -97.3492,
+      49.9941,
+      -96.9565
+    ],
+    "boundary": "boundaries/winnipeg.geojson"
+  },
+  {
+    "city": "Qu\u00e9bec",
+    "streets": true,
+    "district": "Qu\u00e9bec (whole municipality)",
+    "box": [
+      46.7277,
+      -71.5493,
+      46.9807,
+      -71.1336
+    ],
+    "boundary": "boundaries/quebec.geojson"
+  },
+  {
+    "city": "Markham",
+    "streets": true,
+    "district": "Markham (whole municipality)",
+    "box": [
+      43.798,
+      -79.4288,
+      43.9626,
+      -79.1702
+    ],
+    "boundary": "boundaries/markham.geojson"
+  },
+  {
+    "city": "Halifax",
+    "streets": true,
+    "district": "Halifax (the Regional Centre: the peninsula and Dartmouth)",
+    "box": [
+      44.62,
+      -63.63,
+      44.705,
+      -63.53
+    ]
   }
 ]

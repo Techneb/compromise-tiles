@@ -295,6 +295,15 @@ PERMIT_CITIES = [
         (32.69, 32.97), (-117.28, -117.10), shape="csv", point=("GIS_LATITUDE", "GIS_LONGITUDE"),
         keep=["Sidewalk Cafe Agreement", "Sidewalk Cafe Permit"], where={"APPROVAL_STATUS": ["Issued"]}, as_kind="TERRASSE",
         boundary=boundary("san-diego")),
+    # Québec (2026-10-21): the City's issued permits (Données Québec, "Permis délivrés à la Ville de Québec",
+    # Attribution (CC-BY 4.0), refreshed weekly), one CSV read whole: the café-terrasse kinds (216 rows, 2020-2026),
+    # LATITUDE/LONGITUDE, no venue name (the address is never read). The box is the terraces', held to the city.
+    row("Québec", "", "www.donneesquebec.ca",
+        "recherche/dataset/879abf6e-c6b2-430a-b44a-16335467c6f6/resource/9555031e-cfc5-4b78-bec9-4ab84b549f67/download/vdq-permis.csv",
+        "", ["RAISON"], (46.73, 46.96), (-71.52, -71.15), shape="csv", point=("LATITUDE", "LONGITUDE"),
+        keep=["Café-terrasse", "Café-terrasse accessoire à un restaurant ou un débit d'alcool",
+              "Café-terrasse accessoire à un restaurant, un débit d'alcool ou une aire de dégustation",
+              "Aménagement d'un café-terrasse en cour latérale ou arrière"], as_kind="TERRASSE", boundary=boundary("quebec")),
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
@@ -1608,6 +1617,11 @@ def oakland(rect):
 
 NRCAN_GTA = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_GTA_2023_gpkg.zip"
 NRCAN_MONTREAL = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_QC_VILLE_MONTREAL_gpkg.zip"
+NRCAN_HAMILTON = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_Hamilton_Niagara_2021_2_gpkg.zip"
+NRCAN_LAKE_ERIE = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_2017-LakeErie_gpkg.zip"
+NRCAN_HALIFAX = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_NS_Halifax_County_Inland_2018_gpkg.zip"
+NRCAN_WINNIPEG = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_MB_Winnipeg_2019_gpkg.zip"
+NRCAN_QUEBEC = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_QC_Quebec_Levis_2017_gpkg.zip"
 _geopackages = {}  # zip URL → (its GeoPackage opened read-only, table, geometry column), unpacked once a run
 
 def wkb_polygons(raw, at=0):
@@ -2207,6 +2221,21 @@ CITY_BUILDINGS = [
     # Brampton, Markham and King stay OSM.
     building_row("Vaughan", (43.7498, 43.9243), (-79.7108, -79.42), boundary=boundary("vaughan"),
                  fetch=geopackage(NRCAN_GTA, "heightmax")),
+    # The overnight run's NRCan rows (2026-10-21; Automatically Extracted Buildings, Open Government Licence – Canada,
+    # heightmax in metres): Markham from the GTA file (before Toronto's box, which it touches), Hamilton, London (Ontario),
+    # Winnipeg (its 2019 file covers the north of the city: the rest stays OSM, the next source a cell asks), Québec, each
+    # held to its OSM boundary; Halifax's Regional Centre, the tiled box (the Inland file covers the peninsula).
+    building_row("Markham", (43.798, 43.9626), (-79.4288, -79.1702), boundary=boundary("markham"),
+                 fetch=geopackage(NRCAN_GTA, "heightmax")),
+    building_row("Hamilton", (43.0505, 43.4707), (-80.2486, -79.6221), boundary=boundary("hamilton-on"),
+                 fetch=geopackage(NRCAN_HAMILTON, "heightmax")),
+    building_row("London (Canada)", (42.8245, 43.0731), (-81.3907, -81.107), boundary=boundary("london-ca"),
+                 fetch=geopackage(NRCAN_LAKE_ERIE, "heightmax")),
+    building_row("Winnipeg", (49.7135, 49.9941), (-97.3492, -96.9565), boundary=boundary("winnipeg"),
+                 fetch=geopackage(NRCAN_WINNIPEG, "heightmax")),
+    building_row("Québec", (46.7277, 46.9807), (-71.5493, -71.1336), boundary=boundary("quebec"),
+                 fetch=geopackage(NRCAN_QUEBEC, "heightmax")),
+    building_row("Halifax", (44.62, 44.705), (-63.63, -63.53), fetch=geopackage(NRCAN_HALIFAX, "heightmax")),
     # City of Edmonton Rooflines as of 2019 (Socrata jpxi-a9a5; Open Government Licence – City of Edmonton):
     # building_height, metres (roof minus ground). The box is the layer's; held to the corporate boundary (a62q-eaea),
     # which keeps St. Albert and Sherwood Park off it.

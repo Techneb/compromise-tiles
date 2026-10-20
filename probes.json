@@ -623,5 +623,33 @@
  "buildings/Netanya": {
   "key": "16164,17426",
   "picked": "2026-10-21"
+ },
+ "permits/Québec": {
+  "key": "23406,-35603",
+  "picked": "2026-10-21"
+ },
+ "buildings/Markham": {
+  "key": "21928,-39668",
+  "picked": "2026-10-21"
+ },
+ "buildings/Hamilton": {
+  "key": "21627,-39935",
+  "picked": "2026-10-21"
+ },
+ "buildings/London (Canada)": {
+  "key": "21492,-40622",
+  "picked": "2026-10-21"
+ },
+ "buildings/Winnipeg": {
+  "key": "24949,-48569",
+  "picked": "2026-10-21"
+ },
+ "buildings/Québec": {
+  "key": "23406,-35603",
+  "picked": "2026-10-21"
+ },
+ "buildings/Halifax": {
+  "key": "22324,-31787",
+  "picked": "2026-10-21"
  }
 }

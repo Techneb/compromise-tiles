@@ -270,6 +270,8 @@ none, this says so rather than guessing.
   on a free-of-charge basis", with the source identified).
 - San Diego: City of San Diego, Development Permits (data.sandiego.gov),
   Open Data Commons Public Domain Dedication and License (PDDL).
+- Québec: Ville de Québec, Permis délivrés à la Ville de Québec (Données
+  Québec), Attribution (CC-BY 4.0).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
@@ -337,7 +339,7 @@ none, this says so rather than guessing.
   on OpenStreetMap's footprints.
 - Oakland: City of Oakland, BuildingFootprints (licence not stated by the
   publisher); heights on OpenStreetMap's footprints.
-- Vaughan, Toronto, Montréal: Natural Resources Canada, Automatically
+- Vaughan, Toronto, Montréal, Markham, Hamilton, London (Ontario), Winnipeg, Québec, Halifax: Natural Resources Canada, Automatically
   Extracted Buildings. Contains information licensed under the Open
   Government Licence – Canada.
 - Bogotá: Unidad Administrativa Especial de Catastro Distrital – UAECD
@@ -428,8 +430,9 @@ none, this says so rather than guessing.
 - Jerusalem: © OpenStreetMap contributors, ODbL (the municipality's
   administrative boundary).
 - Be'er Sheva, Haifa, Minneapolis, Mississauga, Netanya, Newcastle upon Tyne,
-  Rishon LeZion, San Diego, Taipei: © OpenStreetMap contributors, ODbL (each
-  municipality's administrative boundary).
+  Rishon LeZion, San Diego, Taipei, Markham, Hamilton, London (Ontario),
+  Winnipeg, Québec: © OpenStreetMap contributors, ODbL (each municipality's
+  administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
   Bnei Brak, Giv'at Ze'ev, Givat Shmuel, Givatayim, Har Adar, Kiryat Ono,
   Maale Adumim, Mevaseret Zion, Or Yehuda, Petah Tikva, Ramallah, Ramat
