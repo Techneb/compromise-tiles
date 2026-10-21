@@ -398,6 +398,8 @@ none, this says so rather than guessing.
   publisher).
 - Memphis: City of Memphis, Building Footprints (licence not stated by the publisher).
 - Riverside: City of Riverside, Downtown Buildings (licence not stated by the publisher).
+- Portland: City of Portland, Bureau of Planning and Sustainability, Building Footprints
+  (licence not stated by the publisher).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
   – Version 2.0).
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
@@ -479,7 +481,7 @@ none, this says so rather than guessing.
   Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
   Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim, Bremen, Detroit, Pittsburgh,
   Columbus, Anaheim, Las Vegas, Long Beach, Cincinnati, Nashville, Louisville, Phoenix, Omaha, Memphis,
-  Riverside, Lublin, Bydgoszcz, Espoo, Graz, Tallinn, Gdańsk:
+  Riverside, Lublin, Bydgoszcz, Espoo, Graz, Tallinn, Gdańsk, Portland:
   © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
