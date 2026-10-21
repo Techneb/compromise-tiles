@@ -1260,6 +1260,19 @@ assert details({"cuisine": " Italian; pizza ;;burger;kebab", "sport": "soccer;ru
     "cuisine": "italian;pizza;burger", "sport": "soccer", "microbrewery": True, "live_music": True, "cocktails": True,
     "drink:wine": True, "drink:beer": True, "diet:vegan": "only", "diet:vegetarian": "yes"}
 assert details({}) == {} and details({"cuisine": " ; ", "microbrewery": "no", "live_music": "sometimes", "drink:wine": "retail"}) == {}
+# A venue's character: flags only when meant, food both ways, the brewery's first real name, Wi-Fi, specialty coffee.
+assert details({"real_ale": "yes", "beer_garden": "yes", "karaoke": "yes", "brunch": "yes", "real_fire": "fireplace", "quiz": "Tu 20:00",
+                "food": "no", "brewery": " Fuller's ;Dark Star", "internet_access": "wlan", "cuisine": "coffee_shop;cake;sandwich;Specialty_Coffee",
+                "brand": " Nicholson's "}) == {
+    "cuisine": "coffee_shop;cake;sandwich", "real_ale": True, "beer_garden": True, "karaoke": True, "brunch": True, "real_fire": True,
+    "quiz": True, "food": False, "brewery": "Fuller's", "internet_access": True, "specialty_coffee": True, "brand": "Nicholson's"}
+assert details({"real_fire": "no", "quiz": "no", "food": "snacks", "brewery": "various", "internet_access": "no", "real_ale": "no"}) == {}
+assert details({"coffee": "specialty"}) == {"specialty_coffee": True} and details({"food": "yes"}) == {"food": True}
+# A brand rides only on a chain of three or more, and not when the name already says it.
+from make_tiles import chains_only
+pubs = chains_only([{"name": n, "brand": b} for n, b in [("The Albion", "Nicholson's"), ("The Crown", "Nicholson's"), ("Nicholson's Bar", "Nicholson's"),
+                                                        ("The Lamb", "Young's"), ("The Ship", "Young's"), ("Local", None)]])
+assert [v.get("brand") for v in pubs] == ["Nicholson's", "Nicholson's", None, None, None, None], pubs
 
 # An unknown layer is refused before any download (#76): "terraces" or "numbers" alone used to build nothing for hours.
 import subprocess, sys
@@ -1463,3 +1476,15 @@ fake.areas = broken
 assert small_place_keys(cells, (48.69, 2.54, 48.73, 2.57)) is None   # communes not read: the caller keeps every cell
 make_tiles._osm = None
 print("ok (small places)")
+
+# read_venues keeps each venue's OSM element (n/w/r and id) for the app's "Suggest an edit".
+real_osmium, real_features = make_tiles.osmium, make_tiles.features
+seen = {}
+make_tiles.osmium = lambda *a: ""
+make_tiles.features = lambda pbf, kinds="point,polygon", ids=False: seen.setdefault("ids", ids) and [
+    {"properties": {"amenity": "pub", "name": "The Lamb", "@type": "node", "@id": 123}, "geometry": {"type": "Point", "coordinates": [-0.12, 51.52]}},
+    {"properties": {"amenity": "cafe", "name": "Kiosk"}, "geometry": {"type": "Point", "coordinates": [-0.13, 51.53]}}]
+venues = make_tiles.read_venues("x.pbf", "kept.pbf")
+assert seen["ids"] and (venues[0]["osm_type"], venues[0]["osm_id"]) == ("n", 123) and "osm_id" not in venues[1], venues
+make_tiles.osmium, make_tiles.features = real_osmium, real_features
+print("ok (venue ids)")

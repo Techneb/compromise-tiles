@@ -539,7 +539,7 @@ def read_venues(pbf, kept):
     """The venues (AMENITIES) of a pbf, an area at its outer ring's mean vertex as the terrace permits; `kept` is a scratch file."""
     osmium("tags-filter", pbf, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
     out = []
-    for feature in features(kept):
+    for feature in features(kept, ids=True):
         tags, geometry = feature["properties"], feature["geometry"]
         if tags.get("amenity") not in AMENITIES: continue
         if geometry["type"] == "Point": lon, lat = geometry["coordinates"][:2]
@@ -552,6 +552,8 @@ def read_venues(pbf, kept):
         if drinks_late(tags): venue["bar"] = True
         if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
         venue.update(details(tags))
+        # The element, for the app's "Suggest an edit" to open its edit page (backlog, Keep OSM ids in venue tiles).
+        if tags.get("@type") in ("node", "way", "relation") and tags.get("@id"): venue.update(osm_type=tags["@type"][0], osm_id=int(tags["@id"]))
         out.append(venue)
     return out
 
@@ -573,7 +575,7 @@ class OSM:
             osmium("tags-filter", box, "nwr/place=" + ",".join(PLACE_KINDS), "-o", self.named, "--overwrite")
             osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
             osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
-            for venue in read_venues(box, kept):
+            for venue in chains_only(read_venues(box, kept)):
                 lat, lon = venue["coordinate"]["latitude"], venue["coordinate"]["longitude"]
                 self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
@@ -871,7 +873,30 @@ def details(tags):
         if tags.get(key) in ("yes", "served"): out[key] = True
     for key in ("diet:vegan", "diet:vegetarian", "diet:gluten_free"):
         if tags.get(key) in ("yes", "only"): out[key] = tags[key]
+    # A venue's character (owner, 2026-10-21): True for real_ale, beer_garden, karaoke and brunch tagged yes, real_fire
+    # unless no, quiz whatever its value but no; food as yes/no; the brewery's first name ("various" says nothing);
+    # internet_access as True for Wi-Fi; specialty_coffee from cuisine, coffee or coffee:specialty; the brand (chains only: OSM).
+    for key in ("real_ale", "beer_garden", "karaoke", "brunch"):
+        if tags.get(key) == "yes": out[key] = True
+    for key in ("real_fire", "quiz"):
+        if str(tags.get(key) or "no").strip().lower() != "no": out[key] = True
+    if tags.get("food") in ("yes", "no"): out["food"] = tags["food"] == "yes"
+    brewery = next((v.strip() for v in str(tags.get("brewery") or "").split(";") if v.strip()), "")
+    if brewery and brewery.lower() not in ("various", "yes", "no", "multiple"): out["brewery"] = brewery
+    if tags.get("internet_access") in ("wlan", "yes", "wifi"): out["internet_access"] = True
+    every = {v.strip().lower() for v in str(tags.get("cuisine") or "").split(";")}
+    if every & {"specialty_coffee", "speciality_coffee"} or tags.get("coffee") == "specialty" or tags.get("coffee:specialty") == "yes":
+        out["specialty_coffee"] = True
+    if str(tags.get("brand") or "").strip(): out["brand"] = str(tags["brand"]).strip()
     return out
+
+def chains_only(venues, least=3):
+    """Drops the brand of a venue whose brand fewer than `least` of `venues` share, or whose name already says it:
+    a brand on a row marks a chain, so an independent stands out by having none (owner, 2026-10-21)."""
+    shared = collections.Counter(v.get("brand") for v in venues)
+    for v in venues:
+        if "brand" in v and (shared[v["brand"]] < least or normalised_name(v["brand"]) in normalised_name(v["name"])): del v["brand"]
+    return venues
 
 _DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
 _MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
