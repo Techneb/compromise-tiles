@@ -2265,6 +2265,22 @@ CITY_BUILDINGS = [
     building_row("Nashville", (35.9677, 36.4056), (-87.0548, -86.5155), boundary=boundary("nashville"), fetch=lambda r: footprints(arcgis(
         "https://services2.arcgis.com/HdTo6HJqh92wn4D8/arcgis/rest/services/Building_Footprints_view/FeatureServer/0", r,
         ["Height"], oid="OBJECTID"), lambda p: number(p.get("Height")) * 0.3048 if number(p.get("Height")) else None)),
+    # Louisville: LOJIC's roofline heights (metres, the whole consolidated metro). Phoenix: the 2014 LiDAR footprints
+    # (NGA/USGS, metres above ground) cover the metro's core only; a cell they leave empty asks OSM next. Omaha (DCGIS
+    # 2022 LiDAR) and Memphis (LiDAR, MAXHT_F) in feet; Memphis's few readings over 600 ft (its tallest tower is
+    # ~430 ft) are noise, left to the guess.
+    building_row("Louisville", (37.9971, 38.3802), (-85.9471, -85.4051), boundary=boundary("louisville"), fetch=lambda r: footprints(arcgis(
+        "https://gis.lojic.org/maps/rest/services/LojicSolutions/OpenDataBase/MapServer/8", r,
+        ["PTD.building_heights.MAX_HEIGHT_METERS"], oid="PTD.bg.OBJECTID"), lambda p: number(p.get("PTD.building_heights.MAX_HEIGHT_METERS")))),
+    building_row("Phoenix", (33.2904, 33.9184), (-112.3241, -111.9255), boundary=boundary("phoenix"), fetch=lambda r: footprints(arcgis(
+        "https://services3.arcgis.com/0OPQIK59PJJqLK0A/arcgis/rest/services/Phoenix_AZ_3D_Building/FeatureServer/0", r,
+        ["HGT_AGL"], oid="FID"), lambda p: number(p.get("HGT_AGL")))),
+    building_row("Omaha", (41.1905, 41.3931), (-96.2682, -95.8711), boundary=boundary("omaha"), fetch=lambda r: footprints(arcgis(
+        "https://dcgis.org/server/rest/services/Hosted/2022_Building_Footprints/FeatureServer/0", r,
+        ["buildingheight"], oid="objectid"), lambda p: number(p.get("buildingheight")) * 0.3048 if number(p.get("buildingheight")) else None)),
+    building_row("Memphis", (34.9941, 35.2639), (-90.3084, -89.637), boundary=boundary("memphis"), fetch=lambda r: footprints(arcgis(
+        "https://maps.memphistn.gov/mapping/rest/services/Basemaps/Common_Services_PROD/MapServer/28", r,
+        ["MAXHT_F"], oid="OBJECTID"), lambda p: number(p.get("MAXHT_F")) * 0.3048 if 0 < (number(p.get("MAXHT_F")) or 0) < 600 else None)),
     building_row("Bremen", (53.0111, 53.6102), (8.4815, 8.9909), boundary=boundary("bremen"),
                  fetch=citygml_archive("https://gdi2.geo.bremen.de/inspire/download/LoD/data/LOD2_CITYGML_HB.zip",
                                        "LoD2_32_{e}_{n}_2_HB.gml", 2)),

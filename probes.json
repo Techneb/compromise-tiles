@@ -764,5 +764,21 @@
  "permits/Detroit": {
   "key": "21165,-41523",
   "picked": "2026-10-21"
+ },
+ "buildings/Louisville": {
+  "key": "19127,-42878",
+  "picked": "2026-10-21"
+ },
+ "buildings/Phoenix": {
+  "key": "16724,-56037",
+  "picked": "2026-10-21"
+ },
+ "buildings/Omaha": {
+  "key": "20628,-47967",
+  "picked": "2026-10-21"
+ },
+ "buildings/Memphis": {
+  "key": "17571,-45025",
+  "picked": "2026-10-21"
  }
 }
