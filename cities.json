@@ -3481,5 +3481,17 @@
       19.0703
     ],
     "boundary": "boundaries/gdansk.geojson"
+  },
+  {
+    "city": "Portland",
+    "streets": true,
+    "district": "Portland (whole municipality)",
+    "box": [
+      45.4325,
+      -122.8368,
+      45.6529,
+      -122.472
+    ],
+    "boundary": "boundaries/portland.geojson"
   }
 ]

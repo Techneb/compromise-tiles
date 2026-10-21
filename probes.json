@@ -804,5 +804,9 @@
  "buildings/Gdańsk": {
   "key": "27174,9326",
   "picked": "2026-10-21"
+ },
+ "buildings/Portland": {
+  "key": "22759,-61339",
+  "picked": "2026-10-21"
  }
 }

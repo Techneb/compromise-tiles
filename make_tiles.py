@@ -2408,6 +2408,12 @@ CITY_BUILDINGS = [
     building_row("Riverside", (33.8726, 34.0195), (-117.5238, -117.2788), boundary=boundary("riverside"), fetch=lambda r: footprints(arcgis(
         "https://services.arcgis.com/Fu2oOWg1Aw7azh41/arcgis/rest/services/DowntownBuildings/FeatureServer/0", r,
         ["HeightFt"], oid="FID"), lambda p: number(p.get("HeightFt")) * 0.3048 if number(p.get("HeightFt")) else None)),
+    # Portland: the Bureau of Planning and Sustainability's footprints on PortlandMaps (unreachable on 2026-09-25,
+    # answering now): AVG_HEIGHT in feet, else NUM_STORY × 3 m.
+    building_row("Portland", (45.4325, 45.6529), (-122.8368, -122.472), boundary=boundary("portland"), fetch=lambda r: footprints(arcgis(
+        "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Property/MapServer/48", r, ["AVG_HEIGHT", "NUM_STORY"]),
+        lambda p: number(p.get("AVG_HEIGHT")) * 0.3048 if (number(p.get("AVG_HEIGHT")) or 0) > 0
+        else (number(p.get("NUM_STORY")) * 3 if (number(p.get("NUM_STORY")) or 0) > 0 else None))),
     building_row("Bremen", (53.0111, 53.6102), (8.4815, 8.9909), boundary=boundary("bremen"),
                  fetch=citygml_archive("https://gdi2.geo.bremen.de/inspire/download/LoD/data/LOD2_CITYGML_HB.zip",
                                        "LoD2_32_{e}_{n}_2_HB.gml", 2)),
