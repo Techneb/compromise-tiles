@@ -1459,6 +1459,34 @@ def gipuzkoa(rect, cap=2000):
         return [b for part in ((s, w, ms, me), (s, me, ms, e), (ms, w, n, me), (ms, me, n, e)) for b in gipuzkoa(part, cap)]
     return gipuzkoa_buildings(raw)
 
+ESPOO_NS = {"gml": "http://www.opengis.net/gml", "wfs": "http://www.opengis.net/wfs", "GIS": "http://www.tekla.com/schemas/GIS"}
+GK25 = (25, 1.0, 25_500_000)  # ETRS-GK25 (EPSG:3879): Helsinki region's plane grid
+
+def espoo_buildings(raw):
+    """Espoo's Rakennukset (Tekla WFS 1.1.0, GML in ETRS-GK25, easting first): KERROSLUKU floors × 3 m."""
+    out = []
+    for b in ET.fromstring(raw).iterfind("gml:featureMember/GIS:Rakennukset", ESPOO_NS):
+        floors = number(b.findtext("GIS:KERROSLUKU", namespaces=ESPOO_NS))
+        for ring in b.iterfind("GIS:Geometry//gml:exterior/gml:LinearRing", ESPOO_NS):
+            v = [float(x) for p in ring.iterfind("gml:pos", ESPOO_NS) for x in p.text.split()]
+            v += [float(x) for p in ring.iterfind("gml:posList", ESPOO_NS) for x in p.text.split()]
+            if len(v) >= 6:
+                out.append(building([vertex(*tm_to_wgs84(v[i], v[i + 1], *GK25)) for i in range(0, len(v) - 1, 2)],
+                                    floors * 3 if floors and floors > 0 else None))
+    return out
+
+def espoo(rect, cap=2000, depth=0):
+    """The City of Espoo's buildings WFS over a box (its GK25 bounding box); a box that hits the cap is split in four."""
+    s, w, n, e = rect
+    xs, ys = zip(*(wgs84_to_tm(la, lo, *GK25) for la in (s, n) for lo in (w, e)))
+    q = urllib.parse.urlencode({"service": "WFS", "version": "1.1.0", "request": "GetFeature", "typeName": "GIS:Rakennukset",
+                                "maxFeatures": str(cap), "bbox": f"{min(xs):.1f},{min(ys):.1f},{max(xs):.1f},{max(ys):.1f}"})
+    raw = get("https://kartat.espoo.fi/teklaogcweb/wfs.ashx?" + q)
+    if raw.count(b"<gml:featureMember") >= cap and depth < 3:
+        ms, me = (s + n) / 2, (w + e) / 2
+        return [b for part in ((s, w, ms, me), (s, me, ms, e), (ms, w, n, me), (ms, me, n, e)) for b in espoo(part, cap, depth + 1)]
+    return espoo_buildings(raw)
+
 def citygml_buildings(raw, zone=32):
     """LoD2 CityGML in UTM (NRW's, Bavaria's): each Building's or BuildingPart's ground surface as an outline,
     its measuredHeight (metres, ground to roof) as the height; a parent made only of parts gives none itself."""
@@ -2355,6 +2383,8 @@ CITY_BUILDINGS = [
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/06/0663.zip")),
     building_row("Bydgoszcz", (53.0501, 53.2094), (17.8741, 18.2026), boundary=boundary("bydgoszcz"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/04/0461.zip")),
+    # The City of Espoo's buildings (Espoon rakennukset, CC BY 4.0 through HRI): KERROSLUKU floors × 3 m, its own WFS.
+    building_row("Espoo", (59.901, 60.364), (24.4992, 24.9424), boundary=boundary("espoo"), fetch=espoo),
     # Christchurch City Council's Building layer (CC BY 4.0): drvLiDARHeight, metres, 2019 lidar (94 of 96 at Cathedral
     # Square); the tiled box is the urban area. Wellington City Council's footprints (CC BY 4.0): approx_hei, metres.
     building_row("Christchurch", (-43.6, -43.42), (172.5, 172.78), fetch=lambda r: footprints(arcgis(
@@ -2709,16 +2739,20 @@ def tm_to_wgs84(easting, northing, lon0, k0=0.9996, false_easting=500_000, false
 
 def wgs84_to_utm(lat, lon, zone):
     """WGS84 → UTM north (easting, northing), Snyder's forward transverse Mercator: which CityGML tiles a box needs."""
-    a, f, k0 = 6_378_137.0, 1 / 298.257223563, 0.9996
+    return wgs84_to_tm(lat, lon, zone * 6 - 183)
+
+def wgs84_to_tm(lat, lon, lon0, k0=0.9996, false_easting=500_000, false_northing=0):
+    """WGS84 → any transverse Mercator grid on GRS80/WGS84 (easting, northing): tm_to_wgs84's inverse."""
+    a, f = 6_378_137.0, 1 / 298.257223563
     e2 = f * (2 - f); ep2 = e2 / (1 - e2)
     phi = math.radians(lat)
     n = a / math.sqrt(1 - e2 * math.sin(phi)**2)
-    t, c, A = math.tan(phi)**2, ep2 * math.cos(phi)**2, math.radians(lon - (zone * 6 - 183)) * math.cos(phi)
+    t, c, A = math.tan(phi)**2, ep2 * math.cos(phi)**2, math.radians(lon - lon0) * math.cos(phi)
     m = a * ((1 - e2 / 4 - 3 * e2**2 / 64 - 5 * e2**3 / 256) * phi - (3 * e2 / 8 + 3 * e2**2 / 32 + 45 * e2**3 / 1024) * math.sin(2 * phi)
              + (15 * e2**2 / 256 + 45 * e2**3 / 1024) * math.sin(4 * phi) - (35 * e2**3 / 3072) * math.sin(6 * phi))
-    x = 500_000 + k0 * n * (A + (1 - t + c) * A**3 / 6 + (5 - 18 * t + t**2 + 72 * c - 58 * ep2) * A**5 / 120)
-    y = k0 * (m + n * math.tan(phi) * (A**2 / 2 + (5 - t + 9 * c + 4 * c**2) * A**4 / 24
-                                       + (61 - 58 * t + t**2 + 600 * c - 330 * ep2) * A**6 / 720))
+    x = false_easting + k0 * n * (A + (1 - t + c) * A**3 / 6 + (5 - 18 * t + t**2 + 72 * c - 58 * ep2) * A**5 / 120)
+    y = false_northing + k0 * (m + n * math.tan(phi) * (A**2 / 2 + (5 - t + 9 * c + 4 * c**2) * A**4 / 24
+                                                        + (61 - 58 * t + t**2 + 600 * c - 330 * ep2) * A**6 / 720))
     return x, y
 
 def mercator_to_wgs84(x, y):

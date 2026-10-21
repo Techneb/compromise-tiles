@@ -3433,5 +3433,17 @@
       18.2026
     ],
     "boundary": "boundaries/bydgoszcz.geojson"
+  },
+  {
+    "city": "Espoo",
+    "streets": true,
+    "district": "Espoo (whole municipality)",
+    "box": [
+      59.901,
+      24.4992,
+      60.364,
+      24.9424
+    ],
+    "boundary": "boundaries/espoo.geojson"
   }
 ]
