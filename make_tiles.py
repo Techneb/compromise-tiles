@@ -2442,11 +2442,13 @@ CITY_BUILDINGS = [
         "https://services6.arcgis.com/fUWVlHWZNxUvTUh8/arcgis/rest/services/V%C3%BD%C5%A1ka_budov/FeatureServer/0", r,
         ["vyska_komp"], oid="FID"), lambda p: number(p.get("vyska_komp")))),
     # GUGiK's Modele 3D budynków, LoD1 2024 (CC BY 4.0): one zip of CityGML sheets per powiat, Lublin's and
-    # Bydgoszcz's each the city itself (lod1_archive).
+    # Bydgoszcz's and Gdańsk's each the city itself (lod1_archive).
     building_row("Lublin", (51.1398, 51.2966), (22.4537, 22.6736), boundary=boundary("lublin"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/06/0663.zip")),
     building_row("Bydgoszcz", (53.0501, 53.2094), (17.8741, 18.2026), boundary=boundary("bydgoszcz"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/04/0461.zip")),
+    building_row("Gdańsk", (54.2749, 54.5828), (18.4295, 19.0703), boundary=boundary("gdansk"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/22/2261.zip")),
     # The City of Espoo's buildings (Espoon rakennukset, CC BY 4.0 through HRI): KERROSLUKU floors × 3 m, its own WFS.
     building_row("Espoo", (59.901, 60.364), (24.4992, 24.9424), boundary=boundary("espoo"), fetch=espoo),
     # Tallinn: Maa- ja Ruumiamet's Eesti 3D hoonete LoD1 (CC BY 4.0), the municipality's one CityGML file (733 MB,
