@@ -78,7 +78,7 @@ shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
+import argparse, array, collections, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -1563,9 +1563,10 @@ def cs92_to_wgs84(easting, northing): return tm_to_wgs84(easting, northing, 19, 
 
 def lod1_buildings(raw, to_wgs84=cs92_to_wgs84):
     """LoD1 CityGML (GUGiK's Modele 3D budynków): each Building's solid, its bottom face (every vertex at the
-    solid's lowest z) as the outline, its measuredHeight as the height; positions easting first (as GUGiK writes them)."""
+    solid's lowest z) as the outline, its measuredHeight as the height; positions easting first (as GUGiK writes them).
+    `raw` is bytes or an open file (a sheet streamed out of its zip)."""
     out = []
-    for _, el in ET.iterparse(io.BytesIO(raw)):
+    for _, el in ET.iterparse(raw if hasattr(raw, "read") else io.BytesIO(raw)):
         if el.tag.rsplit("}", 1)[-1] != "Building": continue
         h = number(el.findtext("{*}measuredHeight"))
         faces = [[float(x) for x in p.text.split()] for p in el.findall("{*}lod1Solid//{*}exterior//{*}posList")]
@@ -1579,14 +1580,77 @@ def lod1_buildings(raw, to_wgs84=cs92_to_wgs84):
         el.clear()
     return out
 
-def lod1_archive(url):
-    """A fetch over one zip of LoD1 CityGML sheets (GUGiK's, one per powiat), downloaded once a run (kept a month)
-    and parsed whole on first use."""
+def lcc3301_to_wgs84(easting, northing):
+    """Estonia's L-EST97 (EPSG:3301, Lambert conformal conic on GRS80) → WGS84, Snyder's ellipsoidal inverse."""
+    a, f = 6_378_137.0, 1 / 298.257222101
+    e = math.sqrt(f * (2 - f))
+    lat1, lat2, lat0, lon0 = map(math.radians, (59 + 1 / 3, 58, 57.51755393055556, 24))
+    m = lambda p: math.cos(p) / math.sqrt(1 - (e * math.sin(p))**2)
+    t = lambda p: math.tan(math.pi / 4 - p / 2) / ((1 - e * math.sin(p)) / (1 + e * math.sin(p)))**(e / 2)
+    n = (math.log(m(lat1)) - math.log(m(lat2))) / (math.log(t(lat1)) - math.log(t(lat2)))
+    big_f = m(lat1) / (n * t(lat1)**n)
+    rho0 = a * big_f * t(lat0)**n
+    x, y = easting - 500_000, rho0 - (northing - 6_375_000)
+    rho, theta = math.copysign(math.hypot(x, y), n), math.atan2(x, y)
+    tt = (rho / (a * big_f))**(1 / n)
+    phi = math.pi / 2 - 2 * math.atan(tt)
+    for _ in range(8):
+        phi = math.pi / 2 - 2 * math.atan(tt * ((1 - e * math.sin(phi)) / (1 + e * math.sin(phi)))**(e / 2))
+    return math.degrees(phi), math.degrees(theta / n + lon0)
+
+def triangles_outline(faces):
+    """The outer ring of a footprint drawn as triangles (Estonia's LoD1 bottom faces): the edges used once, chained,
+    the ring of largest area kept."""
+    edges = collections.Counter()
+    for face in faces:
+        for p, q in zip(face, face[1:]):
+            if p != q: edges[frozenset((p, q))] += 1
+    links = collections.defaultdict(list)
+    for edge, count in edges.items():
+        if count == 1:
+            p, q = tuple(edge); links[p].append(q); links[q].append(p)
+    rings, used = [], set()
+    for start in list(links):
+        for nxt in links[start]:
+            if frozenset((start, nxt)) in used: continue
+            ring, prev, cur = [start], start, nxt
+            used.add(frozenset((start, nxt)))
+            while cur != start:
+                ring.append(cur)
+                step = next((q for q in links[cur] if frozenset((cur, q)) not in used), None)
+                if step is None: break
+                used.add(frozenset((cur, step))); prev, cur = cur, step
+            if cur == start and len(ring) >= 3: rings.append(ring + [start])
+    area = lambda r: abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(r, r[1:])))
+    return max(rings, key=area) if rings else None
+
+def estonia_lod1_buildings(raw):
+    """Maa- ja Ruumiamet's LoD1 CityGML (a lod1MultiSurface of triangles, EPSG:3301 northing first): the triangles at
+    the building's lowest z make its outline (triangles_outline), measuredHeight its height."""
+    out = []
+    for _, el in ET.iterparse(raw if hasattr(raw, "read") else io.BytesIO(raw)):
+        if el.tag.rsplit("}", 1)[-1] != "Building": continue
+        h = number(el.findtext("{*}measuredHeight"))
+        faces = []
+        for p in el.findall("{*}lod1MultiSurface//{*}exterior//{*}posList"):
+            v = p.text.split()
+            faces.append([(float(v[i]), float(v[i + 1]), float(v[i + 2])) for i in range(0, len(v) - 2, 3)])
+        if faces:
+            low = min(z for face in faces for *_, z in face)
+            ring = triangles_outline([[(n, e) for n, e, z in face] for face in faces if all(z - low < 0.01 for *_, z in face)])
+            if ring:
+                out.append(building([vertex(*lcc3301_to_wgs84(e, n)) for n, e in ring], h if h and h > 0 else None))
+        el.clear()
+    return out
+
+def lod1_archive(url, reader=lod1_buildings):
+    """A fetch over one zip of LoD1 CityGML sheets (GUGiK's, one per powiat; Estonia's, one file per municipality),
+    downloaded once a run (kept a month), streamed and parsed whole on first use."""
     def fetch(rect):
         s, w, n, e = rect
         if url not in _citygml:
             with zipfile.ZipFile(download(url, os.path.join("extracts", "citygml"), max_days=30)) as z:
-                _citygml[url] = [b for m in z.namelist() if m.lower().endswith(".gml") for b in lod1_buildings(z.read(m))]
+                _citygml[url] = [b for m in z.namelist() if m.lower().endswith(".gml") for b in reader(z.open(m))]
         return [b for b in _citygml[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
     return fetch
 
@@ -2385,6 +2449,11 @@ CITY_BUILDINGS = [
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/04/0461.zip")),
     # The City of Espoo's buildings (Espoon rakennukset, CC BY 4.0 through HRI): KERROSLUKU floors × 3 m, its own WFS.
     building_row("Espoo", (59.901, 60.364), (24.4992, 24.9424), boundary=boundary("espoo"), fetch=espoo),
+    # Tallinn: Maa- ja Ruumiamet's Eesti 3D hoonete LoD1 (CC BY 4.0), the municipality's one CityGML file (733 MB,
+    # streamed out of its 27 MB zip), each footprint drawn as triangles (estonia_lod1_buildings).
+    building_row("Tallinn", (59.3518, 59.5916), (24.5501, 24.9263), boundary=boundary("tallinn"), fetch=lod1_archive(
+        "https://geoportaal.maaamet.ee/index.php?lang_id=1&plugin_act=otsing&andmetyyp=hooned_lod1&dl=1"
+        "&f=hooned_lod1-Tallinn-citygml.zip&page_id=833", reader=estonia_lod1_buildings)),
     # Christchurch City Council's Building layer (CC BY 4.0): drvLiDARHeight, metres, 2019 lidar (94 of 96 at Cathedral
     # Square); the tiled box is the urban area. Wellington City Council's footprints (CC BY 4.0): approx_hei, metres.
     building_row("Christchurch", (-43.6, -43.42), (172.5, 172.78), fetch=lambda r: footprints(arcgis(
