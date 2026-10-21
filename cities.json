@@ -3397,5 +3397,17 @@
       -89.637
     ],
     "boundary": "boundaries/memphis.geojson"
+  },
+  {
+    "city": "Riverside",
+    "streets": true,
+    "district": "Riverside (whole municipality)",
+    "box": [
+      33.8726,
+      -117.5238,
+      34.0195,
+      -117.2788
+    ],
+    "boundary": "boundaries/riverside.geojson"
   }
 ]
