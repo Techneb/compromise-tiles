@@ -3349,5 +3349,53 @@
       21.35,
       -157.76
     ]
+  },
+  {
+    "city": "Louisville",
+    "streets": true,
+    "district": "Louisville (whole municipality)",
+    "box": [
+      37.9971,
+      -85.9471,
+      38.3802,
+      -85.4051
+    ],
+    "boundary": "boundaries/louisville.geojson"
+  },
+  {
+    "city": "Phoenix",
+    "streets": true,
+    "district": "Phoenix (whole municipality)",
+    "box": [
+      33.2904,
+      -112.3241,
+      33.9184,
+      -111.9255
+    ],
+    "boundary": "boundaries/phoenix.geojson"
+  },
+  {
+    "city": "Omaha",
+    "streets": true,
+    "district": "Omaha (whole municipality)",
+    "box": [
+      41.1905,
+      -96.2682,
+      41.3931,
+      -95.8711
+    ],
+    "boundary": "boundaries/omaha.geojson"
+  },
+  {
+    "city": "Memphis",
+    "streets": true,
+    "district": "Memphis (whole municipality)",
+    "box": [
+      34.9941,
+      -90.3084,
+      35.2639,
+      -89.637
+    ],
+    "boundary": "boundaries/memphis.geojson"
   }
 ]
