@@ -401,8 +401,8 @@ none, this says so rather than guessing.
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
   – Version 2.0).
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
-- Lublin, Bydgoszcz: Główny Urząd Geodezji i Kartografii (GUGiK), Modele 3D budynków
-  LoD1 (CC BY 4.0).
+- Lublin, Bydgoszcz, Gdańsk: Główny Urząd Geodezji i Kartografii (GUGiK), Modele 3D
+  budynków LoD1 (CC BY 4.0).
 - Espoo: City of Espoo, Espoon rakennukset (Helsinki Region Infoshare, CC BY 4.0).
 - Tallinn: Maa- ja Ruumiamet, Eesti 3D hoonete LoD1 (CC BY 4.0).
 - Christchurch: Christchurch City Council, Building (CC BY 4.0).
@@ -479,7 +479,7 @@ none, this says so rather than guessing.
   Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
   Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim, Bremen, Detroit, Pittsburgh,
   Columbus, Anaheim, Las Vegas, Long Beach, Cincinnati, Nashville, Louisville, Phoenix, Omaha, Memphis,
-  Riverside, Lublin, Bydgoszcz, Espoo, Graz, Tallinn:
+  Riverside, Lublin, Bydgoszcz, Espoo, Graz, Tallinn, Gdańsk:
   © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,

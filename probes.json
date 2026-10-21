@@ -800,5 +800,9 @@
  "buildings/Tallinn": {
   "key": "29718,12372",
   "picked": "2026-10-21"
+ },
+ "buildings/Gdańsk": {
+  "key": "27174,9326",
+  "picked": "2026-10-21"
  }
 }

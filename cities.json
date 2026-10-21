@@ -3469,5 +3469,17 @@
       24.9263
     ],
     "boundary": "boundaries/tallinn.geojson"
+  },
+  {
+    "city": "Gda\u0144sk",
+    "streets": true,
+    "district": "Gda\u0144sk (whole municipality)",
+    "box": [
+      54.2749,
+      18.4295,
+      54.5828,
+      19.0703
+    ],
+    "boundary": "boundaries/gdansk.geojson"
   }
 ]
