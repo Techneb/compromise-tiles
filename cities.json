@@ -3445,5 +3445,29 @@
       24.9424
     ],
     "boundary": "boundaries/espoo.geojson"
+  },
+  {
+    "city": "Graz",
+    "streets": true,
+    "district": "Graz (whole municipality)",
+    "box": [
+      47.0118,
+      15.3497,
+      47.1345,
+      15.5342
+    ],
+    "boundary": "boundaries/graz.geojson"
+  },
+  {
+    "city": "Tallinn",
+    "streets": true,
+    "district": "Tallinn (whole municipality)",
+    "box": [
+      59.3518,
+      24.5501,
+      59.5916,
+      24.9263
+    ],
+    "boundary": "boundaries/tallinn.geojson"
   }
 ]

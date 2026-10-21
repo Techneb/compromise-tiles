@@ -163,6 +163,20 @@ espoo_gml = ('<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" xmln
 built = espoo_buildings(espoo_gml)
 assert len(built) == 1 and built[0]["height"] == 15.0 and len(built[0]["outline"]) == 4
 assert abs(built[0]["outline"][0]["latitude"] - 60.1749) < 0.001
+# Estonia's LoD1: a footprint of two triangles is its square (the shared edge dropped), a lone wall face at a higher z
+# ignored; L-EST97 as pyproj gives it (Tallinn, 2026-10-21).
+from make_tiles import estonia_lod1_buildings, lcc3301_to_wgs84, triangles_outline
+assert all(abs(a - b) < 1e-6 for a, b in zip(lcc3301_to_wgs84(542500, 6589000), (59.4367009, 24.748952)))
+assert len(triangles_outline([[(0, 0), (1, 0), (1, 1), (0, 0)], [(0, 0), (1, 1), (0, 1), (0, 0)]])) == 5
+tri = lambda z, pts: f"<gml:surfaceMember><gml:Polygon><gml:exterior><gml:LinearRing><gml:posList>{' '.join(f'{n} {e} {z}' for n, e in pts)}</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember>"
+sq = [(6589000, 542500), (6589000, 542510), (6589010, 542510)], [(6589000, 542500), (6589010, 542510), (6589010, 542500)]
+ee = ('<core:CityModel xmlns:core="http://www.opengis.net/citygml/2.0" xmlns:bldg="http://www.opengis.net/citygml/building/2.0" '
+      'xmlns:gml="http://www.opengis.net/gml"><core:cityObjectMember><bldg:Building><bldg:measuredHeight uom="m">11.51</bldg:measuredHeight>'
+      '<bldg:lod1MultiSurface><gml:MultiSurface><gml:surfaceMember><gml:CompositeSurface>'
+      + "".join(tri(24.87, list(t) + [t[0]]) for t in sq) + tri(36.38, [(6589000, 542500), (6589000, 542510), (6589010, 542510), (6589000, 542500)])
+      + '</gml:CompositeSurface></gml:surfaceMember></gml:MultiSurface></bldg:lod1MultiSurface></bldg:Building></core:cityObjectMember></core:CityModel>').encode()
+built = estonia_lod1_buildings(ee)
+assert len(built) == 1 and built[0]["height"] == 11.5 and len(built[0]["outline"]) == 5
 # Belgrade's multipatch: the footprint's clockwise ring (a counter-clockwise one is a hole), height = extent top − bottom.
 def fake_get(url, data=None, parse=None, **k):
     cw = [[20.4588, 44.8167], [20.4594, 44.8167], [20.4594, 44.8163], [20.4588, 44.8167]]
