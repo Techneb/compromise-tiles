@@ -149,6 +149,20 @@ bottom = "741954.51 382292.88 219.47 741941.03 382293 219.47 741941.21 382305.1 
 built = lod1_buildings(solid(4.48, [wall, bottom]))
 assert len(built) == 1 and built[0]["height"] == 4.5 and len(built[0]["outline"]) == 5
 assert lod1_buildings(solid(0, [bottom]))[0].get("guessed") is True
+# Espoo's Tekla WFS (a real Tapiola building, trimmed): GK25 positions easting first, KERROSLUKU floors × 3 m; the
+# forward and inverse GK25 agree (Tapiola metro station).
+from make_tiles import espoo_buildings, wgs84_to_tm, tm_to_wgs84, GK25
+x, y = wgs84_to_tm(60.1757, 24.8050, *GK25)
+assert 25489176 < x < 25489178 and 6673663 < y < 6673665
+assert all(abs(a - b) < 1e-7 for a, b in zip(tm_to_wgs84(x, y, *GK25), (60.1757, 24.8050)))
+pos = "".join(f"<gml:pos>{p}</gml:pos>" for p in ("25488991.066 6673522.387", "25488994.599 6673509.689", "25489020.492 6673536.563", "25488991.066 6673522.387"))
+espoo_gml = ('<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" xmlns:gml="http://www.opengis.net/gml" '
+             'xmlns:GIS="http://www.tekla.com/schemas/GIS"><gml:featureMember><GIS:Rakennukset><GIS:KERROSLUKU>5</GIS:KERROSLUKU>'
+             f'<GIS:Geometry><gml:Polygon><gml:exterior><gml:LinearRing>{pos}</gml:LinearRing></gml:exterior></gml:Polygon></GIS:Geometry>'
+             '</GIS:Rakennukset></gml:featureMember></wfs:FeatureCollection>').encode()
+built = espoo_buildings(espoo_gml)
+assert len(built) == 1 and built[0]["height"] == 15.0 and len(built[0]["outline"]) == 4
+assert abs(built[0]["outline"][0]["latitude"] - 60.1749) < 0.001
 # Belgrade's multipatch: the footprint's clockwise ring (a counter-clockwise one is a hole), height = extent top − bottom.
 def fake_get(url, data=None, parse=None, **k):
     cw = [[20.4588, 44.8167], [20.4594, 44.8167], [20.4594, 44.8163], [20.4588, 44.8167]]
