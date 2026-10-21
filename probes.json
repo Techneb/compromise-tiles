@@ -780,5 +780,9 @@
  "buildings/Memphis": {
   "key": "17571,-45025",
   "picked": "2026-10-21"
+ },
+ "buildings/Riverside": {
+  "key": "16990,-58687",
+  "picked": "2026-10-21"
  }
 }

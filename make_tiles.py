@@ -2281,6 +2281,10 @@ CITY_BUILDINGS = [
     building_row("Memphis", (34.9941, 35.2639), (-90.3084, -89.637), boundary=boundary("memphis"), fetch=lambda r: footprints(arcgis(
         "https://maps.memphistn.gov/mapping/rest/services/Basemaps/Common_Services_PROD/MapServer/28", r,
         ["MAXHT_F"], oid="OBJECTID"), lambda p: number(p.get("MAXHT_F")) * 0.3048 if 0 < (number(p.get("MAXHT_F")) or 0) < 600 else None)),
+    # Riverside: the City's downtown buildings (HeightFt, 2019); a cell it leaves empty asks OSM next.
+    building_row("Riverside", (33.8726, 34.0195), (-117.5238, -117.2788), boundary=boundary("riverside"), fetch=lambda r: footprints(arcgis(
+        "https://services.arcgis.com/Fu2oOWg1Aw7azh41/arcgis/rest/services/DowntownBuildings/FeatureServer/0", r,
+        ["HeightFt"], oid="FID"), lambda p: number(p.get("HeightFt")) * 0.3048 if number(p.get("HeightFt")) else None)),
     building_row("Bremen", (53.0111, 53.6102), (8.4815, 8.9909), boundary=boundary("bremen"),
                  fetch=citygml_archive("https://gdi2.geo.bremen.de/inspire/download/LoD/data/LOD2_CITYGML_HB.zip",
                                        "LoD2_32_{e}_{n}_2_HB.gml", 2)),
