@@ -784,5 +784,13 @@
  "buildings/Riverside": {
   "key": "16990,-58687",
   "picked": "2026-10-21"
+ },
+ "buildings/Lublin": {
+  "key": "25624,11282",
+  "picked": "2026-10-21"
+ },
+ "buildings/Bydgoszcz": {
+  "key": "26561,9000",
+  "picked": "2026-10-21"
  }
 }

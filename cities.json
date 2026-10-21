@@ -3409,5 +3409,29 @@
       -117.2788
     ],
     "boundary": "boundaries/riverside.geojson"
+  },
+  {
+    "city": "Lublin",
+    "streets": true,
+    "district": "Lublin (whole municipality)",
+    "box": [
+      51.1398,
+      22.4537,
+      51.2966,
+      22.6736
+    ],
+    "boundary": "boundaries/lublin.geojson"
+  },
+  {
+    "city": "Bydgoszcz",
+    "streets": true,
+    "district": "Bydgoszcz (whole municipality)",
+    "box": [
+      53.0501,
+      17.8741,
+      53.2094,
+      18.2026
+    ],
+    "boundary": "boundaries/bydgoszcz.geojson"
   }
 ]

@@ -134,6 +134,21 @@ asked.clear()
 make_tiles.get = lambda url, **k: (asked.append(url), buf.getvalue())[1]
 assert len(citygml_tiles("https://z/{e}_{n}.zip", 2, odd_e=True)((51.2250, 6.7747, 51.2253, 6.7752))) == 4
 assert asked == ["https://z/343_5676.zip"]
+# GUGiK's LoD1 CityGML (a real Lublin building, trimmed): the solid's bottom face is the outline, measuredHeight the
+# height; CS92 (EPSG:2180) positions easting first, a wall's face skipped.
+from make_tiles import lod1_buildings, cs92_to_wgs84
+lat, lon = cs92_to_wgs84(741954.51, 382292.88)
+assert 51.255 < lat < 51.257 and 22.468 < lon < 22.470
+face = lambda v: f"<gml:surfaceMember><gml:Polygon><gml:exterior><gml:LinearRing><gml:posList>{v}</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember>"
+solid = lambda h, faces: (f'<core:CityModel xmlns:core="http://www.opengis.net/citygml/2.0" xmlns:bldg="http://www.opengis.net/citygml/building/2.0" '
+    f'xmlns:gml="http://www.opengis.net/gml"><core:cityObjectMember><bldg:Building><bldg:measuredHeight uom="meter">{h}</bldg:measuredHeight>'
+    f'<bldg:lod1Solid><gml:Solid><gml:exterior><gml:CompositeSurface>{"".join(map(face, faces))}</gml:CompositeSurface></gml:exterior></gml:Solid>'
+    '</bldg:lod1Solid></bldg:Building></core:cityObjectMember></core:CityModel>').encode()
+wall = "741954.51 382292.88 219.47 741954.71 382304.89 219.47 741954.71 382304.89 223.95 741954.51 382292.88 223.95 741954.51 382292.88 219.47"
+bottom = "741954.51 382292.88 219.47 741941.03 382293 219.47 741941.21 382305.1 219.47 741954.71 382304.89 219.47 741954.51 382292.88 219.47"
+built = lod1_buildings(solid(4.48, [wall, bottom]))
+assert len(built) == 1 and built[0]["height"] == 4.5 and len(built[0]["outline"]) == 5
+assert lod1_buildings(solid(0, [bottom]))[0].get("guessed") is True
 # Belgrade's multipatch: the footprint's clockwise ring (a counter-clockwise one is a hole), height = extent top − bottom.
 def fake_get(url, data=None, parse=None, **k):
     cw = [[20.4588, 44.8167], [20.4594, 44.8167], [20.4594, 44.8163], [20.4588, 44.8167]]

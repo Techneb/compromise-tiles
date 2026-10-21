@@ -1531,6 +1531,37 @@ def citygml_archive(url, name, km):
         return out
     return fetch
 
+def cs92_to_wgs84(easting, northing): return tm_to_wgs84(easting, northing, 19, 0.9993, 500_000, -5_300_000)
+
+def lod1_buildings(raw, to_wgs84=cs92_to_wgs84):
+    """LoD1 CityGML (GUGiK's Modele 3D budynków): each Building's solid, its bottom face (every vertex at the
+    solid's lowest z) as the outline, its measuredHeight as the height; positions easting first (as GUGiK writes them)."""
+    out = []
+    for _, el in ET.iterparse(io.BytesIO(raw)):
+        if el.tag.rsplit("}", 1)[-1] != "Building": continue
+        h = number(el.findtext("{*}measuredHeight"))
+        faces = [[float(x) for x in p.text.split()] for p in el.findall("{*}lod1Solid//{*}exterior//{*}posList")]
+        faces = [v for v in faces if len(v) >= 9]
+        if faces:
+            low = min(min(v[2::3]) for v in faces)
+            bottom = next((v for v in faces if max(v[2::3]) - low < 0.01), None)
+            if bottom:
+                out.append(building([vertex(*to_wgs84(bottom[i], bottom[i + 1])) for i in range(0, len(bottom) - 2, 3)],
+                                    h if h and h > 0 else None))
+        el.clear()
+    return out
+
+def lod1_archive(url):
+    """A fetch over one zip of LoD1 CityGML sheets (GUGiK's, one per powiat), downloaded once a run (kept a month)
+    and parsed whole on first use."""
+    def fetch(rect):
+        s, w, n, e = rect
+        if url not in _citygml:
+            with zipfile.ZipFile(download(url, os.path.join("extracts", "citygml"), max_days=30)) as z:
+                _citygml[url] = [b for m in z.namelist() if m.lower().endswith(".gml") for b in lod1_buildings(z.read(m))]
+        return [b for b in _citygml[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+    return fetch
+
 # MLIT's Project PLATEAU (3D都市モデル): CityGML 2.0 per city, one building file per 1 km mesh, listed by the
 # PLATEAU data catalogue's keyless API per city code (Osaka: 27100; Tokyo: each of the 23 wards, 13101–13123,
 # a mesh on a ward border having a file per ward). The store holds the files gzipped and serves them so when
@@ -2318,6 +2349,12 @@ CITY_BUILDINGS = [
     building_row("Brno", (49.1098, 49.2944), (16.4279, 16.7279), boundary=boundary("brno"), fetch=lambda r: footprints(arcgis(
         "https://services6.arcgis.com/fUWVlHWZNxUvTUh8/arcgis/rest/services/V%C3%BD%C5%A1ka_budov/FeatureServer/0", r,
         ["vyska_komp"], oid="FID"), lambda p: number(p.get("vyska_komp")))),
+    # GUGiK's Modele 3D budynków, LoD1 2024 (CC BY 4.0): one zip of CityGML sheets per powiat, Lublin's and
+    # Bydgoszcz's each the city itself (lod1_archive).
+    building_row("Lublin", (51.1398, 51.2966), (22.4537, 22.6736), boundary=boundary("lublin"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/06/0663.zip")),
+    building_row("Bydgoszcz", (53.0501, 53.2094), (17.8741, 18.2026), boundary=boundary("bydgoszcz"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/04/0461.zip")),
     # Christchurch City Council's Building layer (CC BY 4.0): drvLiDARHeight, metres, 2019 lidar (94 of 96 at Cathedral
     # Square); the tiled box is the urban area. Wellington City Council's footprints (CC BY 4.0): approx_hei, metres.
     building_row("Christchurch", (-43.6, -43.42), (172.5, 172.78), fetch=lambda r: footprints(arcgis(
@@ -2648,10 +2685,14 @@ def rd_new_to_wgs84(x, y):
 
 def utm_to_wgs84(easting, northing, zone=30):
     """ETRS89 / UTM north (Madrid 30, Oslo 32) → WGS84, Snyder's inverse transverse Mercator, as utmNorthToWGS84."""
-    a, f, k0 = 6_378_137.0, 1 / 298.257223563, 0.9996
+    return tm_to_wgs84(easting, northing, zone * 6 - 183)
+
+def tm_to_wgs84(easting, northing, lon0, k0=0.9996, false_easting=500_000, false_northing=0):
+    """Any transverse Mercator grid on GRS80/WGS84 → WGS84 (UTM; Poland's CS92, EPSG:2180: 19°, 0.9993, −5,300,000 m)."""
+    a, f = 6_378_137.0, 1 / 298.257223563
     e2 = f * (2 - f); ep2 = e2 / (1 - e2)
     e1 = (1 - math.sqrt(1 - e2)) / (1 + math.sqrt(1 - e2))
-    x, m = easting - 500_000, northing / k0
+    x, m = easting - false_easting, (northing - false_northing) / k0
     mu = m / (a * (1 - e2 / 4 - 3 * e2**2 / 64 - 5 * e2**3 / 256))
     phi1 = (mu + (3 * e1 / 2 - 27 * e1**3 / 32) * math.sin(2 * mu) + (21 * e1**2 / 16 - 55 * e1**4 / 32) * math.sin(4 * mu)
             + (151 * e1**3 / 96) * math.sin(6 * mu) + (1097 * e1**4 / 512) * math.sin(8 * mu))
@@ -2662,7 +2703,7 @@ def utm_to_wgs84(easting, northing, zone=30):
     d = x / (n1 * k0)
     phi = phi1 - (n1 * tan1 / r1) * (d**2 / 2 - (5 + 3 * t1 + 10 * c1 - 4 * c1**2 - 9 * ep2) * d**4 / 24
                                     + (61 + 90 * t1 + 298 * c1 + 45 * t1**2 - 252 * ep2 - 3 * c1**2) * d**6 / 720)
-    lon = math.radians(zone * 6 - 183) + (d - (1 + 2 * t1 + c1) * d**3 / 6
+    lon = math.radians(lon0) + (d - (1 + 2 * t1 + c1) * d**3 / 6
                               + (5 - 2 * c1 + 28 * t1 - 3 * c1**2 + 8 * ep2 + 24 * t1**2) * d**5 / 120) / cos1
     return math.degrees(phi), math.degrees(lon)
 
