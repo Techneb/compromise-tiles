@@ -459,6 +459,8 @@ def bounds(geometry):
 
 GEOFABRIK = "https://download.geofabrik.de/index-v1.json"
 AMENITIES = ("bar", "pub", "biergarten", "cafe", "restaurant")  # every venue type
+# In venues/ tiles only, for the app to match an Apple venue to its OSM twin and read its tags; never listed as a spot (2026-10-24).
+MATCH_ONLY = ("fast_food", "ice_cream", "nightclub")
 GRID = 100  # the in-memory index's buckets: 1/100°, ~1 km
 _regions = None
 
@@ -535,13 +537,13 @@ def features(pbf, kinds="point,polygon", ids=False):
     for line in export.split("\n"):  # not splitlines(): it breaks on the \x1e that opens each record
         if line.strip("\x1e"): yield json.loads(line.lstrip("\x1e"))
 
-def read_venues(pbf, kept):
-    """The venues (AMENITIES) of a pbf, an area at its outer ring's mean vertex as the terrace permits; `kept` is a scratch file."""
-    osmium("tags-filter", pbf, "nwr/amenity=" + ",".join(AMENITIES), "-o", kept, "--overwrite")
+def read_venues(pbf, kept, amenities=AMENITIES):
+    """The venues (`amenities`) of a pbf, an area at its outer ring's mean vertex as the terrace permits; `kept` is a scratch file."""
+    osmium("tags-filter", pbf, "nwr/amenity=" + ",".join(amenities), "-o", kept, "--overwrite")
     out = []
     for feature in features(kept, ids=True):
         tags, geometry = feature["properties"], feature["geometry"]
-        if tags.get("amenity") not in AMENITIES: continue
+        if tags.get("amenity") not in amenities: continue
         if geometry["type"] == "Point": lon, lat = geometry["coordinates"][:2]
         else:
             ring = next(outer_rings(geometry), None)
@@ -564,7 +566,7 @@ class OSM:
     def __init__(self, pbf, rect):
         s, w, n, e = rect
         self.box = rect
-        self.venues, self.walls, self.roads, self.last = {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
+        self.venues, self.matches, self.walls, self.roads, self.last = {}, {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
         self.named, self.admin, self._places = pbf + ".places.pbf", pbf + ".admin.pbf", None
         self.numbers, self.pbf = pbf + ".numbers.pbf", pbf
         box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
@@ -575,9 +577,10 @@ class OSM:
             osmium("tags-filter", box, "nwr/place=" + ",".join(PLACE_KINDS), "-o", self.named, "--overwrite")
             osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
             osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
-            for venue in chains_only(read_venues(box, kept)):
+            # MATCH_ONLY venues apart: only venues/ tiles carry them, not terraces, shade or small-place counts.
+            for venue in chains_only(read_venues(box, kept, AMENITIES + MATCH_ONLY)):
                 lat, lon = venue["coordinate"]["latitude"], venue["coordinate"]["longitude"]
-                self.venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
+                (self.venues if venue["amenity"] in AMENITIES else self.matches).setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
             for f in (box, kept):
                 if os.path.exists(f): os.remove(f)
@@ -874,15 +877,16 @@ def details(tags):
     for key in ("diet:vegan", "diet:vegetarian", "diet:gluten_free"):
         if tags.get(key) in ("yes", "only"): out[key] = tags[key]
     # A venue's character (owner, 2026-10-21): True for real_ale, beer_garden, karaoke, brunch and live_sport (2026-10-22) tagged yes, real_fire
-    # unless no, quiz whatever its value but no; food as yes/no; the brewery's first name ("various" says nothing);
+    # unless no, quiz whatever its value but no; food as yes/no; the brewery when it is one display name, not a tap
+    # list or an id ("1664;leffe", "guinness", "local"; 2026-10-24);
     # internet_access as True for Wi-Fi; specialty_coffee from cuisine, coffee or coffee:specialty; the brand (chains only: OSM).
     for key in ("real_ale", "beer_garden", "karaoke", "brunch", "live_sport"):
         if tags.get(key) == "yes": out[key] = True
     for key in ("real_fire", "quiz"):
         if str(tags.get(key) or "no").strip().lower() != "no": out[key] = True
     if tags.get("food") in ("yes", "no"): out["food"] = tags["food"] == "yes"
-    brewery = next((v.strip() for v in str(tags.get("brewery") or "").split(";") if v.strip()), "")
-    if brewery and brewery.lower() not in ("various", "yes", "no", "multiple"): out["brewery"] = brewery
+    brewery = str(tags.get("brewery") or "").strip()
+    if ";" not in brewery and brewery != brewery.lower() and brewery.lower() not in ("various", "multiple"): out["brewery"] = brewery
     if tags.get("internet_access") in ("wlan", "yes", "wifi"): out["internet_access"] = True
     every = {v.strip().lower() for v in str(tags.get("cuisine") or "").split(";")}
     if every & {"specialty_coffee", "speciality_coffee"} or tags.get("coffee") == "specialty" or tags.get("coffee:specialty") == "yes":
@@ -931,8 +935,8 @@ def open_past_midnight(value):
     return late
 
 def osm_venues(cell):
-    """The named venues of one ~2 km cell, the key's own truncation deciding the edge."""
-    return [v for v in _osm.near(_osm.venues, cell.rect) if v["name"]
+    """The named venues of one ~2 km cell, MATCH_ONLY ones included, the key's own truncation deciding the edge."""
+    return [v for table in (_osm.venues, _osm.matches) for v in _osm.near(table, cell.rect) if v["name"]
             and f"{index(v['coordinate']['latitude'], COARSE)},{index(v['coordinate']['longitude'], COARSE)}" == cell.key]
 
 
