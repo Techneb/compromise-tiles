@@ -1260,13 +1260,14 @@ assert details({"cuisine": " Italian; pizza ;;burger;kebab", "sport": "soccer;ru
     "cuisine": "italian;pizza;burger", "sport": "soccer", "microbrewery": True, "live_music": True, "cocktails": True,
     "drink:wine": True, "drink:beer": True, "diet:vegan": "only", "diet:vegetarian": "yes"}
 assert details({}) == {} and details({"cuisine": " ; ", "microbrewery": "no", "live_music": "sometimes", "drink:wine": "retail"}) == {}
-# A venue's character: flags only when meant, food both ways, the brewery's first real name, Wi-Fi, specialty coffee.
+# A venue's character: flags only when meant, food both ways, a brewery's display name (never a tap list or an id), Wi-Fi, specialty coffee.
 assert details({"real_ale": "yes", "beer_garden": "yes", "karaoke": "yes", "brunch": "yes", "real_fire": "fireplace", "quiz": "Tu 20:00",
-                "food": "no", "brewery": " Fuller's ;Dark Star", "internet_access": "wlan", "cuisine": "coffee_shop;cake;sandwich;Specialty_Coffee",
+                "food": "no", "brewery": " Fuller's ", "internet_access": "wlan", "cuisine": "coffee_shop;cake;sandwich;Specialty_Coffee",
                 "brand": " Nicholson's "}) == {
     "cuisine": "coffee_shop;cake;sandwich", "real_ale": True, "beer_garden": True, "karaoke": True, "brunch": True, "real_fire": True,
     "quiz": True, "food": False, "brewery": "Fuller's", "internet_access": True, "specialty_coffee": True, "brand": "Nicholson's"}
 assert details({"real_fire": "no", "quiz": "no", "food": "snacks", "brewery": "various", "internet_access": "no", "real_ale": "no"}) == {}
+assert not any("brewery" in details({"brewery": b}) for b in ("Fuller's;Dark Star", "guinness", "local", "Various", ""))
 assert details({"coffee": "specialty"}) == {"specialty_coffee": True} and details({"food": "yes"}) == {"food": True}
 # live_sport (owner, 2026-10-22): a yes only; "no" and other values say nothing.
 assert details({"live_sport": "yes"}) == {"live_sport": True} and details({"live_sport": "no"}) == {} and details({"live_sport": "football"}) == {}
@@ -1487,6 +1488,19 @@ make_tiles.features = lambda pbf, kinds="point,polygon", ids=False: seen.setdefa
     {"properties": {"amenity": "pub", "name": "The Lamb", "@type": "node", "@id": 123}, "geometry": {"type": "Point", "coordinates": [-0.12, 51.52]}},
     {"properties": {"amenity": "cafe", "name": "Kiosk"}, "geometry": {"type": "Point", "coordinates": [-0.13, 51.53]}}]
 venues = make_tiles.read_venues("x.pbf", "kept.pbf")
+assert make_tiles.read_venues("x.pbf", "kept.pbf", ("fast_food",)) == []   # only the amenities asked
 assert seen["ids"] and (venues[0]["osm_type"], venues[0]["osm_id"]) == ("n", 123) and "osm_id" not in venues[1], venues
 make_tiles.osmium, make_tiles.features = real_osmium, real_features
 print("ok (venue ids)")
+# venues/ tiles carry the MATCH_ONLY amenities too, for the app's matcher; terraces never see them.
+fake = OSM.__new__(OSM)
+pub = {"name": "The Lamb", "coordinate": {"latitude": 51.521, "longitude": -0.121}, "amenity": "pub", "outdoor_seating": True}
+kebab = {"name": "Kebab Hut", "coordinate": {"latitude": 51.522, "longitude": -0.122}, "amenity": "fast_food", "outdoor_seating": True}
+fake.venues = {make_tiles.buckets(51.521, -0.121, 51.521, -0.121)[0]: [pub]}
+fake.matches = {make_tiles.buckets(51.522, -0.122, 51.522, -0.122)[0]: [kebab]}
+make_tiles._osm = fake
+cell = Cell(make_tiles.index(51.521, make_tiles.COARSE), make_tiles.index(-0.121, make_tiles.COARSE), make_tiles.COARSE)
+assert [v["name"] for v in make_tiles.osm_venues(cell)] == ["The Lamb", "Kebab Hut"]
+assert [t.get("name") for t in make_tiles.osm_terraces(cell.rect)] == ["The Lamb"]
+make_tiles._osm = None
+print("ok (match-only venues)")
