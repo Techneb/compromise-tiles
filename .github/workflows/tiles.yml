@@ -58,6 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cities: ${{ steps.plan.outputs.cities }}
+      # GitHub expands at most 256 jobs from one matrix: the build splits in two, build (255) and build_b (the rest).
+      cities_a: ${{ steps.plan.outputs.cities_a }}
+      cities_b: ${{ steps.plan.outputs.cities_b }}
       layers: ${{ steps.plan.outputs.layers }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -83,6 +86,8 @@ jobs:
               if streets_only and e.get("streets") is not True: continue
               if (not only or e["city"] in only) and e["city"] not in names: names.append(e["city"])
           print("cities=" + json.dumps(names))
+          print("cities_a=" + json.dumps(names[:255]))
+          print("cities_b=" + json.dumps(names[255:]))
           print("layers=" + os.environ["LAYERS"])
           PY
 
@@ -129,8 +134,8 @@ jobs:
       fail-fast: false
       max-parallel: 8
       matrix:
-        city: ${{ fromJson(needs.plan.outputs.cities) }}
-    steps:
+        city: ${{ fromJson(needs.plan.outputs.cities_a) }}
+    steps: &build-steps
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       # boundaries/ alone needs packages (shapely ≥ 2.1 for coverage_simplify); in the user's site, the system's Python left as it is.
@@ -190,7 +195,7 @@ jobs:
         if: ${{ inputs.dry_run && !cancelled() && hashFiles('stale.txt') != '' }}
         continue-on-error: true
         with:
-          name: stale-${{ strategy.job-index }}
+          name: stale-${{ github.job == 'build_b' && 'b-' || '' }}${{ strategy.job-index }}
           path: stale.txt
           retention-days: 7
       # Uploaded even when the build exits non-zero or hits its time cap (the build step records the status and
@@ -225,7 +230,7 @@ jobs:
         if: ${{ !inputs.dry_run && hashFiles('fragment.json') != '' }}
         continue-on-error: true   # a lost fragment must not hold back the rest
         with:
-          name: fragment-${{ strategy.job-index }}
+          name: fragment-${{ github.job == 'build_b' && 'b-' || '' }}${{ strategy.job-index }}
           path: fragment.json
           retention-days: 3
       # numbers/ and boundaries/ write no file for a cell left with nothing: the keys of the city's own cells this run
@@ -268,6 +273,20 @@ jobs:
           echo "### ❌ $CITY: no feed fragment, its record is not in coverage.json: see Coverage fragment; run the city again" >> "$GITHUB_STEP_SUMMARY"
           echo "::error title=$CITY has no feed record::the Coverage fragment step failed"
           exit 1
+
+  # The cities past the first 255 (GitHub's matrix cap), same steps; named `build (<city>)` too, for stats.py.
+  build_b:
+    name: build (${{ matrix.city }})
+    needs: [plan, remote]
+    if: ${{ !inputs.repo_tiles && needs.plan.outputs.cities_b != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        city: ${{ fromJson(needs.plan.outputs.cities_b) }}
+    steps: *build-steps
 
   # The tiles committed in this repository for the cities built off GitHub, uploaded as they are, with their feed fragment.
   repo_upload:
@@ -325,7 +344,7 @@ jobs:
 
   # The coverage feed the site's map reads: every job's fragment merged into the published feed, once.
   feed:
-    needs: [plan, build, repo_upload]
+    needs: [plan, build, build_b, repo_upload]
     # Not when the plan failed or chose no city: nothing new to merge.
     if: ${{ !cancelled() && !inputs.dry_run && needs.plan.result == 'success' && (needs.plan.outputs.cities != '[]' || inputs.repo_tiles) }}
     runs-on: ubuntu-latest
@@ -358,7 +377,7 @@ jobs:
       # parallel ranges, about 2,500 list requests) and this run's build durations per city. Never fails the feed.
       - name: Stats
         continue-on-error: true
-        timeout-minutes: 10
+        timeout-minutes: 30
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
