@@ -1268,6 +1268,8 @@ assert details({"real_ale": "yes", "beer_garden": "yes", "karaoke": "yes", "brun
     "quiz": True, "food": False, "brewery": "Fuller's", "internet_access": True, "specialty_coffee": True, "brand": "Nicholson's"}
 assert details({"real_fire": "no", "quiz": "no", "food": "snacks", "brewery": "various", "internet_access": "no", "real_ale": "no"}) == {}
 assert details({"coffee": "specialty"}) == {"specialty_coffee": True} and details({"food": "yes"}) == {"food": True}
+# live_sport (owner, 2026-10-22): a yes only; "no" and other values say nothing.
+assert details({"live_sport": "yes"}) == {"live_sport": True} and details({"live_sport": "no"}) == {} and details({"live_sport": "football"}) == {}
 # A brand rides only on a chain of three or more, and not when the name already says it.
 from make_tiles import chains_only
 pubs = chains_only([{"name": n, "brand": b} for n, b in [("The Albion", "Nicholson's"), ("The Crown", "Nicholson's"), ("Nicholson's Bar", "Nicholson's"),
