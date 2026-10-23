@@ -873,10 +873,10 @@ def details(tags):
         if tags.get(key) in ("yes", "served"): out[key] = True
     for key in ("diet:vegan", "diet:vegetarian", "diet:gluten_free"):
         if tags.get(key) in ("yes", "only"): out[key] = tags[key]
-    # A venue's character (owner, 2026-10-21): True for real_ale, beer_garden, karaoke and brunch tagged yes, real_fire
+    # A venue's character (owner, 2026-10-21): True for real_ale, beer_garden, karaoke, brunch and live_sport (2026-10-22) tagged yes, real_fire
     # unless no, quiz whatever its value but no; food as yes/no; the brewery's first name ("various" says nothing);
     # internet_access as True for Wi-Fi; specialty_coffee from cuisine, coffee or coffee:specialty; the brand (chains only: OSM).
-    for key in ("real_ale", "beer_garden", "karaoke", "brunch"):
+    for key in ("real_ale", "beer_garden", "karaoke", "brunch", "live_sport"):
         if tags.get(key) == "yes": out[key] = True
     for key in ("real_fire", "quiz"):
         if str(tags.get(key) or "no").strip().lower() != "no": out[key] = True
