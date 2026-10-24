@@ -554,6 +554,7 @@ def read_venues(pbf, kept, amenities=AMENITIES):
         if drinks_late(tags): venue["bar"] = True
         if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
         venue.update(details(tags))
+        if str(tags.get("brand:wikidata") or "").strip(): venue["_qid"] = str(tags["brand:wikidata"]).split(";")[0].strip()
         # The element, for the app's "Suggest an edit" to open its edit page (backlog, Keep OSM ids in venue tiles).
         if tags.get("@type") in ("node", "way", "relation") and tags.get("@id"): venue.update(osm_type=tags["@type"][0], osm_id=int(tags["@id"]))
         out.append(venue)
@@ -894,12 +895,37 @@ def details(tags):
     if str(tags.get("brand") or "").strip(): out["brand"] = str(tags["brand"]).strip()
     return out
 
-def chains_only(venues, least=3):
-    """Drops the brand of a venue whose brand fewer than `least` of `venues` share, or whose name already says it:
-    a brand on a row marks a chain, so an independent stands out by having none (owner, 2026-10-21)."""
+_NSI = None
+def nsi_brands():
+    """nsi_brands.json's brands (nsi_table.py): {brand:wikidata: [brand, cuisine, amenity, folded names]}."""
+    global _NSI
+    if _NSI is None:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "nsi_brands.json")) as f: _NSI = json.load(f)["brands"]
+    return _NSI
+
+def chains_only(venues, least=3, brands=None):
+    """Names a venue's chain from the name-suggestion-index (S5, owner 2026-10-24): by its brand:wikidata, else by its name when a
+    venue of the same extract carries that brand's wikidata (so a local "Paul" is no chain far from one), filling a missing brand
+    and cuisine. Then drops the brand of a venue whose brand fewer than `least` of `venues` share, or whose name already says it,
+    either holding the other ("GAIL's" for "GAIL's Bakery"): a brand on a row marks a chain, so an independent stands out by
+    having none (owner, 2026-10-21)."""
+    brands = nsi_brands() if brands is None else brands
+    here = {v["_qid"] for v in venues if v.get("_qid") in brands}
+    by_name = {}
+    for qid in sorted(here):
+        for name in brands[qid][3]: by_name.setdefault(name, qid)
+    for v in venues:
+        qid = v.pop("_qid", None)
+        qid = qid if qid in brands else by_name.get(normalised_name(v["name"]))
+        if not qid: continue
+        brand, cuisine = brands[qid][:2]
+        v.setdefault("brand", brand)
+        if cuisine and "cuisine" not in v: v["cuisine"] = ";".join(cuisine.split(";")[:3])
     shared = collections.Counter(v.get("brand") for v in venues)
     for v in venues:
-        if "brand" in v and (shared[v["brand"]] < least or normalised_name(v["brand"]) in normalised_name(v["name"])): del v["brand"]
+        if "brand" not in v: continue
+        brand, name = normalised_name(v["brand"]), normalised_name(v["name"])
+        if shared[v["brand"]] < least or brand in name or name in brand: del v["brand"]
     return venues
 
 _DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
