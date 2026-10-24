@@ -190,6 +190,8 @@ none, this says so rather than guessing.
   city or national source is used): © OpenStreetMap contributors, ODbL.
   Because these tiles include OpenStreetMap data, the tile set is
   published under the ODbL (share-alike).
+- name-suggestion-index (chain names and cuisines of venues/): © name-suggestion-index contributors,
+  BSD 3-Clause. Its notice is kept in `nsi_brands.json`.
 
 **Terrace permits and outdoor seats**
 - Paris: Ville de Paris, ODbL.

@@ -1274,8 +1274,18 @@ assert details({"live_sport": "yes"}) == {"live_sport": True} and details({"live
 # A brand rides only on a chain of three or more, and not when the name already says it.
 from make_tiles import chains_only
 pubs = chains_only([{"name": n, "brand": b} for n, b in [("The Albion", "Nicholson's"), ("The Crown", "Nicholson's"), ("Nicholson's Bar", "Nicholson's"),
-                                                        ("The Lamb", "Young's"), ("The Ship", "Young's"), ("Local", None)]])
-assert [v.get("brand") for v in pubs] == ["Nicholson's", "Nicholson's", None, None, None, None], pubs
+                                                        ("The Lamb", "Young's"), ("The Ship", "Young's"), ("Local", None),
+                                                        ("GAIL's", "GAIL's Bakery"), ("Café", "GAIL's Bakery"), ("Soho", "GAIL's Bakery")]], brands={})
+assert [v.get("brand") for v in pubs] == ["Nicholson's", "Nicholson's", None, None, None, None, None, "GAIL's Bakery", "GAIL's Bakery"], pubs
+
+# The name-suggestion-index names a chain by its wikidata, or by its name where the extract has that brand tagged (S5).
+nsi = {"Q1": ["Pret A Manger", "sandwich", "fast_food", ["PRET A MANGER"]], "Q2": ["Paul", "", "cafe", ["PAUL"]]}
+cafes = chains_only([{"name": "Station Kiosk", "_qid": "Q1"}, {"name": "Pret A Manger", "_qid": "Q1"}, {"name": "Pret A Manger"},
+                     {"name": "Pret A Manger", "cuisine": "coffee_shop"}, {"name": "Paul"}, {"name": "Chez Ami", "_qid": "Q9"}], brands=nsi)
+assert [(v.get("brand"), v.get("cuisine")) for v in cafes] == [("Pret A Manger", "sandwich"), (None, "sandwich"), (None, "sandwich"),
+                                                                (None, "coffee_shop"), (None, None), (None, None)], cafes
+assert not any("_qid" in v for v in cafes)
+assert len(make_tiles.nsi_brands()) > 1000 and make_tiles.nsi_brands()["Q2109109"][1] == "sandwich"  # the committed table loads
 
 # An unknown layer is refused before any download (#76): "terraces" or "numbers" alone used to build nothing for hours.
 import subprocess, sys
