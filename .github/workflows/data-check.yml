@@ -31,21 +31,21 @@ jobs:
   # The rows in six shards: Catastro parses a whole municipality for its first cell, so one job over all
   # 88 rows would run for hours; every kth row goes to one shard, which spreads the fourteen Spanish rows.
   probe:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
         part: [1, 2, 3, 4, 5, 6]
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # London's lidar row measures on OpenStreetMap's footprints: the extract is cut with osmium.
       - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
       - env:
           STOCKHOLM_API_KEY: ${{ secrets.STOCKHOLM_API_KEY }}   # Stockholm's permit WFS; unset, its row is skipped
           ONLY: ${{ inputs.only }}   # through env, not the script's text: a quote in it would run as shell
         run: python3 check_data.py probe --part "${{ matrix.part }}/${{ env.PARTS }}" --only "$ONLY" --write "part-${{ matrix.part }}.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:
           name: part-${{ matrix.part }}
@@ -55,12 +55,12 @@ jobs:
   # tools/coverage/check_feed.py's check (Techneb/compromise is private, so its logic is ported into
   # check_data.py rather than checked out with a token): two cells per area recounted from the store.
   feed:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: python3 check_data.py feed --write feed.json
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:
           name: feed
@@ -73,10 +73,10 @@ jobs:
   report:
     needs: [probe, feed]
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: artifacts
       - id: report
@@ -116,7 +116,7 @@ jobs:
           git add data-check.json
           git commit -m "data-check.json $(date -u +%F) [skip ci]" || exit 0
           git pull --rebase origin master && git push
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: data-check
           path: |
