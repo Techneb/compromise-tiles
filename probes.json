@@ -836,5 +836,9 @@
  "buildings/Munich": {
   "key": "24068,5787",
   "picked": "2026-10-25"
+ },
+ "buildings/Riga": {
+  "key": "28474,12052",
+  "picked": "2026-10-25"
  }
 }

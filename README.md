@@ -418,6 +418,8 @@ none, this says so rather than guessing.
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
 - Lublin, Bydgoszcz, Gdańsk, Szczecin, Warsaw, Kraków, Łódź, Poznań: Główny Urząd Geodezji i Kartografii (GUGiK), Modele 3D
   budynków LoD1 (CC BY 4.0).
+- Riga: Valsts zemes dienests (State Land Service of Latvia), cadastre buildings,
+  through GEO RĪGA (licence not stated by the publisher).
 - Espoo: City of Espoo, Espoon rakennukset (Helsinki Region Infoshare, CC BY 4.0).
 - Tallinn: Maa- ja Ruumiamet, Eesti 3D hoonete LoD1 (CC BY 4.0).
 - Christchurch: Christchurch City Council, Building (CC BY 4.0).

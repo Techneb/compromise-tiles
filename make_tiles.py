@@ -2526,6 +2526,11 @@ CITY_BUILDINGS = [
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/10/1061.zip")),
     building_row("Poznań", (52.2919, 52.5094), (16.7315, 17.0718), boundary=boundary("poznan"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/30/3064.zip")),
+    # Riga (2026-10-25): the State Land Service's cadastre buildings through GEO RĪGA (licence not stated by the
+    # publisher), surfacenumberoffloors × 3 m (69 of 83 in the Old Town), held to the city's boundary.
+    building_row("Riga", (56.8573, 57.0862), (23.9325, 24.3245), boundary=boundary("riga"), fetch=lambda r: footprints(arcgis(
+        "https://georiga.lv/server/rest/services/VZD_kadastrs_opendata/MapServer/3", r, ["surfacenumberoffloors"], oid="gid"),
+        lambda p: (number(p.get("surfacenumberoffloors")) or 0) * 3 or None)),
     # The City of Espoo's buildings (Espoon rakennukset, CC BY 4.0 through HRI): KERROSLUKU floors × 3 m, its own WFS.
     building_row("Espoo", (59.901, 60.364), (24.4992, 24.9424), boundary=boundary("espoo"), fetch=espoo),
     # Tallinn: Maa- ja Ruumiamet's Eesti 3D hoonete LoD1 (CC BY 4.0), the municipality's one CityGML file (733 MB,
