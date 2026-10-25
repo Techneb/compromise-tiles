@@ -179,6 +179,15 @@ closes it. When a row is added to `make_tiles.py`, run
 `python3 check_data.py pick` to give it a probe cell
 (`test_check_data.py` fails until it has one).
 
+## Crowd export
+
+`https://tiles.alephb.uk/crowd/facts.csv` lists the venue facts the app's
+users agreed on (venue key, cell, fact, value, UTC day agreed), and
+`crowd/model-check.json` how often reported sun or shade matched the
+computed one, per month. No account identifiers. Rebuilt weekly
+(`crowd.yml`, `crowd.py`). © Compromise contributors, ODbL 1.0
+(`crowd/LICENCE.txt`).
+
 ## Licences and credits
 
 Each tile holds data from the sources below, depending on where it lies.
