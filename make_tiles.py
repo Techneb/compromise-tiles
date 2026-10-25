@@ -2350,9 +2350,9 @@ CITY_BUILDINGS = [
     building_row("Málaga", (36.6356, 36.8941), (-4.5879, -4.2605), catastro),   # the whole municipality's box (2026-10-11)
     building_row("Palma", (39.5038, 39.6583), (2.5638, 2.847), catastro),   # the whole municipality's box (2026-10-11)
     building_row("Las Palmas", (28.05, 28.18), (-15.47, -15.40), catastro),
-    building_row("Murcia", (37.95, 38.03), (-1.18, -1.08), catastro),
+    building_row("Murcia", (37.7159, 38.1179), (-1.3855, -0.8509), catastro),   # the whole municipality's box (2026-10-25)
     building_row("Alicante", (38.2742, 38.5371), (-0.6567, -0.375), catastro),   # the whole municipality's box (2026-10-11)
-    building_row("Córdoba", (37.85, 37.92), (-4.82, -4.73), catastro),
+    building_row("Córdoba", (37.6658, 38.0315), (-4.9986, -4.3514), catastro),   # the whole municipality's box (2026-10-25)
     building_row("Valladolid", (41.5231, 41.8156), (-4.9282, -4.6308), catastro),
     building_row("Vigo", (42.19, 42.26), (-8.78, -8.67), catastro),
     building_row("Gijón", (43.4415, 43.5868), (-5.8214, -5.5628), catastro),
@@ -2498,18 +2498,39 @@ CITY_BUILDINGS = [
         "https://lod2.opengeodata.lgln.niedersachsen.de/LoD2_32_{e}_{n}_1_ni.gml", 1)),
     building_row("Augsburg", (48.2581, 48.4587), (10.7633, 10.9594), boundary=boundary("augsburg"), fetch=citygml_tiles(
         "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+    # 2026-10-25: Cologne on NRW's model, Munich on Bavaria's, each the whole city held to its boundary (Cologne
+    # Cathedral 161 m, the Frauenkirche's square 80 m at most).
+    building_row("Cologne", (50.8304, 51.085), (6.7725, 7.1621), boundary=boundary("cologne"), fetch=citygml_tiles(
+        "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
+    building_row("Munich", (48.0616, 48.2481), (11.3607, 11.723), boundary=boundary("munich"), fetch=citygml_tiles(
+        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
     # Brno's Výška budov (data.brno.cz, CC BY): vyska_komp, metres (228 of 236 at náměstí Svobody).
     building_row("Brno", (49.1098, 49.2944), (16.4279, 16.7279), boundary=boundary("brno"), fetch=lambda r: footprints(arcgis(
         "https://services6.arcgis.com/fUWVlHWZNxUvTUh8/arcgis/rest/services/V%C3%BD%C5%A1ka_budov/FeatureServer/0", r,
         ["vyska_komp"], oid="FID"), lambda p: number(p.get("vyska_komp")))),
-    # GUGiK's Modele 3D budynków, LoD1 2024 (CC BY 4.0): one zip of CityGML sheets per powiat, Lublin's and
-    # Bydgoszcz's and Gdańsk's each the city itself (lod1_archive).
+    # GUGiK's Modele 3D budynków, LoD1 2024 (CC BY 4.0): one zip of CityGML sheets per powiat, each
+    # the city itself: Lublin, Bydgoszcz, Gdańsk, and since 2026-10-25 Szczecin, Warsaw, Kraków, Łódź, Poznań (lod1_archive).
     building_row("Lublin", (51.1398, 51.2966), (22.4537, 22.6736), boundary=boundary("lublin"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/06/0663.zip")),
     building_row("Bydgoszcz", (53.0501, 53.2094), (17.8741, 18.2026), boundary=boundary("bydgoszcz"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/04/0461.zip")),
     building_row("Gdańsk", (54.2749, 54.5828), (18.4295, 19.0703), boundary=boundary("gdansk"),
                  fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/22/2261.zip")),
+    building_row("Szczecin", (53.3217, 53.5377), (14.4438, 14.8054), boundary=boundary("szczecin"),   # 2026-10-25
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/32/3262.zip")),
+    building_row("Warsaw", (52.0978, 52.3682), (20.8516, 21.2712), boundary=boundary("warsaw"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/14/1465.zip")),
+    building_row("Kraków", (49.9676, 50.1262), (19.7923, 20.2174), boundary=boundary("krakow"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/12/1261.zip")),
+    building_row("Łódź", (51.6861, 51.8599), (19.3208, 19.64), boundary=boundary("lodz"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/10/1061.zip")),
+    building_row("Poznań", (52.2919, 52.5094), (16.7315, 17.0718), boundary=boundary("poznan"),
+                 fetch=lod1_archive("https://opendata.geoportal.gov.pl/InneDane/Budynki3D/LOD1/2024/30/3064.zip")),
+    # Riga (2026-10-25): the State Land Service's cadastre buildings through GEO RĪGA (licence not stated by the
+    # publisher), surfacenumberoffloors × 3 m (69 of 83 in the Old Town), held to the city's boundary.
+    building_row("Riga", (56.8573, 57.0862), (23.9325, 24.3245), boundary=boundary("riga"), fetch=lambda r: footprints(arcgis(
+        "https://georiga.lv/server/rest/services/VZD_kadastrs_opendata/MapServer/3", r, ["surfacenumberoffloors"], oid="gid"),
+        lambda p: (number(p.get("surfacenumberoffloors")) or 0) * 3 or None)),
     # The City of Espoo's buildings (Espoon rakennukset, CC BY 4.0 through HRI): KERROSLUKU floors × 3 m, its own WFS.
     building_row("Espoo", (59.901, 60.364), (24.4992, 24.9424), boundary=boundary("espoo"), fetch=espoo),
     # Tallinn: Maa- ja Ruumiamet's Eesti 3D hoonete LoD1 (CC BY 4.0), the municipality's one CityGML file (733 MB,

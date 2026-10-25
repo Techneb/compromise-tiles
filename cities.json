@@ -414,7 +414,19 @@
   {
     "city": "Murcia",
     "streets": true,
-    "district": "Murcia (going-out core + 1 km)",
+    "district": "Murcia (whole municipality)",
+    "box": [
+      37.7159,
+      -1.3855,
+      38.1179,
+      -0.8509
+    ],
+    "boundary": "boundaries/murcia.geojson"
+  },
+  {
+    "city": "Murcia",
+    "streets": true,
+    "district": "Murcia and its neighbours (the box around it)",
     "box": [
       37.971,
       -1.1502,
@@ -437,7 +449,19 @@
   {
     "city": "C\u00f3rdoba",
     "streets": true,
-    "district": "C\u00f3rdoba (going-out core + 2 km)",
+    "district": "C\u00f3rdoba (whole municipality)",
+    "box": [
+      37.6658,
+      -4.9986,
+      38.0315,
+      -4.3514
+    ],
+    "boundary": "boundaries/cordoba.geojson"
+  },
+  {
+    "city": "C\u00f3rdoba",
+    "streets": true,
+    "district": "C\u00f3rdoba and its neighbours (the box around it)",
     "box": [
       37.853,
       -4.8298,
@@ -826,7 +850,19 @@
   {
     "city": "Adelaide",
     "streets": true,
-    "district": "Adelaide (going-out core + 2 km)",
+    "district": "Adelaide (whole municipality)",
+    "box": [
+      -34.942,
+      138.5772,
+      -34.8988,
+      138.6242
+    ],
+    "boundary": "boundaries/adelaide.geojson"
+  },
+  {
+    "city": "Adelaide",
+    "streets": true,
+    "district": "Adelaide and its neighbours (the box around it)",
     "box": [
       -34.953,
       138.5651,
@@ -1694,7 +1730,19 @@
   {
     "city": "Szczecin",
     "streets": true,
-    "district": "Szczecin (going-out core + 2 km)",
+    "district": "Szczecin (whole municipality)",
+    "box": [
+      53.3217,
+      14.4438,
+      53.5377,
+      14.8054
+    ],
+    "boundary": "boundaries/szczecin.geojson"
+  },
+  {
+    "city": "Szczecin",
+    "streets": true,
+    "district": "Szczecin and its neighbours (the box around it)",
     "box": [
       53.403,
       14.5008,
