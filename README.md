@@ -179,6 +179,17 @@ closes it. When a row is added to `make_tiles.py`, run
 `python3 check_data.py pick` to give it a probe cell
 (`test_check_data.py` fails until it has one).
 
+## Crowd export
+
+`https://tiles.alephb.uk/crowd/odbl/latest.csv.gz` lists facts about
+OpenStreetMap places that the app's users agreed on: OSM element type and
+id, fact, value, and the day it was agreed. A new file is built every week,
+with a dated copy beside it (`crowd/odbl/YYYY-MM-DD.csv.gz`). © Compromise
+contributors, available under the
+[Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/);
+its individual contents under the
+[Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/).
+
 ## Licences and credits
 
 Each tile holds data from the sources below, depending on where it lies.
