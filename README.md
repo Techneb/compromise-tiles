@@ -181,12 +181,14 @@ closes it. When a row is added to `make_tiles.py`, run
 
 ## Crowd export
 
-`https://tiles.alephb.uk/crowd/facts.csv` lists the venue facts the app's
-users agreed on (venue key, cell, fact, value, UTC day agreed), and
-`crowd/model-check.json` how often reported sun or shade matched the
-computed one, per month. No account identifiers. Rebuilt weekly
-(`crowd.yml`, `crowd.py`). © Compromise contributors, ODbL 1.0
-(`crowd/LICENCE.txt`).
+`https://tiles.alephb.uk/crowd/odbl/latest.csv.gz` lists facts about
+OpenStreetMap places that the app's users agreed on: OSM element type and
+id, fact, value, and the day it was agreed. A new file is built every week,
+with a dated copy beside it (`crowd/odbl/YYYY-MM-DD.csv.gz`). © Compromise
+contributors, available under the
+[Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/);
+its individual contents under the
+[Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/).
 
 ## Licences and credits
 
