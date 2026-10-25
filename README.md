@@ -381,10 +381,10 @@ none, this says so rather than guessing.
 - Milan: Comune di Milano, Database Topografico (DBT) 2020, CC BY 4.0.
 - Rome: Regione Lazio, Database Geotopografico (DBGT) 2020, Roma. Fonte:
   Regione Lazio.
-- Düsseldorf, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn: Geobasis
+- Düsseldorf, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn, Cologne: Geobasis
   NRW, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
   Zero – Version 2.0).
-- Nuremberg, Augsburg: Datenquelle: Bayerische Vermessungsverwaltung –
+- Nuremberg, Augsburg, Munich: Datenquelle: Bayerische Vermessungsverwaltung –
   www.geodaten.bayern.de, 3D-Gebäudemodelle LoD2 (CC BY 4.0).
 - Leipzig, Dresden: GeoSN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
   Namensnennung – Version 2.0).
@@ -416,7 +416,7 @@ none, this says so rather than guessing.
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
   – Version 2.0).
 - Brno: Statutární město Brno (data.brno.cz), Výška budov (CC BY).
-- Lublin, Bydgoszcz, Gdańsk: Główny Urząd Geodezji i Kartografii (GUGiK), Modele 3D
+- Lublin, Bydgoszcz, Gdańsk, Szczecin, Warsaw, Kraków, Łódź, Poznań: Główny Urząd Geodezji i Kartografii (GUGiK), Modele 3D
   budynków LoD1 (CC BY 4.0).
 - Espoo: City of Espoo, Espoon rakennukset (Helsinki Region Infoshare, CC BY 4.0).
 - Tallinn: Maa- ja Ruumiamet, Eesti 3D hoonete LoD1 (CC BY 4.0).
@@ -469,6 +469,11 @@ none, this says so rather than guessing.
   open licence); dissolved into one.
 - Vancouver: City of Vancouver, City boundary. Contains information licensed
   under the Open Government Licence – Vancouver.
+- Adelaide (the City of Adelaide): Government of South Australia, Local
+  Government Areas (Location SA, CC BY 3.0 AU).
+- Murcia, Córdoba, Szczecin: © OpenStreetMap contributors, ODbL (each
+  municipality's administrative boundary); Córdoba's San Rafael de Navallana
+  reservoir and Szczecin's Lake Dąbie left out (© OpenStreetMap contributors, ODbL).
 - The other whole-city files made since 2026-10-15 (Rome to Johannesburg, Zurich
   to Poznań): © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary), cut to land with the OSM land polygons

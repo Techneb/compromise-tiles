@@ -808,5 +808,33 @@
  "buildings/Portland": {
   "key": "22759,-61339",
   "picked": "2026-10-21"
+ },
+ "buildings/Szczecin": {
+  "key": "26714,7276",
+  "picked": "2026-10-25"
+ },
+ "buildings/Warsaw": {
+  "key": "26114,10506",
+  "picked": "2026-10-25"
+ },
+ "buildings/Kraków": {
+  "key": "25030,9968",
+  "picked": "2026-10-25"
+ },
+ "buildings/Łódź": {
+  "key": "25879,9728",
+  "picked": "2026-10-25"
+ },
+ "buildings/Poznań": {
+  "key": "26204,8466",
+  "picked": "2026-10-25"
+ },
+ "buildings/Cologne": {
+  "key": "25470,3479",
+  "picked": "2026-10-25"
+ },
+ "buildings/Munich": {
+  "key": "24068,5787",
+  "picked": "2026-10-25"
  }
 }
