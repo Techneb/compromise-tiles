@@ -28,7 +28,7 @@ env:
 
 jobs:
   export:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       # Which secrets are set (their values stay in env, never in the script's text or the log).
@@ -46,7 +46,7 @@ jobs:
           if [ -n "$CROWD_ARCHIVE_SALT" ] && [ -n "$R2_PRIVATE_ACCESS_KEY_ID" ] && [ -n "$R2_PRIVATE_SECRET_ACCESS_KEY" ]; then echo "private=true" >> "$GITHUB_OUTPUT"
           else echo "CROWD_ARCHIVE_SALT or the private bucket's token is not set: the archive is skipped." | tee -a "$GITHUB_STEP_SUMMARY"; fi
           if [ -n "$R2_BUCKET" ]; then echo "public=true" >> "$GITHUB_OUTPUT"; fi
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.secrets.outputs.cloudkit == 'true'
       - if: steps.secrets.outputs.cloudkit == 'true'
         run: python3 -m pip install --user --break-system-packages -q "cryptography==44.0.3"
