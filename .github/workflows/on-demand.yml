@@ -65,7 +65,7 @@ jobs:
       - id: add
         if: ${{ steps.cap.outputs.ok == 'true' }}
         run: |
-          sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+          for i in 1 2 3; do timeout 300 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 -o Acquire::https::Timeout=60 update -q && timeout 600 sudo apt-get install -yq osmium-tool && break; [ $i = 3 ] && exit 1; sleep 30; done
           python3 counts.py --cities request.json --extracts extracts --write counts.json --coverage "" --drop
           python3 on_demand.py add --request request.json --counts counts.json | tee add.txt
           cat add.txt >> "$GITHUB_OUTPUT"
