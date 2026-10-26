@@ -1898,7 +1898,9 @@ def geopackage(url, height):
                     with z.open(member) as src, open(file + ".tmp", "wb") as dst: shutil.copyfileobj(src, dst, 1 << 20)
                     os.replace(file + ".tmp", file)
             db = sqlite3.connect(f"file:{file}?mode=ro", uri=True)
-            _geopackages[url] = (db, *db.execute("SELECT table_name, column_name FROM gpkg_geometry_columns").fetchone())
+            # The file's own names go into SQL below as quoted identifiers: a `"` inside one is doubled (Strix, 2026-10-26).
+            _geopackages[url] = (db, *(name.replace('"', '""') for name in
+                                       db.execute("SELECT table_name, column_name FROM gpkg_geometry_columns").fetchone()))
         db, table, column = _geopackages[url]
         s, w, n, e = rect
         rows = db.execute(f'SELECT t."{column}", t."{height}" FROM "{table}" t JOIN "rtree_{table}_{column}" r ON t.rowid = r.id'
