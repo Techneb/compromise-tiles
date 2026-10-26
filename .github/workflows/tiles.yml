@@ -138,7 +138,8 @@ jobs:
         city: ${{ fromJson(needs.plan.outputs.cities_a) }}
     steps: &build-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+      # Capped and retried: on 2026-10-26 apt-get update hung on a stalled mirror until the job's 350-minute timeout (Phoenix).
+      - run: for i in 1 2 3; do timeout 300 sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 -o Acquire::https::Timeout=60 update -q && timeout 600 sudo apt-get install -yq osmium-tool && break; [ $i = 3 ] && exit 1; sleep 30; done
       # boundaries/ alone needs packages (shapely ≥ 2.1 for coverage_simplify); in the user's site, the system's Python left as it is.
       - if: ${{ contains(format(',{0},', needs.plan.outputs.layers), ',boundaries,') }}
         run: python3 -m pip install --user --break-system-packages -q -r requirements.txt
