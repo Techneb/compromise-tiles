@@ -1,6 +1,6 @@
 # A city asked for: added to cities.json as one small area when the extract shows enough going-out cells, then built.
 # Dispatched with a token that holds Actions write on this repository only; on_demand.py checks every input before
-# anything is written. At most CAP areas a day. A thin area, or a place cities.json already holds, writes nothing.
+# anything is written; dry_run (the default by hand) stops after the gate. At most CAP areas a day. A thin area, or a place cities.json already holds, writes nothing.
 # Public repo, standard runner: no minutes are billed.
 name: On demand
 
@@ -16,6 +16,10 @@ on:
       cells:
         description: "lat,lon at 0.01°, space-separated, the most asked first (at most 12)"
         required: true
+      dry_run:
+        description: "Check and gate only: write the summary, push nothing, dispatch nothing (the Worker passes false)"
+        type: boolean
+        default: true
 
 # One at a time: two requests must not both append to cities.json.
 concurrency:
@@ -66,7 +70,12 @@ jobs:
           python3 on_demand.py add --request request.json --counts counts.json | tee add.txt
           cat add.txt >> "$GITHUB_OUTPUT"
           sed -n 's/^why=//p' add.txt >> "$GITHUB_STEP_SUMMARY"
-      - if: ${{ steps.add.outputs.added == 'true' }}
+      - if: ${{ steps.add.outputs.added == 'true' && inputs.dry_run }}
+        env:
+          NAME: ${{ steps.plan.outputs.name }}
+        run: |
+          echo "Dry run: $NAME passes the gate; cities.json not pushed, Tiles not dispatched." | tee -a "$GITHUB_STEP_SUMMARY"
+      - if: ${{ steps.add.outputs.added == 'true' && !inputs.dry_run }}
         env:
           NAME: ${{ steps.plan.outputs.name }}
         run: |
@@ -77,7 +86,7 @@ jobs:
           git push -q origin HEAD:master
       # tiles.yml keeps one running and one pending run, and a new dispatch replaces the pending one: with a run
       # waiting, nothing is dispatched and Monday's run builds the new area (its venues reach new cells).
-      - if: ${{ steps.add.outputs.added == 'true' }}
+      - if: ${{ steps.add.outputs.added == 'true' && !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
           NAME: ${{ steps.plan.outputs.name }}
