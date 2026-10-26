@@ -345,6 +345,28 @@ with tempfile.TemporaryDirectory() as d:
         make_tiles.download = real_download
         for db, *_ in make_tiles._geopackages.values(): db.close()
         make_tiles._geopackages.clear()
+# A GeoPackage whose table name holds a `"` is read as that name, not as SQL (Strix, 2026-10-26).
+import sqlite3
+with tempfile.TemporaryDirectory() as d:
+    gpkg = os.path.join(d, "odd.gpkg")
+    db = sqlite3.connect(gpkg)
+    db.executescript('''CREATE TABLE gpkg_geometry_columns (table_name TEXT, column_name TEXT);
+        INSERT INTO gpkg_geometry_columns VALUES ('b"x', 'geom');
+        CREATE TABLE "b""x" (geom BLOB, h REAL);
+        CREATE VIRTUAL TABLE "rtree_b""x_geom" USING rtree(id, minx, maxx, miny, maxy);''')
+    db.commit(); db.close()
+    with _zf.ZipFile(os.path.join(d, "odd.zip"), "w") as z: z.write(gpkg, "odd.gpkg")
+    os.remove(gpkg)
+    fixture_zip, fetched[:] = os.path.join(d, "odd.zip"), []
+    os.chdir(d)
+    make_tiles.download = fake_download
+    try:
+        assert make_tiles.geopackage("https://example.org/odd.zip", "h")((0, 0, 1, 1)) == []
+    finally:
+        os.chdir(here)
+        make_tiles.download = real_download
+        for db, *_ in make_tiles._geopackages.values(): db.close()
+        make_tiles._geopackages.clear()
 # Edmonton: Rooflines (real Socrata features, numbers as strings: the 146.84 m roof and two low ones), asked by intersects.
 asked.clear()
 def fake_get_json(url, data=None, waits=None):
