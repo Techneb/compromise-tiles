@@ -1,0 +1,89 @@
+# A city asked for: added to cities.json as one small area when the extract shows enough going-out cells, then built.
+# Dispatched with a token that holds Actions write on this repository only; on_demand.py checks every input before
+# anything is written. At most CAP areas a day. A thin area, or a place cities.json already holds, writes nothing.
+# Public repo, standard runner: no minutes are billed.
+name: On demand
+
+on:
+  workflow_dispatch:
+    inputs:
+      city:
+        description: "City name (letters, spaces, . ' -)"
+        required: true
+      country:
+        description: "ISO 3166-1 alpha-2 country code"
+        required: true
+      cells:
+        description: "lat,lon at 0.01°, space-separated, the most asked first (at most 12)"
+        required: true
+
+# One at a time: two requests must not both append to cities.json.
+concurrency:
+  group: on-demand
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # the cities.json entry
+  actions: write    # the tiles.yml dispatch
+
+defaults:
+  run:
+    shell: bash   # -eo pipefail: a refused input fails the step through tee
+
+env:
+  CAP: 2   # areas added a day, whatever asks
+
+jobs:
+  add:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 200   # a day of commits, for the cap
+      # Inputs through env only, never ${{ }} inside the script: they come from outside.
+      - id: plan
+        env:
+          CITY: ${{ inputs.city }}
+          COUNTRY: ${{ inputs.country }}
+          CELLS: ${{ inputs.cells }}
+        run: |
+          python3 on_demand.py plan --city "$CITY" --country "$COUNTRY" --cells "$CELLS" --write request.json | tee plan.txt
+          cat plan.txt >> "$GITHUB_OUTPUT"
+          sed -n 's/^why=//p' plan.txt >> "$GITHUB_STEP_SUMMARY"
+      - id: cap
+        if: ${{ steps.plan.outputs.go == 'true' }}
+        run: |
+          n=$(git log --since=24.hours --grep='^On demand: ' --format=%h | wc -l)
+          if [ "$n" -ge "$CAP" ]; then echo "$n areas added in 24 h (cap $CAP): asked again tomorrow." | tee -a "$GITHUB_STEP_SUMMARY"; echo "ok=false" >> "$GITHUB_OUTPUT"
+          else echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      # The density gate: counts.py over the area's box, from the smallest Geofabrik extract holding it.
+      - id: add
+        if: ${{ steps.cap.outputs.ok == 'true' }}
+        run: |
+          sudo apt-get update -q && sudo apt-get install -yq osmium-tool
+          python3 counts.py --cities request.json --extracts extracts --write counts.json --coverage "" --drop
+          python3 on_demand.py add --request request.json --counts counts.json | tee add.txt
+          cat add.txt >> "$GITHUB_OUTPUT"
+          sed -n 's/^why=//p' add.txt >> "$GITHUB_STEP_SUMMARY"
+      - if: ${{ steps.add.outputs.added == 'true' }}
+        env:
+          NAME: ${{ steps.plan.outputs.name }}
+        run: |
+          git config user.name Techneb
+          git config user.email contact@alephb.uk
+          git commit -qm "On demand: $NAME [skip ci]" -- cities.json
+          git pull -q --rebase origin master   # status.yml may have pushed meanwhile
+          git push -q origin HEAD:master
+      # tiles.yml keeps one running and one pending run, and a new dispatch replaces the pending one: with a run
+      # waiting, nothing is dispatched and Monday's run builds the new area (its venues reach new cells).
+      - if: ${{ steps.add.outputs.added == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ steps.plan.outputs.name }}
+        run: |
+          waiting=$(gh run list -R "$GITHUB_REPOSITORY" -w tiles.yml -L 20 --json status \
+            --jq '[.[] | select(.status != "completed" and .status != "in_progress")] | length')
+          if [ "$waiting" != 0 ]; then echo "A Tiles run is waiting: $NAME goes with Monday's run." | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          gh workflow run tiles.yml -R "$GITHUB_REPOSITORY" --ref master -f only="$NAME" -f layers=buildings,terraces-v2,venues
+          echo "Tiles dispatched for $NAME." >> "$GITHUB_STEP_SUMMARY"
