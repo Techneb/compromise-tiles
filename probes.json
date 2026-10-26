@@ -809,36 +809,36 @@
   "key": "22759,-61339",
   "picked": "2026-10-21"
  },
+ "buildings/Munich": {
+  "key": "24065,5743",
+  "picked": "2026-10-26"
+ },
+ "buildings/Kraków": {
+  "key": "25037,9980",
+  "picked": "2026-10-26"
+ },
+ "buildings/Łódź": {
+  "key": "25870,9689",
+  "picked": "2026-10-26"
+ },
+ "buildings/Riga": {
+  "key": "28475,12068",
+  "picked": "2026-10-26"
+ },
+ "buildings/Cologne": {
+  "key": "25474,3460",
+  "picked": "2026-10-26"
+ },
  "buildings/Szczecin": {
-  "key": "26714,7276",
-  "picked": "2026-10-25"
+  "key": "26721,7256",
+  "picked": "2026-10-26"
+ },
+ "buildings/Poznań": {
+  "key": "26181,8441",
+  "picked": "2026-10-26"
  },
  "buildings/Warsaw": {
   "key": "26114,10506",
-  "picked": "2026-10-25"
- },
- "buildings/Kraków": {
-  "key": "25030,9968",
-  "picked": "2026-10-25"
- },
- "buildings/Łódź": {
-  "key": "25879,9728",
-  "picked": "2026-10-25"
- },
- "buildings/Poznań": {
-  "key": "26204,8466",
-  "picked": "2026-10-25"
- },
- "buildings/Cologne": {
-  "key": "25470,3479",
-  "picked": "2026-10-25"
- },
- "buildings/Munich": {
-  "key": "24068,5787",
-  "picked": "2026-10-25"
- },
- "buildings/Riga": {
-  "key": "28474,12052",
   "picked": "2026-10-25"
  }
 }
