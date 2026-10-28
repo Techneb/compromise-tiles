@@ -1,0 +1,26 @@
+# The repo's test_*.py scripts (stdlib asserts, no network), on every push and pull request, and called by tiles.yml
+# before any build or upload (2026-10-28, the app repo's TEST_PLAN A7). test_make_tiles.py needs shapely (requirements.txt).
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: python3 -m pip install --user --break-system-packages -q -r requirements.txt
+      - name: test_*.py
+        run: |
+          failed=""
+          for t in test_*.py; do
+            if timeout 300 python3 "$t" > "$t.log" 2>&1; then echo "ok   $t"; else echo "FAIL $t"; tail -20 "$t.log"; failed="$failed $t"; fi
+          done
+          [ -z "$failed" ] || { echo "::error title=Tests failed::$failed"; exit 1; }
