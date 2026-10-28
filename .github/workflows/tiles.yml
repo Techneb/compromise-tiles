@@ -54,8 +54,13 @@ env:
   ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
 
 jobs:
+  # The repo's test scripts first (tests.yml): a red test stops the run before anything is built or uploaded.
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   # Which cities, one matrix entry per city name (a city with several entries, like Paris, is one job).
   plan:
+    needs: tests
     runs-on: ubuntu-24.04
     outputs:
       cities: ${{ steps.plan.outputs.cities }}
@@ -252,6 +257,31 @@ jobs:
             python3 -c 'import json,sys; t=open(sys.argv[1]).read().strip(); e=json.loads(t).get("Errors") if t else None; sys.exit(f"{len(e)} not deleted: {e[:5]}" if e else 0)' "$b.out"
           done
           echo "Deleted $(wc -l < stale.txt) emptied numbers/, boundaries/ and unshaded buildings-v2/ tiles." >> "$GITHUB_STEP_SUMMARY"
+      # Three of the tiles just uploaded, read back through tiles.alephb.uk as the app reads them: 200, gzip, JSON, not empty (the host refuses urllib's own User-Agent)
+      # (2026-10-28, the app repo's TEST_PLAN B2). The query string makes the edge fetch from R2, past a cached 404.
+      - name: Smoke-read uploaded tiles
+        if: ${{ !inputs.dry_run && success() }}   # after the fragment and the deletes: a failed read must not hold them back
+        timeout-minutes: 5
+        env:
+          RUN: ${{ github.run_id }}
+        run: |
+          [ -d out ] || exit 0
+          python3 - $(find out -type f -name '*.json' | shuf -n 3) <<'PY'
+          import gzip, json, os, sys, urllib.request
+          if len(sys.argv) == 1: sys.exit(print("Nothing uploaded: no smoke read."))
+          bad = []
+          for f in sys.argv[1:]:
+              url = f"https://tiles.alephb.uk/tiles/{f.removeprefix('out/')}?smoke={os.environ['RUN']}"
+              try:
+                  r = urllib.request.urlopen(urllib.request.Request(url, headers={"Accept-Encoding": "gzip", "User-Agent": "compromise-tiles"}), timeout=30)
+                  enc, body = r.headers.get("Content-Encoding"), r.read()
+                  if enc != "gzip": bad.append(f"{url}: Content-Encoding {enc}")
+                  elif not json.loads(gzip.decompress(body)): bad.append(f"{url}: empty JSON")
+                  else: print(f"ok {url}")
+              except Exception as e: bad.append(f"{url}: {e}")
+          for b in bad: print(f"::error title=Smoke read failed::{b}")
+          sys.exit(1 if bad else 0)
+          PY
       # Red once what was built is up: more than 5 % of the city's cells failed (make_tiles.py exits 1),
       # or the time cap cut the build (124). A green job used to hide both (Gijón, Genoa, London, 2026-10-07).
       - name: Check the build is complete
