@@ -1,17 +1,17 @@
 {
- "run": "2026-10-26",
+ "run": "2026-11-02",
  "rows": {
   "permits/Paris": {
    "key": "24430,1174",
    "status": "ok",
-   "count": 639,
-   "fetched": 925,
+   "count": 640,
+   "fetched": 926,
    "named": 1.0,
-   "seconds": 0.7,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
-    "count": 679,
-    "named": 0.941,
+    "count": 639,
+    "named": 1.0,
     "source": "Paris"
    },
    "licence": "Open Database License (ODbL)"
@@ -22,7 +22,7 @@
    "count": 55,
    "fetched": 64,
    "named": 1.0,
-   "seconds": 1.1,
+   "seconds": 1.0,
    "tile": {
     "status": "ok",
     "count": 55,
@@ -37,7 +37,7 @@
    "count": 46,
    "fetched": 50,
    "named": 1.0,
-   "seconds": 8.8,
+   "seconds": 2.6,
    "tile": {
     "status": "ok",
     "count": 46,
@@ -49,10 +49,10 @@
   "permits/Geneva": {
    "key": "23104,3072",
    "status": "ok",
-   "count": 542,
-   "fetched": 751,
+   "count": 546,
+   "fetched": 755,
    "named": 1.0,
-   "seconds": 2.1,
+   "seconds": 2.3,
    "tile": {
     "status": "ok",
     "count": 542,
@@ -82,7 +82,7 @@
    "count": 154,
    "fetched": 226,
    "named": 0.981,
-   "seconds": 2.2,
+   "seconds": 2.6,
    "tile": {
     "status": "ok",
     "count": 154,
@@ -97,7 +97,7 @@
    "count": 15,
    "fetched": 24,
    "named": 0.467,
-   "seconds": 0.3,
+   "seconds": 1.4,
    "tile": {
     "status": "ok",
     "count": 15,
@@ -115,17 +115,19 @@
    "seconds": 0.6,
    "tile": {
     "status": "ok",
-    "count": 0,
-    "named": 0.0,
+    "count": 2,
+    "named": 1.0,
     "source": "Tucson"
    },
    "licence": null
   },
   "buildings/Amsterdam": {
    "key": "26170,2472",
-   "status": "dead",
-   "error": "SourceError: data.3dbag.nl: URLError: <urlopen error timed out>",
-   "seconds": 370.8,
+   "status": "ok",
+   "count": 2614,
+   "fetched": 2960,
+   "height": 1.0,
+   "seconds": 1.4,
    "tile": {
     "status": "HTTP 404",
     "source": "Amsterdam"
@@ -151,7 +153,7 @@
    "count": 741,
    "fetched": 952,
    "height": 0.999,
-   "seconds": 1.1,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 741,
@@ -167,7 +169,7 @@
    "count": 4422,
    "fetched": 6017,
    "height": 0.885,
-   "seconds": 286.4,
+   "seconds": 250.8,
    "tile": {
     "status": "ok",
     "count": 4409,
@@ -182,7 +184,7 @@
    "count": 3048,
    "fetched": 3669,
    "height": 0.803,
-   "seconds": 456.9,
+   "seconds": 426.9,
    "tile": {
     "status": "ok",
     "count": 3034,
@@ -197,7 +199,7 @@
    "count": 587,
    "fetched": 704,
    "height": 0.942,
-   "seconds": 17.1,
+   "seconds": 16.1,
    "tile": {
     "status": "ok",
     "count": 587,
@@ -213,7 +215,7 @@
    "count": 1465,
    "fetched": 1910,
    "height": 1.0,
-   "seconds": 1.2,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 1465,
@@ -229,7 +231,7 @@
    "count": 684,
    "fetched": 869,
    "height": 1.0,
-   "seconds": 83.2,
+   "seconds": 8.7,
    "tile": {
     "status": "HTTP 404",
     "source": "Hamburg"
@@ -241,7 +243,7 @@
    "count": 394,
    "fetched": 509,
    "height": 0.85,
-   "seconds": 0.4,
+   "seconds": 0.8,
    "tile": {
     "status": "HTTP 404",
     "source": null
@@ -253,7 +255,7 @@
    "count": 332,
    "fetched": 419,
    "height": 0.997,
-   "seconds": 0.8,
+   "seconds": 0.6,
    "tile": {
     "status": "ok",
     "count": 332,
@@ -268,7 +270,7 @@
    "count": 588,
    "fetched": 769,
    "height": 1.0,
-   "seconds": 4.8,
+   "seconds": 3.9,
    "tile": {
     "status": "ok",
     "count": 588,
@@ -283,7 +285,7 @@
    "count": 828,
    "fetched": 1152,
    "height": 0.984,
-   "seconds": 6.4,
+   "seconds": 5.4,
    "tile": {
     "status": "ok",
     "count": 826,
@@ -298,7 +300,7 @@
    "count": 2760,
    "fetched": 3380,
    "height": 0.989,
-   "seconds": 19.6,
+   "seconds": 15.1,
    "tile": {
     "status": "ok",
     "count": 2754,
@@ -313,7 +315,7 @@
    "count": 761,
    "fetched": 1012,
    "height": 1.0,
-   "seconds": 29.1,
+   "seconds": 29.4,
    "tile": {
     "status": "ok",
     "count": 761,
@@ -328,7 +330,7 @@
    "count": 78,
    "fetched": 96,
    "height": 0.949,
-   "seconds": 2.8,
+   "seconds": 2.6,
    "tile": {
     "status": "ok",
     "count": 78,
@@ -343,7 +345,7 @@
    "count": 1018,
    "fetched": 1368,
    "height": 0.999,
-   "seconds": 15.4,
+   "seconds": 17.1,
    "tile": {
     "status": "ok",
     "count": 1018,
@@ -358,7 +360,7 @@
    "count": 347,
    "fetched": 422,
    "height": 1.0,
-   "seconds": 1.6,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 700,
@@ -374,7 +376,7 @@
    "count": 90,
    "fetched": 124,
    "height": 0.989,
-   "seconds": 678.4,
+   "seconds": 16.7,
    "tile": {
     "status": "ok",
     "count": 90,
@@ -389,7 +391,7 @@
    "count": 272,
    "fetched": 1206,
    "height": 0.989,
-   "seconds": 60.9,
+   "seconds": 62.5,
    "tile": {
     "status": "ok",
     "count": 272,
@@ -404,7 +406,7 @@
    "count": 872,
    "fetched": 1136,
    "height": 0.971,
-   "seconds": 72.9,
+   "seconds": 82.8,
    "tile": {
     "status": "ok",
     "count": 868,
@@ -419,10 +421,10 @@
    "count": 252,
    "fetched": 384,
    "named": 1.0,
-   "seconds": 1.0,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
-    "count": 254,
+    "count": 252,
     "named": 1.0,
     "source": "Toulouse"
    },
@@ -434,7 +436,7 @@
    "count": 68,
    "fetched": 100,
    "named": 1.0,
-   "seconds": 0.6,
+   "seconds": 0.5,
    "tile": {
     "status": "ok",
     "count": 68,
@@ -446,13 +448,13 @@
   "permits/Amsterdam": {
    "key": "26187,2448",
    "status": "ok",
-   "count": 206,
-   "fetched": 299,
+   "count": 205,
+   "fetched": 298,
    "named": 0.995,
-   "seconds": 2.5,
+   "seconds": 6.0,
    "tile": {
     "status": "ok",
-    "count": 205,
+    "count": 206,
     "named": 0.995,
     "source": "Amsterdam"
    }
@@ -460,11 +462,11 @@
   "permits/Seville": {
    "key": "18693,-2996",
    "status": "ok",
-   "count": 160,
-   "fetched": 221,
+   "count": 162,
+   "fetched": 223,
    "named": 0.994,
-   "total": 1583,
-   "seconds": 2.5,
+   "total": 1592,
+   "seconds": 1.9,
    "tile": {
     "status": "ok",
     "count": 160,
@@ -479,7 +481,7 @@
    "fetched": 72,
    "named": 1.0,
    "total": 338,
-   "seconds": 0.2,
+   "seconds": 0.1,
    "tile": {
     "status": "ok",
     "count": 47,
@@ -490,15 +492,15 @@
   "permits/La Rochelle": {
    "key": "23079,-575",
    "status": "ok",
-   "count": 320,
-   "fetched": 458,
+   "count": 319,
+   "fetched": 456,
    "named": 0.991,
-   "total": 576,
-   "seconds": 1.4,
+   "total": 574,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
-    "count": 322,
-    "named": 0.991,
+    "count": 319,
+    "named": 0.987,
     "source": "La Rochelle"
    }
   },
@@ -508,10 +510,10 @@
    "count": 2,
    "fetched": 2,
    "named": 1.0,
-   "seconds": 7.3,
+   "seconds": 6.9,
    "tile": {
     "status": "ok",
-    "count": 5,
+    "count": 2,
     "named": 1.0,
     "source": "Kensington and Chelsea"
    },
@@ -523,7 +525,7 @@
    "count": 12,
    "fetched": 12,
    "named": 0.0,
-   "seconds": 0.3,
+   "seconds": 0.2,
    "tile": {
     "status": "ok",
     "count": 12,
@@ -534,9 +536,11 @@
   },
   "buildings/Rotterdam": {
    "key": "25945,2251",
-   "status": "dead",
-   "error": "SourceError: data.3dbag.nl: URLError: <urlopen error timed out>",
-   "seconds": 370.9,
+   "status": "ok",
+   "count": 3132,
+   "fetched": 3996,
+   "height": 1.0,
+   "seconds": 1.4,
    "tile": {
     "status": "ok",
     "count": 3132,
@@ -552,7 +556,7 @@
    "count": 981,
    "fetched": 1372,
    "height": 0.971,
-   "seconds": 9.1,
+   "seconds": 86.7,
    "tile": {
     "status": "ok",
     "count": 981,
@@ -568,7 +572,7 @@
    "count": 322,
    "fetched": 405,
    "height": 0.981,
-   "seconds": 0.9,
+   "seconds": 0.5,
    "tile": {
     "status": "ok",
     "count": 322,
@@ -583,7 +587,7 @@
    "count": 5363,
    "fetched": 6800,
    "height": 0.791,
-   "seconds": 198.3,
+   "seconds": 178.7,
    "tile": {
     "status": "ok",
     "count": 5264,
@@ -598,7 +602,7 @@
    "count": 6096,
    "fetched": 7938,
    "height": 0.835,
-   "seconds": 195.8,
+   "seconds": 171.1,
    "tile": {
     "status": "ok",
     "count": 6035,
@@ -613,7 +617,7 @@
    "count": 1214,
    "fetched": 1393,
    "height": 1.0,
-   "seconds": 8.5,
+   "seconds": 8.9,
    "tile": {
     "status": "HTTP 404",
     "source": "Johannesburg"
@@ -626,7 +630,7 @@
    "count": 934,
    "fetched": 1182,
    "height": 1.0,
-   "seconds": 1.3,
+   "seconds": 1.4,
    "tile": {
     "status": "HTTP 404",
     "source": "Calgary"
@@ -639,7 +643,7 @@
    "count": 2909,
    "fetched": 3867,
    "height": 1.0,
-   "seconds": 2.1,
+   "seconds": 1.9,
    "tile": {
     "status": "HTTP 404",
     "source": "Philadelphia"
@@ -652,7 +656,7 @@
    "count": 401,
    "fetched": 517,
    "height": 1.0,
-   "seconds": 0.6,
+   "seconds": 0.4,
    "tile": {
     "status": "ok",
     "count": 399,
@@ -682,7 +686,7 @@
    "count": 338,
    "fetched": 502,
    "height": 1.0,
-   "seconds": 11.0,
+   "seconds": 7.6,
    "tile": {
     "status": "ok",
     "count": 335,
@@ -697,7 +701,7 @@
    "count": 1483,
    "fetched": 2035,
    "height": 0.993,
-   "seconds": 22.9,
+   "seconds": 16.0,
    "tile": {
     "status": "ok",
     "count": 1478,
@@ -712,7 +716,7 @@
    "count": 1203,
    "fetched": 1591,
    "height": 1.0,
-   "seconds": 24.5,
+   "seconds": 63.5,
    "tile": {
     "status": "ok",
     "count": 1203,
@@ -727,7 +731,7 @@
    "count": 181,
    "fetched": 247,
    "height": 1.0,
-   "seconds": 126.5,
+   "seconds": 238.1,
    "tile": {
     "status": "ok",
     "count": 181,
@@ -742,7 +746,7 @@
    "count": 436,
    "fetched": 532,
    "height": 0.995,
-   "seconds": 37.7,
+   "seconds": 32.6,
    "tile": {
     "status": "ok",
     "count": 436,
@@ -757,7 +761,7 @@
    "count": 2228,
    "fetched": 2878,
    "height": 1.0,
-   "seconds": 3.5,
+   "seconds": 3.2,
    "tile": {
     "status": "ok",
     "count": 2225,
@@ -773,7 +777,7 @@
    "count": 450,
    "fetched": 565,
    "height": 1.0,
-   "seconds": 218.0,
+   "seconds": 6.3,
    "tile": {
     "status": "HTTP 404",
     "source": "Vaughan"
@@ -785,7 +789,7 @@
    "count": 63,
    "fetched": 84,
    "height": 1.0,
-   "seconds": 714.1,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
     "count": 63,
@@ -800,7 +804,7 @@
    "count": 186,
    "fetched": 1262,
    "height": 0.989,
-   "seconds": 59.0,
+   "seconds": 51.5,
    "tile": {
     "status": "ok",
     "count": 188,
@@ -815,7 +819,7 @@
    "count": 403,
    "fetched": 542,
    "height": 0.97,
-   "seconds": 5.4,
+   "seconds": 5.8,
    "tile": {
     "status": "ok",
     "count": 400,
@@ -827,13 +831,13 @@
   "permits/Strasbourg": {
    "key": "24290,3872",
    "status": "ok",
-   "count": 233,
-   "fetched": 309,
+   "count": 234,
+   "fetched": 310,
    "named": 1.0,
-   "seconds": 1.0,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
-    "count": 231,
+    "count": 233,
     "named": 1.0,
     "source": "Strasbourg"
    },
@@ -845,7 +849,7 @@
    "count": 306,
    "fetched": 471,
    "named": 1.0,
-   "seconds": 0.9,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
     "count": 306,
@@ -857,11 +861,11 @@
   "permits/Vienna": {
    "key": "24104,8186",
    "status": "ok",
-   "count": 167,
-   "fetched": 254,
+   "count": 159,
+   "fetched": 243,
    "named": 0.0,
-   "total": 3006,
-   "seconds": 1.0,
+   "total": 2633,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
     "count": 167,
@@ -873,13 +877,13 @@
   "permits/Vilnius": {
    "key": "27341,12641",
    "status": "ok",
-   "count": 48,
-   "fetched": 98,
+   "count": 20,
+   "fetched": 45,
    "named": 1.0,
-   "seconds": 0.9,
+   "seconds": 0.5,
    "tile": {
     "status": "ok",
-    "count": 49,
+    "count": 48,
     "named": 1.0,
     "source": "Vilnius"
    },
@@ -892,27 +896,29 @@
    "fetched": 98,
    "named": 1.0,
    "total": 1636,
-   "seconds": 185.7,
+   "seconds": 0.3,
    "tile": {
     "status": "ok",
     "count": 73,
     "named": 1.0,
     "source": "Toronto"
    },
-   "licence": "License not specified"
+   "licence": "open-government-licence-toronto"
   },
   "permits/Helsinki": {
    "key": "30084,12473",
-   "status": "dead",
-   "error": "SourceError: kartta.hel.fi: URLError: <urlopen error timed out>",
-   "seconds": 370.8,
+   "status": "ok",
+   "count": 15,
+   "fetched": 22,
+   "named": 1.0,
+   "seconds": 4.4,
    "tile": {
     "status": "ok",
     "count": 60,
     "named": 1.0,
     "source": "Helsinki"
    },
-   "licence": null
+   "licence": "NONE"
   },
   "permits/Los Angeles": {
    "key": "17023,-59119",
@@ -920,7 +926,7 @@
    "count": 21,
    "fetched": 24,
    "named": 1.0,
-   "seconds": 0.6,
+   "seconds": 0.7,
    "tile": {
     "status": "ok",
     "count": 21,
@@ -935,7 +941,7 @@
    "count": 8,
    "fetched": 9,
    "named": 1.0,
-   "seconds": 0.5,
+   "seconds": 0.3,
    "tile": {
     "status": "ok",
     "count": 0,
@@ -946,9 +952,11 @@
   },
   "buildings/The Hague": {
    "key": "26026,2157",
-   "status": "dead",
-   "error": "SourceError: data.3dbag.nl: URLError: <urlopen error timed out>",
-   "seconds": 370.6,
+   "status": "ok",
+   "count": 2417,
+   "fetched": 2952,
+   "height": 1.0,
+   "seconds": 1.0,
    "tile": {
     "status": "HTTP 404",
     "source": "The Hague"
@@ -961,7 +969,7 @@
    "count": 2259,
    "fetched": 2851,
    "height": 0.99,
-   "seconds": 2.5,
+   "seconds": 2.3,
    "tile": {
     "status": "HTTP 404",
     "source": "São Paulo"
@@ -983,7 +991,7 @@
    "count": 4525,
    "fetched": 5902,
    "height": 0.798,
-   "seconds": 154.0,
+   "seconds": 168.6,
    "tile": {
     "status": "ok",
     "count": 4472,
@@ -998,7 +1006,7 @@
    "count": 3674,
    "fetched": 4310,
    "height": 0.983,
-   "seconds": 144.6,
+   "seconds": 149.5,
    "tile": {
     "status": "HTTP 404",
     "source": "Córdoba"
@@ -1010,7 +1018,7 @@
    "count": 1574,
    "fetched": 1993,
    "height": 0.985,
-   "seconds": 2.1,
+   "seconds": 4.0,
    "tile": {
     "status": "ok",
     "count": 1574,
@@ -1026,7 +1034,7 @@
    "count": 788,
    "fetched": 948,
    "height": 1.0,
-   "seconds": 0.5,
+   "seconds": 0.4,
    "tile": {
     "status": "HTTP 404",
     "source": "Vancouver"
@@ -1039,7 +1047,7 @@
    "count": 2200,
    "fetched": 2764,
    "height": 1.0,
-   "seconds": 9.1,
+   "seconds": 7.3,
    "tile": {
     "status": "HTTP 404",
     "source": "Düsseldorf"
@@ -1051,7 +1059,7 @@
    "count": 100,
    "fetched": 144,
    "height": 0.89,
-   "seconds": 0.5,
+   "seconds": 0.3,
    "tile": {
     "status": "ok",
     "count": 97,
@@ -1066,7 +1074,7 @@
    "count": 74,
    "fetched": 104,
    "height": 1.0,
-   "seconds": 35.8,
+   "seconds": 0.5,
    "tile": {
     "status": "ok",
     "count": 74,
@@ -1081,7 +1089,7 @@
    "count": 1245,
    "fetched": 1723,
    "height": 0.994,
-   "seconds": 35.0,
+   "seconds": 37.9,
    "tile": {
     "status": "ok",
     "count": 1246,
@@ -1096,7 +1104,7 @@
    "count": 1086,
    "fetched": 1552,
    "height": 0.991,
-   "seconds": 8.3,
+   "seconds": 7.9,
    "tile": {
     "status": "ok",
     "count": 1078,
@@ -1111,7 +1119,7 @@
    "count": 326,
    "fetched": 419,
    "height": 0.96,
-   "seconds": 2.0,
+   "seconds": 1.8,
    "tile": {
     "status": "ok",
     "count": 326,
@@ -1126,7 +1134,7 @@
    "count": 454,
    "fetched": 539,
    "height": 1.0,
-   "seconds": 56.6,
+   "seconds": 62.3,
    "tile": {
     "status": "ok",
     "count": 454,
@@ -1141,7 +1149,7 @@
    "count": 166,
    "fetched": 190,
    "height": 0.97,
-   "seconds": 1.6,
+   "seconds": 1.7,
    "tile": {
     "status": "ok",
     "count": 165,
@@ -1172,7 +1180,7 @@
    "count": 46,
    "fetched": 80,
    "height": 1.0,
-   "seconds": 203.1,
+   "seconds": 10.9,
    "tile": {
     "status": "HTTP 404",
     "source": null
@@ -1184,7 +1192,7 @@
    "count": 1097,
    "fetched": 1449,
    "height": 1.0,
-   "seconds": 1.6,
+   "seconds": 0.8,
    "tile": {
     "status": "HTTP 404",
     "source": "Edmonton"
@@ -1197,7 +1205,7 @@
    "count": 280,
    "fetched": 1584,
    "height": 1.0,
-   "seconds": 52.4,
+   "seconds": 56.2,
    "tile": {
     "status": "ok",
     "count": 280,
@@ -1212,7 +1220,7 @@
    "count": 3567,
    "fetched": 4080,
    "height": 0.998,
-   "seconds": 397.8,
+   "seconds": 422.2,
    "tile": {
     "status": "HTTP 404",
     "source": "Buenos Aires"
@@ -1225,7 +1233,7 @@
    "count": 28,
    "fetched": 28,
    "named": 1.0,
-   "seconds": 0.4,
+   "seconds": 0.7,
    "tile": {
     "status": "ok",
     "count": 28,
@@ -1237,14 +1245,14 @@
   "permits/Camden": {
    "key": "25760,-69",
    "status": "ok",
-   "count": 48,
-   "fetched": 53,
-   "named": 0.917,
-   "seconds": 1.1,
+   "count": 49,
+   "fetched": 54,
+   "named": 0.918,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
-    "count": 46,
-    "named": 0.913,
+    "count": 48,
+    "named": 0.917,
     "source": "Camden"
    },
    "licence": "UK Open Government Licence v3"
@@ -1252,13 +1260,13 @@
   "permits/Copenhagen": {
    "key": "27839,6287",
    "status": "ok",
-   "count": 424,
-   "fetched": 614,
+   "count": 422,
+   "fetched": 607,
    "named": 1.0,
-   "seconds": 0.7,
+   "seconds": 1.0,
    "tile": {
     "status": "ok",
-    "count": 430,
+    "count": 424,
     "named": 1.0,
     "source": "Copenhagen"
    },
@@ -1270,7 +1278,7 @@
    "count": 125,
    "fetched": 179,
    "named": 1.0,
-   "seconds": 1.2,
+   "seconds": 1.7,
    "tile": {
     "status": "ok",
     "count": 125,
@@ -1282,10 +1290,10 @@
   "permits/Riga": {
    "key": "28474,12054",
    "status": "ok",
-   "count": 65,
-   "fetched": 72,
+   "count": 59,
+   "fetched": 63,
    "named": 1.0,
-   "seconds": 1.1,
+   "seconds": 1.5,
    "tile": {
     "status": "ok",
     "count": 65,
@@ -1297,11 +1305,11 @@
   "permits/Gothenburg": {
    "key": "28849,5975",
    "status": "ok",
-   "count": 36,
-   "fetched": 46,
+   "count": 35,
+   "fetched": 45,
    "named": 1.0,
-   "total": 447,
-   "seconds": 1.0,
+   "total": 445,
+   "seconds": 2.3,
    "tile": {
     "status": "ok",
     "count": 36,
@@ -1315,7 +1323,7 @@
    "count": 83,
    "fetched": 145,
    "named": 0.0,
-   "seconds": 13.7,
+   "seconds": 16.2,
    "tile": {
     "status": "ok",
     "count": 83,
@@ -1330,7 +1338,7 @@
    "count": 22,
    "fetched": 32,
    "named": 0.0,
-   "seconds": 8.9,
+   "seconds": 0.8,
    "tile": {
     "status": "ok",
     "count": 22,
@@ -1341,9 +1349,11 @@
   },
   "buildings/Utrecht": {
    "key": "26055,2543",
-   "status": "dead",
-   "error": "SourceError: data.3dbag.nl: URLError: <urlopen error timed out>",
-   "seconds": 370.6,
+   "status": "ok",
+   "count": 2883,
+   "fetched": 3831,
+   "height": 1.0,
+   "seconds": 1.5,
    "tile": {
     "status": "ok",
     "count": 2883,
@@ -1359,7 +1369,7 @@
    "count": 688,
    "fetched": 846,
    "height": 1.0,
-   "seconds": 2.7,
+   "seconds": 2.1,
    "tile": {
     "status": "HTTP 404",
     "source": "Wrocław"
@@ -1372,7 +1382,7 @@
    "count": 2160,
    "fetched": 2544,
    "height": 1.0,
-   "seconds": 2.3,
+   "seconds": 3.4,
    "tile": {
     "status": "ok",
     "count": 2159,
@@ -1388,7 +1398,7 @@
    "count": 3681,
    "fetched": 4599,
    "height": 0.922,
-   "seconds": 134.6,
+   "seconds": 167.2,
    "tile": {
     "status": "ok",
     "count": 3655,
@@ -1403,7 +1413,7 @@
    "count": 4338,
    "fetched": 5406,
    "height": 0.809,
-   "seconds": 116.9,
+   "seconds": 165.3,
    "tile": {
     "status": "ok",
     "count": 4259,
@@ -1416,7 +1426,7 @@
    "key": "22535,3804",
    "status": "dead",
    "error": "SourceError: geoservices.csi.it: URLError: <urlopen error timed out>",
-   "seconds": 371.6,
+   "seconds": 373.2,
    "tile": {
     "status": "ok",
     "count": 556,
@@ -1432,7 +1442,7 @@
    "count": 1053,
    "fetched": 1271,
    "height": 0.993,
-   "seconds": 1.9,
+   "seconds": 2.5,
    "tile": {
     "status": "ok",
     "count": 1047,
@@ -1448,7 +1458,7 @@
    "count": 1464,
    "fetched": 1863,
    "height": 0.999,
-   "seconds": 15.5,
+   "seconds": 33.6,
    "tile": {
     "status": "HTTP 404",
     "source": "Nuremberg"
@@ -1460,7 +1470,7 @@
    "count": 186,
    "fetched": 255,
    "height": 1.0,
-   "seconds": 0.5,
+   "seconds": 0.8,
    "tile": {
     "status": "ok",
     "count": 186,
@@ -1475,7 +1485,7 @@
    "count": 137,
    "fetched": 179,
    "height": 1.0,
-   "seconds": 0.7,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 137,
@@ -1490,7 +1500,7 @@
    "count": 878,
    "fetched": 1207,
    "height": 1.0,
-   "seconds": 15.8,
+   "seconds": 18.2,
    "tile": {
     "status": "ok",
     "count": 868,
@@ -1505,7 +1515,7 @@
    "count": 2117,
    "fetched": 2715,
    "height": 0.994,
-   "seconds": 17.7,
+   "seconds": 20.5,
    "tile": {
     "status": "ok",
     "count": 2109,
@@ -1520,7 +1530,7 @@
    "count": 338,
    "fetched": 436,
    "height": 0.994,
-   "seconds": 26.4,
+   "seconds": 28.7,
    "tile": {
     "status": "ok",
     "count": 338,
@@ -1535,7 +1545,7 @@
    "count": 516,
    "fetched": 667,
    "height": 1.0,
-   "seconds": 59.0,
+   "seconds": 71.1,
    "tile": {
     "status": "ok",
     "count": 516,
@@ -1550,7 +1560,7 @@
    "count": 311,
    "fetched": 430,
    "height": 0.945,
-   "seconds": 1.3,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
     "count": 306,
@@ -1561,9 +1571,11 @@
   },
   "buildings/Genoa": {
    "key": "22215,4447",
-   "status": "dead",
-   "error": "SourceError: geoservizi.regione.liguria.it: URLError: <urlopen error timed out>",
-   "seconds": 371.4,
+   "status": "ok",
+   "count": 707,
+   "fetched": 839,
+   "height": 0.99,
+   "seconds": 4.7,
    "tile": {
     "status": "ok",
     "count": 707,
@@ -1571,7 +1583,7 @@
     "with_height": 707,
     "source": "Genoa"
    },
-   "licence": null
+   "licence": "NONE"
   },
   "buildings/Hamilton": {
    "key": "21627,-39935",
@@ -1579,7 +1591,7 @@
    "count": 83,
    "fetched": 125,
    "height": 0.976,
-   "seconds": 182.5,
+   "seconds": 3.2,
    "tile": {
     "status": "ok",
     "count": 83,
@@ -1594,7 +1606,7 @@
    "count": 2036,
    "fetched": 5817,
    "height": 1.0,
-   "seconds": 50.9,
+   "seconds": 71.6,
    "tile": {
     "status": "HTTP 404",
     "source": "London+OSM"
@@ -1606,7 +1618,7 @@
    "count": 327,
    "fetched": 416,
    "height": 1.0,
-   "seconds": 334.9,
+   "seconds": 8.3,
    "tile": {
     "status": "ok",
     "count": 327,
@@ -1621,7 +1633,7 @@
    "count": 1752,
    "fetched": 2271,
    "height": 0.995,
-   "seconds": 12.9,
+   "seconds": 17.2,
    "tile": {
     "status": "ok",
     "count": 1751,
@@ -1637,7 +1649,7 @@
    "count": 181,
    "fetched": 267,
    "named": 1.0,
-   "seconds": 0.9,
+   "seconds": 0.6,
    "tile": {
     "status": "ok",
     "count": 181,
@@ -1649,8 +1661,8 @@
   "permits/New York": {
    "key": "20365,-37000",
    "status": "ok",
-   "count": 94,
-   "fetched": 140,
+   "count": 95,
+   "fetched": 143,
    "named": 1.0,
    "seconds": 0.5,
    "tile": {
@@ -1665,10 +1677,10 @@
    "key": "20208,-1852",
    "status": "ok",
    "count": 221,
-   "fetched": 333,
+   "fetched": 334,
    "named": 1.0,
-   "total": 6582,
-   "seconds": 1.2,
+   "total": 6583,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 221,
@@ -1683,7 +1695,7 @@
    "fetched": 351,
    "named": 0.0,
    "total": 6942,
-   "seconds": 5.1,
+   "seconds": 4.4,
    "tile": {
     "status": "ok",
     "count": 213,
@@ -1698,7 +1710,7 @@
    "count": 155,
    "fetched": 195,
    "named": 1.0,
-   "seconds": 7.3,
+   "seconds": 6.1,
    "tile": {
     "status": "ok",
     "count": 155,
@@ -1713,7 +1725,7 @@
    "count": 56,
    "fetched": 95,
    "named": 0.196,
-   "seconds": 0.2,
+   "seconds": 0.1,
    "tile": {
     "status": "ok",
     "count": 56,
@@ -1729,7 +1741,7 @@
    "fetched": 10,
    "named": 0.0,
    "total": 167,
-   "seconds": 8.4,
+   "seconds": 9.7,
    "tile": {
     "status": "ok",
     "count": 7,
@@ -1743,7 +1755,7 @@
    "count": 39,
    "fetched": 39,
    "named": 1.0,
-   "seconds": 1.3,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
     "count": 39,
@@ -1758,7 +1770,7 @@
    "count": 1910,
    "fetched": 2299,
    "height": 1.0,
-   "seconds": 1.4,
+   "seconds": 1.0,
    "tile": {
     "status": "HTTP 404",
     "source": "Berlin"
@@ -1771,7 +1783,7 @@
    "count": 552,
    "fetched": 741,
    "height": 0.996,
-   "seconds": 1.4,
+   "seconds": 0.8,
    "tile": {
     "status": "ok",
     "count": 551,
@@ -1787,7 +1799,7 @@
    "count": 5365,
    "fetched": 6994,
    "height": 0.884,
-   "seconds": 431.8,
+   "seconds": 410.5,
    "tile": {
     "status": "ok",
     "count": 5182,
@@ -1802,7 +1814,7 @@
    "count": 7942,
    "fetched": 10247,
    "height": 0.795,
-   "seconds": 146.0,
+   "seconds": 140.0,
    "tile": {
     "status": "ok",
     "count": 7838,
@@ -1817,7 +1829,7 @@
    "count": 3936,
    "fetched": 5176,
    "height": 0.878,
-   "seconds": 95.3,
+   "seconds": 80.8,
    "tile": {
     "status": "ok",
     "count": 3889,
@@ -1832,7 +1844,7 @@
    "count": 2004,
    "fetched": 2562,
    "height": 1.0,
-   "seconds": 3.3,
+   "seconds": 1.9,
    "tile": {
     "status": "HTTP 404",
     "source": "New York"
@@ -1845,7 +1857,7 @@
    "count": 711,
    "fetched": 855,
    "height": 0.862,
-   "seconds": 2.4,
+   "seconds": 1.9,
    "tile": {
     "status": "HTTP 404",
     "source": "Austin"
@@ -1858,7 +1870,7 @@
    "count": 110,
    "fetched": 135,
    "height": 0.982,
-   "seconds": 0.3,
+   "seconds": 0.4,
    "tile": {
     "status": "ok",
     "count": 110,
@@ -1888,7 +1900,7 @@
    "count": 161,
    "fetched": 216,
    "height": 0.938,
-   "seconds": 1.3,
+   "seconds": 1.4,
    "tile": {
     "status": "ok",
     "count": 161,
@@ -1903,7 +1915,7 @@
    "count": 659,
    "fetched": 868,
    "height": 0.998,
-   "seconds": 10.7,
+   "seconds": 9.0,
    "tile": {
     "status": "ok",
     "count": 654,
@@ -1918,7 +1930,7 @@
    "count": 688,
    "fetched": 876,
    "height": 0.997,
-   "seconds": 7.2,
+   "seconds": 6.3,
    "tile": {
     "status": "ok",
     "count": 687,
@@ -1933,7 +1945,7 @@
    "count": 467,
    "fetched": 575,
    "height": 0.994,
-   "seconds": 29.1,
+   "seconds": 25.9,
    "tile": {
     "status": "ok",
     "count": 467,
@@ -1948,7 +1960,7 @@
    "count": 735,
    "fetched": 990,
    "height": 1.0,
-   "seconds": 42.2,
+   "seconds": 48.4,
    "tile": {
     "status": "ok",
     "count": 735,
@@ -1963,7 +1975,7 @@
    "count": 997,
    "fetched": 1417,
    "height": 0.991,
-   "seconds": 4.1,
+   "seconds": 4.0,
    "tile": {
     "status": "ok",
     "count": 997,
@@ -1974,11 +1986,9 @@
   },
   "buildings/Sofia": {
    "key": "21347,11635",
-   "status": "ok",
-   "count": 1714,
-   "fetched": 2041,
-   "height": 1.0,
-   "seconds": 3.7,
+   "status": "dead",
+   "error": "SourceError: gis.sofiaplan.bg: URLError: <urlopen error timed out>",
+   "seconds": 371.5,
    "tile": {
     "status": "HTTP 404",
     "source": "Sofia"
@@ -1991,7 +2001,7 @@
    "count": 82,
    "fetched": 114,
    "height": 1.0,
-   "seconds": 37.5,
+   "seconds": 13.4,
    "tile": {
     "status": "ok",
     "count": 82,
@@ -2006,7 +2016,7 @@
    "count": 147,
    "fetched": 1249,
    "height": 0.986,
-   "seconds": 35.4,
+   "seconds": 51.0,
    "tile": {
     "status": "ok",
     "count": 148,
@@ -2021,7 +2031,7 @@
    "count": 120,
    "fetched": 163,
    "height": 0.975,
-   "seconds": 373.9,
+   "seconds": 1.2,
    "tile": {
     "status": "ok",
     "count": 120,
@@ -2036,7 +2046,7 @@
    "count": 311,
    "fetched": 468,
    "height": 1.0,
-   "seconds": 20.9,
+   "seconds": 17.0,
    "tile": {
     "status": "ok",
     "count": 311,
@@ -2066,7 +2076,7 @@
    "count": 65,
    "fetched": 92,
    "named": 1.0,
-   "seconds": 23.9,
+   "seconds": 0.7,
    "tile": {
     "status": "ok",
     "count": 65,
@@ -2081,7 +2091,7 @@
    "count": 208,
    "fetched": 258,
    "named": 1.0,
-   "seconds": 1.3,
+   "seconds": 1.1,
    "tile": {
     "status": "ok",
     "count": 208,
@@ -2111,7 +2121,7 @@
    "count": 315,
    "fetched": 397,
    "named": 0.0,
-   "seconds": 0.8,
+   "seconds": 0.9,
    "tile": {
     "status": "ok",
     "count": 315,
@@ -2156,7 +2166,7 @@
    "count": 2144,
    "fetched": 2660,
    "height": 1.0,
-   "seconds": 2.6,
+   "seconds": 2.0,
    "tile": {
     "status": "HTTP 404",
     "source": "Melbourne"
@@ -2169,7 +2179,7 @@
    "count": 660,
    "fetched": 820,
    "height": 0.988,
-   "seconds": 1.3,
+   "seconds": 1.7,
    "tile": {
     "status": "ok",
     "count": 659,
@@ -2185,7 +2195,7 @@
    "count": 787,
    "fetched": 1046,
    "height": 0.986,
-   "seconds": 1.3,
+   "seconds": 1.1,
    "tile": {
     "status": "HTTP 404",
     "source": "Holon"
@@ -2198,7 +2208,7 @@
    "count": 5831,
    "fetched": 7567,
    "height": 0.887,
-   "seconds": 212.0,
+   "seconds": 201.2,
    "tile": {
     "status": "ok",
     "count": 5787,
@@ -2213,7 +2223,7 @@
    "count": 6001,
    "fetched": 7732,
    "height": 0.943,
-   "seconds": 61.1,
+   "seconds": 58.5,
    "tile": {
     "status": "ok",
     "count": 5941,
@@ -2228,7 +2238,7 @@
    "count": 4453,
    "fetched": 5361,
    "height": 0.792,
-   "seconds": 85.3,
+   "seconds": 101.1,
    "tile": {
     "status": "ok",
     "count": 4365,
@@ -2243,7 +2253,7 @@
    "count": 1361,
    "fetched": 1872,
    "height": 0.477,
-   "seconds": 2.3,
+   "seconds": 1.6,
    "tile": {
     "status": "HTTP 404",
     "source": "Chicago"
@@ -2256,7 +2266,7 @@
    "count": 981,
    "fetched": 1258,
    "height": 0.997,
-   "seconds": 1.8,
+   "seconds": 1.7,
    "tile": {
     "status": "HTTP 404",
     "source": "Los Angeles"
@@ -2269,7 +2279,7 @@
    "count": 352,
    "fetched": 538,
    "height": 1.0,
-   "seconds": 0.3,
+   "seconds": 0.4,
    "tile": {
     "status": "ok",
     "count": 524,
@@ -2284,10 +2294,13 @@
    "count": 102,
    "fetched": 142,
    "height": 0.98,
-   "seconds": 3.1,
+   "seconds": 4.8,
    "tile": {
-    "status": "HTTP 404",
-    "source": null
+    "status": "ok",
+    "count": 102,
+    "height": 0.98,
+    "with_height": 100,
+    "source": "Louisville"
    }
   },
   "buildings/Bremen": {
@@ -2296,7 +2309,7 @@
    "count": 481,
    "fetched": 631,
    "height": 0.992,
-   "seconds": 16.8,
+   "seconds": 18.1,
    "tile": {
     "status": "ok",
     "count": 480,
@@ -2311,7 +2324,7 @@
    "count": 1128,
    "fetched": 1644,
    "height": 0.989,
-   "seconds": 18.6,
+   "seconds": 17.6,
    "tile": {
     "status": "ok",
     "count": 1108,
@@ -2326,7 +2339,7 @@
    "count": 667,
    "fetched": 911,
    "height": 0.996,
-   "seconds": 15.6,
+   "seconds": 33.6,
    "tile": {
     "status": "ok",
     "count": 667,
@@ -2341,7 +2354,7 @@
    "count": 509,
    "fetched": 626,
    "height": 0.984,
-   "seconds": 35.4,
+   "seconds": 46.8,
    "tile": {
     "status": "ok",
     "count": 509,
@@ -2356,7 +2369,7 @@
    "count": 768,
    "fetched": 1017,
    "height": 0.852,
-   "seconds": 1.2,
+   "seconds": 1.0,
    "tile": {
     "status": "ok",
     "count": 768,
@@ -2387,7 +2400,7 @@
    "count": 562,
    "fetched": 677,
    "height": 0.998,
-   "seconds": 1.5,
+   "seconds": 1.7,
    "tile": {
     "status": "ok",
     "count": 1055,
@@ -2403,7 +2416,7 @@
    "count": 91,
    "fetched": 116,
    "height": 1.0,
-   "seconds": 186.9,
+   "seconds": 4.4,
    "tile": {
     "status": "ok",
     "count": 91,
@@ -2445,10 +2458,10 @@
   }
  },
  "feed": {
-  "updated": "2026-10-26",
-  "seed": 44,
+  "updated": "2026-10-27",
+  "seed": 45,
   "checked": 848,
-  "mismatches": 32,
-  "missing": 548
+  "mismatches": 35,
+  "missing": 542
  }
 }
