@@ -1,194 +1,54 @@
-# compromise-tiles
+<p align="center">
+  <img src="logo.png" width="112" height="112" alt="Compromise logo: a map pin with an approximately-equal sign">
+</p>
 
-Open city data used by the Compromise iOS app, one JSON file per map cell.
+<h1 align="center">compromise-tiles</h1>
 
-## Where the tiles are
+<p align="center"><strong>Meet in the middle</strong><br>
+The map data the Compromise app reads, cut into small JSON tiles.</p>
 
-The tiles are served from Cloudflare R2 at
-`https://tiles.alephb.uk`, under
-`tiles/<layer>/<key>.json` (gzipped at rest), with `config.json` at the
-root. Layers: `buildings/` and `terraces-v2/` per ~200 m
-cell, keyed `int(lat*500),int(lon*500)`; `venues/` per 1/50° cell (name,
-point, amenity, outdoor seating, source, optional OSM details); `sources/` per ~200 m cell
-names the permit feed, building source and neighbourhood boundaries each cell was built from;
-`streets/` per ~200 m cell holds street lines and `numbers/` on the same
-cells their house-number ranges, `streets-main/` per
-1/25° cell the main roads alone, `places/` on the same cells
-neighbourhood names and points and `boundaries/` their outlines, all six
-for the areas `cities.json` flags with `"streets": true` only. A
-building whose source gives no height is written at 15 m with
-`"guessed": true` (builds since 2026-10-04; a tile built before carries
-no flag); it stays local. The store holds `buildings-v2/`, the same
-footprints as integer deltas, a third of the bytes (since 2026-10-08), for the cells near a
-venue or terrace (since 2026-10-13);
-[BUILDINGS.md](BUILDINGS.md) gives its format and which cells have one.
+<p align="center"><a href="https://compromise.alephb.uk">Compromise website</a></p>
 
-This repository holds the generator (`make_tiles.py`), the areas it
-builds (`cities.json`, with municipal boundaries in `boundaries/`), the
-coverage feed (`coverage.json` on R2; the copy here stopped updating on 2026-10-13; the site reads its slim copies `areas.json`, `summary.json` (per-city totals) and `coverage/<1° square>.json`, written beside it), the store's numbers
-(`stats.json` on R2: size and file count per layer, build time per city, written by
-`stats.py` after each build) and the tiles built
-off GitHub under `tiles/`. GitHub Actions (`.github/workflows/tiles.yml`)
-builds the rest on a schedule and uploads it to R2; those tiles are not
-kept here. OpenStreetMap is read from Geofabrik extracts with
-osmium-tool; city and national feeds are downloaded in bulk.
+The tiles hold venues, terraces, building heights, streets and neighbourhoods, built from OpenStreetMap and from cities' own open data. This repository has the generator (`make_tiles.py`), the list of areas it builds (`cities.json`, with municipal boundaries in `boundaries/`), its tests, and a few tiles that have to be built off GitHub (`tiles/`).
 
-### streets/
+## Tiles
 
-Each tile is an array of rows. A street row is `[kind, y0, x0, dy1, dx1, …]`
-(kind 1 main road, 2 street, 3 pedestrian), or `[kind, "name", y0, x0, …]`
-where the OpenStreetMap way has a name (since 2026-10-08): one way cut at the
-cell's edges, coordinates in 1e-5° steps, the first from the key's corner
-(key / 500), each next from the one before.
+Tiles are served from `https://tiles.alephb.uk/tiles/<layer>/<key>.json`, gzipped at rest, with `config.json` at the root. There are three cell sizes, each with its own key:
 
-### numbers/
+| Cell | Key | Layers |
+|---|---|---|
+| ~200 m | `int(lat*500),int(lon*500)` | `buildings-v2/`, `terraces-v2/`, `sources/`, `streets/`, `numbers/` |
+| ~2 km (1/50°) | `int(lat*50),int(lon*50)` | `venues/` |
+| ~4 km (1/25°) | `int(lat*25),int(lon*25)` | `streets-main/`, `places/`, `boundaries/`, `transit/` |
 
-House-number ranges, on the same cells, keys and paths as `streets/` (since
-2026-10-10). Each tile is an array of `["name", lowest, highest]`, sorted by
-name (by Unicode code point):
+- `buildings-v2/`: building footprints with their heights.
+- `terraces-v2/`: outdoor seating from city permits.
+- `sources/`: which permit feed, building source and neighbourhood outlines each cell was built from, so the app can credit them.
+- `venues/`: name, point, kind and outdoor seating of bars, cafés and restaurants, with optional OpenStreetMap details.
+- `streets/`, `streets-main/` and `numbers/`: street lines, main roads only, and house-number ranges.
+- `places/` and `boundaries/`: neighbourhood names, points and outlines.
+- `transit/`: metro, tram, rail, bus and cable car lines with their stops.
 
-- `name` is written exactly as on the named rows of the same cell's
-  `streets/` tile.
-- `lowest` and `highest` are integers, the smallest and largest house number
-  found on that street inside the cell. A number is OpenStreetMap's
-  `addr:housenumber` on a node, a building or along an `addr:interpolation`
-  way, whose `addr:street` (else the name of the `associatedStreet` relation
-  it is a house of) equals the name once case, accents and apostrophes are
-  set aside; only its leading digits count ("12bis" and "12 ter" are 12,
-  "12-14" is 12, "12;14" is both), and one not starting with a digit is left
-  out. The address point (a building's mean vertex) must lie in the cell.
-- A street is listed only where at least two distinct numbers are found. A
-  range is that cell's alone: a street crossing several cells is listed in
-  each. A cell with no range has no file.
+The street, place and transit layers exist only for the areas marked `"streets": true` in `cities.json`. A cell with nothing in a layer has no file there. [FORMAT.md](FORMAT.md) describes the rows of each layer, and [BUILDINGS.md](BUILDINGS.md) the building footprints.
 
-### places/
+## How the tiles are built
 
-Each tile is an array of `{"name", "kind", "coordinate", "admin_level"?}`:
+A GitHub Actions workflow rebuilds the tiles every Monday and uploads new and changed ones. OpenStreetMap comes from Geofabrik extracts, and city and national feeds are downloaded in bulk. Before the build, a check asks each feed for a sample cell and opens an issue if a feed has died, shrunk sharply or changed its licence.
 
-- `kind` is OpenStreetMap's `place` tag: `suburb`, `quarter` or
-  `neighbourhood`.
-- `admin_level` (an integer, OpenStreetMap's) is written only when the name
-  comes from or matches an administrative boundary relation; absent
-  otherwise. In Paris, 9 is an arrondissement and 10 one of the 80 quartiers
-  administratifs. A place matches a boundary when it is the relation itself,
-  the relation's `label` node, its `admin_centre` node under a name one
-  holds the other ("17e Arrondissement" in "Paris 17e Arrondissement"), or
-  lies inside it under the same name once "Quartier" and the articles are
-  set aside ("Batignolles", "Quartier des Batignolles"). The deepest level
-  wins.
-- A boundary at admin_level 9 or 10 that no place matches is written as a
-  place of its own at its ring's mean vertex, with its own `place` tag, or
-  else `suburb` at 9 and `quarter` at 10. That is how most of Paris's
-  quartiers come in: OpenStreetMap maps them as boundaries, not as places.
+## Tests
 
-Added on 2026-10-06 and backward compatible: a reader of the first format
-ignores the new key, and every `kind` is still one of the three. A tile
-built before carries no `admin_level`.
+The tests are plain Python scripts with asserts and need no network. `test_make_tiles.py` needs the packages in `requirements.txt`.
 
-### boundaries/
+```sh
+python3 -m pip install -r requirements.txt
+for t in test_*.py; do python3 "$t" || echo "FAIL $t"; done
+```
 
-Neighbourhood outlines, on the same 1/25° cells and keys as `places/` (since
-2026-10-10). Each tile is an array of `{"name", "level", "source", "polygons"}`:
-
-- Each outline is written once and whole, in the cell of its label point, not
-  cut at the cell's edges. The label point is the `places/` place of the same
-  name lying inside the outline (compared as `places/` compares names: case,
-  accents, punctuation, a leading "Quartier" and articles set aside), and
-  `name` is then written as in `places/`; else it is a point inside the
-  outline, and `name` is the source's (a name in capitals only is put in title
-  case).
-- `level` is the source's own word for the unit (`"quartier"`, `"Ortsteil"`,
-  `"wijk"`), or an integer, OpenStreetMap's `admin_level`, or its `place` tag
-  where the outline is a place polygon.
-- `source` is the key under which `sources/` names the source (below).
-- `polygons` is an array of polygons, each an array of rings: the outer ring
-  (counter-clockwise) first, then its holes (clockwise). Most outlines are one
-  polygon of one ring. A ring is `[y0, x0, dy1, dx1, …]`, as in `buildings-v2/`:
-  integers in 1e-5° steps, the first vertex from the key's corner (key / 25,
-  so it may be negative, or beyond the cell, for an outline reaching out of
-  it), each next from the one before; the ring is open (its first vertex is
-  not repeated).
-- Outlines are simplified at 5 m over each source's whole set, so an edge two
-  neighbours share is simplified once and stays shared, then rounded on the
-  absolute 1e-5° grid, so shared vertices stay equal.
-- A cell holding no label point has no file. The outlines are of one source
-  per area (where a city has two, as Paris has, each covers its own part).
-
-A `sources/` tile names, under `"boundaries"`, the source of the outline
-holding the cell's centre.
-
-### transit/
-
-Public-transport lines, on the same 1/25° cells and keys as `places/` (since
-2026-10-13; metro, tram, rail, bus and cable car), built on dispatch only, for the
-areas flagged `"streets": true`. Each tile is an array of
-`{"mode", "ref", "colour"?, "network"?, "operator"?, "stops", "points", "shape"}`:
-
-- `mode` is OpenStreetMap's `route`: `subway`, `tram`, `train`,
-  `light_rail`, `bus`, `trolleybus` or `aerialway`; `ref` the route's (else its route master's), `colour` the
-  same way, as `#RRGGBB`, absent when neither has a valid one.
-  `network` and `operator` the same way, absent when neither has one.
-- `stops` are the stop names in the route's order (`""` for an unnamed one);
-  `points` one per stop, `[y0, x0, dy1, dx1, …]` as in `boundaries/`:
-  1e-5° steps, the first from the key's corner (key / 25), each next from
-  the one before.
-- `shape` is the track: the route's other way members chained in member
-  order into runs (a new run where two ways do not meet), each simplified
-  at 10 m (Douglas–Peucker) and coded as `points`, each run from the key's
-  corner. `[]` when the route has no track ways.
-- A line is written whole in every cell one of its stops falls in. A route's
-  stops are its members with a stop role, else its platforms; two within
-  60 m are one. A route with no ref, a long-distance train (`service`
-  high_speed, long_distance, national, international, night, tourism, or a
-  network starting VIA Rail, Amtrak, TGV, Ouigo, Intercités, Eurostar or
-  Noctilien,
-  or a ref listing train numbers, or a train's ref holding a number of four
-  digits or more but where the network numbers its lines so, as the Dutch
-  Sprinters' "4000"), a
-  train whose ref starts with a high-speed brand (Frecciarossa,
-  Frecciargento, Frecciabianca, Italo, Railjet, Nightjet, EuroCity,
-  Intercity), a
-  coach (a network or operator starting Flixbus, FlixTrain, Flibco,
-  RegioJet, Autobuses de España, Rede Nacional de Expressos; a bus whose
-  stops reach more than 60 km from its first), a Co.Tra.L. bus (Rome's
-  regional coaches, whose refs are route codes), a night
-  bus or tram (a ref of "N" and a number; Prague's trams 91–99 and buses
-  9xx; Lisbon's Carris buses 201–210), a tourist line (Prague's trams 41
-  and 42, Amsterdam's museum tram, Barcelona Bus Turístic, a route tagged `tourism=yes`, a network or
-  operator holding Big Bus, Open Tour, Sightseeing, Hop-on, Tootbus,
-  Museum or Heritage, or a network of just "tourism") or
-  under two stops is left out, and so is one whose stop names all belong to
-  a longer route of the same mode and ref (the other direction, a short
-  working). A ref's bracketed service pattern is dropped first ("C-2
-  (CIVIS)" is "C-2"). A cell no line stops in has no file.
-
-## Weekly data check
-
-`.github/workflows/data-check.yml` runs `check_data.py` every Monday at
-01:23 UTC (before the tiles build) and on dispatch. Each permit and
-height feed of `make_tiles.py` is asked for one dense probe cell
-(`probes.json`, chosen once with `check_data.py pick`); its status, count
-and named / with-a-height share are compared with the last run's record
-(`data-check.json`, committed by the workflow) and with the published
-tile of that cell, and the licence string is read where the publisher has
-a metadata API. The coverage feed is sampled against the store's tiles
-(the check of compromise's `tools/coverage/check_feed.py`). A dead feed, a
-count or share fallen by more than half, a changed licence or a feed
-mismatch opens or updates the issue "Weekly data check"; a clean run
-closes it. When a row is added to `make_tiles.py`, run
-`python3 check_data.py pick` to give it a probe cell
-(`test_check_data.py` fails until it has one).
+They run on every push and pull request, and again before every build.
 
 ## Crowd export
 
-`https://tiles.alephb.uk/crowd/odbl/latest.csv.gz` lists facts about
-OpenStreetMap places that the app's users agreed on: OSM element type and
-id, fact, value, and the day it was agreed. A new file is built every week,
-with a dated copy beside it (`crowd/odbl/YYYY-MM-DD.csv.gz`). © Compromise
-contributors, available under the
-[Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/);
-its individual contents under the
-[Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/).
+`https://tiles.alephb.uk/crowd/odbl/latest.csv.gz` lists facts about OpenStreetMap places that the app's users agreed on: the OSM element type and id, the fact, its value and the day it was agreed. A new file is built every week, with a dated copy beside it (`crowd/odbl/YYYY-MM-DD.csv.gz`). © Compromise contributors, available under the [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/); its individual contents under the [Database Contents License 1.0](https://opendatacommons.org/licenses/dbcl/1-0/).
 
 ## Licences and credits
 
@@ -749,3 +609,7 @@ none, this says so rather than guessing.
 Every key is the rounded coordinate of a public area, and every area is
 named by its city, a district or a public street or square. Venue names are the trading names
 the city registers publish; nothing about a person beyond that.
+
+## Licence
+
+The tiles include OpenStreetMap data, so the tile set is published under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/), with each source credited above. The code has no licence, so all rights to it are reserved.
