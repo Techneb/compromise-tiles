@@ -286,6 +286,10 @@ none, this says so rather than guessing.
 - San Salvador: Ministerio de Turismo (MITUR), Altura de las edificaciones, made by
   Asociación Temporal Suma Cotrans City Plan ("Propiedad absoluta del Ministerio de
   Turismo"; no licence stated, credited to the publisher), the historic centre only.
+- Brussels: paradigm.brussels, UrbIS-Buildings3D (CC0).
+- Seattle: City of Seattle, Building Outlines 2015 (licence not stated by the publisher),
+  with the U.S. Geological Survey's 3D Elevation Program (public domain), combined with
+  OpenStreetMap's footprints.
 - Portland: City of Portland, Bureau of Planning and Sustainability, Building Footprints
   (licence not stated by the publisher).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
