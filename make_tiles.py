@@ -321,6 +321,25 @@ PERMIT_CITIES = [
     row("Detroit", "", "services2.arcgis.com/qvkbeam7Wirps6zC/arcgis/rest/services", "Encroachments_view_only/FeatureServer/0",
         "", [], (42.25, 42.46), (-83.29, -82.91), shape="arcgis", oid="FID", boundary=boundary("detroit"),
         filter="LOWER(ORIG_TYPE) LIKE '%cafe%' OR LOWER(ORIG_TYPE) LIKE '%patio%' OR LOWER(ORIG_TYPE) LIKE '%outdoor%'"),
+    # Step 4's US rows (2026-11-04), no licence stated on Baltimore's or Orlando's (credited to the publisher).
+    # Baltimore: CitiStat's 2020 Minor Privilege outdoor seating and café accounts (ArcGIS Online, 237 points, never
+    # refreshed), no venue name (the door rule; a permit no venue stands at hands nothing on). Orlando: the City's
+    # right-of-way use permits (Socrata, daily), the sidewalk-café applications whose milestone reads Active or
+    # Waiting for Renewal (18 of 100, 2026-11-04), named by project_name; gpsx/gpsy are Florida East State Plane feet.
+    # Only those four columns are asked: the dataset also holds contacts' names, phones and e-mails. Houston: the
+    # Health Department's approved dog patios (ODC-BY), a 2023 list geocoded once (permits/geocode_houston.py), kept
+    # only where a venue of today stands under the name. Each held to its OSM boundary; the box is the city's.
+    row("Baltimore", "", "services1.arcgis.com/UWYHeuuJISiGmgXx/arcgis/rest/services",
+        "2020_Minor_Privilege_accounts_outdoor_seating/FeatureServer/0", "", [], (39.1972, 39.372), (-76.7113, -76.5297),
+        shape="arcgis", oid="ObjectId", boundary=boundary("baltimore")),
+    row("Orlando", "", "data.cityoforlando.net",
+        "resource/6sbc-v4b9.csv?$select=project_name,application_milestone,gpsx,gpsy"
+        "&$where=application_type%3D%27Sidewalk%20Cafe%20Application%27", "project_name", ["application_milestone"],
+        (28.348, 28.6143), (-81.5076, -81.1241), shape="csv", point=("gpsy", "gpsx"),
+        grid=lambda e, n: florida_east_to_wgs84(e, n), keep=["Active", "Waiting for Renewal"], as_kind="TERRASSE",
+        clean="formerly", boundary=boundary("orlando")),
+    row("Houston", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/houston.geojson",
+        "name", [], (29.547, 30.1104), (-95.9098, -95.012), shape="geojson", match="venues", boundary=boundary("houston")),
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
@@ -2288,6 +2307,13 @@ def in_feed(b, lat, lon): return in_box(b, lat, lon) and (b["boundary"] is None 
 # returns only the footprints with a height (footprints(..., guess=False)).
 # A footprint no source gave a height is written at 15 m with "guessed": true (building()), so a
 # reader can tell it from a measured one; the app's rooftop test reads the flag (2026-10-04).
+def difference(p, top, ground):
+    """A roof level minus a ground level (Vienna's O_KOTE − T_KOTE, Hong Kong's mPD): None where either is missing."""
+    a, b = number(p.get(top)), number(p.get(ground))
+    return a - b if a is not None and b is not None else None
+
+USA_STRUCTURES = "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/USA_Structures_View/FeatureServer/0"
+
 CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
@@ -2462,6 +2488,27 @@ CITY_BUILDINGS = [
         "https://maps.memphistn.gov/mapping/rest/services/Basemaps/Common_Services_PROD/MapServer/28", r,
         ["MAXHT_F"], oid="OBJECTID"), lambda p: number(p.get("MAXHT_F")) * 0.3048 if 0 < (number(p.get("MAXHT_F")) or 0) < 600 else None)),
     # Riverside: the City's downtown buildings (HeightFt, 2019); a cell it leaves empty asks OSM next.
+    # Step 4 (2026-11-04). Houston and Orlando: FEMA/ORNL's USA Structures (CC BY 4.0), HEIGHT in metres, combined with
+    # OSM's footprints: its heights of the tallest towers run low (Orlando's 134 m SunTrust Center reads 56 m), so a
+    # mapper's height tag stays. San Salvador: MITUR's Altura de las edificaciones, the historic centre only (the box is
+    # the layer's extent; a cell it leaves empty asks OSM next), Altura_metros.
+    building_row("Houston", (29.547, 30.1104), (-95.9098, -95.012), boundary=boundary("houston"), combine="metres", fetch=lambda r: footprints(arcgis(
+        USA_STRUCTURES, r, ["HEIGHT"]), lambda p: number(p.get("HEIGHT")), guess=False)),
+    building_row("Orlando", (28.348, 28.6143), (-81.5076, -81.1241), boundary=boundary("orlando"), combine="metres", fetch=lambda r: footprints(arcgis(
+        USA_STRUCTURES, r, ["HEIGHT"]), lambda p: number(p.get("HEIGHT")), guess=False)),
+    building_row("San Salvador", (13.6945, 13.7012), (-89.2055, -89.1864), fetch=lambda r: footprints(arcgis(
+        "https://services8.arcgis.com/AamuaBHBnpGFgvGV/arcgis/rest/services/Altura_de_las_edificaciones/FeatureServer/9", r,
+        ["Altura_metros"]), lambda p: number(p.get("Altura_metros")))),
+    # Vienna: the Flächen-Mehrzweckkarte's Baukörpermodell (WFS, CC BY 4.0), one polygon per building part, O_KOTE − T_KOTE
+    # (roof minus ground, metres); only the Gebäude parts (portals, overhangs, kiosks left out). Stephansdom: 136 m.
+    # Hong Kong: LandsD's Building layer on CSDI (CSDI Portal Terms and Conditions), TopHeight − BaseHeight (mPD).
+    building_row("Vienna", (48.1179, 48.3227), (16.1818, 16.5776), boundary=boundary("vienna"), fetch=lambda r: footprints(
+        [f for f in wfs("https://data.wien.gv.at/daten/geo", {"TYPENAMES": "ogdwien:FMZKBKMOGD", "OUTPUTFORMAT": "json",
+            "SRSNAME": "urn:ogc:def:crs:EPSG::4326"}, r) if (f.get("properties") or {}).get("LAYER") == "Gebäude"],
+        lambda p: difference(p, "O_KOTE", "T_KOTE"), guess=False)),
+    building_row("Hong Kong", (22.1534, 22.562), (113.835, 114.4419), boundary=boundary("hong-kong"), fetch=lambda r: footprints(arcgis(
+        "https://portal.csdi.gov.hk/server/rest/services/common/landsd_rcd_1637211194312_35158/FeatureServer/0", r,
+        ["TopHeight", "BaseHeight"]), lambda p: difference(p, "TopHeight", "BaseHeight"))),
     building_row("Riverside", (33.8726, 34.0195), (-117.5238, -117.2788), boundary=boundary("riverside"), fetch=lambda r: footprints(arcgis(
         "https://services.arcgis.com/Fu2oOWg1Aw7azh41/arcgis/rest/services/DowntownBuildings/FeatureServer/0", r,
         ["HeightFt"], oid="FID"), lambda p: number(p.get("HeightFt")) * 0.3048 if number(p.get("HeightFt")) else None)),
@@ -2762,6 +2809,10 @@ def seattle_venue_name(text):
     if not re.search(r"[A-Za-z]", venue) or re.search(r"cafe|dining|sign|streatery|transfer|ownership|street use", venue, re.I): return None
     return venue
 
+def formerly_cut(text):
+    """Orlando's project_name: "The Cask (formerly Slyfox Game Room)" is The Cask."""
+    return re.sub(r"\s*\((?:formerly|fka)\b[^)]*\)", "", text, flags=re.I).strip() or None
+
 def not_applicable(text):
     """"N/A", a blank or a bare number names no company (Washington DC's ApplicantCompany on most rows)."""
     name = text.strip()
@@ -2769,7 +2820,7 @@ def not_applicable(text):
 
 CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name,
          "riga": riga_venue_name, "toronto": toronto_name, "helsinki": helsinki_venue_name, "seattle": seattle_venue_name,
-         "n/a": not_applicable}
+         "n/a": not_applicable, "formerly": formerly_cut}
 
 # A snapshot's permit survives only where a venue of today stands under its name (Los Angeles, a January 2021 list,
 # 2026-10-05). The venues are the published venues/ tiles (OpenStreetMap's: Apple's cannot be read from a build), within
@@ -2910,6 +2961,11 @@ def wgs84_to_tm(lat, lon, lon0, k0=0.9996, false_easting=500_000, false_northing
                                                         + (61 - 58 * t + t**2 + 600 * c - 330 * ep2) * A**6 / 720))
     return x, y
 
+def florida_east_to_wgs84(easting, northing):
+    """NAD83 / Florida East (EPSG:2236, US survey feet) → WGS84 (NAD83 taken as WGS84, ~1 m): Orlando's gpsx/gpsy."""
+    feet, lat0, lon0, k0 = 1200 / 3937, 24 + 1 / 3, -81, 0.999941177
+    return tm_to_wgs84(easting * feet, northing * feet, lon0, k0, 200_000, -wgs84_to_tm(lat0, lon0, lon0, k0, 0, 0)[1])
+
 def mercator_to_wgs84(x, y):
     """Web Mercator (EPSG:3857) → (lat, lon)."""
     r = 6_378_137.0
@@ -3002,9 +3058,12 @@ def csv_all(c):
         else: lat, _, lon = (r[c["point"]] or "").partition(",")
         lat, lon = number(lat.strip()), number(lon.strip())
         if lat is None or lon is None: continue
+        if c.get("grid"): lat, lon = c["grid"](lon, lat)  # a projected pair, given (northing, easting): Orlando
         item = {"kind": "TERRASSE FERMEE" if r[kind] in c.get("covered", []) else c.get("as_kind", r[kind]),
                 "coordinate": {"latitude": lat, "longitude": lon}}
-        if c["name"] and r[c["name"]]: item["name"] = r[c["name"]]
+        name = r[c["name"]].strip() if c["name"] and r[c["name"]] else None
+        if name and c.get("clean"): name = CLEAN[c["clean"]](name)
+        if name: item["name"] = name
         out.append(item)
     if not out: raise SourceError(f"{c['city']}: no terrace parsed")  # as for Madrid
     return out

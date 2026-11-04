@@ -3541,5 +3541,53 @@
       -122.472
     ],
     "boundary": "boundaries/portland.geojson"
+  },
+  {
+    "city": "Baltimore",
+    "streets": true,
+    "district": "Baltimore (whole municipality)",
+    "box": [
+      39.1972,
+      -76.7113,
+      39.372,
+      -76.5297
+    ],
+    "boundary": "boundaries/baltimore.geojson"
+  },
+  {
+    "city": "Houston",
+    "streets": true,
+    "district": "Houston (whole municipality)",
+    "box": [
+      29.547,
+      -95.9098,
+      30.1104,
+      -95.012
+    ],
+    "boundary": "boundaries/houston.geojson"
+  },
+  {
+    "city": "Orlando",
+    "streets": true,
+    "district": "Orlando (whole municipality)",
+    "box": [
+      28.348,
+      -81.5076,
+      28.6143,
+      -81.1241
+    ],
+    "boundary": "boundaries/orlando.geojson"
+  },
+  {
+    "city": "San Salvador",
+    "streets": true,
+    "district": "San Salvador (whole municipality)",
+    "box": [
+      13.6326,
+      -89.2768,
+      13.746,
+      -89.1629
+    ],
+    "boundary": "boundaries/san-salvador.geojson"
   }
 ]

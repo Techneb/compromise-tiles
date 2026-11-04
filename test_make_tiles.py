@@ -546,6 +546,32 @@ assert [t["name"] for t in got] == ["Schragels Delicatessen", "LA VERDE", "JASPA
 assert got[0]["coordinate"] == {"latitude": 22.380985997573212, "longitude": 114.27342300252502}
 assert "(NSEARCH04_EN LIKE '%#A%') AND OBJECTID>-1" in asked[0] and "outFields=OBJECTID,NSEARCH03_EN" in asked[0]
 make_tiles.get = real_get
+# Orlando: the whole-CSV reader with a projected pair (Florida East State Plane feet), only the cafés whose milestone
+# reads Active or Waiting for Renewal, "(formerly …)" cut from the name (four real rows, 2026-11-04).
+make_tiles.get = lambda url, **k: open("fixtures/orlando.csv", "rb").read()
+orlando = next(c for c in PERMIT_CITIES if c["city"] == "Orlando")
+got = permits(orlando, (28.348, -81.5076, 28.6143, -81.1241))
+assert [t["name"] for t in got] == ["SLYFOX PUB", "The Cask", "Downtown Entertainment (EMBER)"] and all(t["kind"] == "TERRASSE" for t in got)
+assert abs(got[0]["coordinate"]["latitude"] - 28.54332) < 1e-4 and abs(got[0]["coordinate"]["longitude"] + 81.37887) < 1e-4
+make_tiles.get = real_get
+assert "gpsx" in orlando["dataset"] and "contact" not in orlando["dataset"]   # never the contacts' columns
+# Houston: the geocoded snapshot, every patio named, kept only under a venue of today's name.
+houston = next(c for c in PERMIT_CITIES if c["city"] == "Houston")
+with open("permits/houston.geojson") as f: patios = permit_items(json.load(f)["features"], houston)
+assert len(patios) == 37 and all(t.get("name") for t in patios) and houston["match"] == "venues"
+assert feed(39.2860, -76.6080) == "Baltimore" and feed(28.5420, -81.3790) == "Orlando" and feed(29.7600, -95.3630) == "Houston"
+assert feed(39.4000, -76.6000) is None   # Towson, Baltimore County: in no city's box
+# Vienna: only the Baukörpermodell's Gebäude parts, roof minus ground; a portal and a part with no roof level are left out.
+square = {"type": "Polygon", "coordinates": [[[16.372, 48.208], [16.373, 48.208], [16.373, 48.209], [16.372, 48.208]]]}
+parts = [{"properties": {"LAYER": "Gebäude", "O_KOTE": 151.7, "T_KOTE": 15.4}, "geometry": square},
+         {"properties": {"LAYER": "Portal", "O_KOTE": 20.0, "T_KOTE": 15.4}, "geometry": square},
+         {"properties": {"LAYER": "Gebäude", "O_KOTE": None, "T_KOTE": 15.4}, "geometry": square}]
+make_tiles.get_json, real_get_json = (lambda url, **k: {"features": parts}), make_tiles.get_json
+vienna_b = next(b for b in CITY_BUILDINGS if b["city"] == "Vienna")["fetch"]((48.20, 16.37, 48.21, 16.38))
+assert [b["height"] for b in vienna_b] == [136.3] and not vienna_b[0].get("guessed")
+make_tiles.get_json = real_get_json
+assert make_tiles.difference({"TopHeight": 75.2, "BaseHeight": 4.1}, "TopHeight", "BaseHeight") == 75.2 - 4.1
+assert make_tiles.difference({"TopHeight": None, "BaseHeight": 4.1}, "TopHeight", "BaseHeight") is None
 assert feed(22.2810, 114.1580) == "Hong Kong" and feed(22.3820, 114.2720) == "Hong Kong" and feed(22.5430, 114.0580) is None
 assert feed(51.4977, -0.1958) == "Kensington and Chelsea" and feed(51.4913, -0.1950) == "Kensington and Chelsea" and feed(51.5150, -0.2050) == "Kensington and Chelsea"
 assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) is None

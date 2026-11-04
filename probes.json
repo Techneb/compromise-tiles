@@ -840,5 +840,39 @@
  "buildings/Warsaw": {
   "key": "26114,10506",
   "picked": "2026-10-25"
+ },
+ "permits/Baltimore": {
+  "key": "19641,-38296",
+  "picked": "2026-11-04"
+ },
+ "permits/Orlando": {
+  "key": "14271,-40689",
+  "picked": "2026-11-04"
+ },
+ "permits/Houston": {
+  "key": "14876,-47704",
+  "picked": "2026-11-04"
+ },
+ "buildings/Houston": {
+  "key": "14880,-47681",
+  "picked": "2026-11-04",
+  "combine": true
+ },
+ "buildings/Orlando": {
+  "key": "14271,-40689",
+  "picked": "2026-11-04",
+  "combine": true
+ },
+ "buildings/San Salvador": {
+  "key": "6848,-44595",
+  "picked": "2026-11-04"
+ },
+ "buildings/Vienna": {
+  "key": "24104,8186",
+  "picked": "2026-11-04"
+ },
+ "buildings/Hong Kong": {
+  "key": "11140,57079",
+  "picked": "2026-11-04"
  }
 }

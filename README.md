@@ -153,6 +153,13 @@ none, this says so rather than guessing.
   publisher).
 - Québec: Ville de Québec, Permis délivrés à la Ville de Québec (Données
   Québec), Attribution (CC-BY 4.0).
+- Baltimore: City of Baltimore (CitiStat), 2020 Minor Privilege accounts outdoor
+  seating (licence not stated by the publisher).
+- Orlando: City of Orlando, Use Permit Applications: Right of Way, Sidewalk Café
+  (licence not stated by the publisher).
+- Houston: City of Houston, Houston Health Department, Food Establishments with
+  HDHHS Approved Dog Patios (Open Data Commons Attribution License); placed once
+  with the US Census Bureau's geocoder (public domain).
 
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
@@ -271,6 +278,14 @@ none, this says so rather than guessing.
   publisher).
 - Memphis: City of Memphis, Building Footprints (licence not stated by the publisher).
 - Riverside: City of Riverside, Downtown Buildings (licence not stated by the publisher).
+- Vienna: City of Vienna, Flächen-Mehrzweckkarte Baukörpermodell (data.wien.gv.at, CC BY 4.0).
+- Hong Kong: Lands Department, Building, through the Common Spatial Data Infrastructure
+  portal (CSDI Portal Terms and Conditions: free reuse with the source identified).
+- Houston, Orlando: Oak Ridge National Laboratory (ORNL) and FEMA Geospatial Response
+  Office, USA Structures (CC BY 4.0), combined with OpenStreetMap's footprints.
+- San Salvador: Ministerio de Turismo (MITUR), Altura de las edificaciones, made by
+  Asociación Temporal Suma Cotrans City Plan ("Propiedad absoluta del Ministerio de
+  Turismo"; no licence stated, credited to the publisher), the historic centre only.
 - Portland: City of Portland, Bureau of Planning and Sustainability, Building Footprints
   (licence not stated by the publisher).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung
@@ -361,7 +376,8 @@ none, this says so rather than guessing.
   Winnipeg, Québec, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn,
   Hannover, Augsburg, Brno, Wellington, Catania, Tucson, Leipzig, Dresden, Mannheim, Bremen, Detroit, Pittsburgh,
   Columbus, Anaheim, Las Vegas, Long Beach, Cincinnati, Nashville, Louisville, Phoenix, Omaha, Memphis,
-  Riverside, Lublin, Bydgoszcz, Espoo, Graz, Tallinn, Gdańsk, Portland:
+  Riverside, Lublin, Bydgoszcz, Espoo, Graz, Tallinn, Gdańsk, Portland, Baltimore,
+  Orlando, Houston, San Salvador:
   © OpenStreetMap contributors, ODbL (each municipality's
   administrative boundary).
 - Abu Gosh, Albireh, Azor, Bat Yam, Beit Sahur, Beitar Ilit, Bethlehem,
