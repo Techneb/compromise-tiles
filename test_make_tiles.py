@@ -572,6 +572,33 @@ assert [b["height"] for b in vienna_b] == [136.3] and not vienna_b[0].get("guess
 make_tiles.get_json = real_get_json
 assert make_tiles.difference({"TopHeight": 75.2, "BaseHeight": 4.1}, "TopHeight", "BaseHeight") == 75.2 - 4.1
 assert make_tiles.difference({"TopHeight": None, "BaseHeight": 4.1}, "TopHeight", "BaseHeight") is None
+# Brussels: Lambert 72 (EPSG:31370) both ways, against PROJ's BD72 → WGS84 (pyproj 3.7, 2026-11-04): within 1e-5°, ~1 m.
+for (x, y), (lat, lon) in {(150000, 170000): (50.84041128, 4.36875214), (140000, 160000): (50.75042998, 4.22704759),
+                           (155000, 180000): (50.93028346, 4.43987661)}.items():
+    got = make_tiles.lambert72_to_wgs84(x, y)
+    assert abs(got[0] - lat) < 1e-5 and abs(got[1] - lon) < 1e-5, got
+    back = make_tiles.wgs84_to_lambert72(lat, lon)
+    assert abs(back[0] - x) < 1 and abs(back[1] - y) < 1, back
+# One real UrbIS-Buildings3D solid (tile 148170, 2026-10-03, by the Grand-Place): its flat bottom ring the outline, its
+# z range (30.17 to 46.59 m) the height.
+with open("fixtures/brussels-solid.shp", "rb") as f: solids = make_tiles.urbis_solids(f.read())
+assert len(solids) == 1 and solids[0]["height"] == 16.4 and not solids[0].get("guessed")
+assert len(solids[0]["outline"]) == 7 and solids[0]["outline"][0] == solids[0]["outline"][-1]
+assert all(abs(p["latitude"] - 50.84404) < 1e-4 and abs(p["longitude"] - 4.35238) < 2e-4 for p in solids[0]["outline"])
+assert at(50.8467, 4.3525) == "Brussels" and at(50.8950, 4.3410) == "Brussels"   # Grand-Place; Laeken
+# Seattle: Building Outlines 2015's roof apex (BP99_APEX, feet above NAVD88) less the 3DEP ground under the outline's
+# centre (a real 80×60 export of downtown, 2026-11-04): Columbia Center's tower, apex 1,053 ft, reads ~280 m (its roof
+# is 284 m). An apex under 2 m above the ground, or none, is left out (OSM's own height stays: a combine row).
+with open("fixtures/seattle-dem.tif", "rb") as f: dem = make_tiles.geotiff(f.read())
+ground = make_tiles.sampler(dem, (47.602, -122.336, 47.608, -122.328))
+assert 41 < ground(47.60445, -122.33078) < 42 and ground(47.61, -122.33) is None
+tower = {"type": "Polygon", "coordinates": [[[-122.3310, 47.6043], [-122.3305, 47.6043], [-122.3305, 47.6046], [-122.3310, 47.6043]]]}
+got = make_tiles.apex_heights([{"properties": {"BP99_APEX": 1053}, "geometry": tower},
+                               {"properties": {"BP99_APEX": 136}, "geometry": tower},
+                               {"properties": {"BP99_APEX": None}, "geometry": tower}], ground)
+assert len(got) == 1 and 278 < got[0]["height"] < 284, got
+assert at(47.6045, -122.3308) == "Seattle" and at(47.6600, -122.3130) == "Seattle"
+assert next(b for b in CITY_BUILDINGS if b["city"] == "Seattle")["combine"] == "metres"
 assert feed(22.2810, 114.1580) == "Hong Kong" and feed(22.3820, 114.2720) == "Hong Kong" and feed(22.5430, 114.0580) is None
 assert feed(51.4977, -0.1958) == "Kensington and Chelsea" and feed(51.4913, -0.1950) == "Kensington and Chelsea" and feed(51.5150, -0.2050) == "Kensington and Chelsea"
 assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) is None

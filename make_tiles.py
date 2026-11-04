@@ -1654,23 +1654,63 @@ def lod1_buildings(raw, to_wgs84=cs92_to_wgs84):
         el.clear()
     return out
 
-def lcc3301_to_wgs84(easting, northing):
-    """Estonia's L-EST97 (EPSG:3301, Lambert conformal conic on GRS80) → WGS84, Snyder's ellipsoidal inverse."""
-    a, f = 6_378_137.0, 1 / 298.257222101
+def lcc(a, f, lat1, lat2, lat0, lon0, east0, north0):
+    """A Lambert conformal conic with two standard parallels, Snyder's ellipsoidal formulas: (forward, inverse),
+    forward (lat, lon) → (easting, northing) on the projection's own ellipsoid, inverse back."""
     e = math.sqrt(f * (2 - f))
-    lat1, lat2, lat0, lon0 = map(math.radians, (59 + 1 / 3, 58, 57.51755393055556, 24))
+    lat1, lat2, lat0, lon0 = map(math.radians, (lat1, lat2, lat0, lon0))
     m = lambda p: math.cos(p) / math.sqrt(1 - (e * math.sin(p))**2)
     t = lambda p: math.tan(math.pi / 4 - p / 2) / ((1 - e * math.sin(p)) / (1 + e * math.sin(p)))**(e / 2)
     n = (math.log(m(lat1)) - math.log(m(lat2))) / (math.log(t(lat1)) - math.log(t(lat2)))
     big_f = m(lat1) / (n * t(lat1)**n)
     rho0 = a * big_f * t(lat0)**n
-    x, y = easting - 500_000, rho0 - (northing - 6_375_000)
-    rho, theta = math.copysign(math.hypot(x, y), n), math.atan2(x, y)
-    tt = (rho / (a * big_f))**(1 / n)
-    phi = math.pi / 2 - 2 * math.atan(tt)
-    for _ in range(8):
-        phi = math.pi / 2 - 2 * math.atan(tt * ((1 - e * math.sin(phi)) / (1 + e * math.sin(phi)))**(e / 2))
-    return math.degrees(phi), math.degrees(theta / n + lon0)
+    def forward(lat, lon):
+        rho, theta = a * big_f * t(math.radians(lat))**n, n * (math.radians(lon) - lon0)
+        return east0 + rho * math.sin(theta), north0 + rho0 - rho * math.cos(theta)
+    def inverse(easting, northing):
+        x, y = easting - east0, rho0 - (northing - north0)
+        rho, theta = math.copysign(math.hypot(x, y), n), math.atan2(x, y)
+        tt = (rho / (a * big_f))**(1 / n)
+        phi = math.pi / 2 - 2 * math.atan(tt)
+        for _ in range(8):
+            phi = math.pi / 2 - 2 * math.atan(tt * ((1 - e * math.sin(phi)) / (1 + e * math.sin(phi)))**(e / 2))
+        return math.degrees(phi), math.degrees(theta / n + lon0)
+    return forward, inverse
+
+L_EST97 = lcc(6_378_137.0, 1 / 298.257222101, 59 + 1 / 3, 58, 57.51755393055556, 24, 500_000, 6_375_000)
+
+def lcc3301_to_wgs84(easting, northing):
+    """Estonia's L-EST97 (EPSG:3301, Lambert conformal conic on GRS80) → WGS84."""
+    return L_EST97[1](easting, northing)
+
+def helmert(lat, lon, source, target, shift):
+    """Geodetic (lat, lon) on the ellipsoid `source` (a, f) → on `target`, through a 7-parameter shift (tx, ty, tz in
+    metres; rx, ry, rz in arc-seconds, position vector convention; s in ppm), the height taken as zero."""
+    (a, f), p, l = source, math.radians(lat), math.radians(lon)
+    e2 = f * (2 - f)
+    nu = a / math.sqrt(1 - e2 * math.sin(p) ** 2)
+    x, y, z = nu * math.cos(p) * math.cos(l), nu * math.cos(p) * math.sin(l), (1 - e2) * nu * math.sin(p)
+    tx, ty, tz, *r, s = shift
+    (rx, ry, rz), s = (math.radians(v / 3600) for v in r), 1 + s * 1e-6
+    x, y, z = tx + s * (x - rz * y + ry * z), ty + s * (rz * x + y - rx * z), tz + s * (-ry * x + rx * y + z)
+    (a, f) = target
+    e2, q = f * (2 - f), math.hypot(x, y)
+    p = math.atan2(z, q * (1 - e2))
+    for _ in range(6): p = math.atan2(z + e2 * a / math.sqrt(1 - e2 * math.sin(p) ** 2) * math.sin(p), q)
+    return math.degrees(p), math.degrees(math.atan2(y, x))
+
+# Belgian Lambert 72 (EPSG:31370) on BD72's International 1924 ellipsoid, and EPSG's BD72 → WGS84 shift (transformation
+# 15929, ~1 m), reversed by its negation: within 1e-5° of PROJ over Brussels (test_make_tiles.py).
+INTERNATIONAL_1924, WGS84_ELLIPSOID = (6_378_388.0, 1 / 297), (6_378_137.0, 1 / 298.257223563)
+LAMBERT_72 = lcc(*INTERNATIONAL_1924, 51 + 10 / 60 + 0.00204 / 3600, 49 + 50 / 60 + 0.00204 / 3600, 90,
+                 4 + 22 / 60 + 2.952 / 3600, 150_000.013, 5_400_088.438)
+BD72_TO_WGS84 = (-106.8686, 52.2978, -103.7239, 0.3366, -0.457, 1.8422, -1.2747)
+
+def lambert72_to_wgs84(easting, northing):
+    return helmert(*LAMBERT_72[1](easting, northing), INTERNATIONAL_1924, WGS84_ELLIPSOID, BD72_TO_WGS84)
+
+def wgs84_to_lambert72(lat, lon):
+    return LAMBERT_72[0](*helmert(lat, lon, WGS84_ELLIPSOID, INTERNATIONAL_1924, tuple(-v for v in BD72_TO_WGS84)))
 
 def triangles_outline(faces):
     """The outer ring of a footprint drawn as triangles (Estonia's LoD1 bottom faces): the edges used once, chained,
@@ -2314,6 +2354,96 @@ def difference(p, top, ground):
 
 USA_STRUCTURES = "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/USA_Structures_View/FeatureServer/0"
 
+# Seattle's Building Outlines 2015 (roof outlines, BP99_APEX the roof apex's elevation in feet above NAVD88) and the
+# USGS 3DEP bare-earth elevation (public domain, NAVD88 metres), exported for a block as an uncompressed float32 GeoTIFF.
+SEATTLE_OUTLINES = "https://services.arcgis.com/ZOyb2t4B0UYuYNYH/arcgis/rest/services/Building_Outline_2015/FeatureServer/0"
+USGS_DEM = ("https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage?bbox={},{},{},{}"
+            "&bboxSR=4326&imageSR=4326&size={},{}&format=tiff&pixelType=F32&interpolation=RSP_BilinearInterpolation&f=image")
+DEM_STEP = 1e-4   # degrees a ground pixel: ~11 m north–south, ~7.5 m east–west at Seattle; the ground under a roof
+DEM_PAD = 200     # metres the ground grid reaches past a block: an outline it meets may have its centre outside
+FOOT = 0.3048
+
+def sampler(tiff, rect):
+    """A ground grid's elevation at a point (its pixel), None outside the grid or on a no-data pixel. `tiff` is
+    geotiff()'s answer for the lat/lon `rect`, which sets the pixel size."""
+    west, north, width, height, values = tiff
+    s, w, n, e = rect
+    def at(lat, lon):
+        x, y = math.floor((lon - west) / (e - w) * width), math.floor((north - lat) / (n - s) * height)
+        if not (0 <= x < width and 0 <= y < height): return None
+        v = values[y * width + x]
+        return v if v > -1e30 else None
+    return at
+
+def usgs_ground(rect):
+    s, w, n, e = padded(rect, DEM_PAD)
+    width, height = math.ceil((e - w) / DEM_STEP), math.ceil((n - s) / DEM_STEP)
+    s, w, n, e = rect = s, w, s + height * DEM_STEP, w + width * DEM_STEP   # square pixels: the server keeps the box as asked
+    tiff = get(USGS_DEM.format(w, s, e, n, width, height), parse=geotiff)
+    if abs(tiff[0] - w) > 1e-6 or abs(tiff[1] - n) > 1e-6: raise SourceError(f"3DEP: grid at {tiff[:2]}, asked {w},{n}")
+    return sampler(tiff, rect)
+
+def apex_heights(features, ground):
+    """Seattle's outlines: the apex less the ground under the outline's centre (the mean of its vertices). One with no
+    apex, no ground, or under 2 m above it (an outline the apex survey missed) is left out: OSM's own height stays."""
+    out = []
+    for f in features:
+        apex = number((f.get("properties") or {}).get("BP99_APEX"))
+        for ring in outer_rings(f.get("geometry")) if apex else ():
+            g = ground(sum(p["latitude"] for p in ring) / len(ring), sum(p["longitude"] for p in ring) / len(ring))
+            if g is not None and apex * FOOT - g >= 2: out.append(building(ring, apex * FOOT - g))
+    return out
+
+def seattle(rect):
+    return apex_heights(arcgis(SEATTLE_OUTLINES, rect, ["BP99_APEX"], where="BP99_TYPE IN ('BLD','GAR')"), usgs_ground(rect))
+
+# Brussels: UrbIS-Buildings3D (paradigm.brussels, CC0), LoD2 solids in 1 km Shapefile tiles in Lambert 72, named by the
+# south-west corner in km and dated (monthly); the INSPIRE ATOM feed lists every tile's every date.
+URBIS_FEED = "https://urbisdownload.datastore.brussels/atomfeed/e9ec2aa4-cffd-11ee-bccc-00090ffe0001-en.xml"
+_urbis = {}   # "feed" → {(km east, km north): the latest tile's URL}; a tile's URL → its buildings, parsed once a run
+
+def urbis_solids(raw):
+    """UrbIS-Buildings3D's BuildingSolids .shp (MultiPatch, one closed solid per record): the rings lying flat at the
+    solid's lowest z make its outline (triangles_outline), its z range its height. Every part is a ring (FirstRing, on
+    all 3,569 solids of tile 148170, 2026-10-03); a solid whose bottom is not flat (6 of them there) is left out."""
+    out, at = [], 100
+    while at + 8 <= len(raw):
+        size = 2 * struct.unpack_from(">i", raw, at + 4)[0]
+        body, at = raw[at + 8:at + 8 + size], at + 8 + size
+        if len(body) < 44 or struct.unpack_from("<i", body)[0] != 31: continue
+        parts, points = struct.unpack_from("<ii", body, 36)
+        starts = struct.unpack_from(f"<{parts}i", body, 44) + (points,)
+        o = 44 + 8 * parts
+        xy = struct.unpack_from(f"<{2 * points}d", body, o)
+        low, high = struct.unpack_from("<2d", body, o + 16 * points)
+        z = struct.unpack_from(f"<{points}d", body, o + 16 * points + 16)
+        ring = triangles_outline([[(xy[2 * i], xy[2 * i + 1]) for i in range(a, b)]
+                                  for a, b in zip(starts, starts[1:]) if all(z[i] - low < 0.01 for i in range(a, b))])
+        if ring: out.append(building([vertex(*lambert72_to_wgs84(x, y)) for x, y in ring], high - low if high > low else None))
+    return out
+
+def urbis(rect):
+    """The UrbIS solids of every tile the rect meets (the feed read once a run; a tile's BuildingSolids layer fetched
+    by range once a year, zip_layer), those with a vertex in the rect."""
+    if "feed" not in _urbis:
+        latest = {}
+        for url, e, n, day in re.findall(r'href="([^"]*/SHP/UrbISBuildings3D_31370_SHP_(\d{3})(\d{3})_(\d{8})\.zip)"', get(URBIS_FEED).decode()):
+            if day > latest.get((int(e), int(n)), ("", ""))[0]: latest[(int(e), int(n))] = (day, url)
+        if not latest: raise SourceError("UrbIS: no SHP tile in the feed")
+        _urbis["feed"] = {k: url for k, (_, url) in latest.items()}
+    s, w, n, e = rect
+    corners = [wgs84_to_lambert72(la, lo) for la in (s, n) for lo in (w, e)]
+    out = []
+    for x in range(int(min(c[0] for c in corners) // 1000), int(max(c[0] for c in corners) // 1000) + 1):
+        for y in range(int(min(c[1] for c in corners) // 1000), int(max(c[1] for c in corners) // 1000) + 1):
+            url = _urbis["feed"].get((x, y))
+            if url is None: continue   # outside the Region
+            if url not in _urbis:
+                with open(zip_layer(url, f"UrbISBuildings3D_{x}{y}_BuildingSolids", "urbis") + ".shp", "rb") as f:
+                    _urbis[url] = urbis_solids(f.read())
+            out += [b for b in _urbis[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
+    return out
+
 CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
@@ -2509,6 +2639,11 @@ CITY_BUILDINGS = [
     building_row("Hong Kong", (22.1534, 22.562), (113.835, 114.4419), boundary=boundary("hong-kong"), fetch=lambda r: footprints(arcgis(
         "https://portal.csdi.gov.hk/server/rest/services/common/landsd_rcd_1637211194312_35158/FeatureServer/0", r,
         ["TopHeight", "BaseHeight"]), lambda p: difference(p, "TopHeight", "BaseHeight"))),
+    # Brussels: UrbIS-Buildings3D's LoD2 solids (CC0), the city's own footprints; the Town Hall's tower reads 93 m.
+    # Seattle: Building Outlines 2015's roof apex less the 3DEP ground (licence not stated: credited to the City),
+    # combined with OSM's footprints: the outlines are 2015's, OSM's are newer.
+    building_row("Brussels", (50.7963, 50.9139), (4.3137, 4.4371), boundary=boundary("brussels"), fetch=urbis),
+    building_row("Seattle", (47.4956, 47.7342), (-122.436, -122.2359), boundary=boundary("seattle"), combine="metres", fetch=seattle),
     building_row("Riverside", (33.8726, 34.0195), (-117.5238, -117.2788), boundary=boundary("riverside"), fetch=lambda r: footprints(arcgis(
         "https://services.arcgis.com/Fu2oOWg1Aw7azh41/arcgis/rest/services/DowntownBuildings/FeatureServer/0", r,
         ["HeightFt"], oid="FID"), lambda p: number(p.get("HeightFt")) * 0.3048 if number(p.get("HeightFt")) else None)),

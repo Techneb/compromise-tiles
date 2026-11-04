@@ -874,5 +874,14 @@
  "buildings/Hong Kong": {
   "key": "11140,57079",
   "picked": "2026-11-04"
+ },
+ "buildings/Brussels": {
+  "key": "25423,2176",
+  "picked": "2026-11-04"
+ },
+ "buildings/Seattle": {
+  "key": "23807,-61172",
+  "picked": "2026-11-04",
+  "combine": true
  }
 }
