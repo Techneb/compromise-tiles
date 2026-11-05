@@ -290,6 +290,9 @@ none, this says so rather than guessing.
 - Seattle: City of Seattle, Building Outlines 2015 (licence not stated by the publisher),
   with the U.S. Geological Survey's 3D Elevation Program (public domain), combined with
   OpenStreetMap's footprints.
+- Virginia Beach: City of Virginia Beach, Center for GIS, Building Footprints (© City of
+  Virginia Beach; licence not stated by the publisher), with the U.S. Geological Survey's 3D
+  Elevation Program (public domain).
 - Portland: City of Portland, Bureau of Planning and Sustainability, Building Footprints
   (licence not stated by the publisher).
 - Hannover: LGLN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland – Namensnennung

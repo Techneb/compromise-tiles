@@ -2383,19 +2383,33 @@ def usgs_ground(rect):
     if abs(tiff[0] - w) > 1e-6 or abs(tiff[1] - n) > 1e-6: raise SourceError(f"3DEP: grid at {tiff[:2]}, asked {w},{n}")
     return sampler(tiff, rect)
 
-def apex_heights(features, ground):
-    """Seattle's outlines: the apex less the ground under the outline's centre (the mean of its vertices). One with no
-    apex, no ground, or under 2 m above it (an outline the apex survey missed) is left out: OSM's own height stays."""
+def apex_heights(features, ground, field="BP99_APEX", guess=False):
+    """Roof elevations in feet above NAVD88 (Seattle's BP99_APEX, Virginia Beach's HEIGHT_HIGHEST) less the ground under
+    the outline's centre (the mean of its vertices). One with no apex, no ground, under 2 m above it (an outline the apex
+    survey missed) or over 400 m (Virginia Beach's few apexes typed as a year, 2020 ft) is left out: OSM's own height
+    stays (a combine row). With guess=True one with no apex at all is kept at the flagged 15 m guess instead."""
     out = []
     for f in features:
-        apex = number((f.get("properties") or {}).get("BP99_APEX"))
-        for ring in outer_rings(f.get("geometry")) if apex else ():
-            g = ground(sum(p["latitude"] for p in ring) / len(ring), sum(p["longitude"] for p in ring) / len(ring))
-            if g is not None and apex * FOOT - g >= 2: out.append(building(ring, apex * FOOT - g))
+        apex = number((f.get("properties") or {}).get(field))
+        for ring in outer_rings(f.get("geometry")) if apex or guess else ():
+            g = ground(sum(p["latitude"] for p in ring) / len(ring), sum(p["longitude"] for p in ring) / len(ring)) if apex else None
+            if g is not None and 2 <= apex * FOOT - g <= 400: out.append(building(ring, apex * FOOT - g))
+            elif not apex: out.append(building(ring, None))
     return out
 
 def seattle(rect):
     return apex_heights(arcgis(SEATTLE_OUTLINES, rect, ["BP99_APEX"], where="BP99_TYPE IN ('BLD','GAR')"), usgs_ground(rect))
+
+# Virginia Beach's Structures_Buildings (232,372 outlines from the City's aerials, 2017–2026): HEIGHT_HIGHEST is the
+# roof's highest point in feet above NAVD88, not above the ground (HEIGHT_LOWEST, the lowest roof point, never lies
+# below 3DEP's ground; the raw value rises with the ground, 2026-11-05). A shed, canopy or other structure with no
+# height is left out rather than guessed at 15 m; a building with none keeps the guess.
+VIRGINIA_BEACH_BUILDINGS = "https://geo.vbgov.com/mapservices/rest/services/Basemaps/VB_Basemap/MapServer/8"
+
+def virginia_beach(rect):
+    return apex_heights(arcgis(VIRGINIA_BEACH_BUILDINGS, rect, ["HEIGHT_HIGHEST"],
+                               where="HEIGHT_HIGHEST > 0 OR FCODE LIKE 'Building%' OR FCODE = 'Parking Garage'"),
+                        usgs_ground(rect), field="HEIGHT_HIGHEST", guess=True)
 
 # Brussels: UrbIS-Buildings3D (paradigm.brussels, CC0), LoD2 solids in 1 km Shapefile tiles in Lambert 72, named by the
 # south-west corner in km and dated (monthly); the INSPIRE ATOM feed lists every tile's every date.
@@ -2644,6 +2658,10 @@ CITY_BUILDINGS = [
     # combined with OSM's footprints: the outlines are 2015's, OSM's are newer.
     building_row("Brussels", (50.7963, 50.9139), (4.3137, 4.4371), boundary=boundary("brussels"), fetch=urbis),
     building_row("Seattle", (47.4956, 47.7342), (-122.436, -122.2359), boundary=boundary("seattle"), combine="metres", fetch=seattle),
+    # Virginia Beach: the City's own outlines, HEIGHT_HIGHEST (feet above NAVD88) less the 3DEP ground (warranty
+    # disclaimer only: credited to the City). The box is the layer's extent; the city is not tiled yet (no user asked),
+    # and its row takes a boundary("virginia-beach") when it is, so Norfolk's and Chesapeake's edge cells stay off it.
+    building_row("Virginia Beach", (36.5487, 36.9315), (-76.2281, -75.8681), fetch=virginia_beach),
     building_row("Riverside", (33.8726, 34.0195), (-117.5238, -117.2788), boundary=boundary("riverside"), fetch=lambda r: footprints(arcgis(
         "https://services.arcgis.com/Fu2oOWg1Aw7azh41/arcgis/rest/services/DowntownBuildings/FeatureServer/0", r,
         ["HeightFt"], oid="FID"), lambda p: number(p.get("HeightFt")) * 0.3048 if number(p.get("HeightFt")) else None)),

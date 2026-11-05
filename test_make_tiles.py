@@ -599,6 +599,15 @@ got = make_tiles.apex_heights([{"properties": {"BP99_APEX": 1053}, "geometry": t
 assert len(got) == 1 and 278 < got[0]["height"] < 284, got
 assert at(47.6045, -122.3308) == "Seattle" and at(47.6600, -122.3130) == "Seattle"
 assert next(b for b in CITY_BUILDINGS if b["city"] == "Seattle")["combine"] == "metres"
+# Virginia Beach: HEIGHT_HIGHEST (feet above NAVD88, real values of 2026-11-05) less the ground (4 m here): the Westin's
+# outline (437.86 ft) ~129 m, the Armada Hoffler Tower (321.98 ft) ~94 m; an apex typed as a year (2020) is left out;
+# a building with no height keeps the 15 m guess (the reader asks only buildings and measured structures for none).
+vb = make_tiles.apex_heights([{"properties": {"HEIGHT_HIGHEST": h}, "geometry": tower} for h in (437.86, 321.98, 2020.0, None)],
+                             lambda lat, lon: 4.0, field="HEIGHT_HIGHEST", guess=True)
+assert [b["height"] for b in vb] == [129.5, 94.1, 15] and vb[2]["guessed"] and not vb[0].get("guessed"), vb
+vb_row = next(b for b in CITY_BUILDINGS if b["city"] == "Virginia Beach")
+assert vb_row["fetch"] is make_tiles.virginia_beach and not vb_row["combine"]
+assert at(36.8434, -76.1348) == "Virginia Beach" and at(36.8530, -75.9780) == "Virginia Beach"   # Town Center; Oceanfront
 assert feed(22.2810, 114.1580) == "Hong Kong" and feed(22.3820, 114.2720) == "Hong Kong" and feed(22.5430, 114.0580) is None
 assert feed(51.4977, -0.1958) == "Kensington and Chelsea" and feed(51.4913, -0.1950) == "Kensington and Chelsea" and feed(51.5150, -0.2050) == "Kensington and Chelsea"
 assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) is None
