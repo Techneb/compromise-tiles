@@ -883,5 +883,10 @@
   "key": "23807,-61172",
   "picked": "2026-11-04",
   "combine": true
+ },
+ "buildings/Virginia Beach": {
+  "key": "18425,-37989",
+  "picked": "2026-11-05",
+  "skip": "not tiled yet (no user asked for the city): no published cell to probe"
  }
 }
