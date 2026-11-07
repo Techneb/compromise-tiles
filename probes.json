@@ -896,5 +896,25 @@
  "permits/Redbridge": {
   "key": "25788,13",
   "picked": "2026-11-07"
+ },
+ "permits/Southwark": {
+  "key": "25752,-47",
+  "picked": "2026-11-07"
+ },
+ "permits/Tower Hamlets": {
+  "key": "25759,-36",
+  "picked": "2026-11-07"
+ },
+ "permits/Merton": {
+  "key": "25710,-102",
+  "picked": "2026-11-07"
+ },
+ "permits/Richmond upon Thames": {
+  "key": "25723,-165",
+  "picked": "2026-11-07"
+ },
+ "permits/Westminster": {
+  "key": "25756,-66",
+  "picked": "2026-11-07"
  }
 }
