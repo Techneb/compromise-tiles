@@ -192,6 +192,14 @@ PERMIT_CITIES = [
     # permits/geocode_edinburgh.py (Nominatim at the house, else the postcode's centre). The box is the permits'.
     row("Edinburgh", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/edinburgh.geojson",
         "name", [], (55.90, 55.99), (-3.31, -3.11), shape="geojson"),
+    # Waltham Forest and Redbridge (London): the granted pavement licences each publishes as a web page (no licence
+    # stated: credited to the borough), geocoded by permits/geocode_london.py as Edinburgh's are; Waltham Forest's page
+    # has no dates, Redbridge's rows are kept while unexpired on the snapshot's day. Each held to its borough (ONS Local
+    # Authority Districts December 2025, OGL), as Camden is: the two boxes overlap.
+    row("Waltham Forest", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/waltham-forest.geojson",
+        "name", [], (51.55, 51.65), (-0.07, 0.03), shape="geojson", boundary=boundary("waltham-forest")),
+    row("Redbridge", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/redbridge.geojson",
+        "name", [], (51.53, 51.63), (0.00, 0.15), shape="geojson", boundary=boundary("redbridge")),
     # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
     # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints. Held to the
     # City's own municipal boundary (Open Government Licence – Toronto): the box reaches Vaughan's tiled cells.
