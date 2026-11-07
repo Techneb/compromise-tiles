@@ -215,6 +215,10 @@ PERMIT_CITIES = [
         "", [], (51.39, 51.49), (-0.40, -0.22), shape="geojson", boundary=boundary("richmond-upon-thames")),
     row("Westminster", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/westminster.geojson",
         "", [], (51.48, 51.54), (-0.22, -0.11), shape="geojson", boundary=boundary("westminster")),
+    # Harrow (London): the council's NEC register, current pavement licences, read in Chrome (it turns a script away)
+    # and geocoded the same way, points only: a dated snapshot that only a refresh by hand updates. Held to the borough.
+    row("Harrow", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/harrow.geojson",
+        "", [], (51.55, 51.65), (-0.41, -0.26), shape="geojson", boundary=boundary("harrow")),
     # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
     # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints. Held to the
     # City's own municipal boundary (Open Government Licence – Toronto): the box reaches Vaughan's tiled cells.

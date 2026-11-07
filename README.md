@@ -142,6 +142,11 @@ none, this says so rather than guessing.
   OGL). Merton's and Richmond's were read by hand from their shared
   register, which a build cannot reach: they change only when refreshed
   by hand.
+- Harrow (London): © London Borough of Harrow, pavement licences
+  (2026-11-07 snapshot, licence not stated by the publisher; geocoded with
+  OpenStreetMap Nominatim, ODbL, and ONS postcode centres, OGL). Read by
+  hand from the council's register, which a build cannot reach: it
+  changes only when refreshed by hand.
 - Edinburgh: © City of Edinburgh Council, tables and chairs permits
   (2026-10-05 snapshot, geocoded with OpenStreetMap Nominatim, ODbL, and
   ONS postcode centres, OGL).
@@ -180,7 +185,7 @@ none, this says so rather than guessing.
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
   information licensed under the Open Government Licence – Toronto.
 - Camden, Waltham Forest, Redbridge, Southwark, Tower Hamlets, Westminster,
-  Merton and Richmond upon Thames (London): Office for National Statistics, Local Authority
+  Merton, Richmond upon Thames and Harrow (London): Office for National Statistics, Local Authority
   Districts (December 2025) Boundaries UK BFC. Source: Office for National
   Statistics licensed under the Open Government Licence v.3.0. Contains OS
   data © Crown copyright and database right 2025.
