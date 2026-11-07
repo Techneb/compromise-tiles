@@ -728,7 +728,8 @@ print("ok (Southwark)")
 LONDON_POINTS = {"Tower Hamlets": ("tower-hamlets", (51.519, -0.073, 51.524, -0.070), 150),
                  "Merton": ("merton", (51.419, -0.210, 51.423, -0.200), 40),
                  "Richmond upon Thames": ("richmond-upon-thames", (51.445, -0.335, 51.450, -0.320), 70),
-                 "Westminster": ("westminster", (51.512, -0.134, 51.514, -0.131), 800)}
+                 "Westminster": ("westminster", (51.512, -0.134, 51.514, -0.131), 800),
+                 "Harrow": ("harrow", (51.5925, -0.384, 51.595, -0.379), 45)}
 for city, (slug, rect, least) in LONDON_POINTS.items():
     asked.clear()
     def fake_get(url, data=None, parse=None, slug=slug, **k):
@@ -744,7 +745,11 @@ for city, (slug, rect, least) in LONDON_POINTS.items():
 make_tiles.get = real_get
 assert feed(51.5070, -0.0590) == "Tower Hamlets" and feed(51.4020, -0.1950) == "Merton" and feed(51.4270, -0.3330) == "Richmond upon Thames"
 assert feed(51.5300, -0.0790) is None and feed(51.4100, -0.3000) is None
-print("ok (Tower Hamlets, Merton, Richmond upon Thames, Westminster)")
+# Harrow (2026-11-07, its NEC register read in Chrome; the fixture's rect is Pinner's High Street): Harrow town centre
+# and Stanmore pick it; Wembley (Brent) and Eastcote (Hillingdon), both in its box, do not.
+assert feed(51.5800, -0.3350) == "Harrow" and feed(51.6170, -0.3110) == "Harrow"
+assert feed(51.5560, -0.2800) is None and feed(51.5730, -0.4000) is None
+print("ok (Tower Hamlets, Merton, Richmond upon Thames, Westminster, Harrow)")
 
 # Los Angeles: the 2021 Al Fresco snapshot, kept only where a venue of today (the published venues/ tiles) stands within
 # 60 m under a matching name. The fixture is nine real rows of the feed over seven real tile cuts (2026-10-05): Dino's

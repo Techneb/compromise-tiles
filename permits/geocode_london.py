@@ -9,8 +9,9 @@ reads whole through the `geojson` shape. Where they come from:
 - Tower Hamlets: the council's "sf/control" public register (make_tiles.sf_register), both its "Pavement" and its
   "Public footway" (tables and chairs) licences; Westminster: the council's Idox licensing register, current
   pavement licences; Merton and Richmond upon Thames: the Regulatory Services Hub's licence register, read in
-  Chrome (an AWS WAF challenge stops a script) into a text file "licence|address|expiry YYYYMMDD" per line.
-  These four keep points only: no name, no address.
+  Chrome (an AWS WAF challenge stops a script) into a text file "licence|address|expiry YYYYMMDD" per line;
+  Harrow: the council's NEC register, current pavement licences, read in Chrome (it turns a script away) into
+  "licence|address" lines, no dates shown. These five keep points only: no name, no address.
 
     python3 permits/geocode_london.py BOROUGH [--html file] [--text file] [--cache file]
 
@@ -103,6 +104,22 @@ def hub(text, today=None):
     return out
 
 
+STREET = re.compile(r"\b(Road|Lane|Street|Way|Avenue|Drive|Parade|Broadway|Circle|Close|Hill)$", re.I)
+
+
+def harrow(text):
+    """Harrow's NEC register, saved as "licence|address" lines ("#" a comment), every one current on the day it was
+    read: the last part before the postcode is the town when it names no street ("…, Pinner, HA5 3HR"), else Harrow."""
+    out = []
+    for line in text.splitlines():
+        if not line.strip() or line.startswith("#"): continue
+        address_line = line.split("|")[1].strip()
+        parts = [p.strip() for p in geo.POSTCODE.sub("", address_line).split(",") if p.strip()]
+        town = parts[-1] if len(parts) > 1 and not STREET.search(parts[-1]) else "Harrow"
+        out.append(("", address_line, town))
+    return out
+
+
 IDOX = "https://idoxpa.westminster.gov.uk/online-applications/"
 
 
@@ -168,6 +185,11 @@ BOROUGHS = {
         publisher="London Borough of Richmond upon Thames", points_only=True, load=lambda args: hub(open(args.text[0]).read()),
         page="https://rspandlp.merton.gov.uk/registers/index.html?fa=licence_register&section=licence_register",
         kept="current pavement licences (council area Richmond) unexpired on the day of the snapshot; points only"),
+    "harrow": dict(
+        publisher="London Borough of Harrow", points_only=True, load=lambda args: harrow(open(args.text[0]).read()),
+        page="https://assurepp.harrow.gov.uk/NECSWS/ES/Presentation/Public/OnlineLicence",
+        kept="current pavement licences (licence type PVL, status Current Licence) on the day of the snapshot; "
+             "points only"),
 }
 
 
@@ -180,7 +202,7 @@ def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     a.add_argument("borough", choices=sorted(BOROUGHS))
     a.add_argument("--html", nargs="+", help="the page (Westminster: its result pages), saved; downloaded when absent")
-    a.add_argument("--text", nargs=1, help="Merton, Richmond: the register read in Chrome (licence|address|expiry)")
+    a.add_argument("--text", nargs=1, help="Merton, Richmond, Harrow: the register read in Chrome (licence|address[|expiry])")
     a.add_argument("--out")
     a.add_argument("--cache", help="a JSON file of every answer, so a re-run asks nothing twice")
     args = a.parse_args()
