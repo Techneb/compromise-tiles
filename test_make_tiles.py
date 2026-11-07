@@ -403,14 +403,14 @@ for lat, lon in ((40.5110, -74.2470), (40.8610, -73.8900), (40.7440, -73.7140)):
 assert at(41.0080, 28.9780) == "OSM" and permit_city(spot(41.0080, 28.9780), None) is None
 # A permit feed is held to its boundary too (2026-10-03): a Vaughan cell (the one at 43.857, -79.515, credited
 # "Toronto" before) sits in Toronto's box but not in the City of Toronto; York University and the Islands are in
-# it. Marylebone (Westminster) and Highbury and Angel (Islington) sit in Camden's box but not in the borough;
+# it. Marylebone (Westminster's own feed since 2026-11-07) and Highbury and Angel (Islington) sit in Camden's box but not in the borough;
 # Camden Town, Bloomsbury and Kilburn are in it. A row without a boundary is still picked by box alone.
 from make_tiles import permit_city
 feed = lambda lat, lon: (permit_city(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0], None) or {}).get("city")
 assert feed(43.6500, -79.3800) == "Toronto" and feed(43.7735, -79.5019) == "Toronto" and feed(43.6200, -79.3800) == "Toronto"
 assert feed(43.8570, -79.5150) is None and feed(43.8000, -79.4200) is None
 assert feed(51.5390, -0.1430) == "Camden" and feed(51.5220, -0.1250) == "Camden" and feed(51.5470, -0.1950) == "Camden"
-assert feed(51.5226, -0.1571) is None and feed(51.5460, -0.1040) is None and feed(51.5322, -0.1058) is None
+assert feed(51.5226, -0.1571) == "Westminster" and feed(51.5460, -0.1040) is None and feed(51.5322, -0.1058) is None
 assert feed(40.7580, -73.9855) == "New York" and feed(43.3127, -1.9582) == "San Sebastián"
 # 2026-10-04 rows: the terrace re-survey's six registers, each on a trimmed real answer. Helsinki: the kind filter folds
 # into BBOX() on singlegeom; each polygon lands on its mean vertex, the name less "Terassialue" and a size, a bare
@@ -610,7 +610,7 @@ assert vb_row["fetch"] is make_tiles.virginia_beach and not vb_row["combine"]
 assert at(36.8434, -76.1348) == "Virginia Beach" and at(36.8530, -75.9780) == "Virginia Beach"   # Town Center; Oceanfront
 assert feed(22.2810, 114.1580) == "Hong Kong" and feed(22.3820, 114.2720) == "Hong Kong" and feed(22.5430, 114.0580) is None
 assert feed(51.4977, -0.1958) == "Kensington and Chelsea" and feed(51.4913, -0.1950) == "Kensington and Chelsea" and feed(51.5150, -0.2050) == "Kensington and Chelsea"
-assert feed(51.5074, -0.1657) is None and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) is None
+assert feed(51.5074, -0.1657) == "Westminster" and feed(51.5046, -0.2187) is None and feed(51.5226, -0.1571) == "Westminster"
 assert feed(60.1711, 24.9453) == "Helsinki" and feed(57.7040, 11.9782) == "Gothenburg" and feed(38.9016, -77.0204) == "Washington DC"
 assert feed(42.3574, -71.0541) == "Boston" and feed(47.6241, -122.3564) == "Seattle"
 print("ok")
@@ -699,6 +699,52 @@ make_tiles.get = real_get
 assert feed(51.5825, -0.0135) == "Waltham Forest" and feed(51.5793, 0.0250) == "Redbridge"
 assert feed(51.5430, -0.0030) is None and feed(51.5450, -0.0550) is None
 print("ok (Waltham Forest, Redbridge)")
+# Southwark: the council's "sf/control" register, read live. The page's ;jsessionid and CSRF token go with the search;
+# the fixture is real rows (address and applicant left out) around Borough Market and one in Peckham: on 2026-11-07,
+# 7 distinct points of the unexpired approved rows (Borough Market's traders share one), 6 of them in the rect;
+# an expired row, an approved one past its end date and one without coordinates are left out.
+from make_tiles import southwark_all
+asked.clear()
+def fake_get(url, data=None, parse=None, headers=None, **k):
+    asked.append((url, data, headers))
+    if url.endswith("/publicregister"): return b'<meta name="csrf-token" content="T0k"/><a href="/sf/control/main;jsessionid=AB12.jvm1">'
+    with open("fixtures/southwark.json", "rb") as f: return parse(f.read())
+make_tiles.get = fake_get
+c = next(c for c in PERMIT_CITIES if c["city"] == "Southwark")
+kept = southwark_all(c, datetime.date(2026, 11, 7))
+assert len(kept) == 7 and sum(1 for t in kept if 51.503 <= t["coordinate"]["latitude"] <= 51.506) == 6
+assert all(t == {"kind": "TERRASSE", "coordinate": t["coordinate"]} for t in kept)
+assert len(southwark_all(c, datetime.date(2027, 1, 1))) == 5 and southwark_all(c, datetime.date(2028, 1, 1)) == []
+assert asked[1] == ("https://licencesandservices.southwark.gov.uk/sf/control/searchPublicRegister;jsessionid=AB12.jvm1",
+                    b"licenceType=Pavement&licenceStatus=licence&keyword=+&type=licence", {"X-CSRF-Token": "T0k"})
+make_tiles.get = real_get
+# Borough and Bermondsey are Southwark's; Waterloo (Lambeth) sits in its box and Westminster's, in neither borough.
+assert feed(51.5055, -0.0910) == "Southwark" and feed(51.4980, -0.0640) == "Southwark" and feed(51.5031, -0.1132) is None
+print("ok (Southwark)")
+# Tower Hamlets, Merton, Richmond upon Thames, Westminster: points only (no name, no address), geocoded once by
+# permits/geocode_london.py. Each fixture is six real points of its snapshot in a rect (Brick Lane, Wimbledon's Broadway,
+# Twickenham, Soho) and one outside it; each row held to its borough: Wapping, Morden and Teddington pick their own; Hoxton
+# (Hackney, in Tower Hamlets' box) and Kingston town centre (in Richmond's) none.
+LONDON_POINTS = {"Tower Hamlets": ("tower-hamlets", (51.519, -0.073, 51.524, -0.070), 150),
+                 "Merton": ("merton", (51.419, -0.210, 51.423, -0.200), 40),
+                 "Richmond upon Thames": ("richmond-upon-thames", (51.445, -0.335, 51.450, -0.320), 70),
+                 "Westminster": ("westminster", (51.512, -0.134, 51.514, -0.131), 800)}
+for city, (slug, rect, least) in LONDON_POINTS.items():
+    asked.clear()
+    def fake_get(url, data=None, parse=None, slug=slug, **k):
+        asked.append(url)
+        with open(f"fixtures/{slug}.geojson") as f: return json.load(f)
+    make_tiles.get = fake_get
+    c = next(c for c in PERMIT_CITIES if c["city"] == city)
+    inside = permits(c, rect)
+    assert len(inside) == 6 and all(t == {"kind": "TERRASSE", "coordinate": t["coordinate"]} for t in inside), city
+    assert asked == [f"https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/{slug}.geojson"]
+    with open(f"permits/{slug}.geojson") as f: snapshot = json.load(f)
+    assert len(snapshot["features"]) >= least and all(set(f["properties"]) == {"kind", "placed"} for f in snapshot["features"])
+make_tiles.get = real_get
+assert feed(51.5070, -0.0590) == "Tower Hamlets" and feed(51.4020, -0.1950) == "Merton" and feed(51.4270, -0.3330) == "Richmond upon Thames"
+assert feed(51.5300, -0.0790) is None and feed(51.4100, -0.3000) is None
+print("ok (Tower Hamlets, Merton, Richmond upon Thames, Westminster)")
 
 # Los Angeles: the 2021 Al Fresco snapshot, kept only where a venue of today (the published venues/ tiles) stands within
 # 60 m under a matching name. The fixture is nine real rows of the feed over seven real tile cuts (2026-10-05): Dino's

@@ -99,7 +99,7 @@ def boundary(slug):
 # code when the commune answered (a French commune without a feed gets none, so Levallois inside
 # Paris's box is OSM only), else the first box holding the cell's centre — inside the row's municipal
 # boundary when it has one (a feed holds only its own city's permits, so a neighbour's tiled cells in
-# its box are OSM only, credited to no feed: Vaughan in Toronto's, Westminster and Islington in Camden's).
+# its box are OSM only, credited to no feed: Vaughan in Toronto's, Islington in Camden's).
 def row(name, insee, host, dataset, name_field, kinds, lat, lon, boundary=None, **extra):
     return dict(city=name, insee=insee, host=host, dataset=dataset, name=name_field, kinds=kinds, lat=lat, lon=lon, boundary=boundary, **extra)
 
@@ -200,6 +200,21 @@ PERMIT_CITIES = [
         "name", [], (51.55, 51.65), (-0.07, 0.03), shape="geojson", boundary=boundary("waltham-forest")),
     row("Redbridge", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/redbridge.geojson",
         "name", [], (51.53, 51.63), (0.00, 0.15), shape="geojson", boundary=boundary("redbridge")),
+    # Southwark (London): the council's "sf/control" public register (no licence stated: credited to the borough), read
+    # live once per run; approved pavement licences unexpired on the build's day, at the register's own coordinates.
+    row("Southwark", "", "licencesandservices.southwark.gov.uk", "", "", [], (51.42, 51.51), (-0.12, -0.03),
+        shape="southwark", boundary=boundary("southwark")),
+    # Tower Hamlets, Merton, Richmond upon Thames and Westminster (London): granted pavement licences with addresses
+    # only (no licence stated: each credited to its borough), geocoded once by permits/geocode_london.py, points only
+    # (no name, no address kept). Each held to its borough (ONS Local Authority Districts December 2025, OGL).
+    row("Tower Hamlets", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/tower-hamlets.geojson",
+        "", [], (51.48, 51.55), (-0.08, 0.01), shape="geojson", boundary=boundary("tower-hamlets")),
+    row("Merton", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/merton.geojson",
+        "", [], (51.38, 51.45), (-0.26, -0.12), shape="geojson", boundary=boundary("merton")),
+    row("Richmond upon Thames", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/richmond-upon-thames.geojson",
+        "", [], (51.39, 51.49), (-0.40, -0.22), shape="geojson", boundary=boundary("richmond-upon-thames")),
+    row("Westminster", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/westminster.geojson",
+        "", [], (51.48, 51.54), (-0.22, -0.11), shape="geojson", boundary=boundary("westminster")),
     # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
     # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints. Held to the
     # City's own municipal boundary (Open Government Licence – Toronto): the box reaches Vaughan's tiled cells.
@@ -377,7 +392,7 @@ def keyed_host(c):
     secret = os.environ.get(c["key"], "").strip()
     return c["host"].replace("{key}", urllib.parse.quote(secret, safe="")) if secret else None
 
-def get(url, data=None, parse=None, waits=WAITS, context=None):
+def get(url, data=None, parse=None, waits=WAITS, context=None, headers=None):
     """One request, retried after each of `waits`: spaced per host, gzip asked
     for (smaller transfers are the ones the proxy lets through), the body
     parsed inside the retry so a truncated answer is asked again rather than
@@ -390,7 +405,7 @@ def get(url, data=None, parse=None, waits=WAITS, context=None):
         wait = _last.get(host, 0) + GAP - time.monotonic()
         if wait > 0: time.sleep(wait)
         try:
-            request = urllib.request.Request(url, data=data, headers={"User-Agent": UA, "Accept-Encoding": "gzip"})
+            request = urllib.request.Request(url, data=data, headers={"User-Agent": UA, "Accept-Encoding": "gzip", **(headers or {})})
             with urllib.request.urlopen(request, timeout=TIMEOUT, context=context) as response:
                 body = response.read()
                 if response.headers.get("Content-Encoding") == "gzip": body = gzip.decompress(body)
@@ -3205,6 +3220,35 @@ def barcelona_all(c):
     if not out: raise SourceError("Barcelona: no terrace parsed")  # as for Madrid
     return out
 
+def sf_register(host, licence_type):
+    """Every issued licence of one type on a council's "sf/control" public register (Southwark, Tower Hamlets): the
+    page hands out a session (in its links, ;jsessionid=…) and a CSRF token, which the register's search needs."""
+    page = get(f"https://{host}/sf/control/publicregister").decode("utf-8", "replace")
+    session = re.search(r";jsessionid=[\w.]+", page)
+    token = re.search(r'name="csrf-token" content="([^"]+)"', page)
+    if not (session and token): raise SourceError(f"{host}: no session or CSRF token on the register's page")
+    data = urllib.parse.urlencode({"licenceType": licence_type, "licenceStatus": "licence", "keyword": " ", "type": "licence"})
+    answer = get(f"https://{host}/sf/control/searchPublicRegister{session.group(0)}", data=data.encode(), parse=json.loads,
+                 headers={"X-CSRF-Token": token.group(1)})
+    return json.loads(answer["results"])
+
+def southwark_all(c, today=None):
+    """Southwark's pavement licences: approved, unexpired on the build's day (approvedEndDate dd/mm/yyyy), at the
+    register's own "lat,lon", one terrace a point (a renewal and a temporary licence, or Borough Market's traders, share
+    one); no name (the register names the holder, never kept)."""
+    today = today or datetime.date.today()
+    out, seen = [], set()
+    for r in sf_register(c["host"], "Pavement"):
+        if r.get("status") != "APP_APPROVED": continue
+        try: end = datetime.datetime.strptime(r.get("approvedEndDate") or "", "%d/%m/%Y").date()
+        except ValueError: continue
+        lat, _, lon = (r.get("latLng") or "").partition(",")
+        lat, lon = number(lat.strip()), number(lon.strip())
+        if end < today or lat is None or lon is None or (lat, lon) in seen: continue
+        seen.add((lat, lon))
+        out.append({"kind": "TERRASSE", "coordinate": {"latitude": lat, "longitude": lon}})
+    return out
+
 def csv_all(c):
     """A whole CSV (La Rochelle, San Diego): comma-separated, quoted, a BOM; the point a "lat,lon" column, or a
     (lat, lon) pair of columns, the kind a column kept only for the values in `keep`, those in `covered` written
@@ -3325,6 +3369,7 @@ def fetched_permits(c, rect):
     if c.get("shape") == "seville": return whole_file(c, rect, seville_all)
     if c.get("shape") == "barcelona": return whole_file(c, rect, barcelona_all)
     if c.get("shape") == "csv": return whole_file(c, rect, csv_all)
+    if c.get("shape") == "southwark": return whole_file(c, rect, southwark_all)
     if c.get("shape") == "gothenburg": return whole_file(c, rect, gothenburg_all)
     if c.get("shape") == "geojson":  # a static GeoJSON of points, fetched whole once per run (Toronto)
         return whole_file(c, rect, lambda c: permit_items(get_json(f"https://{c['host']}/{c['dataset']}").get("features") or [], c))
