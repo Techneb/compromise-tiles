@@ -888,5 +888,13 @@
   "key": "18425,-37989",
   "picked": "2026-11-05",
   "skip": "not tiled yet (no user asked for the city): no published cell to probe"
+ },
+ "permits/Waltham Forest": {
+  "key": "25791,-6",
+  "picked": "2026-11-07"
+ },
+ "permits/Redbridge": {
+  "key": "25788,13",
+  "picked": "2026-11-07"
  }
 }

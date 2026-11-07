@@ -680,6 +680,25 @@ assert feed(55.9520, -3.2000) == "Edinburgh" and feed(55.9750, -3.1700) == "Edin
 with open("permits/edinburgh.geojson") as f: snapshot = json.load(f)
 assert len(snapshot["features"]) > 300 and all(f["properties"].get("name") for f in snapshot["features"])
 print("ok (Edinburgh)")
+# Waltham Forest and Redbridge: each borough's granted pavement licences, geocoded once (permits/geocode_london.py) and
+# read whole through the geojson shape. Orford Road's three in the rect, Wake Cup (Chingford) outside it; each row held to
+# its borough: Walthamstow and Wanstead each pick their own, Stratford (Newham) and Hackney Central neither.
+for slug, rect, inside, other in (("waltham-forest", (51.580, -0.016, 51.585, -0.010), ["Eat17", "Gails", "Queens Arms"], (51.632, 0.005, 51.633, 0.007)),
+                                  ("redbridge", (51.578, 0.023, 51.581, 0.027), ["The Cuckfield"], (51.596, 0.020, 51.597, 0.022))):
+    asked.clear()
+    def fake_get(url, data=None, parse=None, slug=slug, **k):
+        asked.append(url)
+        with open(f"fixtures/{slug}.geojson") as f: return json.load(f)
+    make_tiles.get = fake_get
+    c = next(c for c in PERMIT_CITIES if c["city"] == {"waltham-forest": "Waltham Forest", "redbridge": "Redbridge"}[slug])
+    assert sorted(t["name"] for t in permits(c, rect)) == inside and all(t["kind"] == "TERRASSE" for t in permits(c, rect))
+    assert len(permits(c, other)) == 1 and asked == [f"https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/{slug}.geojson"]
+    with open(f"permits/{slug}.geojson") as f: snapshot = json.load(f)
+    assert len(snapshot["features"]) > 40 and all(f["properties"].get("name") for f in snapshot["features"])
+make_tiles.get = real_get
+assert feed(51.5825, -0.0135) == "Waltham Forest" and feed(51.5793, 0.0250) == "Redbridge"
+assert feed(51.5430, -0.0030) is None and feed(51.5450, -0.0550) is None
+print("ok (Waltham Forest, Redbridge)")
 
 # Los Angeles: the 2021 Al Fresco snapshot, kept only where a venue of today (the published venues/ tiles) stands within
 # 60 m under a matching name. The fixture is nine real rows of the feed over seven real tile cuts (2026-10-05): Dino's

@@ -37,7 +37,7 @@ AGENT = "compromise-tiles/1.0 (https://github.com/Techneb/compromise-tiles; cont
 NOMINATIM = "https://nominatim.openstreetmap.org/search"
 POSTCODES = "https://api.postcodes.io/postcodes"
 NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
-POSTCODE = re.compile(r"\b(EH\d{1,2})\s*(\d[A-Z]{2})\b", re.I)
+POSTCODE = re.compile(r"\b([A-Z]{1,2}\d[A-Z\d]?)\s*(\d[A-Z]{2})\b", re.I)  # any UK postcode (geocode_london.py too)
 NUMBER = re.compile(r"^(?:(?:GF|G/F|Ground Floor|Basement|Unit\s*\w+|Flat\s*\w+)[\s,]+)?(\d+[A-Za-z]?)(?:\s*[-/–]\s*\d+[A-Za-z]?)*\s+(.+)$")
 
 _cache = {}
@@ -104,14 +104,14 @@ def current(rows, today):
     return kept
 
 
-def parse(address):
+def parse(address, city="Edinburgh"):
     """(number, road, postcode) from an address line; number and road None without a street number."""
     postcode = None
     m = POSTCODE.search(address)
     if m: postcode = f"{m.group(1).upper()} {m.group(2).upper()}"
     rest = POSTCODE.sub("", address)
     parts = [p.strip(" ,") for p in rest.split(",")]
-    parts = [p for p in parts if p and p.lower() not in ("edinburgh", "scotland", "uk", "united kingdom")]
+    parts = [p for p in parts if p and p.lower() not in (city.lower(), "scotland", "uk", "united kingdom")]
     for p in parts:
         m = NUMBER.match(p)
         if m: return m.group(1), m.group(2).strip(), postcode, parts
@@ -149,14 +149,14 @@ def nominatim(params):
     return fetch(f"{NOMINATIM}?{q}", pause=1.05)
 
 
-def place(name, address):
+def place(name, address, city="Edinburgh"):
     """(lat, lon, how) or None."""
-    number, road, postcode, parts = parse(address)
+    number, road, postcode, parts = parse(address, city)
     tries = []
     if number:
-        tries.append({"street": f"{number} {road}", "city": "Edinburgh"})
-        if postcode: tries.append({"street": f"{number} {road}", "city": "Edinburgh", "postalcode": postcode})
-        tries.append({"q": f"{number} {road}, Edinburgh"})
+        tries.append({"street": f"{number} {road}", "city": city})
+        if postcode: tries.append({"street": f"{number} {road}", "city": city, "postalcode": postcode})
+        tries.append({"q": f"{number} {road}, {city}"})
     for params in tries:
         for r in nominatim(params):
             if accept(r, number, road, postcode): return float(r["lat"]), float(r["lon"]), "house"
