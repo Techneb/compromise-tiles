@@ -135,11 +135,18 @@ def is_whole(e):
 
 def municipal(cities_json):
     """city name -> (box, boundary or None, whole) from a cities.json: its first plain box entry per city (not a
-    departements one), with its boundary polygon when it has one, and whether it is the whole city (is_whole)."""
+    departements one), with its boundary polygon when it has one, and whether it is the whole city (is_whole).
+    A city whose first entry is one of several and not whole is tiled as districts (Jakarta's four 2.4 km² boxes):
+    no entry is its core, so it is left out and counted over the 24 km square (2026-11-07's run counted Jakarta in
+    Kemang alone, 0 going-out cells against 683)."""
     if not cities_json or not os.path.exists(cities_json): return {}
-    out = {}
-    for e in json.load(open(cities_json)):
-        if not e.get("box") or e.get("departements") or e["city"] in out: continue
+    entries = [e for e in json.load(open(cities_json)) if e.get("box") and not e.get("departements")]
+    several = {c for c in {e["city"] for e in entries} if sum(e["city"] == c for e in entries) > 1}
+    out, seen = {}, set()
+    for e in entries:
+        if e["city"] in seen: continue
+        seen.add(e["city"])
+        if e["city"] in several and not is_whole(e): continue
         boundary = None
         if e.get("boundary"):
             with open(os.path.join(os.path.dirname(os.path.abspath(cities_json)), e["boundary"])) as f: boundary = json.load(f)

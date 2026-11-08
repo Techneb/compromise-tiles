@@ -46,6 +46,16 @@ assert is_whole({"city": "Oslo", "district": "Oslo"})
 assert not is_whole({"city": "London", "district": "London (densest 150 km² of the core)"})
 assert not is_whole({"city": "Zaragoza", "district": "Zaragoza (going-out core + 2 km)"})
 assert not is_whole({"city": "Oslo", "district": "Oslo (centre, 5 km)"})
+# A city tiled as several districts has no core box: it is left out (the 24 km square); a lone core box and a whole entry stay.
+import json as _j, os as _o, tempfile as _t
+from counts import municipal
+_d = _t.mkdtemp()
+_j.dump([{"city": "Jakarta", "district": "Jakarta (Kemang)", "box": [0, 0, 1, 1]}, {"city": "Jakarta", "district": "Jakarta (Menteng)", "box": [1, 1, 2, 2]},
+         {"city": "Bristol", "district": "Bristol (going-out core + 2 km)", "box": [0, 0, 1, 1]},
+         {"city": "Manila", "district": "Manila (whole municipality)", "box": [0, 0, 1, 1]}, {"city": "Manila", "district": "Manila and its neighbours", "box": [0, 0, 2, 2]}],
+        open(_o.path.join(_d, "cities.json"), "w"))
+_m = municipal(_o.path.join(_d, "cities.json"))
+assert "Jakarta" not in _m and _m["Bristol"][2] is False and _m["Manila"] == ((0, 0, 1, 1), None, True), _m
 # --part: whole extract groups, each in exactly one share.
 groups = {"a": [1, 2, 3], "b": [4], "c": [5, 6], "d": [7]}
 shares = [dict(part(groups, f"{k}/3")) for k in (1, 2, 3)]
