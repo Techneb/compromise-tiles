@@ -184,7 +184,7 @@ none, this says so rather than guessing.
 **Municipal boundaries (`boundaries/`, a permit feed held to its own city)**
 - Toronto: City of Toronto, Regional Municipal Boundary. Contains
   information licensed under the Open Government Licence – Toronto.
-- Camden, Waltham Forest, Redbridge, Southwark, Tower Hamlets, Westminster,
+- Camden, Kensington and Chelsea, Waltham Forest, Redbridge, Southwark, Tower Hamlets, Westminster,
   Merton, Richmond upon Thames and Harrow (London): Office for National Statistics, Local Authority
   Districts (December 2025) Boundaries UK BFC. Source: Office for National
   Statistics licensed under the Open Government Licence v.3.0. Contains OS
