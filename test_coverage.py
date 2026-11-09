@@ -145,6 +145,15 @@ p = summary(feed, [{"city": "Paris"}])["cities"]["Paris"]
 assert p["layers"] == {"streets": {"tiles": 7, "oldest": "2026-09-30", "newest": "2026-09-30"},
                        "terraces-v2": {"tiles": 3, "oldest": "2026-10-01", "newest": "2026-10-14"}}, p["layers"]
 assert p["goingOutCovered"] == 4 and p["permitFeed"] == "parisdata.opendatasoft.com" and p["transitModes"] == {"bus": 1599}, p
+# A city whose permit feeds are its boroughs' (London): each row names the city it is part of, so the city reads permits,
+# with each feed's host once; a borough row never makes a record of its own.
+import coverage
+rows = coverage.PERMIT_CITIES
+coverage.PERMIT_CITIES = [dict(city="Camden", host="a.gov.uk", part_of="London"), dict(city="Harrow", host="raw.example", part_of="London"),
+                          dict(city="Merton", host="raw.example", part_of="London")]
+got = summary(dict(feed, areas=[{"name": "Greater London", "city": "London"}]), [{"city": "London"}])["cities"]
+coverage.PERMIT_CITIES = rows
+assert set(got) == {"London"} and got["London"]["permits"] and got["London"]["permitFeed"] == "a.gov.uk, raw.example", got
 o = tempfile.mkdtemp(); os.makedirs(os.path.join(o, "streets")); os.makedirs(os.path.join(o, "venues"))
 for n in ("1,1", "1,2"): open(os.path.join(o, "streets", n + ".json"), "w").write("[]")
 open(os.path.join(o, "venues", "1,1.json"), "w").write("[]")
