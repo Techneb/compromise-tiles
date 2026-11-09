@@ -146,8 +146,11 @@ def summary(feed, entries):
     (the going-out cells holding enough terraces and buildings both), permitFeed (its permit feed's host, null for none),
     layers {layer: {tiles, oldest, newest}} (the cells' layers summed over its areas, the counted ones from the feed's
     built) and transitModes."""
-    permits, heights = {r["city"] for r in PERMIT_CITIES}, {r["city"] for r in CITY_BUILDINGS}
-    hosts = {r["city"]: r["host"] for r in PERMIT_CITIES}
+    # A borough's feed counts for the city it is part of (London's): its row's part_of, the hosts joined once each.
+    hosts = {}
+    for r in PERMIT_CITIES: hosts.setdefault(r.get("part_of", r["city"]), {})[r["host"]] = None
+    hosts = {city: ", ".join(h) for city, h in hosts.items()}
+    permits, heights = set(hosts), {r["city"] for r in CITY_BUILDINGS}
     out = {}
     new = lambda city: out.setdefault(city, {"areas": [], "box": None, **{k: 0 for k in SUMS}, "km2": 0.0, "built": "",
                                              "permits": city in permits, "cityHeights": city in heights, "streets": False, "outline": False,

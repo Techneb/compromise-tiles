@@ -99,7 +99,8 @@ def boundary(slug):
 # code when the commune answered (a French commune without a feed gets none, so Levallois inside
 # Paris's box is OSM only), else the first box holding the cell's centre — inside the row's municipal
 # boundary when it has one (a feed holds only its own city's permits, so a neighbour's tiled cells in
-# its box are OSM only, credited to no feed: Vaughan in Toronto's, Islington in Camden's).
+# its box are OSM only, credited to no feed: Vaughan in Toronto's, Islington in Camden's). A borough's row names
+# the cities.json entry it is part of (part_of="London"), so the status feed reads that city's terraces as permits.
 def row(name, insee, host, dataset, name_field, kinds, lat, lon, boundary=None, **extra):
     return dict(city=name, insee=insee, host=host, dataset=dataset, name=name_field, kinds=kinds, lat=lat, lon=lon, boundary=boundary, **extra)
 
@@ -135,7 +136,7 @@ PERMIT_CITIES = [
     # Held to the borough (ONS Local Authority Districts, OGL): the box reaches 40 km² of London's other tiled cells.
     row("Camden", "", "opendata.camden.gov.uk", "8ixc-jf73", "development_address", [], (51.52, 51.58), (-0.22, -0.10),
         shape="socrata", point="location", filter="decision_type = 'Granted' AND registered_date >= '{twoYearsAgo}'",
-        clean="digit", boundary=boundary("camden")),
+        clean="digit", boundary=boundary("camden"), part_of="London"),
     row("New York", "", "data.cityofnewyork.us", "fpeh-f7ci", "assumed_name_s", [], (40.49, 40.92), (-74.26, -73.68),
         shape="socrata", point="location", filter="license_expiration_date >= '{today}'"),
     row("Chicago", "", "data.cityofchicago.org", "nxj5-ix6z", "doing_business_as_name", [], (41.64, 42.02), (-87.94, -87.52),
@@ -197,28 +198,28 @@ PERMIT_CITIES = [
     # has no dates, Redbridge's rows are kept while unexpired on the snapshot's day. Each held to its borough (ONS Local
     # Authority Districts December 2025, OGL), as Camden is: the two boxes overlap.
     row("Waltham Forest", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/waltham-forest.geojson",
-        "name", [], (51.55, 51.65), (-0.07, 0.03), shape="geojson", boundary=boundary("waltham-forest")),
+        "name", [], (51.55, 51.65), (-0.07, 0.03), shape="geojson", boundary=boundary("waltham-forest"), part_of="London"),
     row("Redbridge", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/redbridge.geojson",
-        "name", [], (51.53, 51.63), (0.00, 0.15), shape="geojson", boundary=boundary("redbridge")),
+        "name", [], (51.53, 51.63), (0.00, 0.15), shape="geojson", boundary=boundary("redbridge"), part_of="London"),
     # Southwark (London): the council's "sf/control" public register (no licence stated: credited to the borough), read
     # live once per run; approved pavement licences unexpired on the build's day, at the register's own coordinates.
     row("Southwark", "", "licencesandservices.southwark.gov.uk", "", "", [], (51.42, 51.51), (-0.12, -0.03),
-        shape="southwark", boundary=boundary("southwark")),
+        shape="southwark", boundary=boundary("southwark"), part_of="London"),
     # Tower Hamlets, Merton, Richmond upon Thames and Westminster (London): granted pavement licences with addresses
     # only (no licence stated: each credited to its borough), geocoded once by permits/geocode_london.py, points only
     # (no name, no address kept). Each held to its borough (ONS Local Authority Districts December 2025, OGL).
     row("Tower Hamlets", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/tower-hamlets.geojson",
-        "", [], (51.48, 51.55), (-0.08, 0.01), shape="geojson", boundary=boundary("tower-hamlets")),
+        "", [], (51.48, 51.55), (-0.08, 0.01), shape="geojson", boundary=boundary("tower-hamlets"), part_of="London"),
     row("Merton", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/merton.geojson",
-        "", [], (51.38, 51.45), (-0.26, -0.12), shape="geojson", boundary=boundary("merton")),
+        "", [], (51.38, 51.45), (-0.26, -0.12), shape="geojson", boundary=boundary("merton"), part_of="London"),
     row("Richmond upon Thames", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/richmond-upon-thames.geojson",
-        "", [], (51.39, 51.49), (-0.40, -0.22), shape="geojson", boundary=boundary("richmond-upon-thames")),
+        "", [], (51.39, 51.49), (-0.40, -0.22), shape="geojson", boundary=boundary("richmond-upon-thames"), part_of="London"),
     row("Westminster", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/westminster.geojson",
-        "", [], (51.48, 51.54), (-0.22, -0.11), shape="geojson", boundary=boundary("westminster")),
+        "", [], (51.48, 51.54), (-0.22, -0.11), shape="geojson", boundary=boundary("westminster"), part_of="London"),
     # Harrow (London): the council's NEC register, current pavement licences, read in Chrome (it turns a script away)
     # and geocoded the same way, points only: a dated snapshot that only a refresh by hand updates. Held to the borough.
     row("Harrow", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/harrow.geojson",
-        "", [], (51.55, 51.65), (-0.41, -0.26), shape="geojson", boundary=boundary("harrow")),
+        "", [], (51.55, 51.65), (-0.41, -0.26), shape="geojson", boundary=boundary("harrow"), part_of="London"),
     # CKAN (Open Government Licence – Toronto): CaféTO's static GeoJSON, monthly, fetched whole once per run;
     # sidewalk, curb-lane and private patios are all open air. Points come as one-point MultiPoints. Held to the
     # City's own municipal boundary (Open Government Licence – Toronto): the box reaches Vaughan's tiled cells.
@@ -288,7 +289,7 @@ PERMIT_CITIES = [
     # reaches Westminster's and Hammersmith and Fulham's tiled cells.
     row("Kensington and Chelsea", "", "utility.arcgis.com/usrsvcs/servers/d70af383b66642a59ffae23125511dfc/rest/services",
         "RBKC/EnvironmentalHealth/MapServer/6", "TradingName", [], (51.47, 51.53), (-0.23, -0.15), shape="arcgis",
-        filter="ExpiryDate >= CURRENT_TIMESTAMP", boundary=boundary("kensington-and-chelsea")),
+        filter="ExpiryDate >= CURRENT_TIMESTAMP", boundary=boundary("kensington-and-chelsea"), part_of="London"),
     # Los Angeles: DataLA's L.A. Al Fresco dining locations (ArcGIS Online, no licence stated), a January 2021 snapshot of
     # COVID-era authorisations — 2,273 named points, no status or expiry, both types (sidewalk and private property,
     # on-street) open air. Many of those venues are gone, so a permit is kept only where a venue of today stands under its
