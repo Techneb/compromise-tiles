@@ -314,7 +314,7 @@ jobs:
       # the other layers under tiles/ are old snapshots of what the weekly build makes, and would overwrite its fresh tiles.
       # buildings-v2/ before the fragment: coverage.py counts that layer only.
       - env:
-          REPO_CITIES: Tel Aviv   # comma-separated, as in cities.json
+          REPO_CITIES: Tel Aviv, Turin   # comma-separated, as in cities.json
         run: |
           python3 - <<'PY'
           import os, shutil
