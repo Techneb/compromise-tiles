@@ -266,10 +266,10 @@ assert combined([osm_guess, osm_far], [building(sq(0, 0, 1, 1), 33)]) == \
 assert combined([osm_guess], [building(sq(0, 0, 1, 1), 33)], metres=True)[0].get("guessed") is None
 
 # A building source is held to its municipal boundary: Fitzroy sits in Melbourne's box but not in
-# the City of Melbourne, Bitsaron (Tel Aviv) in Ramat Gan's box but not in Ramat Gan.
+# the City of Melbourne (it is Yarra's), Bitsaron (Tel Aviv) in Ramat Gan's box but not in Ramat Gan.
 from make_tiles import building_source, hamburg, CITY_BUILDINGS
 at = lambda lat, lon: building_source(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0])
-assert at(-37.8150, 144.9660) == "Melbourne" and at(-37.7990, 144.9790) == "OSM"
+assert at(-37.8150, 144.9660) == "Melbourne" and at(-37.7990, 144.9790) == "Yarra" and at(-37.7700, 144.9610) == "OSM"
 assert at(32.0830, 34.8130) == "Ramat Gan" and at(32.0760, 34.8000) == "Tel Aviv"
 assert at(32.0150, 34.7800) == "Holon" and at(32.1650, 34.8400) == "Herzliya" and at(53.5500, 10.0000) == "Hamburg"
 # Floors arrive as strings in Holon and Herzliya: × 3 m, blank → the 15 m default.
@@ -1668,3 +1668,31 @@ assert [v["name"] for v in make_tiles.osm_venues(cell)] == ["The Lamb", "Kebab H
 assert [t.get("name") for t in make_tiles.osm_terraces(cell.rect)] == ["The Lamb"]
 make_tiles._osm = None
 print("ok (match-only venues)")
+
+# Yarra's 3DS meshes: one 10 m box, its foot at 30 m AHD and its flat roof at 38 m, read on an OSM outline 2 m inside it.
+import struct as _struct
+def chunk(kind, body): return _struct.pack("<HI", kind, 6 + len(body)) + body
+e0, n0 = 325_000.0, 5_815_000.0
+corners = [(e0 + dx, n0 + dy, z) for z in (30.0, 38.0) for dx, dy in ((0, 0), (10, 0), (10, 10), (0, 10))]
+faces = [(4, 5, 6), (4, 6, 7), (0, 1, 5), (0, 5, 4)]   # the roof, and one wall: vertical, drawn as no roof
+mesh = chunk(0x4110, _struct.pack("<H", len(corners)) + b"".join(_struct.pack("<3f", *c) for c in corners)) + \
+       chunk(0x4120, _struct.pack("<H", len(faces)) + b"".join(_struct.pack("<4H", *f, 0) for f in faces))
+model = chunk(0x4D4D, chunk(0x3D3D, chunk(0x4000, b"box\0" + chunk(0x4100, mesh))))
+assert len(list(make_tiles.mesh_faces(model))) == 4
+outline = [dict(zip(("latitude", "longitude"), make_tiles.tm_to_wgs84(e0 + dx, n0 + dy, 147, false_northing=10_000_000)))
+           for dx, dy in ((2, 2), (8, 2), (8, 8), (2, 8))]
+far = [{"latitude": p["latitude"] + 0.01, "longitude": p["longitude"]} for p in outline]
+real_download, real_osm_b, asked = make_tiles.download, make_tiles.osm_buildings, []
+with tempfile.TemporaryDirectory() as d:
+    open(os.path.join(d, "box.3ds"), "wb").write(model)
+    make_tiles.download = lambda url, folder, max_days=6: asked.append(url) or os.path.join(d, "box.3ds")
+    make_tiles.osm_buildings = lambda rect, tagged=False: [{"outline": outline}, {"outline": far}]
+    try:
+        row = next(b for b in CITY_BUILDINGS if b["city"] == "Yarra")
+        got = row["fetch"]((0, 0, 1, 1))
+        assert row["combine"] == "metres" and [b["height"] for b in got] == [8.0], got   # the far one has no roof
+        assert len(asked) == len(make_tiles.YARRA_SUBURBS) and got[0]["outline"] == outline
+    finally:
+        make_tiles.download, make_tiles.osm_buildings = real_download, real_osm_b
+        make_tiles._yarra.clear()
+print("ok (Yarra meshes)")

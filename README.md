@@ -202,6 +202,8 @@ none, this says so rather than guessing.
 - Wrocław: Gmina Wrocław, 2022 strategic noise map buildings (licence not
   stated by the publisher).
 - Melbourne: City of Melbourne, 2023 Building Footprints, CC BY 4.0.
+- Yarra (Fitzroy, Collingwood, Richmond and the municipality's other suburbs): City of
+  Yarra, 3D buildings by suburb (2015, CC BY 4.0), combined with OpenStreetMap's footprints.
 - New York: NYC Open Data (licence not stated by the publisher).
 - Chicago: City of Chicago Data Portal (disclaimer above).
 - San Francisco: DataSF, PDDL.
@@ -376,6 +378,8 @@ none, this says so rather than guessing.
   under the Open Government Licence – Vancouver.
 - Adelaide (the City of Adelaide): Government of South Australia, Local
   Government Areas (Location SA, CC BY 3.0 AU).
+- Yarra: Based on Australian Bureau of Statistics data, Local Government
+  Areas (ASGS 2021), CC BY 4.0.
 - Murcia, Córdoba, Szczecin: © OpenStreetMap contributors, ODbL (each
   municipality's administrative boundary); Córdoba's San Rafael de Navallana
   reservoir and Szczecin's Lake Dąbie left out (© OpenStreetMap contributors, ODbL).
