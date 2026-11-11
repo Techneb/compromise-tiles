@@ -783,6 +783,26 @@ try: surviving([{"kind": "TERRASSE", "name": "Tilda", "coordinate": {"latitude":
 except make_tiles.SourceError as e: assert "Los Angeles: venues/" in str(e) and "HTTP 503" in str(e), e
 make_tiles.published_items = real_published_items
 make_tiles._venue_tiles.clear()
+# Riga's permits name the company: the venue at the permit's spot lends its name (match="trading"). The pairs are the
+# feed's and OpenStreetMap's at the same doors (2026-11-11), the distances theirs, rounded.
+from make_tiles import trading_name, trading_names
+def door(name, north_m):  # a venue (or permit) north_m metres north of the permit's point
+    return {"name": name, "coordinate": {"latitude": 56.9476 + north_m / 111320, "longitude": 24.1080}}
+fox = dict(door("Funny Fox", 0), kind="TERRASSE")
+assert trading_name(fox, [door("Kebab Town", 14), door("Jautrā lapsa", 4), door("Niklāvs", 17)])["name"] == "Jautrā lapsa"
+assert trading_name(fox, [door("Jautrā lapsa", 4)]) == dict(fox, name="Jautrā lapsa") and fox["name"] == "Funny Fox"
+assert trading_name(fox, [door("Funny Fox Bar", 25), door("Jautrā lapsa", 4)]) is fox                   # its own name, kept
+assert trading_name(fox, [door("Sonder", 10), door("Atspulgs", -10)]) is fox                            # two doors: unclear
+assert trading_name(fox, [door("Tinto", 42)]) is fox and trading_name(fox, []) is fox                  # nobody at the spot
+assert trading_name(dict(fox, name=None), [door("Cuba Cafe", 2), door("Lapsa", 12)])["name"] == "Cuba Cafe"
+assert trading_name(fox, [{"coordinate": door("", 1)["coordinate"]}, door("Jautrā lapsa", 4)])["name"] == "Jautrā lapsa"
+riga = next(c for c in PERMIT_CITIES if c["city"] == "Riga")
+assert riga["match"] == "trading" and riga["clean"] == "riga"
+make_tiles._venue_tiles.clear()
+make_tiles.published_items = lambda layer, key, bust=False: [door("Jautrā lapsa", 4)] if layer == "venues" else []
+assert [t["name"] for t in trading_names([fox], "Riga")] == ["Jautrā lapsa"]
+make_tiles.published_items = real_published_items
+make_tiles._venue_tiles.clear()
 # The name rule is the app's (TerraceNames.swift): accents and punctuation set aside, one name in the other, the first
 # two words shared, or the shorter's core words in the longer — one short shared word is not a match.
 assert normalised_name("Dino’s Burgers") == "DINO S BURGERS" and normalised_name("Café Oz - The Australian Bar") == "CAFE OZ THE AUSTRALIAN BAR"
