@@ -228,9 +228,9 @@ PERMIT_CITIES = [
         "cafe-to-locations-4326.geojson", "OPERATOR_NAME", [], (43.58, 43.86), (-79.64, -79.11),
         shape="geojson", clean="toronto", boundary=boundary("toronto")),
     # ArcGIS MapServer (GEO RĪGA, no licence stated): layer 16 is the permits in force; the name is the
-    # holder's company, less its legal form. The OID field is gid.
+    # holder's company, less its legal form, else the venue's at the permit's spot (match="trading"). The OID field is gid.
     row("Riga", "", "georiga.lv/server/rest/services", "Ara_kafejnicas_terases/MapServer/16", "nosaukums", [],
-        (56.85, 57.09), (23.93, 24.33), shape="arcgis", oid="gid", clean="riga"),
+        (56.85, 57.09), (23.93, 24.33), shape="arcgis", oid="gid", clean="riga", match="trading"),
     # Opendatasoft (no licence stated): the latest permit's terrace drawing, at its centre point; the only
     # text is the drawing's file name (an address), so no name field — door rule only.
     # ArcGIS MapServer (© Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, no licence
@@ -3039,23 +3039,48 @@ def venue_tiles_around(lat, lon):
     s, w, n, e = padded((lat, lon, lat, lon), MATCH_REACH)
     return sorted({f"{index(a, COARSE)},{index(b, COARSE)}" for a in (s, n) for b in (w, e)})
 
+def venues_near(lat, lon, city):
+    """The published venue tiles' items a venue within MATCH_REACH of the point can be among. A venue tile that could not
+    be read fails the feed (half an answer is not a tile), a missing one holds no venue."""
+    venues = []
+    for key in venue_tiles_around(lat, lon):
+        if key not in _venue_tiles: _venue_tiles[key] = published_items("venues", key, bust=True)
+        if isinstance(_venue_tiles[key], SourceError): raise SourceError(f"{city}: venues/{key}: {_venue_tiles[key]}")
+        venues += _venue_tiles[key]
+    return venues
+
 def surviving(items, city):
-    """The permits a venue of today stands under: a named one with a venue within MATCH_REACH under a matching name.
-    A venue tile that could not be read fails the feed (half an answer is not a tile), a missing one holds no venue."""
+    """The permits a venue of today stands under: a named one with a venue within MATCH_REACH under a matching name."""
     out = []
     for t in items:
         wanted = normalised_name(t.get("name"))
         if not wanted: continue
         lat, lon = t["coordinate"]["latitude"], t["coordinate"]["longitude"]
-        venues = []
-        for key in venue_tiles_around(lat, lon):
-            if key not in _venue_tiles: _venue_tiles[key] = published_items("venues", key, bust=True)
-            if isinstance(_venue_tiles[key], SourceError): raise SourceError(f"{city}: venues/{key}: {_venue_tiles[key]}")
-            venues += _venue_tiles[key]
         if any(metres(lat, lon, v["coordinate"]["latitude"], v["coordinate"]["longitude"]) <= MATCH_REACH
-               and names_match(normalised_name(v.get("name")), wanted) for v in venues):
+               and names_match(normalised_name(v.get("name")), wanted) for v in venues_near(lat, lon, city)):
             out.append(t)
     return out
+
+# Riga's permits name the holder's company ("Funny Fox SIA" for the bar Jautrā lapsa), and the feed has no trading-name
+# field (GEO RĪGA's two terrace services carry the same nosaukums, 2026-11-11). A `match="trading"` row writes, as the
+# permit's name, the name of the venue at its spot: the nearest named venue of the published venues/ tiles (OpenStreetMap's)
+# within TRADING_REACH, when the next one stands at least TRADING_MARGIN farther. A holder's name that already matches a
+# venue within NAME_REACH (the reach a venue's terrace is looked for in) is kept, and so is an unclear spot's.
+NAME_REACH, TRADING_REACH, TRADING_MARGIN = 30, 15, 5
+
+def trading_name(t, venues):
+    """The permit `t` under the trading name of the venue at its spot, or as it came (see above)."""
+    lat, lon = t["coordinate"]["latitude"], t["coordinate"]["longitude"]
+    near = sorted(((metres(lat, lon, v["coordinate"]["latitude"], v["coordinate"]["longitude"]), v["name"])
+                   for v in venues if v.get("name")), key=lambda x: x[0])
+    wanted = normalised_name(t.get("name"))
+    if wanted and any(d <= NAME_REACH and names_match(normalised_name(n), wanted) for d, n in near): return t
+    if not near or near[0][0] > TRADING_REACH: return t
+    if len(near) > 1 and near[1][0] - near[0][0] < TRADING_MARGIN: return t
+    return dict(t, name=near[0][1])
+
+def trading_names(items, city):
+    return [trading_name(t, venues_near(t["coordinate"]["latitude"], t["coordinate"]["longitude"], city)) for t in items]
 
 def arcgis_filter(text):
     """ArcGIS dates: `DATE 'YYYY-MM-DD'` in the where clause; {today} and {fifteenMonthsAgo} (Seattle) resolved at run time."""
@@ -3361,9 +3386,11 @@ def oslo(c, rect):
     return out
 
 def permits(c, rect):
-    """A feed's terraces in the rect; a `match="venues"` row keeps only those a venue of today stands under."""
+    """A feed's terraces in the rect; a `match="venues"` row keeps only those a venue of today stands under, a
+    `match="trading"` row names each after the venue at its spot."""
     items = fetched_permits(c, rect)
-    return surviving(items, c["city"]) if c.get("match") == "venues" else items
+    if c.get("match") == "venues": return surviving(items, c["city"])
+    return trading_names(items, c["city"]) if c.get("match") == "trading" else items
 
 def fetched_permits(c, rect):
     s, w, n, e = rect or (None,) * 4
