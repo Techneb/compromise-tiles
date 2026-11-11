@@ -3600,5 +3600,1485 @@
       -89.1629
     ],
     "boundary": "boundaries/san-salvador.geojson"
+  },
+  {
+    "city": "Mexico City",
+    "district": "Mexico City (Roma Norte)",
+    "box": [
+      19.4129,
+      -99.1674,
+      19.4269,
+      -99.1526
+    ]
+  },
+  {
+    "city": "Mexico City",
+    "district": "Mexico City (Condesa)",
+    "box": [
+      19.4052,
+      -99.1766,
+      19.4192,
+      -99.1618
+    ]
+  },
+  {
+    "city": "Porto",
+    "district": "Porto (Ribeira)",
+    "box": [
+      41.1374,
+      -8.6219,
+      41.1514,
+      -8.6033
+    ]
+  },
+  {
+    "city": "Bucharest",
+    "district": "Bucharest (Old Town (Lipscani))",
+    "box": [
+      44.4236,
+      26.0906,
+      44.4376,
+      26.1102
+    ]
+  },
+  {
+    "city": "Bucharest",
+    "district": "Bucharest (Pia\u021ba Roman\u0103)",
+    "box": [
+      44.44,
+      26.0868,
+      44.454,
+      26.1064
+    ]
+  },
+  {
+    "city": "Manchester",
+    "district": "Manchester (Northern Quarter)",
+    "box": [
+      53.4752,
+      -2.2511,
+      53.4892,
+      -2.2275
+    ]
+  },
+  {
+    "city": "Luanda",
+    "district": "Luanda (Baixa de Luanda)",
+    "box": [
+      -8.8166,
+      13.2219,
+      -8.8026,
+      13.2361
+    ]
+  },
+  {
+    "city": "Luanda",
+    "district": "Luanda (Ilha do Cabo)",
+    "box": [
+      -8.7855,
+      13.2366,
+      -8.7715,
+      13.2508
+    ]
+  },
+  {
+    "city": "Riyadh",
+    "district": "Riyadh (Al Olaya)",
+    "box": [
+      24.7044,
+      46.6667,
+      24.7184,
+      46.6821
+    ]
+  },
+  {
+    "city": "Riyadh",
+    "district": "Riyadh (Diriyah)",
+    "box": [
+      24.7263,
+      46.5679,
+      24.7403,
+      46.5833
+    ]
+  },
+  {
+    "city": "Ho Chi Minh City",
+    "district": "Ho Chi Minh City (District 1 (Nguy\u1ec5n Hu\u1ec7))",
+    "box": [
+      10.7695,
+      106.6948,
+      10.7835,
+      106.709
+    ]
+  },
+  {
+    "city": "Nottingham",
+    "district": "Nottingham (City Centre (Old Market Square))",
+    "box": [
+      52.9452,
+      -1.1587,
+      52.9592,
+      -1.1355
+    ]
+  },
+  {
+    "city": "Tirana",
+    "district": "Tirana (Blloku)",
+    "box": [
+      41.3208,
+      19.8097,
+      41.3348,
+      19.8283
+    ]
+  },
+  {
+    "city": "Chisinau",
+    "district": "Chisinau (Centre (Stefan cel Mare))",
+    "box": [
+      47.0176,
+      28.8216,
+      47.0316,
+      28.8422
+    ]
+  },
+  {
+    "city": "Kharkiv",
+    "district": "Kharkiv (Centre (Sumska))",
+    "box": [
+      49.9953,
+      36.2209,
+      50.0093,
+      36.2427
+    ]
+  },
+  {
+    "city": "Malm\u00f6",
+    "district": "Malm\u00f6 (Gamla staden)",
+    "box": [
+      55.5993,
+      12.9899,
+      55.6133,
+      13.0147
+    ]
+  },
+  {
+    "city": "Malm\u00f6",
+    "district": "Malm\u00f6 (M\u00f6llev\u00e5ngen)",
+    "box": [
+      55.5844,
+      12.9957,
+      55.5984,
+      13.0205
+    ]
+  },
+  {
+    "city": "Lviv",
+    "district": "Lviv (Old Town (Rynok))",
+    "box": [
+      49.8349,
+      24.0205,
+      49.8489,
+      24.0423
+    ]
+  },
+  {
+    "city": "Puebla",
+    "district": "Puebla (Centro Hist\u00f3rico)",
+    "box": [
+      19.0362,
+      -98.2057,
+      19.0502,
+      -98.1909
+    ]
+  },
+  {
+    "city": "Cardiff",
+    "district": "Cardiff (City Centre)",
+    "box": [
+      51.4732,
+      -3.193,
+      51.4872,
+      -3.1706
+    ]
+  },
+  {
+    "city": "Cardiff",
+    "district": "Cardiff (Cardiff Bay)",
+    "box": [
+      51.458,
+      -3.1747,
+      51.472,
+      -3.1523
+    ]
+  },
+  {
+    "city": "Havana",
+    "district": "Havana (Habana Vieja)",
+    "box": [
+      23.1335,
+      -82.3581,
+      23.1475,
+      -82.3429
+    ]
+  },
+  {
+    "city": "Havana",
+    "district": "Havana (Vedado)",
+    "box": [
+      23.1361,
+      -82.3882,
+      23.1501,
+      -82.373
+    ]
+  },
+  {
+    "city": "New Orleans",
+    "district": "New Orleans (French Quarter)",
+    "box": [
+      29.9507,
+      -90.0714,
+      29.9647,
+      -90.0552
+    ]
+  },
+  {
+    "city": "New Orleans",
+    "district": "New Orleans (Frenchmen Street)",
+    "box": [
+      29.9889,
+      -90.0685,
+      30.0029,
+      -90.0523
+    ]
+  },
+  {
+    "city": "Milwaukee",
+    "district": "Milwaukee (Third Ward)",
+    "box": [
+      43.0306,
+      -87.9122,
+      43.0446,
+      -87.893
+    ]
+  },
+  {
+    "city": "Milwaukee",
+    "district": "Milwaukee (Brady Street)",
+    "box": [
+      43.0466,
+      -87.9128,
+      43.0606,
+      -87.8936
+    ]
+  },
+  {
+    "city": "Cleveland",
+    "district": "Cleveland (Downtown (East 4th))",
+    "box": [
+      41.4901,
+      -81.6989,
+      41.5041,
+      -81.6803
+    ]
+  },
+  {
+    "city": "Cleveland",
+    "district": "Cleveland (Ohio City)",
+    "box": [
+      41.4774,
+      -81.7124,
+      41.4914,
+      -81.6938
+    ]
+  },
+  {
+    "city": "Charlotte",
+    "district": "Charlotte (Uptown)",
+    "box": [
+      35.2204,
+      -80.8538,
+      35.2344,
+      -80.8366
+    ]
+  },
+  {
+    "city": "Charlotte",
+    "district": "Charlotte (South End)",
+    "box": [
+      35.2029,
+      -80.8693,
+      35.2169,
+      -80.8521
+    ]
+  },
+  {
+    "city": "Mesa",
+    "district": "Mesa (Downtown Mesa)",
+    "box": [
+      33.4084,
+      -111.8403,
+      33.4224,
+      -111.8235
+    ]
+  },
+  {
+    "city": "Mesa",
+    "district": "Mesa (Fiesta District)",
+    "box": [
+      33.3828,
+      -111.8694,
+      33.3968,
+      -111.8526
+    ]
+  },
+  {
+    "city": "Panama City",
+    "district": "Panama City (Casco Viejo)",
+    "box": [
+      8.9441,
+      -79.5406,
+      8.9581,
+      -79.5264
+    ]
+  },
+  {
+    "city": "Panama City",
+    "district": "Panama City (Obarrio)",
+    "box": [
+      8.973,
+      -79.5311,
+      8.987,
+      -79.5169
+    ]
+  },
+  {
+    "city": "Aurora",
+    "district": "Aurora (Aurora Highlands)",
+    "box": [
+      39.7018,
+      -104.8336,
+      39.7158,
+      -104.8154
+    ]
+  },
+  {
+    "city": "Odesa",
+    "district": "Odesa (Centre (Derybasivska))",
+    "box": [
+      46.48,
+      30.7313,
+      46.494,
+      30.7517
+    ]
+  },
+  {
+    "city": "Odesa",
+    "district": "Odesa (Arcadia)",
+    "box": [
+      46.425,
+      30.7498,
+      46.439,
+      30.7702
+    ]
+  },
+  {
+    "city": "Canberra",
+    "district": "Canberra (Civic)",
+    "box": [
+      -35.2884,
+      149.1261,
+      -35.2744,
+      149.1433
+    ]
+  },
+  {
+    "city": "Zapopan",
+    "district": "Zapopan (Centro de Zapopan)",
+    "box": [
+      20.7123,
+      -103.397,
+      20.7263,
+      -103.382
+    ]
+  },
+  {
+    "city": "Zapopan",
+    "district": "Zapopan (Andares)",
+    "box": [
+      20.6663,
+      -103.4115,
+      20.6803,
+      -103.3965
+    ]
+  },
+  {
+    "city": "Dallas",
+    "district": "Dallas (Deep Ellum)",
+    "box": [
+      32.7735,
+      -96.7934,
+      32.7875,
+      -96.7768
+    ]
+  },
+  {
+    "city": "Dallas",
+    "district": "Dallas (Uptown (McKinney Avenue))",
+    "box": [
+      32.7825,
+      -96.8099,
+      32.7965,
+      -96.7933
+    ]
+  },
+  {
+    "city": "Pristina",
+    "district": "Pristina (Centre (Mother Teresa Boulevard))",
+    "box": [
+      42.6515,
+      21.1493,
+      42.6655,
+      21.1683
+    ]
+  },
+  {
+    "city": "Sarajevo",
+    "district": "Sarajevo (Ba\u0161\u010dar\u0161ija)",
+    "box": [
+      43.8524,
+      18.4204,
+      43.8664,
+      18.4398
+    ]
+  },
+  {
+    "city": "Guatemala City",
+    "district": "Guatemala City (Zona 1 (Sexta Avenida))",
+    "box": [
+      14.6353,
+      -90.5202,
+      14.6493,
+      -90.5058
+    ]
+  },
+  {
+    "city": "Guatemala City",
+    "district": "Guatemala City (Zona 10 (Zona Viva))",
+    "box": [
+      14.591,
+      -90.5202,
+      14.605,
+      -90.5058
+    ]
+  },
+  {
+    "city": "Managua",
+    "district": "Managua (Centro (Plaza de la Revoluci\u00f3n))",
+    "box": [
+      12.1493,
+      -86.2788,
+      12.1633,
+      -86.2644
+    ]
+  },
+  {
+    "city": "Managua",
+    "district": "Managua (Los Robles)",
+    "box": [
+      12.1208,
+      -86.2739,
+      12.1348,
+      -86.2595
+    ]
+  },
+  {
+    "city": "Saint Paul",
+    "district": "Saint Paul (Lowertown)",
+    "box": [
+      44.9422,
+      -93.0958,
+      44.9562,
+      -93.076
+    ]
+  },
+  {
+    "city": "Saint Paul",
+    "district": "Saint Paul (Grand Avenue)",
+    "box": [
+      44.9399,
+      -93.1188,
+      44.9539,
+      -93.099
+    ]
+  },
+  {
+    "city": "Santo Domingo",
+    "district": "Santo Domingo (Zona Colonial)",
+    "box": [
+      18.4682,
+      -69.8908,
+      18.4822,
+      -69.876
+    ]
+  },
+  {
+    "city": "Santo Domingo",
+    "district": "Santo Domingo (Piantini)",
+    "box": [
+      18.465,
+      -69.9469,
+      18.479,
+      -69.9321
+    ]
+  },
+  {
+    "city": "Leicester",
+    "district": "Leicester (City Centre)",
+    "box": [
+      52.6286,
+      -1.147,
+      52.6426,
+      -1.124
+    ]
+  },
+  {
+    "city": "Sacramento",
+    "district": "Sacramento (Downtown (K Street))",
+    "box": [
+      38.574,
+      -121.5057,
+      38.588,
+      -121.4877
+    ]
+  },
+  {
+    "city": "Sacramento",
+    "district": "Sacramento (Midtown)",
+    "box": [
+      38.5652,
+      -121.479,
+      38.5792,
+      -121.461
+    ]
+  },
+  {
+    "city": "Belfast",
+    "district": "Belfast (Cathedral Quarter)",
+    "box": [
+      54.5926,
+      -5.9415,
+      54.6066,
+      -5.9173
+    ]
+  },
+  {
+    "city": "Belfast",
+    "district": "Belfast (Botanic)",
+    "box": [
+      54.575,
+      -5.9471,
+      54.589,
+      -5.9229
+    ]
+  },
+  {
+    "city": "Gold Coast",
+    "district": "Gold Coast (Surfers Paradise)",
+    "box": [
+      -28.011,
+      153.4219,
+      -27.997,
+      153.4377
+    ]
+  },
+  {
+    "city": "Gold Coast",
+    "district": "Gold Coast (Broadbeach)",
+    "box": [
+      -28.0386,
+      153.4211,
+      -28.0246,
+      153.4369
+    ]
+  },
+  {
+    "city": "Kansas City",
+    "district": "Kansas City (Power and Light District)",
+    "box": [
+      39.0886,
+      -94.5926,
+      39.1026,
+      -94.5746
+    ]
+  },
+  {
+    "city": "Kansas City",
+    "district": "Kansas City (Westport)",
+    "box": [
+      39.0463,
+      -94.6009,
+      39.0603,
+      -94.5829
+    ]
+  },
+  {
+    "city": "Villa Nueva",
+    "district": "Villa Nueva (Centro de Villa Nueva)",
+    "box": [
+      14.5244,
+      -90.6036,
+      14.5384,
+      -90.5892
+    ]
+  },
+  {
+    "city": "Tijuana",
+    "district": "Tijuana (Zona Centro (Avenida Revoluci\u00f3n))",
+    "box": [
+      32.5226,
+      -117.0358,
+      32.5366,
+      -117.0192
+    ]
+  },
+  {
+    "city": "Vinnytsya",
+    "district": "Vinnytsya (Centre (Soborna))",
+    "box": [
+      49.227,
+      28.4581,
+      49.241,
+      28.4795
+    ]
+  },
+  {
+    "city": "Veracruz",
+    "district": "Veracruz (Centro Hist\u00f3rico)",
+    "box": [
+      19.1932,
+      -96.1455,
+      19.2072,
+      -96.1307
+    ]
+  },
+  {
+    "city": "Veracruz",
+    "district": "Veracruz (Boca del R\u00edo)",
+    "box": [
+      19.1039,
+      -96.1288,
+      19.1179,
+      -96.114
+    ]
+  },
+  {
+    "city": "Bari",
+    "district": "Bari (Bari Vecchia)",
+    "box": [
+      41.1223,
+      16.8604,
+      41.1363,
+      16.879
+    ]
+  },
+  {
+    "city": "Skopje",
+    "district": "Skopje (Centre (Macedonia Square))",
+    "box": [
+      41.9901,
+      21.4227,
+      42.0041,
+      21.4415
+    ]
+  },
+  {
+    "city": "Varna",
+    "district": "Varna (Centre)",
+    "box": [
+      43.1978,
+      27.9021,
+      43.2118,
+      27.9213
+    ]
+  },
+  {
+    "city": "Kingston upon Hull",
+    "district": "Kingston upon Hull (Old Town)",
+    "box": [
+      53.7358,
+      -0.3482,
+      53.7498,
+      -0.3246
+    ]
+  },
+  {
+    "city": "Reading",
+    "district": "Reading (Town Centre)",
+    "box": [
+      51.4499,
+      -0.9798,
+      51.4639,
+      -0.9574
+    ]
+  },
+  {
+    "city": "Monterrey",
+    "district": "Monterrey (Barrio Antiguo)",
+    "box": [
+      25.6607,
+      -100.3177,
+      25.6747,
+      -100.3021
+    ]
+  },
+  {
+    "city": "Monterrey",
+    "district": "Monterrey (San Pedro Garza Garc\u00eda)",
+    "box": [
+      25.6573,
+      -100.4101,
+      25.6713,
+      -100.3945
+    ]
+  },
+  {
+    "city": "Tampa",
+    "district": "Tampa (Ybor City)",
+    "box": [
+      27.9537,
+      -82.4479,
+      27.9677,
+      -82.4321
+    ]
+  },
+  {
+    "city": "Tampa",
+    "district": "Tampa (Downtown)",
+    "box": [
+      27.9377,
+      -82.4667,
+      27.9517,
+      -82.4509
+    ]
+  },
+  {
+    "city": "Plovdiv",
+    "district": "Plovdiv (Old Town)",
+    "box": [
+      42.1402,
+      24.7401,
+      42.1542,
+      24.7589
+    ]
+  },
+  {
+    "city": "Raleigh",
+    "district": "Raleigh (Downtown (Fayetteville Street))",
+    "box": [
+      35.7699,
+      -78.6488,
+      35.7839,
+      -78.6316
+    ]
+  },
+  {
+    "city": "Colorado Springs",
+    "district": "Colorado Springs (Downtown)",
+    "box": [
+      38.8263,
+      -104.8312,
+      38.8403,
+      -104.8132
+    ]
+  },
+  {
+    "city": "Colorado Springs",
+    "district": "Colorado Springs (Old Colorado City)",
+    "box": [
+      38.8411,
+      -104.8732,
+      38.8551,
+      -104.8552
+    ]
+  },
+  {
+    "city": "Dnipro",
+    "district": "Dnipro (Centre (Yavornytskoho))",
+    "box": [
+      48.4567,
+      35.0425,
+      48.4707,
+      35.0637
+    ]
+  },
+  {
+    "city": "Dnipro",
+    "district": "Dnipro (Embankment)",
+    "box": [
+      48.452,
+      35.0534,
+      48.466,
+      35.0746
+    ]
+  },
+  {
+    "city": "Constan\u0163a",
+    "district": "Constan\u0163a (Old Town)",
+    "box": [
+      44.165,
+      28.6516,
+      44.179,
+      28.6712
+    ]
+  },
+  {
+    "city": "Constan\u0163a",
+    "district": "Constan\u0163a (Mamaia)",
+    "box": [
+      44.2394,
+      28.613,
+      44.2534,
+      28.6326
+    ]
+  },
+  {
+    "city": "Albuquerque",
+    "district": "Albuquerque (Old Town)",
+    "box": [
+      35.0901,
+      -106.6775,
+      35.1041,
+      -106.6603
+    ]
+  },
+  {
+    "city": "Albuquerque",
+    "district": "Albuquerque (Nob Hill)",
+    "box": [
+      35.0727,
+      -106.6126,
+      35.0867,
+      -106.5954
+    ]
+  },
+  {
+    "city": "Fresno",
+    "district": "Fresno (Tower District)",
+    "box": [
+      36.7502,
+      -119.8072,
+      36.7642,
+      -119.7898
+    ]
+  },
+  {
+    "city": "Fresno",
+    "district": "Fresno (Downtown)",
+    "box": [
+      36.7251,
+      -119.7992,
+      36.7391,
+      -119.7818
+    ]
+  },
+  {
+    "city": "Swansea",
+    "district": "Swansea (City Centre (Wind Street))",
+    "box": [
+      51.6121,
+      -3.9509,
+      51.6261,
+      -3.9283
+    ]
+  },
+  {
+    "city": "Preston",
+    "district": "Preston (City Centre)",
+    "box": [
+      53.753,
+      -2.7089,
+      53.767,
+      -2.6853
+    ]
+  },
+  {
+    "city": "Toluca",
+    "district": "Toluca (Centro Hist\u00f3rico)",
+    "box": [
+      19.2858,
+      -99.6625,
+      19.2998,
+      -99.6477
+    ]
+  },
+  {
+    "city": "Toluca",
+    "district": "Toluca (Metepec)",
+    "box": [
+      19.2322,
+      -99.5968,
+      19.2462,
+      -99.582
+    ]
+  },
+  {
+    "city": "M\u00e9rida",
+    "district": "M\u00e9rida (Centro Hist\u00f3rico)",
+    "box": [
+      20.96,
+      -89.6309,
+      20.974,
+      -89.6159
+    ]
+  },
+  {
+    "city": "M\u00e9rida",
+    "district": "M\u00e9rida (Paseo de Montejo)",
+    "box": [
+      20.9753,
+      -89.6256,
+      20.9893,
+      -89.6106
+    ]
+  },
+  {
+    "city": "Indianapolis",
+    "district": "Indianapolis (Downtown (Mass Ave))",
+    "box": [
+      39.7615,
+      -86.1694,
+      39.7755,
+      -86.1512
+    ]
+  },
+  {
+    "city": "Indianapolis",
+    "district": "Indianapolis (Broad Ripple)",
+    "box": [
+      39.8597,
+      -86.1508,
+      39.8737,
+      -86.1326
+    ]
+  },
+  {
+    "city": "Newcastle",
+    "district": "Newcastle (City Centre (Darby Street))",
+    "box": [
+      -32.936,
+      151.7727,
+      -32.922,
+      151.7893
+    ]
+  },
+  {
+    "city": "Virginia Beach",
+    "district": "Virginia Beach (Oceanfront)",
+    "box": [
+      36.841,
+      -75.9836,
+      36.855,
+      -75.9662
+    ]
+  },
+  {
+    "city": "Virginia Beach",
+    "district": "Virginia Beach (Town Center)",
+    "box": [
+      36.8331,
+      -76.1428,
+      36.8471,
+      -76.1254
+    ]
+  },
+  {
+    "city": "Coventry",
+    "district": "Coventry (City Centre)",
+    "box": [
+      52.4008,
+      -1.5182,
+      52.4148,
+      -1.4952
+    ]
+  },
+  {
+    "city": "Tegucigalpa",
+    "district": "Tegucigalpa (Centro Hist\u00f3rico)",
+    "box": [
+      14.0988,
+      -87.2134,
+      14.1128,
+      -87.199
+    ]
+  },
+  {
+    "city": "Tegucigalpa",
+    "district": "Tegucigalpa (Colonia Palmira)",
+    "box": [
+      14.089,
+      -87.2022,
+      14.103,
+      -87.1878
+    ]
+  },
+  {
+    "city": "Ia\u015fi",
+    "district": "Ia\u015fi (Centre)",
+    "box": [
+      47.1527,
+      27.5743,
+      47.1667,
+      27.5949
+    ]
+  },
+  {
+    "city": "Ia\u015fi",
+    "district": "Ia\u015fi (Copou)",
+    "box": [
+      47.1717,
+      27.5569,
+      47.1857,
+      27.5775
+    ]
+  },
+  {
+    "city": "Ciudad Nezahualcoyotl",
+    "district": "Ciudad Nezahualcoyotl (Centro)",
+    "box": [
+      19.3936,
+      -99.0222,
+      19.4076,
+      -99.0074
+    ]
+  },
+  {
+    "city": "Tulsa",
+    "district": "Tulsa (Blue Dome District)",
+    "box": [
+      36.1491,
+      -96.0017,
+      36.1631,
+      -95.9843
+    ]
+  },
+  {
+    "city": "Tulsa",
+    "district": "Tulsa (Cherry Street)",
+    "box": [
+      36.132,
+      -95.9747,
+      36.146,
+      -95.9573
+    ]
+  },
+  {
+    "city": "Canc\u00fan",
+    "district": "Canc\u00fan (Centro (Avenida Tulum))",
+    "box": [
+      21.1535,
+      -86.8347,
+      21.1675,
+      -86.8197
+    ]
+  },
+  {
+    "city": "Canc\u00fan",
+    "district": "Canc\u00fan (Zona Hotelera)",
+    "box": [
+      21.127,
+      -86.7545,
+      21.141,
+      -86.7395
+    ]
+  },
+  {
+    "city": "Santiago de Quer\u00e9taro",
+    "district": "Santiago de Quer\u00e9taro (Centro Hist\u00f3rico)",
+    "box": [
+      20.5885,
+      -100.3816,
+      20.6025,
+      -100.3666
+    ]
+  },
+  {
+    "city": "Jacksonville",
+    "district": "Jacksonville (Riverside (Five Points))",
+    "box": [
+      30.3103,
+      -81.6931,
+      30.3243,
+      -81.6769
+    ]
+  },
+  {
+    "city": "Jacksonville",
+    "district": "Jacksonville (San Marco)",
+    "box": [
+      30.299,
+      -81.6621,
+      30.313,
+      -81.6459
+    ]
+  },
+  {
+    "city": "Lexington",
+    "district": "Lexington (Downtown)",
+    "box": [
+      38.0419,
+      -84.5094,
+      38.0559,
+      -84.4916
+    ]
+  },
+  {
+    "city": "Lexington",
+    "district": "Lexington (Chevy Chase)",
+    "box": [
+      38.0133,
+      -84.4964,
+      38.0273,
+      -84.4786
+    ]
+  },
+  {
+    "city": "San Antonio",
+    "district": "San Antonio (River Walk)",
+    "box": [
+      29.4179,
+      -98.4981,
+      29.4319,
+      -98.4821
+    ]
+  },
+  {
+    "city": "Xalapa de Enr\u00edquez",
+    "district": "Xalapa de Enr\u00edquez (Centro)",
+    "box": [
+      19.5211,
+      -96.9306,
+      19.5351,
+      -96.9158
+    ]
+  },
+  {
+    "city": "Oklahoma City",
+    "district": "Oklahoma City (Bricktown)",
+    "box": [
+      35.4572,
+      -97.5201,
+      35.4712,
+      -97.5029
+    ]
+  },
+  {
+    "city": "Fort Worth",
+    "district": "Fort Worth (Sundance Square)",
+    "box": [
+      32.751,
+      -97.3383,
+      32.765,
+      -97.3217
+    ]
+  },
+  {
+    "city": "Fort Worth",
+    "district": "Fort Worth (Stockyards)",
+    "box": [
+      32.7819,
+      -97.355,
+      32.7959,
+      -97.3384
+    ]
+  },
+  {
+    "city": "Mazatl\u00e1n",
+    "district": "Mazatl\u00e1n (Centro Hist\u00f3rico)",
+    "box": [
+      23.1918,
+      -106.4313,
+      23.2058,
+      -106.4161
+    ]
+  },
+  {
+    "city": "Mazatl\u00e1n",
+    "district": "Mazatl\u00e1n (Zona Dorada)",
+    "box": [
+      23.2364,
+      -106.4577,
+      23.2504,
+      -106.4425
+    ]
+  },
+  {
+    "city": "Kryvyy Rih",
+    "district": "Kryvyy Rih (Centre)",
+    "box": [
+      47.903,
+      33.3796,
+      47.917,
+      33.4004
+    ]
+  },
+  {
+    "city": "Donetsk",
+    "district": "Donetsk (Centre (Artema))",
+    "box": [
+      48.0015,
+      37.792,
+      48.0155,
+      37.813
+    ]
+  },
+  {
+    "city": "Logan City",
+    "district": "Logan City (Logan Central)",
+    "box": [
+      -27.7904,
+      153.0506,
+      -27.7764,
+      153.0664
+    ]
+  },
+  {
+    "city": "Logan City",
+    "district": "Logan City (Springwood)",
+    "box": [
+      -27.6237,
+      153.1251,
+      -27.6097,
+      153.1409
+    ]
+  },
+  {
+    "city": "Zaporizhzhya",
+    "district": "Zaporizhzhya (Centre (Sobornyi))",
+    "box": [
+      47.843,
+      35.1071,
+      47.857,
+      35.1279
+    ]
+  },
+  {
+    "city": "Santiago de Cuba",
+    "district": "Santiago de Cuba (Centro)",
+    "box": [
+      20.0143,
+      -75.837,
+      20.0283,
+      -75.822
+    ]
+  },
+  {
+    "city": "Tonal\u00e1",
+    "district": "Tonal\u00e1 (Centro de Tonal\u00e1)",
+    "box": [
+      20.6097,
+      -103.2242,
+      20.6237,
+      -103.2092
+    ]
+  },
+  {
+    "city": "Holgu\u00edn",
+    "district": "Holgu\u00edn (Centro)",
+    "box": [
+      20.875,
+      -76.2704,
+      20.889,
+      -76.2554
+    ]
+  },
+  {
+    "city": "San Pedro Sula",
+    "district": "San Pedro Sula (Centro)",
+    "box": [
+      15.4983,
+      -88.0319,
+      15.5123,
+      -88.0173
+    ]
+  },
+  {
+    "city": "San Juan",
+    "district": "San Juan (Old San Juan)",
+    "box": [
+      18.4615,
+      -66.1285,
+      18.4755,
+      -66.1137
+    ]
+  },
+  {
+    "city": "San Juan",
+    "district": "San Juan (Condado)",
+    "box": [
+      18.4494,
+      -66.0785,
+      18.4634,
+      -66.0637
+    ]
+  },
+  {
+    "city": "Sevastopol",
+    "district": "Sevastopol (Centre)",
+    "box": [
+      44.6115,
+      33.5147,
+      44.6255,
+      33.5343
+    ]
+  },
+  {
+    "city": "Simferopol",
+    "district": "Simferopol (Centre)",
+    "box": [
+      44.9414,
+      34.0901,
+      44.9554,
+      34.1099
+    ]
+  },
+  {
+    "city": "Dubai",
+    "district": "Dubai (Downtown Dubai)",
+    "box": [
+      25.1908,
+      55.2693,
+      25.2048,
+      55.2847
+    ]
+  },
+  {
+    "city": "Dubai",
+    "district": "Dubai (Jumeirah Beach Residence)",
+    "box": [
+      25.071,
+      55.1258,
+      25.085,
+      55.1412
+    ]
+  },
+  {
+    "city": "Kinshasa",
+    "district": "Kinshasa (Gombe)",
+    "box": [
+      -4.3127,
+      15.295,
+      -4.2987,
+      15.309
+    ]
+  },
+  {
+    "city": "Kinshasa",
+    "district": "Kinshasa (Lemba)",
+    "box": [
+      -4.397,
+      15.3083,
+      -4.383,
+      15.3223
+    ]
+  },
+  {
+    "city": "Cairo",
+    "district": "Cairo (Zamalek)",
+    "box": [
+      30.0556,
+      31.2116,
+      30.0696,
+      31.2278
+    ]
+  },
+  {
+    "city": "Cairo",
+    "district": "Cairo (Downtown (Talaat Harb Sq))",
+    "box": [
+      30.0419,
+      31.2319,
+      30.0559,
+      31.2481
+    ]
+  },
+  {
+    "city": "Mumbai",
+    "district": "Mumbai (Bandra West)",
+    "box": [
+      19.048,
+      72.8256,
+      19.062,
+      72.8404
+    ]
+  },
+  {
+    "city": "Mumbai",
+    "district": "Mumbai (Colaba Causeway)",
+    "box": [
+      18.908,
+      72.8189,
+      18.922,
+      72.8337
+    ]
+  },
+  {
+    "city": "Karachi",
+    "district": "Karachi (Clifton)",
+    "box": [
+      24.8144,
+      67.0106,
+      24.8284,
+      67.026
+    ]
+  },
+  {
+    "city": "Karachi",
+    "district": "Karachi (DHA Phase 6)",
+    "box": [
+      24.7861,
+      67.0559,
+      24.8001,
+      67.0713
+    ]
+  },
+  {
+    "city": "Lagos",
+    "district": "Lagos (Victoria Island)",
+    "box": [
+      6.4314,
+      3.4313,
+      6.4454,
+      3.4453
+    ]
+  },
+  {
+    "city": "Lagos",
+    "district": "Lagos (Ikeja)",
+    "box": [
+      6.5944,
+      3.3451,
+      6.6084,
+      3.3591
+    ]
+  },
+  {
+    "city": "Kolkata",
+    "district": "Kolkata (Park Street)",
+    "box": [
+      22.5482,
+      88.3425,
+      22.5622,
+      88.3577
+    ]
+  },
+  {
+    "city": "Kolkata",
+    "district": "Kolkata (Gariahat / Ballygunge)",
+    "box": [
+      22.5128,
+      88.3578,
+      22.5268,
+      88.373
+    ]
   }
 ]
