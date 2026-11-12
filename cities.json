@@ -4242,8 +4242,8 @@
     ]
   },
   {
-    "city": "Vinnytsya",
-    "district": "Vinnytsya (Centre (Soborna))",
+    "city": "Vinnytsia",
+    "district": "Vinnytsia (Centre (Soborna))",
     "box": [
       49.227,
       28.4581,
@@ -4812,23 +4812,13 @@
     ]
   },
   {
-    "city": "Kryvyy Rih",
-    "district": "Kryvyy Rih (Centre)",
+    "city": "Kryvyi Rih",
+    "district": "Kryvyi Rih (Centre)",
     "box": [
       47.903,
       33.3796,
       47.917,
       33.4004
-    ]
-  },
-  {
-    "city": "Donetsk",
-    "district": "Donetsk (Centre (Artema))",
-    "box": [
-      48.0015,
-      37.792,
-      48.0155,
-      37.813
     ]
   },
   {
@@ -4852,8 +4842,8 @@
     ]
   },
   {
-    "city": "Zaporizhzhya",
-    "district": "Zaporizhzhya (Centre (Sobornyi))",
+    "city": "Zaporizhzhia",
+    "district": "Zaporizhzhia (Centre (Sobornyi))",
     "box": [
       47.843,
       35.1071,
@@ -4919,26 +4909,6 @@
       -66.0785,
       18.4634,
       -66.0637
-    ]
-  },
-  {
-    "city": "Sevastopol",
-    "district": "Sevastopol (Centre)",
-    "box": [
-      44.6115,
-      33.5147,
-      44.6255,
-      33.5343
-    ]
-  },
-  {
-    "city": "Simferopol",
-    "district": "Simferopol (Centre)",
-    "box": [
-      44.9414,
-      34.0901,
-      44.9554,
-      34.1099
     ]
   },
   {

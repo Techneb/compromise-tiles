@@ -11,7 +11,8 @@ countries = ["#ISO\tISO3\tnum\tfips\tCountry\tCapital\tArea\tPop\tContinent",
              "\t".join(["DE", "", "", "", "Germany", "", "", "", "EU"]),
              "\t".join(["NL", "", "", "", "The Netherlands", "", "", "", "EU"]),
              "\t".join(["BR", "", "", "", "Brazil", "", "", "", "SA"]),
-             "\t".join(["RU", "", "", "", "Russia", "", "", "", "EU"])]
+             "\t".join(["RU", "", "", "", "Russia", "", "", "", "EU"]),
+             "\t".join(["UA", "", "", "", "Ukraine", "", "", "", "EU"])]
 listed = [{"city": "Cologne", "country": "Germany", "lat": 50.94, "lon": 6.96},
           {"city": "Berlin", "country": "Germany", "lat": 52.52, "lon": 13.40}]
 cities = [line(1, "Köln", 50.93, 6.95, "DE", "PPLA2", 1_000_000, "Cologne,Koeln"),   # listed, by name and square
@@ -24,7 +25,8 @@ cities = [line(1, "Köln", 50.93, 6.95, "DE", "PPLA2", 1_000_000, "Cologne,Koeln
           line(8, "Eindhoven", 51.44, 5.47, "NL", "PPL", 300_000),
           line(9, "Queens", 53.0, 8.8, "DE", "PPLA2", 2_000_000),                  # a borough in PART_OF
           line(10, "Berlin", 44.0, 20.0, "NL", "PPL", 320_000),                    # a listed name, another country
-          line(11, "Moscow", 55.75, 37.62, "RU", "PPLC", 10_000_000)]              # a country in SKIP
+          line(11, "Moscow", 55.75, 37.62, "RU", "PPLC", 10_000_000),              # a country in SKIP
+          line(694423, "Sevastopol", 44.6, 33.52, "UA", "PPLA", 547_820)]          # a place in SKIP_PLACES
 got = select(cities, countries, listed)
 assert [c["city"] for c in got] == ["Hamburg", "Berlin (Netherlands)", "Eindhoven"], got   # most populous first
 assert got[2]["country"] == "Netherlands" and got[0]["population"] == 1_800_000 and got[0]["geonames"] == 3 and got[0]["timezone"] == "Europe/Berlin"
