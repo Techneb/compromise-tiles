@@ -4822,16 +4822,6 @@
     ]
   },
   {
-    "city": "Donetsk",
-    "district": "Donetsk (Centre (Artema))",
-    "box": [
-      48.0015,
-      37.792,
-      48.0155,
-      37.813
-    ]
-  },
-  {
     "city": "Logan City",
     "district": "Logan City (Logan Central)",
     "box": [
@@ -4919,26 +4909,6 @@
       -66.0785,
       18.4634,
       -66.0637
-    ]
-  },
-  {
-    "city": "Sevastopol",
-    "district": "Sevastopol (Centre)",
-    "box": [
-      44.6115,
-      33.5147,
-      44.6255,
-      33.5343
-    ]
-  },
-  {
-    "city": "Simferopol",
-    "district": "Simferopol (Centre)",
-    "box": [
-      44.9414,
-      34.0901,
-      44.9554,
-      34.1099
     ]
   },
   {

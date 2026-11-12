@@ -436,7 +436,6 @@
 {"city": "Lublin", "country": "Poland", "lat": 51.2506, "lon": 22.5701},
 {"city": "Mazatlán", "country": "Mexico", "lat": 23.2216, "lon": -106.4189},
 {"city": "Kryvyy Rih", "country": "Ukraine", "lat": 47.9057, "lon": 33.394},
-{"city": "Donetsk", "country": "Ukraine", "lat": 48.023, "lon": 37.8022},
 {"city": "Memphis", "country": "United States", "lat": 35.1495, "lon": -90.049},
 {"city": "Logan City", "country": "Australia", "lat": -27.6392, "lon": 153.1094},
 {"city": "Zaporizhzhya", "country": "Ukraine", "lat": 47.8517, "lon": 35.1171},
@@ -446,7 +445,5 @@
 {"city": "San Pedro Sula", "country": "Honduras", "lat": 15.5059, "lon": -88.0259},
 {"city": "Bonn", "country": "Germany", "lat": 50.7344, "lon": 7.0955},
 {"city": "San Juan", "country": "Puerto Rico", "lat": 18.4663, "lon": -66.1057},
-{"city": "London (Canada)", "country": "Canada", "lat": 42.9834, "lon": -81.233},
-{"city": "Sevastopol", "country": "Ukraine", "lat": 44.608, "lon": 33.5213},
-{"city": "Simferopol", "country": "Ukraine", "lat": 44.9572, "lon": 34.1108}
+{"city": "London (Canada)", "country": "Canada", "lat": 42.9834, "lon": -81.233}
 ]
