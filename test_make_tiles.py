@@ -1688,3 +1688,17 @@ assert [v["name"] for v in make_tiles.osm_venues(cell)] == ["The Lamb", "Kebab H
 assert [t.get("name") for t in make_tiles.osm_terraces(cell.rect)] == ["The Lamb"]
 make_tiles._osm = None
 print("ok (match-only venues)")
+
+# 2026-11-14: L'Union and Quint-Fonsegrives, Toulouse Métropole communes beside Toulouse, each tiled whole by its own
+# entry. L'Union sits in Toulouse's box, outside its boundary; each box holds its outline, and each mairie is in its
+# own commune's outline only.
+from make_tiles import contains
+entries = {e["city"]: e for e in json.load(open("cities.json")) if e["city"] in ("Toulouse", "L'Union", "Quint-Fonsegrives")}
+shapes = {city: json.load(open(e["boundary"])) for city, e in entries.items()}
+for city in ("L'Union", "Quint-Fonsegrives"):  # Toulouse's box is rounded to the nearest 1e-4, a metre inside its outline
+    e = entries[city]
+    s, w, n, e_ = bounds(shapes[city])
+    assert e["box"][0] <= s and e["box"][1] <= w and n <= e["box"][2] and e_ <= e["box"][3], city
+for city, (lat, lon) in {"L'Union": (43.6569, 1.4843), "Quint-Fonsegrives": (43.5853, 1.5303), "Toulouse": (43.6045, 1.4442)}.items():
+    assert [c for c in shapes if contains(shapes[c], lat, lon)] == [city], city
+print("ok (Toulouse Métropole communes)")
