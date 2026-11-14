@@ -291,6 +291,30 @@
     "boundary": "boundaries/toulouse.geojson"
   },
   {
+    "city": "L'Union",
+    "streets": true,
+    "district": "L'Union (whole commune)",
+    "box": [
+      43.6329,
+      1.4567,
+      43.67,
+      1.5094
+    ],
+    "boundary": "boundaries/lunion.geojson"
+  },
+  {
+    "city": "Quint-Fonsegrives",
+    "streets": true,
+    "district": "Quint-Fonsegrives (whole commune)",
+    "box": [
+      43.5663,
+      1.5046,
+      43.595,
+      1.5697
+    ],
+    "boundary": "boundaries/quint-fonsegrives.geojson"
+  },
+  {
     "city": "Turin",
     "streets": true,
     "district": "Turin (whole municipality)",

@@ -5,6 +5,8 @@
 {"city": "Paris", "country": "France", "lat": 48.8719, "lon": 2.3316},
 {"city": "Strasbourg", "country": "France", "lat": 48.5833, "lon": 7.746},
 {"city": "Toulouse", "country": "France", "lat": 43.6045, "lon": 1.4442},
+{"city": "L'Union", "country": "France", "lat": 43.6569, "lon": 1.4843},
+{"city": "Quint-Fonsegrives", "country": "France", "lat": 43.5853, "lon": 1.5303},
 {"city": "Berlin", "country": "Germany", "lat": 52.5108, "lon": 13.4597},
 {"city": "Athens", "country": "Greece", "lat": 37.9764, "lon": 23.7259},
 {"city": "Budapest", "country": "Hungary", "lat": 47.4961, "lon": 19.0609},
