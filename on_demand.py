@@ -5,7 +5,8 @@
   python3 on_demand.py add --request request.json --counts counts.json [--cities cities.json]
 
 plan: checks the inputs (they come from outside), keeps the cells (0.01°, the first the most asked for)
-within REACH_M of the first, skips when one of them already lies in a cities.json area, names the city
+within REACH_M of the first, skips when one of them already lies in a cities.json area (inside its boundary
+when it has one: a town in a big city's box but outside its commune is asked for), names the city
 (with its country code when the name is taken) and writes the box, the cells padded by PAD_M, as a
 counts.py entry. add: appends the entry to cities.json when counts.py finds at least GATE going-out cells
 in the box; with fewer the area is too thin and nothing is written. Both print key=value lines for

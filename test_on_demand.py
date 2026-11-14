@@ -16,6 +16,11 @@ assert refused("Lyon", "FR", "", "cities.json")
 assert refused("$(id)", "FR", "45.76,4.83", "cities.json")
 entry, why = plan("Paris", "FR", "48.87,2.33", "cities.json")           # inside Paris's area
 assert entry is None and "already" in why, why
+# Toulouse's box is wider than its commune: L'Union and Quint-Fonsegrives sit in the box, outside the boundary.
+assert plan("Toulouse", "FR", "43.60,1.44", "cities.json")[0] is None
+for town, cell in (("L'Union", "43.67,1.48"), ("Quint-Fonsegrives", "43.58,1.51")):
+    entry, why = plan(town, "FR", cell, "cities.json")
+    assert entry and entry["city"] == town, why
 # Mid-Atlantic, nowhere tiled: one cell gives a box of about 3 km a side; a cell 50 km off is dropped.
 entry, why = plan("Testville", "PT", "40.00,-30.00 40.45,-30.00", "cities.json")
 s, w, n, e = entry["box"]
