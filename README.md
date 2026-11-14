@@ -370,6 +370,8 @@ none, this says so rather than guessing.
 - Anglet: Etalab geo API (IGN Admin Express), Licence Ouverte 2.0.
 - Antibes, Arles, Carcassonne, Colmar, Lourdes, Saint-Malo: Etalab geo API
   (IGN Admin Express), Licence Ouverte 2.0.
+- L'Union, Quint-Fonsegrives: Toulouse Métropole, Communes, Licence Ouverte v2.0
+  (Etalab).
 - San José (Costa Rica, `san-jose-cr.geojson`): © OpenStreetMap contributors,
   ODbL (the cantón's administrative boundary).
 - Thessaloníki: Δήμος Θεσσαλονίκης, δημοτικές κοινότητες (the municipality's

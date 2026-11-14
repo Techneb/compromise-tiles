@@ -455,19 +455,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Donetsk",
-  "country": "Ukraine",
-  "lat": 48.023,
-  "lon": 37.8022,
-  "population": 901645,
-  "timezone": "Europe/Kyiv",
-  "geonames": 709717,
-  "goingOutCells": 76,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Cancún",
   "country": "Mexico",
   "lat": 21.1743,
@@ -650,7 +637,7 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Zaporizhzhya",
+  "city": "Zaporizhzhia",
   "country": "Ukraine",
   "lat": 47.8517,
   "lon": 35.1171,
@@ -858,7 +845,7 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Kryvyy Rih",
+  "city": "Kryvyi Rih",
   "country": "Ukraine",
   "lat": 47.9057,
   "lon": 33.394,
@@ -1032,19 +1019,6 @@
   "geonames": 786714,
   "goingOutCells": 238,
   "terraceShare": 0.109,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
-  "city": "Sevastopol",
-  "country": "Ukraine",
-  "lat": 44.608,
-  "lon": 33.5213,
-  "population": 547820,
-  "timezone": "Europe/Simferopol",
-  "geonames": 694423,
-  "goingOutCells": 110,
-  "terraceShare": 0.0,
   "extent": "24 km square",
   "counted": "2026-09-30"
  },
@@ -1413,7 +1387,7 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Vinnytsya",
+  "city": "Vinnytsia",
   "country": "Ukraine",
   "lat": 49.2322,
   "lon": 28.4687,
@@ -1634,19 +1608,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Luhansk",
-  "country": "Ukraine",
-  "lat": 48.5681,
-  "lon": 39.3055,
-  "population": 397677,
-  "timezone": "Europe/Kyiv",
-  "geonames": 702658,
-  "goingOutCells": 37,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Wichita",
   "country": "United States",
   "lat": 37.6922,
@@ -1751,7 +1712,7 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Iaşi",
+  "city": "Iași",
   "country": "Romania",
   "lat": 47.1667,
   "lon": 27.6,
@@ -2050,19 +2011,6 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Simferopol",
-  "country": "Ukraine",
-  "lat": 44.9572,
-  "lon": 34.1108,
-  "population": 336460,
-  "timezone": "Europe/Simferopol",
-  "geonames": 693805,
-  "goingOutCells": 94,
-  "terraceShare": 0.0,
-  "extent": "24 km square",
-  "counted": "2026-09-30"
- },
- {
   "city": "Lublin",
   "country": "Poland",
   "lat": 51.2506,
@@ -2284,7 +2232,7 @@
   "counted": "2026-09-30"
  },
  {
-  "city": "Constanţa",
+  "city": "Constanța",
   "country": "Romania",
   "lat": 44.1807,
   "lon": 28.6343,
