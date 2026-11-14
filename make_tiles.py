@@ -2486,10 +2486,103 @@ def urbis(rect):
             out += [b for b in _urbis[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
     return out
 
+# The City of Yarra's 3D buildings by suburb (data.gov.au, CC BY 4.0): every building of the municipality as built in
+# 2015, one 3DS mesh a suburb, vertices in MGA zone 55 metres and AHD (OSM's outlines in Fitzroy sit on them within a
+# metre, 2026-11-10). The roofs (every face not vertical) are drawn on a 1 m grid, a pixel holding the highest one over
+# its centre; a footprint's height is the 90th percentile of its pixels (lidar_height's rule) less the lowest mesh
+# vertex within 2 m of its box: its walls' foot. 280 MB for the 12 suburbs, read once a run. The Atherton Gardens towers
+# read 57.6–59.2 m (OSM 63 m); a two-storey Victorian terrace 8–9 m (OSM's levels × 3 m: 6 m).
+YARRA_3D = "https://data.gov.au/data/dataset/50923ab8-864c-4fbe-a2e2-42034b16cf5e/resource/{}/download/{}.3ds"
+YARRA_SUBURBS = {"abbotsford": "6c30ac7f-fdc4-4236-a706-54f0d223da3c", "alphington": "59a0c906-f71f-4bcc-89cf-f2b179e46da2",
+                 "burnley": "9e5313cc-50ed-4fd2-a218-b6535025ac5d", "carlton_north": "9f052ce3-111d-4dbd-84b4-3480a86d1eb9",
+                 "clifton_hill": "c9e6b511-dab2-452a-8313-2e9ecd2fd271", "collingwood": "91230a66-1b8c-45dd-bb94-a7e83ec2e971",
+                 "cremorne": "113bf0f6-4f0c-466e-a3ac-21cb1c4470e6", "fairfield": "19f15e3f-638f-4d2e-bc5e-77fd93fa4f0c",
+                 "fitzroy": "bffd8969-6bfd-43c0-9546-1882ed7e5f96", "fitzroy_north": "6d6960ed-dcc6-4aba-81c9-692f79b8ebcb",
+                 "princes_hill": "741670ff-1198-4770-9cd3-3c7fd54094b6", "richmond": "4b55f8eb-5203-4d5e-9d11-16ad44cc4960"}
+YARRA_CHUNK = 500    # metres a side: a chunk's roofs (1 m pixels) and walls' feet (2 m cells), decimetres AHD
+_yarra = {}          # (east, north) // YARRA_CHUNK → (roof array('h'), foot array('h')); "read" once the meshes are in
+
+def mesh_faces(raw, a=0, b=None):
+    """Every triangle of a 3DS file, as three (x, y, z) vertices: the main, editor, object and mesh chunks walked,
+    each mesh's vertex list (0x4110) indexed by its face list (0x4120)."""
+    b, vertices = len(raw) if b is None else b, ()
+    while a + 6 <= b:
+        kind, size = struct.unpack_from("<HI", raw, a)
+        if size < 6: return
+        if kind in (0x4D4D, 0x3D3D, 0x4100): yield from mesh_faces(raw, a + 6, a + size)
+        elif kind == 0x4000: yield from mesh_faces(raw, raw.index(b"\0", a + 6) + 1, a + size)
+        elif kind == 0x4110:
+            n, = struct.unpack_from("<H", raw, a + 6)
+            v = struct.unpack_from(f"<{3 * n}f", raw, a + 8)
+            vertices = [v[i:i + 3] for i in range(0, 3 * n, 3)]
+        elif kind == 0x4120:
+            n, = struct.unpack_from("<H", raw, a + 6)
+            f = struct.unpack_from(f"<{4 * n}H", raw, a + 8)
+            yield from ((vertices[f[i]], vertices[f[i + 1]], vertices[f[i + 2]]) for i in range(0, 4 * n, 4))
+        a += size
+
+def yarra_chunk(key):
+    if key not in _yarra:
+        _yarra[key] = (array.array("h", [VOID]) * (YARRA_CHUNK * YARRA_CHUNK), array.array("h", [32767]) * (YARRA_CHUNK * YARRA_CHUNK // 4))
+    return _yarra[key]
+
+def draw_faces(faces):
+    """The faces' roofs and walls' feet into the chunks."""
+    for tri in faces:
+        for x, y, z in tri:
+            roof, foot = yarra_chunk((int(x // YARRA_CHUNK), int(y // YARRA_CHUNK)))
+            i = int(y % YARRA_CHUNK // 2) * (YARRA_CHUNK // 2) + int(x % YARRA_CHUNK // 2)
+            foot[i] = min(foot[i], round(z * 10))
+        (x1, y1, z1), (x2, y2, z2), (x3, y3, z3) = tri
+        d = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+        if abs(d) < 1e-6: continue   # a wall
+        for gy in range(math.floor(min(y1, y2, y3)), math.ceil(max(y1, y2, y3))):
+            for gx in range(math.floor(min(x1, x2, x3)), math.ceil(max(x1, x2, x3))):
+                a = ((y2 - y3) * (gx + 0.5 - x3) + (x3 - x2) * (gy + 0.5 - y3)) / d
+                b = ((y3 - y1) * (gx + 0.5 - x3) + (x1 - x3) * (gy + 0.5 - y3)) / d
+                if a < 0 or b < 0 or a + b > 1: continue
+                roof, _ = yarra_chunk((gx // YARRA_CHUNK, gy // YARRA_CHUNK))
+                i = gy % YARRA_CHUNK * YARRA_CHUNK + gx % YARRA_CHUNK
+                roof[i] = max(roof[i], round((a * z1 + b * z2 + (1 - a - b) * z3) * 10))
+
+def yarra_height(outline):
+    """One footprint's height from the meshes, None under 4 roof pixels or under 2 m (built after 2015)."""
+    if "read" not in _yarra:
+        for name, resource in YARRA_SUBURBS.items():
+            with open(download(YARRA_3D.format(resource, name), os.path.join("extracts", "yarra3d"), max_days=365), "rb") as f:
+                draw_faces(mesh_faces(f.read()))
+        _yarra["read"] = True
+    ring = [wgs84_to_tm(p["latitude"], p["longitude"], 147, false_northing=10_000_000) for p in outline]
+    edges = list(zip(ring, ring[1:] + ring[:1]))
+    heights = []
+    for north in range(math.floor(min(y for _, y in ring)), math.ceil(max(y for _, y in ring))):
+        y = north + 0.5
+        xs = sorted(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]) for a, b in edges if (a[1] > y) != (b[1] > y))
+        for x0, x1 in zip(xs[::2], xs[1::2]):
+            for east in range(math.ceil(x0 - 0.5), math.floor(x1 - 0.5) + 1):
+                roof = _yarra.get((east // YARRA_CHUNK, north // YARRA_CHUNK))
+                h = roof[0][north % YARRA_CHUNK * YARRA_CHUNK + east % YARRA_CHUNK] if roof else VOID
+                if h != VOID: heights.append(h)
+    feet = [c[1][int(y % YARRA_CHUNK // 2) * (YARRA_CHUNK // 2) + int(x % YARRA_CHUNK // 2)]
+            for x in range(math.floor(min(x for x, _ in ring) - 2), math.ceil(max(x for x, _ in ring) + 2) + 1, 2)
+            for y in range(math.floor(min(y for _, y in ring) - 2), math.ceil(max(y for _, y in ring) + 2) + 1, 2)
+            if (c := _yarra.get((int(x // YARRA_CHUNK), int(y // YARRA_CHUNK))))]
+    if len(heights) < 4 or not feet or min(feet) == 32767: return None
+    heights.sort()
+    h = (heights[int(LIDAR_PERCENTILE * (len(heights) - 1))] - min(feet)) / 10
+    return h if h >= 2 else None
+
+def yarra(rect):
+    """OpenStreetMap's footprints, each with the meshes' height where they read one (a combine row's fetch)."""
+    return [building(b["outline"], h) for b in osm_buildings(rect, True) if (h := yarra_height(b["outline"])) is not None]
+
 CITY_BUILDINGS = [
     building_row("Melbourne", (-37.8507, -37.7755), (144.897, 144.9913), boundary=boundary("melbourne"), fetch=lambda r: footprints(opendatasoft(
         "data.melbourne.vic.gov.au", "2023-building-footprints", in_bbox("geo_point_2d", r) + ' and footprint_type != "Tunnel"',
         "structure_extrusion"), lambda p: p.get("structure_extrusion"))),
+    # Wired 2026-11-10: the City of Yarra's 2015 meshes on OSM's footprints, held to its boundary (ABS ASGS 2021 LGA
+    # 27350, CC BY 4.0): Fitzroy, Collingwood, Richmond, Abbotsford, Cremorne, Carlton North, Fitzroy North, Clifton Hill.
+    building_row("Yarra", (-37.8346, -37.7753), (144.9614, 145.0453), boundary=boundary("yarra"), combine="metres", fetch=yarra),
     building_row("Amsterdam", (52.2779, 52.4311), (4.7287, 5.1077), bag3d),   # 3DBAG is national: the whole municipality's box
     building_row("Rotterdam", (51.8421, 52.002), (3.9614, 4.6019), bag3d),
     building_row("The Hague", (52.00, 52.13), (4.18, 4.42), bag3d),

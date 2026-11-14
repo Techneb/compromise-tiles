@@ -179,6 +179,11 @@
    "url": "https://data.melbourne.vic.gov.au/api/explore/v2.1/catalog/datasets/2023-building-footprints"
   }
  },
+ "buildings/Yarra": {
+  "key": "-18902,72489",
+  "picked": "2026-11-10",
+  "combine": true
+ },
  "buildings/Amsterdam": {
   "key": "26170,2472",
   "picked": "2026-10-04",
