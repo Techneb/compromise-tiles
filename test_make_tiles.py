@@ -1452,6 +1452,25 @@ pubs = chains_only([{"name": n, "brand": b} for n, b in [("The Albion", "Nichols
                                                         ("GAIL's", "GAIL's Bakery"), ("Café", "GAIL's Bakery"), ("Soho", "GAIL's Bakery")]], brands={})
 assert [v.get("brand") for v in pubs] == ["Nicholson's", "Nicholson's", None, None, None, None, None, "GAIL's Bakery", "GAIL's Bakery"], pubs
 
+# chain rides on every venue of a chain of three or more, the ones whose name says the brand too (owner, 2026-11-17).
+assert [v.get("chain") for v in pubs] == [True, True, True, None, None, None, True, True, True], pubs
+
+# Venue style (owner, 2026-11-17): a starred restaurant is fine dining, never a hotel's stars; a 4-5 star hotel's venues carry its stars.
+from make_tiles import fine_dining, hotel_class, in_hotels
+assert all(fine_dining({"amenity": "restaurant", k: v}) for k, v in (("stars", "1"), ("stars", " 3 "), ("award:michelin", "2")))
+assert not any(fine_dining(t) for t in ({"amenity": "restaurant", "stars": "0"}, {"amenity": "restaurant", "stars": "Bib gourmand"},
+                                        {"amenity": "restaurant", "stars": "5"}, {"amenity": "bar", "stars": "1"},
+                                        {"amenity": "restaurant", "tourism": "hotel", "stars": "2"}, {"amenity": "restaurant"}))
+assert [hotel_class(t) for t in ({"tourism": "hotel", "stars": "5"}, {"tourism": "hotel", "stars": "4S"}, {"tourism": "hotel", "stars": "3"},
+                                 {"stars": "5"}, {"tourism": "hotel"})] == [5, 4, None, None, None]
+assert details({"amenity": "restaurant", "stars": "1"}) == {"fine_dining": True}
+assert details({"amenity": "bar", "tourism": "hotel", "stars": "4"}) == {"hotel": 4}
+square = {"type": "Polygon", "coordinates": [[[2.30, 48.86], [2.31, 48.86], [2.31, 48.87], [2.30, 48.87], [2.30, 48.86]]]}
+inside, outside, own = ({"coordinate": {"latitude": la, "longitude": lo}} for la, lo in ((48.865, 2.305), (48.875, 2.305), (48.865, 2.306)))
+own["hotel"] = 4
+assert in_hotels([inside, outside, own], [(5, square, make_tiles.bounds(square))]) == [
+    {"coordinate": inside["coordinate"], "hotel": 5}, {"coordinate": outside["coordinate"]}, {"coordinate": own["coordinate"], "hotel": 4}]
+
 # The name-suggestion-index names a chain by its wikidata, or by its name where the extract has that brand tagged (S5).
 nsi = {"Q1": ["Pret A Manger", "sandwich", "fast_food", ["PRET A MANGER"]], "Q2": ["Paul", "", "cafe", ["PAUL"]]}
 cafes = chains_only([{"name": "Station Kiosk", "_qid": "Q1"}, {"name": "Pret A Manger", "_qid": "Q1"}, {"name": "Pret A Manger"},

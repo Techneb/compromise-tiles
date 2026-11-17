@@ -626,7 +626,7 @@ class OSM:
             osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
             osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
             # MATCH_ONLY venues apart: only venues/ tiles carry them, not terraces, shade or small-place counts.
-            for venue in chains_only(read_venues(box, kept, AMENITIES + MATCH_ONLY)):
+            for venue in in_hotels(chains_only(read_venues(box, kept, AMENITIES + MATCH_ONLY)), hotels(box, kept)):
                 lat, lon = venue["coordinate"]["latitude"], venue["coordinate"]["longitude"]
                 (self.venues if venue["amenity"] in AMENITIES else self.matches).setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
@@ -912,7 +912,7 @@ def details(tags):
     cuisine as up to three lowercased ;-separated values, sport's first value, and True for
     microbrewery, live_music and cocktails tagged yes, drink:wine/drink:beer tagged yes or served, and
     diet:vegan, diet:vegetarian and diet:gluten_free as their value when yes or only. They also feed
-    the app's keyword match (cocktail, pizza, vegan…)."""
+    the app's keyword match (cocktail, pizza, vegan…). fine_dining and hotel feed the app's style labels (2026-11-17)."""
     out = {}
     cuisine = [v.strip().lower() for v in str(tags.get("cuisine") or "").split(";") if v.strip()][:3]
     if cuisine: out["cuisine"] = ";".join(cuisine)
@@ -940,7 +940,41 @@ def details(tags):
     if every & {"specialty_coffee", "speciality_coffee"} or tags.get("coffee") == "specialty" or tags.get("coffee:specialty") == "yes":
         out["specialty_coffee"] = True
     if str(tags.get("brand") or "").strip(): out["brand"] = str(tags["brand"]).strip()
+    # Venue style (owner, 2026-11-17): fine_dining True for a starred restaurant, hotel 4 or 5 for a venue that is a 4–5★ hotel too.
+    if fine_dining(tags): out["fine_dining"] = True
+    if hotel_class(tags): out["hotel"] = hotel_class(tags)
     return out
+
+def fine_dining(tags):
+    """A restaurant OSM's mappers give one to three stars (`stars`, else `award:michelin`): their copy of a guide's, which the
+    app shows only as "Fine dining", never by the guide's name (owner, 2026-11-17). Not on an element that is a hotel too, whose
+    stars are the hotel's; "0", "Bib gourmand" and the rest are no star."""
+    if tags.get("amenity") != "restaurant" or tags.get("tourism") == "hotel": return False
+    return any(str(tags.get(key) or "").strip() in ("1", "2", "3") for key in ("stars", "award:michelin"))
+
+def hotel_class(tags):
+    """A tourism=hotel element's stars, 4 or 5 ("4S" too), else None: the hotels whose bars and restaurants the app labels."""
+    stars = str(tags.get("stars") or "").strip().rstrip("Ss")
+    return int(stars) if tags.get("tourism") == "hotel" and stars in ("4", "5") else None
+
+def hotels(pbf, kept):
+    """The 4–5★ hotels of a pbf drawn as areas, [(stars, geometry, bounds)]; `kept` is a scratch file."""
+    osmium("tags-filter", pbf, "wr/tourism=hotel", "-o", kept, "--overwrite")
+    return [(hotel_class(f["properties"]), f["geometry"], bounds(f["geometry"])) for f in features(kept, "polygon")
+            if hotel_class(f["properties"]) and f["geometry"]["type"] in ("Polygon", "MultiPolygon")]
+
+def in_hotels(venues, areas):
+    """Sets `hotel` (the stars) on a venue inside one of `hotels()`' areas: a hotel's bar or restaurant (owner, 2026-11-17).
+    A venue that is a hotel itself keeps its own."""
+    index = {}
+    for area in areas:
+        for key in buckets(*area[2]): index.setdefault(key, []).append(area)
+    for v in venues:
+        lat, lon = v["coordinate"]["latitude"], v["coordinate"]["longitude"]
+        stars = next((a[0] for a in index.get(buckets(lat, lon, lat, lon)[0], []) if a[2][0] <= lat <= a[2][2] and a[2][1] <= lon <= a[2][3]
+                      and contains(a[1], lat, lon)), None)
+        if stars and "hotel" not in v: v["hotel"] = stars
+    return venues
 
 _NSI = None
 def nsi_brands():
@@ -971,6 +1005,8 @@ def chains_only(venues, least=3, brands=None):
     shared = collections.Counter(v.get("brand") for v in venues)
     for v in venues:
         if "brand" not in v: continue
+        # chain stays where the brand goes for saying the name (owner, 2026-11-17): what "Hide chains" reads.
+        if shared[v["brand"]] >= least: v["chain"] = True
         brand, name = normalised_name(v["brand"]), normalised_name(v["name"])
         if shared[v["brand"]] < least or brand in name or name in brand: del v["brand"]
     return venues

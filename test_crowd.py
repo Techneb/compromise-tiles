@@ -204,4 +204,7 @@ else:
     ck = crowd.CloudKit("kid", pem)
     assert ck.path == "/database/1/iCloud.uk.alephb.compromise/production/public"
     key.public_key().verify(ck._sign(b"2026-10-25T00:00:00Z:abc=:/x"), b"2026-10-25T00:00:00Z:abc=:/x", ec.ECDSA(hashes.SHA256()))
+# Style labels and the price range (2026-11-17), as CrowdFacts.canonical takes them.
+assert canonical("4", "price") == "4" and canonical("5", "price") is None and canonical("€", "price") is None
+assert canonical("yes", "tag.hotel_bar") == "yes" and canonical("maybe", "tag.chain") is None
 print("ok")

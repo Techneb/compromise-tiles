@@ -48,11 +48,13 @@ CUISINES = {   # VenueVocabulary.cuisines (VenueSubtitle.swift)
 }
 FLAGS = ["cocktails", "wine", "live_music", "brewpub", "beer_garden", "real_ale", "real_fire", "karaoke", "quiz",
          "specialty_coffee", "brunch"]   # CrowdTags.flags
+STYLES = ["fine_dining", "hotel_bar", "chain", "late_night", "traditional"]   # CrowdTags.styles (VenueStyle, 2026-11-17)
 HOURS = ["hours.mo", "hours.tu", "hours.we", "hours.th", "hours.fr", "hours.sa", "hours.su"]   # CrowdHours.dayFacts
 FACT_CHOICES = {"terrace": YES_NO, "food": YES_NO, "live_sport": YES_NO, "closed": YES_NO,
                 "type": {"bar", "pub", "cafe", "restaurant", "other"},
                 "diet.vegan": {"no", "options", "only"}, "diet.vegetarian": {"no", "options", "only"},
-                **{"tag." + k: YES_NO for k in CUISINES | set(FLAGS) | {"rooftop"}}}   # CrowdTags.keys
+                "price": {"1", "2", "3", "4"},   # PriceRange, € to €€€€
+                **{"tag." + k: YES_NO for k in CUISINES | set(FLAGS) | {"rooftop"} | set(STYLES)}}   # CrowdTags.keys
 
 
 def clock(text):
