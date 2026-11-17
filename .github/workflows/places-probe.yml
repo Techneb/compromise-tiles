@@ -1,0 +1,28 @@
+# One-off probe (2026-11-17): style-like categories and price/rating-like fields in Overture Places
+# (CDLA-Permissive 2.0) for Paris and London. Reads anonymous S3, writes nothing but the job log and
+# its summary. Foursquare OS Places (Apache 2.0) is gated on Hugging Face since 2026, so it is not read.
+name: Places probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Overture release"
+        default: "2026-10-21.0"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: places_probe.py
+          sparse-checkout-cone-mode: false
+      - run: python3 -m pip install --break-system-packages duckdb==1.4.1
+      - env:
+          RELEASE: ${{ inputs.release }}
+        run: python3 places_probe.py "$RELEASE" | tee -a "$GITHUB_STEP_SUMMARY"
