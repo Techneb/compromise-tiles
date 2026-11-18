@@ -78,7 +78,7 @@ shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, collections, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
+import argparse, array, collections, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, socket, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -91,6 +91,25 @@ TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the 
 # a 400 m reach). Raise it if that reach grows.
 BUILDING_REACH = 200
 BUILDING_PAD = 250            # fetched around a block: some feeds select by a footprint's centre, not its outline
+
+# 2026-11-18: ~145 of ~340 build jobs (two runs) failed every try at download.geofabrik.de in 0.4 s with
+# "[Errno 101] Network is unreachable": GitHub's runners have no IPv6 route, and CPython reports only the
+# first address's error. Each family is asked on its own (an answer that lost its A records then still gets
+# IPv4), IPv4 first, every address tried, and every failure named in the error.
+_create_connection = socket.create_connection
+
+def connect(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None, **_):
+    host, port = address
+    errors = []
+    for family in (socket.AF_INET, socket.AF_INET6):
+        try: infos = socket.getaddrinfo(host, port, family, socket.SOCK_STREAM)
+        except OSError as e: errors.append(f"{family.name}: {e}"); continue
+        for *_, sockaddr in infos:
+            try: return _create_connection(sockaddr[:2], timeout, source_address)
+            except OSError as e: errors.append(f"{sockaddr[0]}: {e}")
+    raise OSError("; ".join(errors)[:400])
+
+socket.create_connection = connect  # ponytail: process-wide, so http.client (urllib) uses it too
 
 def boundary(slug):
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "boundaries", slug + ".geojson")) as f: return json.load(f)
