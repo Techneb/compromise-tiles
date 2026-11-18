@@ -1471,6 +1471,42 @@ own["hotel"] = 4
 assert in_hotels([inside, outside, own], [(5, square, make_tiles.bounds(square))]) == [
     {"coordinate": inside["coordinate"], "hotel": 5}, {"coordinate": outside["coordinate"]}, {"coordinate": own["coordinate"], "hotel": 4}]
 
+# Overture (owner, 2026-11-18): a place speaks for the one venue within reach under a matching name (its kind of bar, its
+# brand as a chain, a permanent closure); two such venues, or places that disagree on a venue, and OSM's stands. No place
+# becomes a venue.
+from make_tiles import overture_facts, overture_place
+def bar(name, lat, lon, **kw): return {"name": name, "coordinate": {"latitude": lat, "longitude": lon}, "amenity": "bar", **kw}
+def overture(name, lat, lon, kind="bar", status="open", qid=None, confidence=0.9):
+    return overture_place(name, lat, lon, status, kind, qid, confidence)
+experimental, twin_a, twin_b = bar("Experimental Cocktail Club", 48.8660, 2.3470), bar("Le Syndicat", 48.8710, 2.3540), bar("Le Syndicat", 48.8712, 2.3541)
+far, torn = bar("Candelaria", 48.8630, 2.3640), bar("Little Red Door", 48.8640, 2.3630)
+gone, back, pret, nicholsons = (bar("Le Fantôme", 48.8600, 2.3500), bar("Chez Rita", 48.8580, 2.3500), bar("Pret A Manger", 48.8560, 2.3500),
+                                bar("The Albion", 48.8540, 2.3500, brand="Nicholson's", chain=True))
+osm = make_tiles.OSM.__new__(make_tiles.OSM)
+osm.venues, osm.matches = {}, {}
+for v in (experimental, twin_a, twin_b, far, torn, gone, back, pret, nicholsons):
+    lat, lon = v["coordinate"]["latitude"], v["coordinate"]["longitude"]
+    osm.venues.setdefault(make_tiles.buckets(lat, lon, lat, lon)[0], []).append(v)
+counts = overture_facts(osm, [overture("Experimental Cocktail Club", 48.8662, 2.3471, "speakeasy"),
+                              overture("Syndicat", 48.8711, 2.3540, "cocktail_bar"),       # two venues answer: ambiguous
+                              overture("Candelaria", 48.8650, 2.3640, "speakeasy"),        # 220 m off: unmatched
+                              overture("Little Red Door", 48.8640, 2.3631, "cocktail_bar"),
+                              overture("Little Red Door", 48.8641, 2.3630, "speakeasy"),   # torn between two kinds
+                              overture("Le Comptoir Général", 48.8660, 2.3470, "lounge"),  # no venue of that name
+                              overture("Le Fantome", 48.8601, 2.3500, status="permanently_closed", confidence=0.2),
+                              overture("Chez Rita", 48.8580, 2.3501, status="permanently_closed"),
+                              overture("Chez Rita", 48.8581, 2.3500),                      # open again: kept
+                              overture("Experimental Cocktail Club", 48.8661, 2.3470, "cocktail_bar", confidence=0.4),  # unsure
+                              *(overture("Pret A Manger", 48.8561 + i / 100, 2.35, "cafe", qid="Q2109109") for i in range(3)),
+                              overture("The Albion", 48.8540, 2.3501, "pub", qid="Q2109109")])
+assert experimental["style"] == "speakeasy" and not any("style" in v for v in (twin_a, twin_b, far, torn)), (twin_a, torn)
+assert gone not in osm.venues[make_tiles.buckets(48.86, 2.35, 48.86, 2.35)[0]] and back in sum(osm.venues.values(), [])
+assert pret["chain"] and nicholsons["brand"] == "Nicholson's" and nicholsons["style"] == "pub"
+assert {k: dict(c) for k, c in counts.items()} == {
+    "style:speakeasy": {"matched": 1, "unmatched": 1, "ambiguous": 1}, "style:cocktail_bar": {"ambiguous": 2},
+    "style:lounge": {"unmatched": 1}, "closed": {"matched": 1, "ambiguous": 1}, "dropped": {"Le Fantôme": 1},
+    "chain": {"matched": 2, "unmatched": 2, "added": 1}, "style:pub": {"matched": 1}}, counts
+
 # The name-suggestion-index names a chain by its wikidata, or by its name where the extract has that brand tagged (S5).
 nsi = {"Q1": ["Pret A Manger", "sandwich", "fast_food", ["PRET A MANGER"]], "Q2": ["Paul", "", "cafe", ["PAUL"]]}
 cafes = chains_only([{"name": "Station Kiosk", "_qid": "Q1"}, {"name": "Pret A Manger", "_qid": "Q1"}, {"name": "Pret A Manger"},
