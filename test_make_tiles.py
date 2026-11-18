@@ -1810,3 +1810,17 @@ finally:
     socket.getaddrinfo, make_tiles._create_connection = real
 assert socket.create_connection is make_tiles.connect
 print("ok (connect: IPv4 first, every address)")
+
+# The run's index, fetched once by tiles.yml's plan job, is read from GEOFABRIK_INDEX: no request (2026-11-18).
+import json, os, tempfile, make_tiles
+real_get_json, make_tiles._regions = make_tiles.get_json, None
+make_tiles.get_json = lambda *a, **k: (_ for _ in ()).throw(AssertionError("fetched the index"))
+try:
+    with tempfile.TemporaryDirectory() as folder:
+        os.environ["GEOFABRIK_INDEX"] = os.path.join(folder, "index-v1.json")
+        with open(os.environ["GEOFABRIK_INDEX"], "w") as f: json.dump({"features": index}, f)
+        assert make_tiles.geofabrik_pbf(1, 1) == "deep"
+finally:
+    make_tiles.get_json, make_tiles._regions = real_get_json, None
+    del os.environ["GEOFABRIK_INDEX"]
+print("ok (geofabrik_pbf: the run's index file)")
