@@ -532,7 +532,13 @@ _regions = None
 
 def geofabrik_pbf(lat, lon):
     global _regions
-    if _regions is None: _regions = get_json(GEOFABRIK)["features"]
+    if _regions is None:
+        # tiles.yml's plan job fetches the index once for all its build jobs (2026-11-18: ~357 fetches a run, each
+        # 3.8 MB, and Geofabrik began refusing part of GitHub's runners).
+        path = os.environ.get("GEOFABRIK_INDEX")
+        if path and os.path.exists(path):
+            with open(path) as f: _regions = json.load(f)["features"]
+        else: _regions = get_json(GEOFABRIK)["features"]
     return smallest_region(_regions, lat, lon)["properties"]["urls"]["pbf"]
 
 def smallest_region(regions, lat, lon):
