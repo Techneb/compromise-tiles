@@ -210,13 +210,22 @@ jobs:
           path: ${{ steps.extract.outputs.path }}
           key: ${{ steps.extract.outputs.key }}
       - name: Download the extract
+        id: download
         if: ${{ !cancelled() && steps.extract.outputs.key != '' && steps.cached.outputs.cache-hit != 'true' }}
         continue-on-error: true
         env:
           URL: ${{ steps.extract.outputs.url }}
         run: python3 -c 'import make_tiles as m, os; m.download(os.environ["URL"], "extracts")'
+      # A runner Geofabrik refuses asks the cache again once its retries are spent: a sibling job may have saved it since
+      # (Leeds, 2026-11-18: its first look came 13 s before Bradford saved West Yorkshire).
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: ${{ !cancelled() && steps.download.outcome == 'failure' }}
+        continue-on-error: true
+        with:
+          path: ${{ steps.extract.outputs.path }}
+          key: ${{ steps.extract.outputs.key }}
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        if: ${{ !cancelled() && steps.extract.outputs.shared == 'true' && steps.cached.outputs.cache-hit != 'true' && hashFiles(steps.extract.outputs.path) != '' }}
+        if: ${{ !cancelled() && steps.extract.outputs.shared == 'true' && steps.download.outcome == 'success' && hashFiles(steps.extract.outputs.path) != '' }}
         continue-on-error: true
         with:
           path: ${{ steps.extract.outputs.path }}
