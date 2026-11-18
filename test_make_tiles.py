@@ -1784,3 +1784,29 @@ for city in ("L'Union", "Quint-Fonsegrives"):  # Toulouse's box is rounded to th
 for city, (lat, lon) in {"L'Union": (43.6569, 1.4843), "Quint-Fonsegrives": (43.5853, 1.5303), "Toulouse": (43.6045, 1.4442)}.items():
     assert [c for c in shapes if contains(shapes[c], lat, lon)] == [city], city
 print("ok (Toulouse Métropole communes)")
+# 2026-11-18: connect() tries IPv4 first, then IPv6, every address, and names every failure.
+import socket
+import make_tiles
+answers = {socket.AF_INET: [(socket.AF_INET, 1, 6, "", ("192.0.2.1", 443))],
+           socket.AF_INET6: [(socket.AF_INET6, 1, 6, "", ("2001:db8::1", 443, 0, 0))]}
+tried, real = [], (socket.getaddrinfo, make_tiles._create_connection)
+def fake_connect(address, timeout, source):
+    tried.append(address[0])
+    if address[0] in down: raise OSError(101, "Network is unreachable")
+    return address[0]
+socket.getaddrinfo = lambda host, port, family, kind: answers[family]
+make_tiles._create_connection = fake_connect
+try:
+    down = {"2001:db8::1"}
+    assert make_tiles.connect(("example.org", 443)) == "192.0.2.1" and tried == ["192.0.2.1"]
+    down, tried[:] = {"192.0.2.1", "2001:db8::1"}, []
+    try: make_tiles.connect(("example.org", 443)); assert False
+    except OSError as e: assert tried == ["192.0.2.1", "2001:db8::1"] and "192.0.2.1" in str(e) and "2001:db8::1" in str(e), e
+    del answers[socket.AF_INET]  # an answer without A records: IPv6 is still tried
+    socket.getaddrinfo = lambda host, port, family, kind: answers[family] if family in answers else (_ for _ in ()).throw(socket.gaierror("no A"))
+    down, tried[:] = set(), []
+    assert make_tiles.connect(("example.org", 443)) == "2001:db8::1"
+finally:
+    socket.getaddrinfo, make_tiles._create_connection = real
+assert socket.create_connection is make_tiles.connect
+print("ok (connect: IPv4 first, every address)")
