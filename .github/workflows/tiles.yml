@@ -148,6 +148,9 @@ jobs:
       # boundaries/ alone needs packages (shapely ≥ 2.1 for coverage_simplify); in the user's site, the system's Python left as it is.
       - if: ${{ contains(format(',{0},', needs.plan.outputs.layers), ',boundaries,') }}
         run: python3 -m pip install --user --break-system-packages -q -r requirements.txt
+      # Overture Places on Paris's and London's venues/ (owner, 2026-11-18), read with DuckDB over its public bucket.
+      - if: ${{ contains(format(',{0},', needs.plan.outputs.layers), ',venues,') && contains(fromJson('["Paris","London"]'), matrix.city) }}
+        run: python3 -m pip install --user --break-system-packages -q 'duckdb>=1.4,<3'
       # The store's listing, read twice: the build starts with the blocks the store lacks, the upload compares with it.
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         if: ${{ !cancelled() }}

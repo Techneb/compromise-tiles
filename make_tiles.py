@@ -626,7 +626,7 @@ class OSM:
             osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
             osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
             # MATCH_ONLY venues apart: only venues/ tiles carry them, not terraces, shade or small-place counts.
-            for venue in chains_only(read_venues(box, kept, AMENITIES + MATCH_ONLY)):
+            for venue in in_hotels(chains_only(read_venues(box, kept, AMENITIES + MATCH_ONLY)), hotels(box, kept)):
                 lat, lon = venue["coordinate"]["latitude"], venue["coordinate"]["longitude"]
                 (self.venues if venue["amenity"] in AMENITIES else self.matches).setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
         finally:
@@ -912,7 +912,7 @@ def details(tags):
     cuisine as up to three lowercased ;-separated values, sport's first value, and True for
     microbrewery, live_music and cocktails tagged yes, drink:wine/drink:beer tagged yes or served, and
     diet:vegan, diet:vegetarian and diet:gluten_free as their value when yes or only. They also feed
-    the app's keyword match (cocktail, pizza, vegan…)."""
+    the app's keyword match (cocktail, pizza, vegan…). fine_dining and hotel feed the app's style labels (2026-11-17)."""
     out = {}
     cuisine = [v.strip().lower() for v in str(tags.get("cuisine") or "").split(";") if v.strip()][:3]
     if cuisine: out["cuisine"] = ";".join(cuisine)
@@ -940,7 +940,41 @@ def details(tags):
     if every & {"specialty_coffee", "speciality_coffee"} or tags.get("coffee") == "specialty" or tags.get("coffee:specialty") == "yes":
         out["specialty_coffee"] = True
     if str(tags.get("brand") or "").strip(): out["brand"] = str(tags["brand"]).strip()
+    # Venue style (owner, 2026-11-17): fine_dining True for a starred restaurant, hotel 4 or 5 for a venue that is a 4–5★ hotel too.
+    if fine_dining(tags): out["fine_dining"] = True
+    if hotel_class(tags): out["hotel"] = hotel_class(tags)
     return out
+
+def fine_dining(tags):
+    """A restaurant OSM's mappers give one to three stars (`stars`, else `award:michelin`): their copy of a guide's, which the
+    app shows only as "Fine dining", never by the guide's name (owner, 2026-11-17). Not on an element that is a hotel too, whose
+    stars are the hotel's; "0", "Bib gourmand" and the rest are no star."""
+    if tags.get("amenity") != "restaurant" or tags.get("tourism") == "hotel": return False
+    return any(str(tags.get(key) or "").strip() in ("1", "2", "3") for key in ("stars", "award:michelin"))
+
+def hotel_class(tags):
+    """A tourism=hotel element's stars, 4 or 5 ("4S" too), else None: the hotels whose bars and restaurants the app labels."""
+    stars = str(tags.get("stars") or "").strip().rstrip("Ss")
+    return int(stars) if tags.get("tourism") == "hotel" and stars in ("4", "5") else None
+
+def hotels(pbf, kept):
+    """The 4–5★ hotels of a pbf drawn as areas, [(stars, geometry, bounds)]; `kept` is a scratch file."""
+    osmium("tags-filter", pbf, "wr/tourism=hotel", "-o", kept, "--overwrite")
+    return [(hotel_class(f["properties"]), f["geometry"], bounds(f["geometry"])) for f in features(kept, "polygon")
+            if hotel_class(f["properties"]) and f["geometry"]["type"] in ("Polygon", "MultiPolygon")]
+
+def in_hotels(venues, areas):
+    """Sets `hotel` (the stars) on a venue inside one of `hotels()`' areas: a hotel's bar or restaurant (owner, 2026-11-17).
+    A venue that is a hotel itself keeps its own."""
+    index = {}
+    for area in areas:
+        for key in buckets(*area[2]): index.setdefault(key, []).append(area)
+    for v in venues:
+        lat, lon = v["coordinate"]["latitude"], v["coordinate"]["longitude"]
+        stars = next((a[0] for a in index.get(buckets(lat, lon, lat, lon)[0], []) if a[2][0] <= lat <= a[2][2] and a[2][1] <= lon <= a[2][3]
+                      and contains(a[1], lat, lon)), None)
+        if stars and "hotel" not in v: v["hotel"] = stars
+    return venues
 
 _NSI = None
 def nsi_brands():
@@ -971,9 +1005,88 @@ def chains_only(venues, least=3, brands=None):
     shared = collections.Counter(v.get("brand") for v in venues)
     for v in venues:
         if "brand" not in v: continue
+        # chain stays where the brand goes for saying the name (owner, 2026-11-17): what "Hide chains" reads.
+        if shared[v["brand"]] >= least: v["chain"] = True
         brand, name = normalised_name(v["brand"]), normalised_name(v["name"])
         if shared[v["brand"]] < least or brand in name or name in brand: del v["brand"]
     return venues
+
+# Overture Places on the venues of Paris and London (owner, 2026-11-18: "yes for Overture's data extraction. We start with
+# Paris and London"): its kind of bar, finer than OSM's amenity, as `style`; its brand's wikidata as `chain` where OSM
+# names no brand; and a venue Overture holds permanently closed is left out. No Overture place becomes a venue. A place
+# speaks for the one venue within MATCH_REACH whose name matches (names_match); with a second such venue it says nothing,
+# and a venue two places disagree on (two kinds, closed and open) keeps OSM's alone. Overture: CDLA-Permissive 2.0; the
+# sources behind these places are credited in the app under the stricter reading (README, Licences and credits).
+OVERTURE_CITIES = ("Paris", "London")
+OVERTURE_STYLES = {"cocktail_bar": "cocktail_bar", "wine_bar": "wine_bar", "speakeasy": "speakeasy", "hotel_bar": "hotel_bar",
+                   "lounge": "lounge", "dive_bar": "dive_bar", "beer_bar": "beer_bar", "pub": "pub", "irish_pub": "pub",
+                   "gastropub": "gastropub"}   # Overture's taxonomy.primary: the app's key
+OVERTURE_BUCKET = "https://overturemaps-us-west-2.s3.amazonaws.com"
+OVERTURE_CONFIDENCE = 0.6   # Overture's own confidence that an open place exists; below it the place says nothing
+OVERTURE_CHAIN = 3          # places sharing a brand in the box for it to be a chain, as chains_only's least
+
+def overture_release():
+    """The newest Overture release on its public bucket ("2026-10-21.0"): releases are dropped after a few months."""
+    listing = urllib.request.urlopen(OVERTURE_BUCKET + "/?list-type=2&prefix=release/&delimiter=/", timeout=60).read().decode()
+    return max(re.findall(r"<Prefix>release/([0-9.-]+)/</Prefix>", listing))
+
+def overture_places(rect):
+    """Overture's eating and drinking places inside the rect, [{"name", "lat", "lon", "status", "style", "qid"}]: `status`
+    Overture's operating_status, `style` OVERTURE_STYLES' key or None, `qid` the brand's wikidata or None."""
+    import duckdb   # here, not at the top: the tests and every other city need no DuckDB
+    s, w, n, e = rect
+    con = duckdb.connect()
+    con.execute("INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2';")
+    rows = con.execute(f"""SELECT names.primary, (bbox.ymin + bbox.ymax) / 2, (bbox.xmin + bbox.xmax) / 2,
+            coalesce(operating_status, 'open'), taxonomy.primary, brand.wikidata, confidence
+        FROM read_parquet('s3://overturemaps-us-west-2/release/{overture_release()}/theme=places/type=place/*', hive_partitioning=0)
+        WHERE bbox.xmin BETWEEN ? AND ? AND bbox.ymin BETWEEN ? AND ? AND names.primary IS NOT NULL
+          AND list_contains(taxonomy.hierarchy, 'food_and_drink')""", [w, e, s, n]).fetchall()
+    return [overture_place(*row) for row in rows]
+
+def overture_place(name, lat, lon, status, kind, qid, confidence):
+    """One row of overture_places(): an open place below OVERTURE_CONFIDENCE gives no kind and no brand."""
+    sure = status != "open" or (confidence or 0) >= OVERTURE_CONFIDENCE
+    return {"name": name, "lat": lat, "lon": lon, "status": status, "style": OVERTURE_STYLES.get(kind) if sure else None,
+            "qid": qid if sure else None}
+
+def overture_facts(osm, places):
+    """Writes Overture's say onto the venues of `osm` (its venues and matches tables): `style`, `chain` where OSM gives no
+    brand and the brand has OVERTURE_CHAIN places in `places`, and drops the venues held permanently closed. Returns
+    {fact: Counter(matched, ambiguous, unmatched)} over the places that say something, the facts "style:<key>", "chain",
+    "closed" and "temporarily_closed" (counted only), chain's "added" the venues it made chains, and the dropped venues'
+    names under "dropped"."""
+    brands = collections.Counter(p["qid"] for p in places if p["qid"])
+    claims, counts = {}, collections.defaultdict(collections.Counter)
+    for p in places:   # every place, the open ones too: an open twin keeps a venue another place holds closed
+        status = "closed" if p["status"] == "permanently_closed" else p["status"]
+        says = [f for f in (("style:" + p["style"]) if p["style"] else None, "chain" if brands[p["qid"]] >= OVERTURE_CHAIN else None,
+                            status if status != "open" else None) if f]
+        wanted = normalised_name(p["name"])
+        near = [v for table in (osm.venues, osm.matches) for v in osm.near(table, padded((p["lat"], p["lon"]) * 2, MATCH_REACH))
+                if metres(p["lat"], p["lon"], v["coordinate"]["latitude"], v["coordinate"]["longitude"]) <= MATCH_REACH
+                and names_match(normalised_name(v["name"]), wanted)]
+        if len(near) != 1:
+            for fact in says: counts[fact]["unmatched" if not near else "ambiguous"] += 1
+            continue
+        claims.setdefault(id(near[0]), (near[0], []))[1].append(says)
+    dropped = set()
+    for venue, said in claims.values():
+        styles = {f for says in said for f in says if f.startswith("style:")}
+        closed = sum("closed" in says for says in said)
+        for says in said:
+            for fact in says:
+                torn = (fact.startswith("style:") and len(styles) > 1) or (fact == "closed" and closed < len(said))
+                counts[fact]["ambiguous" if torn else "matched"] += 1
+        if closed and closed == len(said):
+            dropped.add(id(venue)); counts["dropped"][venue["name"]] += 1; continue
+        style = next(iter(styles))[len("style:"):] if len(styles) == 1 else None
+        if style and (style, venue["amenity"]) != ("pub", "pub"): venue["style"] = style   # a pub's "pub" says nothing new
+        if any("chain" in says for says in said) and "brand" not in venue and not venue.get("chain"):
+            venue["chain"] = True; counts["chain"]["added"] += 1
+    for table in (osm.venues, osm.matches):
+        for key in table: table[key] = [v for v in table[key] if id(v) not in dropped]
+    return counts
 
 _DAY = r"(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\[[-0-9,]+\])?"
 _MONTH = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
@@ -4807,6 +4920,12 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     except SourceError as e:
         log(f"{label}: OpenStreetMap unavailable ({e})")
         return len(cells), [(c.key, "all", str(e)) for c in cells]
+    if city in OVERTURE_CITIES and "venues" in layers:
+        try:
+            counts = overture_facts(_osm, overture_places(_osm.box))
+            log(f"{label}: Overture " + ", ".join(f"{k} {sum(c.values()) if k == 'dropped' else dict(c)}" for k, c in sorted(counts.items())))
+        except Exception as e:   # the venues still go up, without the kinds, and the log says why
+            log(f"{label}: Overture unavailable ({str(e)[:200]})")
     # A French extract means French communes; elsewhere the geo API would answer [] a cell at a time.
     french = "/europe/france" in pbf
     sources_only = set(layers) <= {"sources", "venues", "streets-main", "places", "boundaries", "transit"}

@@ -24,7 +24,7 @@ Tiles are served from `https://tiles.alephb.uk/tiles/<layer>/<key>.json`, gzippe
 - `buildings-v2/`: building footprints with their heights.
 - `terraces-v2/`: outdoor seating from city permits.
 - `sources/`: which permit feed, building source and neighbourhood outlines each cell was built from, so the app can credit them.
-- `venues/`: name, point, kind and outdoor seating of bars, cafés and restaurants, with optional OpenStreetMap details.
+- `venues/`: name, point, kind and outdoor seating of bars, cafés and restaurants, with optional OpenStreetMap details (and Overture Places' in Paris and London).
 - `streets/`, `streets-main/` and `numbers/`: street lines, main roads only, and house-number ranges.
 - `places/` and `boundaries/`: neighbourhood names, points and outlines.
 - `transit/`: metro, tram, rail, bus and cable car lines with their stops.
@@ -63,6 +63,12 @@ none, this says so rather than guessing.
   published under the ODbL (share-alike).
 - name-suggestion-index (chain names and cuisines of venues/): © name-suggestion-index contributors,
   BSD 3-Clause. Its notice is kept in `nsi_brands.json`.
+
+**Venues in Paris and London**
+- Overture Maps Foundation, Overture Places (kinds of bar, chains and closures of the venues): CDLA-Permissive 2.0.
+  Its places draw on Meta, Microsoft, BrightQuery, Uberall, PinMeTo and OpenTravel (CDLA-Permissive 2.0),
+  AllThePlaces (CC0 1.0) and Foursquare Open Source Places (© Foursquare Labs, Inc., Apache License 2.0,
+  https://www.apache.org/licenses/LICENSE-2.0).
 
 **Terrace permits and outdoor seats**
 - Paris: Ville de Paris, ODbL.
