@@ -609,13 +609,35 @@ def features(pbf, kinds="point,polygon", ids=False):
     for line in export.split("\n"):  # not splitlines(): it breaks on the \x1e that opens each record
         if line.strip("\x1e"): yield json.loads(line.lstrip("\x1e"))
 
+LIFECYCLE = ("disused", "abandoned", "was", "demolished", "removed", "razed", "destroyed")  # OSM's lifecycle prefixes
+NAME_LANGUAGES = ("en", "fr", "es", "de")  # the app's languages
+
+def closed(tags):
+    """A venue OSM says is shut (owner, 2026-11-19, the Athens audit; left out of venues/): opening_hours off or closed,
+    disused or abandoned yes, or a lifecycle prefix on its own amenity or its own name (disused:amenity=cafe beside
+    amenity=cafe, was:name its name). A prefix on another amenity is the place's past, not a closure (amenity=cafe beside
+    disused:amenity=restaurant: a restaurant turned café). A prefixed amenity alone never reaches here (tags-filter)."""
+    if str(tags.get("opening_hours") or "").strip().lower() in ("off", "closed"): return True
+    if "yes" in (tags.get("disused"), tags.get("abandoned")): return True
+    own = {"amenity": tags.get("amenity"), "name": str(tags.get("name") or "").strip()}
+    return any(own[key] and str(tags.get(f"{prefix}:{key}") or "").strip() == own[key] for prefix in LIFECYCLE for key in own)
+
+def local_names(tags):
+    """OSM's name:<lang> for the app's languages, as name_<lang>, each only when it differs from name (as places/' name_en):
+    the app shows the one of its language, or name_en for a name in a script its language does not write (2026-11-19)."""
+    name, out = str(tags.get("name") or "").strip(), {}
+    for lang in NAME_LANGUAGES:
+        value = str(tags.get(f"name:{lang}") or "").strip()
+        if value and value != name: out[f"name_{lang}"] = value
+    return out
+
 def read_venues(pbf, kept, amenities=AMENITIES):
     """The venues (`amenities`) of a pbf, an area at its outer ring's mean vertex as the terrace permits; `kept` is a scratch file."""
     osmium("tags-filter", pbf, "nwr/amenity=" + ",".join(amenities), "-o", kept, "--overwrite")
     out = []
     for feature in features(kept, ids=True):
         tags, geometry = feature["properties"], feature["geometry"]
-        if tags.get("amenity") not in amenities: continue
+        if tags.get("amenity") not in amenities or closed(tags): continue
         if geometry["type"] == "Point": lon, lat = geometry["coordinates"][:2]
         else:
             ring = next(outer_rings(geometry), None)
@@ -623,6 +645,7 @@ def read_venues(pbf, kept, amenities=AMENITIES):
             lat, lon = (sum(v[k] for v in ring) / len(ring) for k in ("latitude", "longitude"))
         venue = {"name": str(tags.get("name", "")).strip(), "coordinate": {"latitude": round(lat, 6), "longitude": round(lon, 6)},
                  "amenity": tags["amenity"], "outdoor_seating": seating(tags.get("outdoor_seating"), rooftop(tags)), "source": "osm"}
+        venue.update(local_names(tags))
         if drinks_late(tags): venue["bar"] = True
         if opening_hours(tags): venue["opening_hours"] = opening_hours(tags)
         venue.update(details(tags))
