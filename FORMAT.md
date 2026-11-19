@@ -54,6 +54,19 @@ Added on 2026-10-06 and backward compatible: a reader of the first format
 ignores the new key, and every `kind` is still one of the three. A tile
 built before carries no `admin_level`.
 
+## venues/
+
+Each tile is an array of `{"name", "coordinate", "amenity", "outdoor_seating", "source", …}`, one per named OpenStreetMap
+venue, with optional detail fields that are left out when OpenStreetMap has nothing for them. A reader treats a missing
+field as absent, and new fields can appear in later builds.
+
+- `name_en`, `name_fr`, `name_es` and `name_de` (since 2026-11-19) are OpenStreetMap's `name:en`, `name:fr`, `name:es` and
+  `name:de`, each written only when it differs from `name`.
+- A venue OpenStreetMap marks as closed is left out: `opening_hours` of `off` or `closed`, `disused=yes` or `abandoned=yes`,
+  or a lifecycle prefix (`disused:`, `abandoned:`, `was:`, `demolished:`, `removed:`, `razed:`, `destroyed:`) on its own
+  `amenity` value or its own `name`. A prefix on another amenity (`amenity=cafe` beside `disused:amenity=restaurant`) does
+  not close it.
+
 ## boundaries/
 
 Neighbourhood outlines, on the same 1/25° cells and keys as `places/` (since

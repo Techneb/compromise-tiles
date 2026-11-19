@@ -1824,3 +1824,17 @@ finally:
     make_tiles.get_json, make_tiles._regions = real_get_json, None
     del os.environ["GEOFABRIK_INDEX"]
 print("ok (geofabrik_pbf: the run's index file)")
+
+# A closed venue is left out of venues/ (owner, 2026-11-19, the Athens audit): opening_hours off or closed, disused or
+# abandoned yes, or a lifecycle prefix (disused:, was:, abandoned:…) on its own amenity or its own name. A lifecycle
+# prefix on another amenity is the place's past, not a closure: The Brunchers, amenity=cafe beside disused:amenity=restaurant.
+from make_tiles import closed
+assert all(closed({"amenity": "fast_food", "name": "Pizza Fan", **t}) for t in (
+    {"opening_hours": "off"}, {"opening_hours": " Closed "}, {"disused": "yes"}, {"abandoned": "yes"},
+    {"disused:amenity": "fast_food"}, {"was:amenity": "fast_food"}, {"abandoned:amenity": "fast_food"}, {"disused:name": "Pizza Fan"}))
+assert not any(closed({"amenity": "cafe", "name": "The Brunchers", **t}) for t in (
+    {}, {"disused:amenity": "restaurant"}, {"was:name": "Old Café"}, {"opening_hours": "Mo-Su off; Fr 18:00-23:00"}, {"disused": "no"}))
+# A venue's names in the app's other languages ride beside name, each only when it differs from it (as places/' name_en).
+from make_tiles import local_names
+assert local_names({"name": "Γη", "name:en": " Gi ", "name:fr": "Γη", "name:de": "", "name:el": "Γη"}) == {"name_en": "Gi"}
+assert local_names({"name": "Pizza Fan"}) == {}
