@@ -252,6 +252,19 @@ with tempfile.TemporaryDirectory() as out:
     make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [building(ring, 9), building(ring)]
     do_buildings([cell], out, [])
     assert read(path(out, "buildings", cell)) == [{"outline": ring, "height": 9.0}, {"outline": ring, "height": 15.0, "guessed": True}]
+    # The local estimate (2026-11-19): a guessed footprint takes the median of the tile's measured heights once it holds
+    # ESTIMATE_SAMPLES of them, else of the block's (the fetch's answer), else keeps 15 m; it stays flagged.
+    from make_tiles import estimated, ESTIMATE_SAMPLES
+    far = [{"latitude": cell.lat + 0.01, "longitude": cell.lon}] * 3   # in the block, out of the tile's reach
+    near = [building(ring, 9)] * (ESTIMATE_SAMPLES - 1) + [building(ring, 12)]
+    assert estimated(near + [building(ring)], near)[-1] == {"outline": ring, "height": 9.0, "guessed": True}
+    assert estimated(near[1:] + [building(ring)], near[1:] + [building(far, 21)] * ESTIMATE_SAMPLES)[-1]["height"] == 21.0
+    assert estimated(near[1:] + [building(ring)], near[1:])[-1] == building(ring)   # too few anywhere: the 15 m guess
+    spot = lambda i, lat=cell.lat: [{"latitude": lat + i * 1e-5, "longitude": cell.lon}] * 3   # distinct: gather() drops repeats
+    make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [building(spot(i), 9) for i in range(ESTIMATE_SAMPLES)] + [building(ring)] \
+        + [building(spot(i, cell.lat + 0.01), 30) for i in range(50)]
+    do_buildings([cell], out, [])
+    assert read(path(out, "buildings", cell))[-1] == {"outline": ring, "height": 9.0, "guessed": True}
 # footprints(): a feature its rule reads nothing from is the flagged guess, or left out with guess=False.
 feature = lambda h: {"geometry": {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [0, 0]]]}, "properties": {"h": h}}
 assert [(b["height"], b.get("guessed")) for b in footprints([feature(30), feature(None), feature(0)], lambda p: p.get("h"))] == \
@@ -1197,6 +1210,11 @@ pt = lambda lat, lon: {"latitude": lat, "longitude": lon}
 square = [pt(48.871, 2.331), pt(48.871, 2.33112), pt(48.87108, 2.33112), pt(48.87108, 2.331), pt(48.871, 2.331)]
 assert compact_building(building(square, 22.4), "24435,1165") == [22.5, 100, 100, 0, 12, 8, 0, 0, -12]   # closing vertex dropped
 assert compact_building(building(square), "24435,1165")[0] is None                                       # the 15 m guess
+# A local estimate is written in quarter steps (x.25, x.75), which no measured height (whole half metres) takes; the reader
+# tells it from a measurement by that alone (guessed_height); the 15 m guess stays null, so older tiles read as they did.
+from make_tiles import guessed_height
+assert [compact_building(dict(building(square), height=h), "24435,1165")[0] for h in (9.0, 9.4, 9.6, 15.0)] == [9.25, 9.25, 9.75, None]
+assert [guessed_height(h) for h in (None, 9.25, 9.75, 9, 9.5, 15)] == [True, True, True, False, False, False]
 assert compact_building(building(square, 22.2), "24435,1165")[0] == 22 and compact_building(building(square, 22.3), "24435,1165")[0] == 22.5
 assert compact_building(building([pt(48.871, 2.331), pt(48.871000001, 2.331), pt(48.871, 2.3310004)]), "24435,1165") is None   # under a step: gone
 assert compact_building(building([pt(-33.871, 151.2), pt(-33.871, 151.2001), pt(-33.8711, 151.2001)], 9), "-16935,75600")[1:3] == [-100, 0]   # from key / 500, so a negative key's cell lies below it
@@ -1213,7 +1231,7 @@ assert len(rows) >= 0.99 * len(items), (len(rows), len(items))   # Palma's cadas
 kept = [b for b in items if compact_building(b, key)]
 for b, row in zip(kept, rows):
     h, ring = expand(row, key)
-    assert (h is None) == bool(b.get("guessed")) and (h is None or abs(h - b["height"]) <= 0.25)
+    assert guessed_height(h) == bool(b.get("guessed")) and (h is None or abs(h - b["height"]) <= 0.25)
     original = b["outline"][:-1] if b["outline"][0] == b["outline"][-1] else b["outline"]
     assert len(ring) <= len(original)
     for lat, lon in ring:

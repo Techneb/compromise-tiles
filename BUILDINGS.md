@@ -12,9 +12,17 @@ keyed `int(lat*500),int(lon*500)`, gzipped at rest. The build also writes
 [[height, y0, x0, dy1, dx1, dy2, dx2, …], …]
 ```
 
-- `height`: metres in 0.5 m steps, an integer when whole (`22`, `22.5`), or
-  `null` where the source gives no height (buildings/ writes that one as
-  `15` with `"guessed": true`).
+- `height`: metres in 0.5 m steps, an integer when whole (`22`, `22.5`),
+  where a source measured or tagged it. Where none did, the height is a
+  guess, flagged `"guessed": true` in buildings/:
+  - a quarter step (`9.25`, `17.75`) since 2026-11-19: the local estimate,
+    the median of the measured heights in the tile, or in the block the
+    build fetched it with, once either holds 10 of them;
+  - `null`, the 15 m default, where neither does.
+
+  A reader tells a guess by that alone: `null`, or a height times 4 that is
+  odd (`guessed_height()`). A reader written before 2026-11-19 takes an
+  estimate as a measured height, and still reads `null` as 15 m.
 - Coordinates are in 1e-5° steps, as in streets/. `y0, x0` is the first
   vertex from the key's corner (`ky * 200`, `kx * 200`), and each pair after
   it is the step from the vertex before. A negative key's cell lies below

@@ -160,8 +160,8 @@ def published(layer, key):
         if layer == "permits":
             own = [t for t in items if t.get("kind") != OSM_KIND]
             out.update(status="ok", count=len(own), named=named(own))
-        else:   # buildings-v2/ rows: [height or null for the guess, ring…]
-            items = [{"height": NO_HEIGHT if r[0] is None else r[0], "guessed": r[0] is None} for r in items]
+        else:   # buildings-v2/ rows: [height, ring…], the height null or a quarter step for a guess (mt.guessed_height)
+            items = [{"height": NO_HEIGHT if r[0] is None else r[0], "guessed": mt.guessed_height(r[0])} for r in items]
             flagged = True
             out.update(status="ok", count=len(items), height=with_height(items), with_height=sum(1 for b in items if not guessed(b, flagged)))
     body, code = fetch_store(f"{STORE}sources/{key}.json")

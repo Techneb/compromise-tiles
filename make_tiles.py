@@ -78,7 +78,7 @@ shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, collections, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, socket, sqlite3, ssl, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
+import argparse, array, collections, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, shutil, socket, sqlite3, ssl, statistics, struct, subprocess, sys, time, unicodedata, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zlib, zoneinfo
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -1367,9 +1367,30 @@ def building(ring, height=None):
     if height is None: return {"outline": ring, "height": DEFAULT_HEIGHT, "guessed": True}
     return {"outline": ring, "height": round(float(height), 1)}
 
+# The local estimate (2026-11-19, the Athens audit): a guessed footprint takes the median height of the measured ones in
+# its tile (its cell and BUILDING_REACH around, ~600 m), else in the block it was fetched with (CI's 5 × 5 cells and
+# BUILDING_PAD, ~1.6 km), else keeps the 15 m guess. ESTIMATE_SAMPLES measured footprints make a median: 5, 10 and 20 gave
+# the same error on held-out heights in seven cities (docs/research/OVERTURE_HEIGHTS.md in the app repo). It stays flagged.
+ESTIMATE_SAMPLES = 10
+
+def measured_median(items):
+    heights = [b["height"] for b in items if not b.get("guessed")]
+    return statistics.median(heights) if len(heights) >= ESTIMATE_SAMPLES else None
+
+def estimated(items, block):
+    """A tile's items with each guessed height replaced by the local estimate, when there is one."""
+    if not any(b.get("guessed") for b in items): return items
+    guess = measured_median(items) or measured_median(block)
+    if guess is None: return items
+    return [dict(b, height=round(float(guess), 1)) if b.get("guessed") else b for b in items]
+
+def guessed_height(h):
+    """A buildings-v2/ height that is a guess: null (15 m) or a quarter step (a local estimate, compact_building)."""
+    return h is None or (h * 4) % 2 == 1
+
 # buildings-v2/ (2026-10-06; the store's only buildings layer since 2026-10-08): the same footprints as buildings/, a third of the bytes
 # gzipped (BUILDINGS.md). Each building is a flat array [height, y0, x0, dy1, dx1, …]: the height in
-# HEIGHT_STEP metres (an integer when whole), null for the 15 m guess ("guessed": true in buildings/);
+# HEIGHT_STEP metres (an integer when whole), null for the 15 m guess and a quarter step for a local estimate (both "guessed": true in buildings/);
 # the ring open (its closing vertex not repeated), in BUILDING_UNIT steps, the first vertex from the
 # key's corner (key / 500), each next from the one before — streets/'s encoding, the height in the kind's place.
 BUILDING_UNIT = 100_000   # 1e-5° steps: ~1.1 m north–south, ~0.7 m east–west at Paris's latitude
@@ -1386,7 +1407,9 @@ def compact_building(b, cell_key):
         if not steps or q != steps[-1]: steps.append(q)
     if len(steps) > 1 and steps[0] == steps[-1]: steps.pop()
     if len(steps) < 3: return None
-    height = None if b.get("guessed") else round(b["height"] / HEIGHT_STEP) * HEIGHT_STEP
+    if not b.get("guessed"): height = round(b["height"] / HEIGHT_STEP) * HEIGHT_STEP
+    else:  # an estimate in quarter steps, which no measured height takes (guessed_height); the 15 m guess null, as before
+        height = None if b["height"] == DEFAULT_HEIGHT else math.floor(b["height"] / HEIGHT_STEP) * HEIGHT_STEP + HEIGHT_STEP / 2
     if height is not None and float(height).is_integer(): height = int(height)
     per = BUILDING_UNIT // FINE
     out, (y, x) = [height, steps[0][0] - ky * per, steps[0][1] - kx * per], steps[0]
@@ -4781,6 +4804,7 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             if source in COMBINE:  # "<city>+OSM" where the city gave a height, else OSM's alone
                 name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
                 items = [{k: b[k] for k in ("outline", "height", "guessed") if k in b} for b in items]
+            items = estimated(items, answer)
             if tiles: write(path(out, "buildings", c), items)
             if tiles: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))
             note_sources(out, c, published, buildings=name)
