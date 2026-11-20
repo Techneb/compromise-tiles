@@ -120,7 +120,11 @@ def boundary(slug):
 # boundary when it has one (a feed holds only its own city's permits, so a neighbour's tiled cells in
 # its box are OSM only, credited to no feed: Vaughan in Toronto's, Islington in Camden's). A borough's row names
 # the cities.json entry it is part of (part_of="London"), so the status feed reads that city's terraces as permits.
+# The environment variables holding a feed's API key (row and area_row add theirs): what redact() blanks.
+SECRET_ENVS = []
+
 def row(name, insee, host, dataset, name_field, kinds, lat, lon, boundary=None, **extra):
+    if extra.get("key"): SECRET_ENVS.append(extra["key"])
     return dict(city=name, insee=insee, host=host, dataset=dataset, name=name_field, kinds=kinds, lat=lat, lon=lon, boundary=boundary, **extra)
 
 PERMIT_CITIES = [
@@ -403,8 +407,8 @@ _last, _dead = {}, {}
 
 def redact(text):
     """The text with every keyed row's secret blanked: a key sits in its feed's URL path."""
-    for c in PERMIT_CITIES + AREA_SOURCES:
-        secret = c.get("key") and os.environ.get(c["key"])
+    for key in SECRET_ENVS:
+        secret = os.environ.get(key)
         if secret: text = text.replace(secret, "***")
     return text
 
@@ -3774,6 +3778,7 @@ def area_row(city, source, fetch, name, level, keep=None, dissolve=None, key=Non
     `level` the source's own word for the unit, or a function of the properties; `keep` a filter; `dissolve` a
     function of the properties whose equal values are merged into one feature (True: by name); `key` the
     environment variable holding the source's API key (unset: the city gets no boundaries, said once)."""
+    if key: SECRET_ENVS.append(key)
     return dict(city=city, source=source, fetch=fetch, name=name, level=level, keep=keep, dissolve=dissolve, key=key)
 
 def _crs_transform(geoms, crs):

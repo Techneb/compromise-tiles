@@ -1,6 +1,7 @@
 """python3 test_sources.py — sources/ tiles keep the published field a run does not build; no network."""
 import json, os, tempfile
 import make_tiles as mt
+from builder import patch
 from make_tiles import Cell, SourceError, cells_in, path, read
 
 out = tempfile.mkdtemp()
@@ -11,11 +12,11 @@ store = {a.key: {"buildings": "OSM", "permits": None},   # whole
          d.key: SourceError("store: HTTP 503")}          # the store did not answer
 asked = []
 def fake(cell): asked.append(cell.key); return store[cell.key]
-mt.published_source = fake
+patch(published_source=fake)
 
 # Without a store nothing is read, and a tile holds only what this run built (a local run, as before).
 assert mt.published_sources(out, [a]) == {} and asked == []
-mt.STORE = "https://store.example/tiles/"
+patch(STORE="https://store.example/tiles/")
 
 # A terraces run keeps the published building source, writes a new cell, and leaves an unread one alone.
 published = mt.published_sources(out, [a, b, c, d])
@@ -33,8 +34,8 @@ assert read(path(out, "sources", a)) == [{"buildings": "IGN", "permits": "Paris"
 
 # The sources layer: only the published tile without a building source gets one, and no building tile is written.
 out = tempfile.mkdtemp()
-mt.near_buildings = lambda cell, items: items
-mt.FETCH_BUILDINGS = dict(mt.FETCH_BUILDINGS, OSM=lambda rect: [{"outline": [], "height": 9}])
+patch(near_buildings=lambda cell, items: items)
+patch(FETCH_BUILDINGS=dict(mt.FETCH_BUILDINGS, OSM=lambda rect: [{"outline": [], "height": 9}]))
 failures = []
 mt.do_sources([a, b, c, d], out, failures)
 assert read(path(out, "sources", b)) == [{"permits": None, "buildings": "OSM"}], read(path(out, "sources", b))
@@ -43,7 +44,7 @@ assert not os.path.isdir(os.path.join(out, "buildings"))
 assert [f[:2] for f in failures] == [(d.key, "sources")], failures
 
 # No store: the sources layer fails its cells rather than writing half a tile.
-mt.STORE, failures = None, []
+failures = []; patch(STORE=None)
 mt.do_sources([b], tempfile.mkdtemp(), failures)
 assert failures and failures[0][1] == "sources"
 print("ok")

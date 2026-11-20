@@ -33,6 +33,7 @@ footprints (London's lidar).
 import argparse, datetime, gzip, json, os, random, re, signal, sys, time, urllib.error, urllib.parse, urllib.request
 
 import make_tiles as mt
+from builder import patch
 
 STORE = "https://tiles.alephb.uk/tiles/"
 FEED = "https://tiles.alephb.uk/coverage.json"
@@ -227,7 +228,7 @@ def probe(layer, row, cell):
 
 def probe_rows(probes, ids, only=None):
     """{id: record} for the rows named: the probe, the published tile and the licence."""
-    mt.osm_buildings = osm_buildings
+    patch(osm_buildings=osm_buildings)
     records = {}
     for rid, layer, row in rows():
         if rid not in ids or (only and row["city"] not in only): continue
