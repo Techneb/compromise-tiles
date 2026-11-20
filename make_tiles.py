@@ -84,11 +84,12 @@ from builder.net import download, get, get_json, keyed_host, log, redact, SECRET
 from builder.projections import bng, cs92_to_wgs84, florida_east_to_wgs84, GK25, lambert72_to_wgs84, lcc3301_to_wgs84, mercator_to_wgs84, rd_new_to_wgs84, tm_to_wgs84, utm_to_wgs84, wgs84_to_lambert72, wgs84_to_tm, wgs84_to_utm
 from builder.shapes import building, combined, compact_buildings, difference, estimated, footprints, number, osm_height, osm_tagged, outer_rings, triangles_outline, unique, vertex
 from builder.formats import _atom_entries, _zip_members, geopackage, geotiff, mesh_faces, shapefile, xlsx_rows, zip_layer
+from builder.names import folded, local_names, MATCH_REACH, names_match, normalised_name
 
 # The scripts and tests that import names from make_tiles still find them here while they move to builder/
 # (rebound state excepted: builder.store.STORE, builder.store.LISTED, builder.extract._osm).
-import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats
-for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats]:
+import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names
+for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names]:
     globals().update((k, v) for k, v in vars(_m).items() if not k.startswith("__") and k not in builder.REBOUND)
 
 TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the density gate is calibrated on
@@ -418,7 +419,6 @@ def features(pbf, kinds="point,polygon", ids=False):
         if line.strip("\x1e"): yield json.loads(line.lstrip("\x1e"))
 
 LIFECYCLE = ("disused", "abandoned", "was", "demolished", "removed", "razed", "destroyed")  # OSM's lifecycle prefixes
-NAME_LANGUAGES = ("en", "fr", "es", "de")  # the app's languages
 
 def closed(tags):
     """A venue OSM says is shut (owner, 2026-11-19, the Athens audit; left out of venues/): opening_hours off or closed,
@@ -429,15 +429,6 @@ def closed(tags):
     if "yes" in (tags.get("disused"), tags.get("abandoned")): return True
     own = {"amenity": tags.get("amenity"), "name": str(tags.get("name") or "").strip()}
     return any(own[key] and str(tags.get(f"{prefix}:{key}") or "").strip() == own[key] for prefix in LIFECYCLE for key in own)
-
-def local_names(tags):
-    """OSM's name:<lang> for the app's languages, as name_<lang>, each only when it differs from name (as places/' name_en):
-    the app shows the one of its language, or name_en for a name in a script its language does not write (2026-11-19)."""
-    name, out = str(tags.get("name") or "").strip(), {}
-    for lang in NAME_LANGUAGES:
-        value = str(tags.get(f"name:{lang}") or "").strip()
-        if value and value != name: out[f"name_{lang}"] = value
-    return out
 
 def read_venues(pbf, kept, amenities=AMENITIES):
     """The venues (`amenities`) of a pbf, an area at its outer ring's mean vertex as the terrace permits; `kept` is a scratch file."""
@@ -2474,37 +2465,7 @@ def not_applicable(text):
 CLEAN = {"digit": cut_before_first_digit, "boulevard": boulevard_name, "vilnius": vilnius_venue_name,
          "riga": riga_venue_name, "toronto": toronto_name, "helsinki": helsinki_venue_name, "seattle": seattle_venue_name,
          "n/a": not_applicable, "formerly": formerly_cut}
-
-# A snapshot's permit survives only where a venue of today stands under its name (Los Angeles, a January 2021 list,
-# 2026-10-05). The venues are the published venues/ tiles (OpenStreetMap's: Apple's cannot be read from a build), within
-# MATCH_REACH metres under a matching name — the app's own rule (TerraceNames.swift: normalised, namesMatch), ported so a
-# permit kept here is one the app can hand to the venue. A permit with no name, or no venue tile, is dropped.
-MATCH_REACH = 60
 _venue_tiles = {}   # {key: items} read once per run
-
-PLACE_WORDS = {
-    "BAR", "BARS", "CAFE", "CAFES", "COFFEE", "PUB", "RESTAURANT", "RESTAURANTE", "RISTORANTE", "BRASSERIE",
-    "BISTRO", "CERVECERIA", "TABERNA", "TAVERNA", "KNEIPE", "TRATTORIA", "OSTERIA", "THE", "LE", "LA", "LES",
-    "EL", "LOS", "LAS", "IL", "DE", "DU", "DES", "DEL", "DI", "DER", "DIE", "DAS", "Y", "ET", "E", "AND", "UND",
-}
-
-def normalised_name(name):
-    """Uppercased, accents and punctuation stripped, spaces collapsed: "Café Oz" and "CAFE OZ - THE AUSTRALIAN BAR" meet."""
-    if not name: return ""
-    folded = "".join(ch for ch in unicodedata.normalize("NFKD", name) if not unicodedata.combining(ch)).upper()
-    return " ".join("".join(ch if ch.isalnum() else " " for ch in folded).split())
-
-def names_match(lhs, rhs):
-    """One name contains the other, or they share their first two words, or every word of the shorter is in the longer once
-    words that name a kind of place and bare numbers are set aside — one short shared word is not a match."""
-    if not lhs or not rhs: return False
-    if rhs in lhs or lhs in rhs: return True
-    left, right = lhs.split(" ")[:2], rhs.split(" ")[:2]
-    if len(left) == 2 and left == right: return True
-    core = lambda name: {w for w in name.split(" ") if w not in PLACE_WORDS and not w.isdigit()}
-    small, big = sorted([core(lhs), core(rhs)], key=len)
-    if not (len(small) >= 2 or (len(small) == 1 and len(next(iter(small))) >= 5)): return False
-    return small <= big
 
 def venue_tiles_around(lat, lon):
     """The keys of the published venue tiles a venue within MATCH_REACH of the point can sit in (one to four)."""
@@ -2739,10 +2700,6 @@ def whole_file(c, rect, load):
             raise SourceError(f"{c['city']}: {type(e).__name__}: {e}") from e
     s, w, n, e = rect
     return [t for t in _whole[c["city"]] if s <= t["coordinate"]["latitude"] <= n and w <= t["coordinate"]["longitude"] <= e]
-
-def folded(text):
-    """Lower case without diacritics: "Ärendekategori" → "arendekategori"."""
-    return "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch)).lower()
 
 _fields_logged = set()
 
