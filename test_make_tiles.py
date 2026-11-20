@@ -1120,7 +1120,7 @@ twins = [{"name": "Le Marais", "kind": "suburb", "coordinate": {"latitude": 48.8
 assert distinct_places(twins) == [twins[0], twins[2], twins[3]]
 class FakeOSM:
     def places(self): return twins
-real_osm = make_tiles._osm; patch(_osm=FakeOSM())
+import builder.extract; real_osm = builder.extract._osm; patch(_osm=FakeOSM())
 assert [p["name"] for p in osm_places(Cell(1221, 59, MAIN))] == ["Le Marais", "Le Marais", "Belleville"]
 assert osm_places(Cell(1221, 58, MAIN)) == []
 patch(_osm=real_osm)

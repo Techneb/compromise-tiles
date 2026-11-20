@@ -190,7 +190,7 @@ _osm_areas = {}
 
 def osm_buildings(rect, tagged=False):
     """OpenStreetMap's footprints around a probe cell (a combine row measuring on them, London's lidar): the
-    extract downloaded and cut for that cell alone, since no build sets make_tiles._osm here."""
+    extract downloaded and cut for that cell alone, since no build sets builder.extract._osm here."""
     lat, lon = (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2
     key = (round(lat, 2), round(lon, 2))
     if key not in _osm_areas:

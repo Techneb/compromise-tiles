@@ -78,24 +78,25 @@ shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, ssl, struct, subprocess, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zoneinfo
+import argparse, array, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, ssl, struct, sys, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile, zoneinfo
+from builder import extract
 from builder.cells import _overlaps, area, blocks, boundary, bounds, cells_in, clip, COARSE, contains, in_box, in_feed, in_france, index, M, MAIN, metres, padded, union
 from builder.net import download, get, get_json, keyed_host, log, redact, SECRET_ENVS, SourceError, TIMEOUT, UA
 from builder.projections import bng, cs92_to_wgs84, florida_east_to_wgs84, GK25, lambert72_to_wgs84, lcc3301_to_wgs84, mercator_to_wgs84, rd_new_to_wgs84, tm_to_wgs84, utm_to_wgs84, wgs84_to_lambert72, wgs84_to_tm, wgs84_to_utm
-from builder.shapes import building, combined, compact_buildings, difference, estimated, footprints, number, osm_height, osm_tagged, outer_rings, triangles_outline, unique, vertex
+from builder.shapes import building, combined, compact_buildings, difference, estimated, footprints, number, outer_rings, triangles_outline, unique, vertex
 from builder.formats import _atom_entries, _zip_members, geopackage, geotiff, mesh_faces, shapefile, xlsx_rows, zip_layer
 from builder.names import folded, MATCH_REACH, names_match, normalised_name
-from builder.streets import associated_streets, house_numbers, interpolation, MAIN_STREETS, MAIN_TOLERANCE, MAIN_UNIT, NUMBER_PAD, number_rows, simplified, street_kind, STREET_KINDS, STREET_PAD, street_tiles, STREET_TOLERANCE
-from builder.transit import transit_lines, TRANSIT_MODES, transit_tiles
-from builder.osmium import buckets, features, geofabrik_pbf, mean_point, osmium
-from builder.places import distinct_places, english, place_key, PLACE_KINDS, place_levels
-from builder.venues import AMENITIES, chains_only, hotels, in_hotels, MATCH_ONLY, read_venues
+from builder.streets import MAIN_UNIT, number_rows, street_tiles
+from builder.transit import transit_tiles
+from builder.osmium import buckets, geofabrik_pbf
+from builder.places import place_key
 from builder.overture import OVERTURE_CITIES, overture_facts, overture_places
+from builder.extract import OSM, osm_addresses, osm_buildings, osm_main_streets, osm_places, osm_streets, osm_terraces, osm_venues
 
 # The scripts and tests that import names from make_tiles still find them here while they move to builder/
 # (rebound state excepted: builder.store.STORE, builder.store.LISTED, builder.extract._osm).
-import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture
-for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture]:
+import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract
+for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract]:
     globals().update((k, v) for k, v in vars(_m).items() if not k.startswith("__") and k not in builder.REBOUND)
 
 TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the density gate is calibrated on
@@ -376,201 +377,6 @@ PERMIT_CITIES = [
     row("Hong Kong", "", "portal.csdi.gov.hk/server/rest/services", "common/fehd_rcd_1630036390312_58893/FeatureServer/0",
         "NSEARCH03_EN", [], (22.20, 22.52), (113.93, 114.28), shape="arcgis", filter="NSEARCH04_EN LIKE '%#A%'"),
 ]
-
-class OSM:
-    """An extract around one area: its venues in memory, bucketed by ~1 km, and its buildings cut
-    from disk a block at a time — a whole box of them does not fit in memory (Paris intra-muros
-    peaked at 3.5 GB held; the petite couronne is ten times the area)."""
-    def __init__(self, pbf, rect):
-        s, w, n, e = rect
-        self.box = rect
-        self.venues, self.matches, self.walls, self.roads, self.last = {}, {}, pbf + ".buildings.pbf", pbf + ".streets.pbf", None
-        self.named, self.admin, self._places = pbf + ".places.pbf", pbf + ".admin.pbf", None
-        self.numbers, self.pbf = pbf + ".numbers.pbf", pbf
-        box, kept = pbf + ".box.pbf", pbf + ".venues.pbf"
-        try:
-            osmium("extract", "-b", f"{w},{s},{e},{n}", pbf, "-o", box, "--overwrite")
-            osmium("tags-filter", box, "w/building", "-o", self.walls, "--overwrite")
-            osmium("tags-filter", box, "w/highway=" + ",".join(STREET_KINDS), "-o", self.roads, "--overwrite")
-            osmium("tags-filter", box, "nwr/place=" + ",".join(PLACE_KINDS), "-o", self.named, "--overwrite")
-            osmium("tags-filter", box, "r/boundary=administrative", "-o", self.admin, "--overwrite")
-            osmium("tags-filter", box, "nwr/addr:housenumber", "w/addr:interpolation", "r/type=associatedStreet", "-o", self.numbers, "--overwrite")
-            # MATCH_ONLY venues apart: only venues/ tiles carry them, not terraces, shade or small-place counts.
-            for venue in in_hotels(chains_only(read_venues(box, kept, AMENITIES + MATCH_ONLY)), hotels(box, kept)):
-                lat, lon = venue["coordinate"]["latitude"], venue["coordinate"]["longitude"]
-                (self.venues if venue["amenity"] in AMENITIES else self.matches).setdefault(buckets(lat, lon, lat, lon)[0], []).append(venue)
-        finally:
-            for f in (box, kept):
-                if os.path.exists(f): os.remove(f)
-
-    def venues_in(self, rect):
-        """The extract's venues in a rect, read again from the whole extract: past the area's box (small_place_keys)."""
-        s, w, n, e = rect
-        box, kept = self.pbf + ".far.pbf", self.pbf + ".far-venues.pbf"
-        try:
-            osmium("extract", "-b", f"{w},{s},{e},{n}", self.pbf, "-o", box, "--overwrite")
-            return read_venues(box, kept)
-        finally:
-            for f in (box, kept):
-                if os.path.exists(f): os.remove(f)
-
-    def buildings(self, rect, tagged=False):
-        """Building ways meeting the rect. osmium keeps a way with a node in the cut, whole; a big one
-        (a station hall) can reach a cell with every node outside it, hence 500 m more — the
-        in-memory index had them, and near_buildings trims the rest. With tagged=True, a building
-        whose height comes from its tags says which ("tagged": osm_tagged()), for combined(). The last
-        answer is kept: London's lidar is measured on OSM's own footprints, so its block asks twice."""
-        if self.last and self.last[0] == (rect, tagged): return self.last[1]
-        s, w, n, e = padded(rect, 500)
-        cut = self.walls + ".cut.pbf"
-        osmium("extract", "-b", f"{w},{s},{e},{n}", self.walls, "-o", cut, "--overwrite")
-        out = [dict(building(ring, osm_height(f["properties"])), **({"tagged": osm_tagged(f["properties"])} if tagged and osm_tagged(f["properties"]) else {})) for f in features(cut)
-               if "building" in f["properties"] and f["geometry"]["type"] != "Point" for ring in outer_rings(f["geometry"])]
-        self.last = ((rect, tagged), out)
-        return out
-
-    def streets(self, rect, kinds=None, tolerance=None):
-        """The street ways meeting the rect, simplified: [(kind, [(lat, lon), …], name or "")]; with `kinds`, the
-        ways of those highway values only. osmium keeps a way with a node in the cut, whole; a long
-        straight one can cross a block with no node in it, hence STREET_PAD more."""
-        s, w, n, e = padded(rect, STREET_PAD)
-        cut = self.roads + ".cut.pbf"
-        osmium("extract", "-b", f"{w},{s},{e},{n}", self.roads, "-o", cut, "--overwrite")
-        out = []
-        for f in features(cut, "linestring"):
-            kind = street_kind(f["properties"])
-            if kinds is not None and f["properties"].get("highway") not in kinds: continue
-            if kind and f["geometry"]["type"] == "LineString":
-                out.append((kind, simplified([(lat, lon) for lon, lat in f["geometry"]["coordinates"]], tolerance or STREET_TOLERANCE),
-                            str(f["properties"].get("name", "")).strip()))
-        return out
-
-    def addresses(self, rect):
-        """The house numbers around the rect: ([(lat, lon, addr:street, number)], [interpolation(), …]). A node
-        at its point, a building at its outer ring's mean vertex; an addr:interpolation way kept when both its
-        end nodes carry a number. A house with no addr:street takes the name of the associatedStreet relation
-        it is a "house" of (France's way: three in four of Paris's numbered nodes, 2026-10-10). osmium keeps a
-        way whole, its nodes with it."""
-        s, w, n, e = padded(rect, NUMBER_PAD)
-        cut = self.numbers + ".cut.pbf"
-        osmium("extract", "-b", f"{w},{s},{e},{n}", self.numbers, "-o", cut, "--overwrite")
-        points, ends, ways, houses = [], {}, [], associated_streets(osmium("cat", cut, "-t", "relation", "-f", "osm"))
-        for f in features(cut, "point,linestring,polygon", ids=True):
-            tags, geometry = f["properties"], f["geometry"]
-            if geometry["type"] == "LineString":  # a closed building way comes out as a line too: skipped here
-                if tags.get("addr:interpolation"): ways.append((tags, geometry["coordinates"]))
-                continue
-            street = str(tags.get("addr:street") or houses.get(tags.get("@type", "")[:1] + str(tags.get("@id")), "")).strip()
-            numbers = house_numbers(tags.get("addr:housenumber", ""))
-            if geometry["type"] == "Point": ends[tuple(geometry["coordinates"][:2])] = (street, numbers)
-            at = mean_point(geometry)
-            if street and numbers and at: points += [(at[0], at[1], street, x) for x in numbers]
-        return points, [i for tags, coordinates in ways if (i := interpolation(tags, coordinates, ends))]
-
-    def places(self):
-        """The area's named places (PLACE_KINDS), read once: a node at its point, an area at its
-        outer ring's mean vertex, as the venues; each with the admin_level of the boundary it is
-        or stands for (place_levels)."""
-        if self._places is None:
-            found = []
-            for f in features(self.named, ids=True):
-                tags, geometry = f["properties"], f["geometry"]
-                name = str(tags.get("name", "")).strip()
-                if tags.get("place") not in PLACE_KINDS or not name: continue
-                at = mean_point(geometry)
-                if not at: continue
-                found.append(english({"name": name, "kind": tags["place"], "coordinate": vertex(*at), "osm": tags["@type"][0] + str(tags["@id"])},
-                                     tags.get("name:en")))
-            self._places = distinct_places(place_levels(found, self.boundaries()))
-        return self._places
-
-    def boundaries(self, pbf=None):
-        """The administrative boundary relations of the area (or of `pbf`): [{"id": "r…", "name", "admin_level" (int),
-        "place", "labels", "centres" (the ids, "n…", of its label and admin_centre member nodes), "geometry" (None when
-        its ring is not whole in the extract)}]. One without a name or a numeric admin_level is left out."""
-        pbf = pbf or self.admin
-        shapes = {"r" + str(f["properties"]["@id"]): f["geometry"] for f in features(pbf, "polygon", ids=True)
-                  if f["properties"].get("@type") == "relation"}
-        out = []
-        for r in ET.fromstring(osmium("cat", pbf, "-t", "relation", "-f", "osm")).iter("relation"):
-            tags = {t.get("k"): t.get("v") for t in r.iter("tag")}
-            name, level = (tags.get("name") or "").strip(), tags.get("admin_level", "")
-            if tags.get("boundary") != "administrative" or not name or not level.isdigit(): continue
-            role = lambda kind: {"n" + m.get("ref") for m in r.iter("member") if m.get("type") == "node" and m.get("role") == kind}
-            out.append({"id": "r" + r.get("id"), "name": name, "name_en": tags.get("name:en"), "admin_level": int(level), "place": tags.get("place"),
-                        "labels": role("label"), "centres": role("admin_centre"), "geometry": shapes.get("r" + r.get("id"))})
-        return out
-
-    def areas(self, rect):
-        """The administrative boundaries (boundaries()) and the place polygons ([(tags, geometry)]) meeting the rect,
-        whole: cut from the extract with osmium's smart strategy, which completes a boundary or multipolygon relation
-        crossing the cut's edge (the area's own box drops it: Kyiv's raions, 2026-10-10)."""
-        s, w, n, e = rect
-        cut, kept = self.pbf + ".areas.pbf", self.pbf + ".areas-kept.pbf"
-        try:
-            osmium("extract", "-b", f"{w},{s},{e},{n}", "-s", "smart", "-S", "types=boundary,multipolygon", self.pbf, "-o", cut, "--overwrite")
-            osmium("tags-filter", cut, "r/boundary=administrative", "wr/place=" + ",".join(PLACE_KINDS), "-o", kept, "--overwrite")
-            places = [(f["properties"], f["geometry"]) for f in features(kept, "polygon")]
-            return self.boundaries(kept), places
-        finally:
-            for f in (cut, kept):
-                if os.path.exists(f): os.remove(f)
-
-    def transit(self):
-        """transit_lines() of the whole extract, not the area's box: a line runs past it, and its far stops are where
-        a transfer is made. The relations alone first, then only their node and way members (ways with their nodes)."""
-        routes, ids, kept = (self.pbf + x for x in (".routes.pbf", ".stops.txt", ".stops.pbf"))
-        modes = ",".join(TRANSIT_MODES)
-        try:
-            osmium("tags-filter", self.pbf, "r/route=" + modes, "r/route_master=" + modes, "-R", "-o", routes, "--overwrite")
-            relations = ET.fromstring(osmium("cat", routes, "-f", "osm"))
-            wanted = sorted({m.get("type")[0] + m.get("ref") for m in relations.iter("member") if m.get("type") in ("node", "way")})
-            if not wanted: return []
-            with open(ids, "w") as f: f.write("\n".join(wanted) + "\n")
-            # getid exits 1 when an id is not in the extract (a far stop of a line leaving the region): what is there is kept.
-            done = subprocess.run(["osmium", "getid", self.pbf, "-i", ids, "-r", "-o", kept, "--overwrite"], capture_output=True, text=True)
-            if done.returncode > 1: raise SourceError(f"osmium: {done.stderr.strip()[:200]}")
-            return transit_lines(relations, ET.fromstring(osmium("cat", kept, "-f", "osm")))
-        finally:
-            for f in (routes, ids, kept):
-                if os.path.exists(f): os.remove(f)
-
-    def near(self, table, rect):
-        """Everything in the buckets the rect touches, once each: callers keep what is near enough."""
-        seen = {}
-        for k in buckets(*rect):
-            for item in table.get(k, ()): seen[id(item)] = item
-        return list(seen.values())
-
-_osm = None  # the current area's OSM, set by run()
-
-def osm_buildings(rect, tagged=False): return _osm.buildings(rect, tagged)
-
-def osm_streets(rect): return _osm.streets(rect)
-
-def osm_main_streets(rect): return _osm.streets(rect, MAIN_STREETS, MAIN_TOLERANCE)
-
-def osm_addresses(rect): return _osm.addresses(rect)
-
-def osm_places(cell):
-    """The named places of one ~4 km cell, the key's own truncation deciding the edge."""
-    return [p for p in _osm.places()
-            if f"{index(p['coordinate']['latitude'], MAIN)},{index(p['coordinate']['longitude'], MAIN)}" == cell.key]
-
-def osm_terraces(rect):
-    """Outdoor seating on a bar, pub, beer garden, café or restaurant, named or not."""
-    out = []
-    for v in _osm.near(_osm.venues, rect):
-        if not v["outdoor_seating"]: continue
-        item = {"kind": "TERRASSE (OSM)", "coordinate": v["coordinate"]}
-        if v["name"]: item["name"] = v["name"]
-        out.append(item)
-    return out
-
-def osm_venues(cell):
-    """The named venues of one ~2 km cell, MATCH_ONLY ones included, the key's own truncation deciding the edge."""
-    return [v for table in (_osm.venues, _osm.matches) for v in _osm.near(table, cell.rect) if v["name"]
-            and f"{index(v['coordinate']['latitude'], COARSE)},{index(v['coordinate']['longitude'], COARSE)}" == cell.key]
 
 def wfs(url, params, rect, cap=5000, depth=0):
     """A WFS 2.0 GetFeature over a box (latitude first, EPSG:4326 URN); a box that hits the cap is split in four."""
@@ -2415,7 +2221,7 @@ def osm_area_source(levels):
     point lies in no polygon kept before (Manila's districts, then the barangays of the cities around)."""
     def fetch(rect):
         import shapely, shapely.geometry
-        found, (boundaries, places) = {}, _osm.areas(rect)
+        found, (boundaries, places) = {}, extract._osm.areas(rect)
         for b in boundaries:
             if b["admin_level"] in levels and b["geometry"]:
                 found.setdefault(b["admin_level"], []).append(({"name": b["name"], "level": b["admin_level"]}, shapely.geometry.shape(b["geometry"])))
@@ -2932,7 +2738,7 @@ def city_areas(city, entries):
             for f, g in zip(found, simplified_coverage([f["geometry"] for f in found])): f["geometry"] = g
             features += [f for f in found if not f["geometry"].is_empty]
             log(f"  {city} boundaries: {len(found)} from {row['source']}")
-        _areas[city] = features, area_tiles(features, _osm.places() if _osm else [])
+        _areas[city] = features, area_tiles(features, extract._osm.places() if extract._osm else [])
     except SourceError as error:
         _areas[city] = error
     except Exception as error:  # noqa: BLE001 — a malformed answer (bad zip, missing field) fails the city, not the run
@@ -3065,7 +2871,7 @@ def shade_points(cells, out):
     else the published one: each holds the terraces within TERRACE_RADIUS, so together they hold every terrace near
     the cells). None when a published tile could not be read: the caller then keeps every cell."""
     points = {(v["coordinate"]["latitude"], v["coordinate"]["longitude"])
-              for v in _osm.near(_osm.venues, padded(union(cells), SHADE_MARGIN))}
+              for v in extract._osm.near(extract._osm.venues, padded(union(cells), SHADE_MARGIN))}
     todo = [c for c in cells if read(path(out, "terraces-v2", c)) is None]
     with concurrent.futures.ThreadPoolExecutor(STORE_THREADS) as pool:
         published = dict(zip((c.key for c in todo), pool.map(lambda c: published_items("terraces-v2", c.key), todo)))
@@ -3084,26 +2890,26 @@ def small_place_keys(cells, rect):
     """The keys of the cells whose centre lies in a small commune meeting the rect, None when the communes could not be read."""
     by_key, held = {c.key: c for c in cells}, []
     try:
-        for b in _osm.areas(rect)[0]:
+        for b in extract._osm.areas(rect)[0]:
             if b["admin_level"] != SMALL_PLACE_LEVEL or not (g := b["geometry"]): continue
             keys = {c.key for k in cells_in(*bounds(g)) if (c := by_key.get(k.key)) and contains(g, c.lat, c.lon)}
             if keys: held.append((g, keys))
         # A commune reaching past the area's box (Saint-Germain-en-Laye past the petite couronne's) has venues the box left
         # out: those communes' venues are read again from the whole extract, at once.
-        s, w, n, e = _osm.box
+        s, w, n, e = extract._osm.box
         far = [g for g, _ in held if not (s <= (x := bounds(g))[0] and w <= x[1] and x[2] <= n and x[3] <= e)]
         far_venues = {}
         if far:
             boxes = [bounds(g) for g in far]
-            for v in _osm.venues_in((min(x[0] for x in boxes), min(x[1] for x in boxes), max(x[2] for x in boxes), max(x[3] for x in boxes))):
+            for v in extract._osm.venues_in((min(x[0] for x in boxes), min(x[1] for x in boxes), max(x[2] for x in boxes), max(x[3] for x in boxes))):
                 lat, lon = v["coordinate"]["latitude"], v["coordinate"]["longitude"]
                 far_venues.setdefault(buckets(lat, lon, lat, lon)[0], []).append(v)
     except SourceError as e:
         log(f"    communes not read ({e}); every cell keeps its buildings"); return None
     small = set()
     for g, keys in held:
-        table = far_venues if any(g is f for f in far) else _osm.venues
-        inside = (v for v in _osm.near(table, bounds(g)) if contains(g, v["coordinate"]["latitude"], v["coordinate"]["longitude"]))
+        table = far_venues if any(g is f for f in far) else extract._osm.venues
+        inside = (v for v in extract._osm.near(table, bounds(g)) if contains(g, v["coordinate"]["latitude"], v["coordinate"]["longitude"]))
         if sum(1 for _ in zip(range(SMALL_PLACE_VENUES), inside)) < SMALL_PLACE_VENUES: small |= keys
     return small
 
@@ -3265,7 +3071,7 @@ def do_places(cells, out, failures):
 
 def do_transit(cells, out, failures):
     """The transit/ tiles of the area's ~4 km cells; a cell no line stops in has no file (an earlier run's is removed)."""
-    try: tiles = transit_tiles(cells, _osm.transit())
+    try: tiles = transit_tiles(cells, extract._osm.transit())
     except SourceError as e:
         failures += [(c.key, "transit", str(e)) for c in cells]; return
     for c in cells:
@@ -3285,7 +3091,6 @@ def do_sources(cells, out, failures):
     if need: do_buildings(need, out, failures, published, tiles=False)
 
 def run(label, rect, out, block, layers, extracts, departements=None, boundary=None, city=None, city_entries=()):
-    global _osm
     started = time.monotonic()
     cells, coarse, wide = cells_in(*rect), cells_in(*rect, scale=COARSE), cells_in(*rect, scale=MAIN)
     if boundary:  # a box around a municipality keeps only the cells inside its boundary, and the venue cells over them
@@ -3300,14 +3105,14 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     try:  # the box every OSM question can reach: venue cells whole, buildings and terraces past the edge
         pbf = geofabrik_pbf(lat, lon)
         reach = union(coarse), padded(rect, 600)
-        _osm = OSM(download(pbf, extracts), (min(r[0] for r in reach), min(r[1] for r in reach),
+        extract._osm = OSM(download(pbf, extracts), (min(r[0] for r in reach), min(r[1] for r in reach),
                                              max(r[2] for r in reach), max(r[3] for r in reach)))
     except SourceError as e:
         log(f"{label}: OpenStreetMap unavailable ({e})")
         return len(cells), [(c.key, "all", str(e)) for c in cells]
     if city in OVERTURE_CITIES and "venues" in layers:
         try:
-            counts = overture_facts(_osm, overture_places(_osm.box))
+            counts = overture_facts(extract._osm, overture_places(extract._osm.box))
             log(f"{label}: Overture " + ", ".join(f"{k} {sum(c.values()) if k == 'dropped' else dict(c)}" for k, c in sorted(counts.items())))
         except Exception as e:   # the venues still go up, without the kinds, and the log says why
             log(f"{label}: Overture unavailable ({str(e)[:200]})")
