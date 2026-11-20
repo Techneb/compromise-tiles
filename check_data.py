@@ -33,6 +33,7 @@ footprints (London's lidar).
 import argparse, datetime, gzip, json, os, random, re, signal, sys, time, urllib.error, urllib.parse, urllib.request
 
 import make_tiles as mt
+from builder import patch
 
 STORE = "https://tiles.alephb.uk/tiles/"
 FEED = "https://tiles.alephb.uk/coverage.json"
@@ -189,7 +190,7 @@ _osm_areas = {}
 
 def osm_buildings(rect, tagged=False):
     """OpenStreetMap's footprints around a probe cell (a combine row measuring on them, London's lidar): the
-    extract downloaded and cut for that cell alone, since no build sets make_tiles._osm here."""
+    extract downloaded and cut for that cell alone, since no build sets builder.extract._osm here."""
     lat, lon = (rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2
     key = (round(lat, 2), round(lon, 2))
     if key not in _osm_areas:
@@ -227,7 +228,7 @@ def probe(layer, row, cell):
 
 def probe_rows(probes, ids, only=None):
     """{id: record} for the rows named: the probe, the published tile and the licence."""
-    mt.osm_buildings = osm_buildings
+    patch(osm_buildings=osm_buildings)
     records = {}
     for rid, layer, row in rows():
         if rid not in ids or (only and row["city"] not in only): continue

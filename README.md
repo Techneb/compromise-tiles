@@ -9,7 +9,7 @@ The map data the Compromise app reads, cut into small JSON tiles.</p>
 
 <p align="center"><a href="https://compromise.alephb.uk">Compromise website</a></p>
 
-The tiles hold venues, terraces, building heights, streets and neighbourhoods, built from OpenStreetMap and from cities' own open data. This repository has the generator (`make_tiles.py`), the list of areas it builds (`cities.json`, with municipal boundaries in `boundaries/`), its tests, and a few tiles that have to be built off GitHub (`tiles/`).
+The tiles hold venues, terraces, building heights, streets and neighbourhoods, built from OpenStreetMap and from cities' own open data. This repository has the generator (`make_tiles.py` and its `builder/` package), the list of areas it builds (`cities.json`, with municipal boundaries in `boundaries/`), its tests, and a few tiles that have to be built off GitHub (`tiles/`).
 
 ## Tiles
 

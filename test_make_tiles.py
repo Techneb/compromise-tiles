@@ -43,18 +43,19 @@ assert permit_items([point], toronto) == [{"kind": "TERRASSE", "coordinate": {"l
 
 # San Sebastián's terraces (Donostia's MapServer, FID from 0): the paging must not skip FID 0.
 import make_tiles, urllib.parse
+from builder import patch
 from make_tiles import gipuzkoa_buildings, permits, PERMIT_CITIES
 asked = []
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote(url))
     return {"features": [{"geometry": {"type": "Point", "coordinates": [-1.958171550804368, 43.312719267068616]},
                           "properties": {"FID": 0, "IzenTe": "ADI TABERNA"}}]} if len(asked) == 1 else {"features": []}
-make_tiles.get, real_get = fake_get, make_tiles.get
+real_get = make_tiles.get; patch(get=fake_get)
 donostia = next(c for c in PERMIT_CITIES if c["city"] == "San Sebastián")
 assert permits(donostia, (43.31, -1.96, 43.32, -1.95)) == [
     {"kind": "TERRASSE", "coordinate": {"latitude": 43.312719267068616, "longitude": -1.958171550804368}, "name": "ADI TABERNA"}]
 assert "FID>-1" in asked[0] and "outFields=FID,IzenTe" in asked[0]
-make_tiles.get = real_get
+patch(get=real_get)
 # Gipuzkoa's INSPIRE GML (the feed's shape, trimmed): heightAboveGround, else floors × 3 m when it reads 0, else 15 m.
 def member(height, floors, ring):
     return f"""<wfs:member><bu-ext2d:Building xmlns:bu-ext2d="http://inspire.ec.europa.eu/schemas/bu-ext2d/4.0">
@@ -75,10 +76,10 @@ assert built[0]["outline"][0] == {"latitude": 43.323921, "longitude": -1.986071}
 from make_tiles import building_source, CITY_BUILDINGS
 joburg = next(b for b in CITY_BUILDINGS if b["city"] == "Johannesburg")["fetch"]
 real_arcgis = make_tiles.arcgis
-make_tiles.arcgis = lambda *a, **k: [{"geometry": {"type": "Polygon", "coordinates": [[[28.047, -26.206], [28.048, -26.206],
-    [28.048, -26.205], [28.047, -26.206]]]}, "properties": {"ELEVATION": 204.1}}]
+patch(arcgis=lambda *a, **k: [{"geometry": {"type": "Polygon", "coordinates": [[[28.047, -26.206], [28.048, -26.206],
+    [28.048, -26.205], [28.047, -26.206]]]}, "properties": {"ELEVATION": 204.1}}])
 assert [b["height"] for b in joburg((0, 0, 1, 1))] == [204.1]
-make_tiles.arcgis = real_arcgis
+patch(arcgis=real_arcgis)
 at = lambda lat, lon: building_source(cells_in(lat, lon, lat + 0.0002, lon + 0.0002)[0])
 assert at(43.3236, -1.9849) == "San Sebastián" and at(-26.2058, 28.0471) == "Johannesburg" and at(-26.1063, 28.0542) == "Johannesburg"
 # Málaga's and Alicante's Catastro boxes the whole municipalities' since 2026-10-11: Campanillas and Verdegás,
@@ -121,7 +122,7 @@ def fake_get(url, data=None, parse=None, **k):
     asked.append(url)
     if "654_" in url: raise make_tiles.SourceError("download1.bayernwolke.de: HTTP 404")
     return gml
-make_tiles.get = fake_get
+patch(get=fake_get)
 fetch = citygml_tiles("https://t/{e}_{n}.gml", 2)
 assert fetch((49.4315, 11.119, 49.4345, 11.124)) == [] and sorted(asked) == ["https://t/652_5476.gml", "https://t/654_5476.gml"]
 assert len(citygml_tiles("https://u/{e}_{n}.gml", 1)((51.2250, 6.7747, 51.2253, 6.7752))) == 2   # the fixture, inside
@@ -131,7 +132,7 @@ import io, zipfile as _zf
 buf = io.BytesIO()
 with _zf.ZipFile(buf, "w") as z: z.writestr("a_1_BW.gml", gml); z.writestr("b_1_BW.gml", gml); z.writestr("licence.pdf", b"")
 asked.clear()
-make_tiles.get = lambda url, **k: (asked.append(url), buf.getvalue())[1]
+patch(get=lambda url, **k: (asked.append(url), buf.getvalue())[1])
 assert len(citygml_tiles("https://z/{e}_{n}.zip", 2, odd_e=True)((51.2250, 6.7747, 51.2253, 6.7752))) == 4
 assert asked == ["https://z/343_5676.zip"]
 # GUGiK's LoD1 CityGML (a real Lublin building, trimmed): the solid's bottom face is the outline, measuredHeight the
@@ -185,19 +186,19 @@ def fake_get(url, data=None, parse=None, **k):
                 [20.45944, 44.81669, 140.277], [20.45886, 44.81628, 113.75]]]}}]}
     return {"features": [{"attributes": {"objectid": 41}, "geometry": {"rings": [cw, cw[::-1]]}},
                          {"attributes": {"objectid": 42}, "geometry": {"rings": [cw]}}]}
-make_tiles.get = fake_get
+patch(get=fake_get)
 assert [(b["height"], b.get("guessed")) for b in beoland((44.81, 20.45, 44.82, 20.46))] == [(26.5, None), (15.0, True)]
 # Genoa: eave elevation minus the nearest foot spot height (0301) within 40 m; an eave spot (0302) is no foot.
 real_wfs = make_tiles.wfs
-make_tiles.wfs = lambda url, params, rect, **k: ([{"geometry": {"type": "Point", "coordinates": [8.93235, 44.40763, 18.11]},
+patch(wfs=lambda url, params, rect, **k: ([{"geometry": {"type": "Point", "coordinates": [8.93235, 44.40763, 18.11]},
         "properties": {"pt_quo_q": 18.11, "pt_quo_sed": "0301"}},
     {"geometry": {"type": "Point", "coordinates": [8.93236, 44.40763, 69.11]}, "properties": {"pt_quo_q": 69.11, "pt_quo_sed": "0302"}}]
     if params["TYPENAMES"] == "M2052:L6911" else
     [{"geometry": {"type": "Polygon", "coordinates": [[[8.9322, 44.4076, 69.11], [8.9324, 44.4076, 69.11], [8.9324, 44.4077, 69.11],
         [8.9322, 44.4076, 69.11]]]}}, {"geometry": {"type": "Polygon", "coordinates": [[[8.95, 44.42, 50], [8.951, 44.42, 50],
-        [8.951, 44.421, 50], [8.95, 44.42, 50]]]}}])
+        [8.951, 44.421, 50], [8.95, 44.42, 50]]]}}]))
 assert [(b["height"], b.get("guessed")) for b in liguria((44.40, 8.93, 44.41, 8.94))] == [(51.0, None), (15.0, True)]
-make_tiles.wfs = real_wfs
+patch(wfs=real_wfs)
 # Thessaloníki's permits come in Web Mercator (its degrees are rounded to ~100 m), filtered on a permit number.
 lat, lon = mercator_to_wgs84(2553970.46, 4958174.064)
 assert abs(lat - 40.631739) < 1e-6 and abs(lon - 22.942707) < 1e-6
@@ -205,29 +206,29 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     return {"features": [{"geometry": {"type": "MultiPoint", "coordinates": [[2553970.46, 4958174.064]]}, "properties": {"eponymia": "BUTLER"}}]}
-make_tiles.get = fake_get
+patch(get=fake_get)
 thess = next(c for c in PERMIT_CITIES if c["city"] == "Thessaloníki")
 t, = permits(thess, (40.63, 22.94, 40.637, 22.948))
 assert t["name"] == "BUTLER" and abs(t["coordinate"]["latitude"] - 40.631739) < 1e-6
 assert "srsName=EPSG:3857" in asked[0] and "adeiestrap IS NOT NULL AND BBOX(geom,22.94,40.63,22.948,40.637" in asked[0]
-make_tiles.get = real_get
+patch(get=real_get)
 # The ArcGIS rows' height rules: Zagreb metres, San José floors × 3.5 m on the ground-floor slab, San Jose feet.
 rule = lambda city: [b["height"] for b in next(b for b in CITY_BUILDINGS if b["city"] == city)["fetch"]((0, 0, 1, 1))]
-make_tiles.arcgis = lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
-    [0, 1], [1, 1], [0, 0]]]}, "properties": {"Z_Delta": 103.5, "CantPisos": 19, "Building_H": 285.62}}]
+patch(arcgis=lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
+    [0, 1], [1, 1], [0, 0]]]}, "properties": {"Z_Delta": 103.5, "CantPisos": 19, "Building_H": 285.62}}])
 assert rule("Zagreb") == [103.5] and rule("San José") == [66.5] and rule("San Jose") == [87.1]
-make_tiles.arcgis = real_arcgis
+patch(arcgis=real_arcgis)
 assert at(51.2263, 6.7727) == "Düsseldorf" and at(49.4539, 11.0775) == "Nuremberg" and at(45.8131, 15.9772) == "Zagreb"
 assert at(44.8160, 20.4600) == "Belgrade" and at(44.7900, 20.4600) == "OSM" and at(9.9334, -84.0770) == "San José"
 assert at(37.3377, -121.8855) == "San Jose" and at(44.4072, 8.9339) == "Genoa"
 # Sofia: sgr_text's leading number is floors × 3 m, none one floor (real codes: Park Hotel Moskva, the NDK,
 # a massive building with no count, an underground one).
-make_tiles.arcgis = lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
-    [0, 1], [1, 1], [0, 0]]]}, "properties": {"sgr_text": t}} for t in ("26МСБЖ", "5МСБЖ", "МС", "-1МС", None)]
+patch(arcgis=lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
+    [0, 1], [1, 1], [0, 0]]]}, "properties": {"sgr_text": t}} for t in ("26МСБЖ", "5МСБЖ", "МС", "-1МС", None)])
 assert rule("Sofia") == [78.0, 15.0, 3.0, 3.0, 3.0]
 flagged = lambda city: [b.get("guessed") for b in next(b for b in CITY_BUILDINGS if b["city"] == city)["fetch"]((0, 0, 1, 1))]
 assert flagged("Sofia") == [None] * 5   # 5 floors is a measured 15 m; "none is one floor" is the row's rule, not the guess
-make_tiles.arcgis = real_arcgis
+patch(arcgis=real_arcgis)
 assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "Bratislava" and at(48.3500, 17.1088) == "OSM"
 assert at(37.8053, -122.2724) == "Oakland"   # its cells are credited "Oakland+OSM" or "OSM": test_combine.py
 
@@ -288,34 +289,34 @@ assert at(32.0150, 34.7800) == "Holon" and at(32.1650, 34.8400) == "Herzliya" an
 # Floors arrive as strings in Holon and Herzliya: × 3 m, blank → the 15 m default.
 floors = next(b for b in CITY_BUILDINGS if b["city"] == "Holon")["fetch"]
 ring = {"type": "Polygon", "coordinates": [[[34.78, 32.01], [34.781, 32.01], [34.781, 32.011], [34.78, 32.01]]]}
-make_tiles.arcgis = lambda *a, **k: [{"geometry": ring, "properties": {"NUM_FLOORS": "4"}}, {"geometry": ring, "properties": {"NUM_FLOORS": " "}}]
+patch(arcgis=lambda *a, **k: [{"geometry": ring, "properties": {"NUM_FLOORS": "4"}}, {"geometry": ring, "properties": {"NUM_FLOORS": " "}}])
 assert [(b["height"], b.get("guessed")) for b in floors((0, 0, 1, 1))] == [(12.0, None), (15.0, True)]
 # Hamburg's CityJSON: the ground surface in UTM 32N, measuredHeight.
-make_tiles.get_json = lambda url: {"transform": {"scale": [1, 1, 1], "translate": [566000, 5935000, 0]},
+patch(get_json=lambda url: {"transform": {"scale": [1, 1, 1], "translate": [566000, 5935000, 0]},
     "vertices": [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 0, 20]],
     "CityObjects": {"a": {"attributes": {"measuredHeight": 20.5}, "geometry": [{"boundaries": [[[[0, 1, 2]], [[3, 1, 2]]]],
-        "semantics": {"surfaces": [{"type": "GroundSurface"}, {"type": "RoofSurface"}], "values": [[0, 1]]}}]}}}
+        "semantics": {"surfaces": [{"type": "GroundSurface"}, {"type": "RoofSurface"}], "values": [[0, 1]]}}]}}})
 b, = hamburg((53.5, 10.0, 53.6, 10.1))
 assert b["height"] == 20.5 and len(b["outline"]) == 3 and abs(b["outline"][0]["latitude"] - 53.55) < 0.01
 # La Rochelle: one whole CSV (real rows, trimmed), the point its "lat,lon" column; only the three terrace kinds,
 # furniture and untyped rows dropped, a terrace with no sign kept unnamed, a covered one kept as closed (no sun).
-make_tiles.get = lambda url, **k: open("fixtures/la-rochelle.csv", "rb").read()
+patch(get=lambda url, **k: open("fixtures/la-rochelle.csv", "rb").read())
 rochelle = next(c for c in PERMIT_CITIES if c["city"] == "La Rochelle")
 got = permits(rochelle, (46.14, -1.22, 46.18, -1.12))
 assert [t["kind"] for t in got] == ["Terrasse - extension saisonnière", "TERRASSE FERMEE", "Terrasse", "Terrasse"]
 assert [t.get("name") for t in got] == ["LE RECIF", "LE BISTROT DE MEME", "LA CORNICHE", None]
 assert abs(got[0]["coordinate"]["latitude"] - 46.14127796782068) < 1e-9 and abs(got[0]["coordinate"]["longitude"] + 1.1708002829565918) < 1e-9
 assert permits(rochelle, (46.15, -1.18, 46.16, -1.17)) == [got[2]]   # the file is read once, then cut to the cell
-make_tiles.get = real_get
+patch(get=real_get)
 # San Diego: the same whole-CSV reader, the point a pair of columns; only the issued café approvals, every one an
 # open-air TERRASSE with no name (the row reads no name column), a row with no point dropped.
-make_tiles.get = lambda url, **k: open("fixtures/san-diego.csv", "rb").read()
+patch(get=lambda url, **k: open("fixtures/san-diego.csv", "rb").read())
 sd = next(c for c in PERMIT_CITIES if c["city"] == "San Diego")
 got = permits(sd, (32.69, -117.28, 32.97, -117.10))
 assert [t["coordinate"] for t in got] == [{"latitude": 32.720675, "longitude": -117.167837},
                                           {"latitude": 32.761526, "longitude": -117.146621}]
 assert all(t["kind"] == "TERRASSE" and "name" not in t for t in got)
-make_tiles.get = real_get
+patch(get=real_get)
 # Barcelona: the newest CSV resource (listed first) read through CKAN's datastore API, paged by offset to the
 # total (its download URL answers a bot-detection page); a row without a point is dropped.
 asked.clear()
@@ -327,13 +328,13 @@ def fake_get_json(url, **k):
             {"LATITUD": "41.39", "LONGITUD": "2.16"}]
     offset = int(urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)["offset"][0])
     return {"result": {"total": 3, "records": rows[offset:offset + 2]}}
-make_tiles.get_json, real_get_json = fake_get_json, make_tiles.get_json
+real_get_json = make_tiles.get_json; patch(get_json=fake_get_json)
 bcn = next(c for c in PERMIT_CITIES if c["city"] == "Barcelona")
 got = permits(bcn, (41.32, 2.05, 41.47, 2.23))
 assert [t["coordinate"] for t in got] == [{"latitude": 41.4083712701906, "longitude": 2.17453673339805},
                                           {"latitude": 41.39, "longitude": 2.16}] and all(t["kind"] == "TERRASSE" for t in got)
 assert [urllib.parse.parse_qs(urllib.parse.urlsplit(u).query).get("resource_id") for u in asked[1:]] == [["new"], ["new"]]
-make_tiles.get_json = real_get_json
+patch(get_json=real_get_json)
 
 # 2026-10-03 rows. Vaughan: NRCan's GTA GeoPackage (three real rows at VMC, the tallest Transit City tower and two
 # low buildings, with their R-tree), unzipped once and read through the R-tree: heightmax, metres, as the height.
@@ -346,7 +347,7 @@ def fake_download(url, folder, max_days=6):
     return shutil.copy(fixture_zip, os.path.join(folder, url.rsplit("/", 1)[1]))
 with tempfile.TemporaryDirectory() as d:
     os.chdir(d)
-    make_tiles.download = fake_download
+    patch(download=fake_download)
     try:
         got = vaughan((43.7965, -79.5305, 43.7990, -79.5265))
         assert sorted(b["height"] for b in got) == [6.2, 8.4, 183.6]
@@ -355,7 +356,7 @@ with tempfile.TemporaryDirectory() as d:
         assert fetched == [make_tiles.NRCAN_GTA]   # downloaded once a run
     finally:
         os.chdir(here)
-        make_tiles.download = real_download
+        patch(download=real_download)
         for db, *_ in make_tiles._geopackages.values(): db.close()
         make_tiles._geopackages.clear()
 # A GeoPackage whose table name holds a `"` is read as that name, not as SQL (Strix, 2026-10-26).
@@ -372,12 +373,12 @@ with tempfile.TemporaryDirectory() as d:
     os.remove(gpkg)
     fixture_zip, fetched[:] = os.path.join(d, "odd.zip"), []
     os.chdir(d)
-    make_tiles.download = fake_download
+    patch(download=fake_download)
     try:
         assert make_tiles.geopackage("https://example.org/odd.zip", "h")((0, 0, 1, 1)) == []
     finally:
         os.chdir(here)
-        make_tiles.download = real_download
+        patch(download=real_download)
         for db, *_ in make_tiles._geopackages.values(): db.close()
         make_tiles._geopackages.clear()
 # Edmonton: Rooflines (real Socrata features, numbers as strings: the 146.84 m roof and two low ones), asked by intersects.
@@ -385,7 +386,7 @@ asked.clear()
 def fake_get_json(url, data=None, waits=None):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/edmonton.json") as f: return {"features": json.load(f)["features"]}
-make_tiles.get_json = fake_get_json
+patch(get_json=fake_get_json)
 got = next(b for b in CITY_BUILDINGS if b["city"] == "Edmonton")["fetch"]((53.54, -113.50, 53.55, -113.48))
 assert [b["height"] for b in got] == [146.8, 8.4, 8.2]
 assert got[0]["outline"][0] == {"latitude": 53.541894, "longitude": -113.493936}
@@ -431,13 +432,13 @@ assert feed(40.7580, -73.9855) == "New York" and feed(43.3127, -1.9582) == "San 
 from make_tiles import arcgis_filter, helsinki_venue_name, seattle_venue_name, not_applicable, unique
 import datetime
 # Hamburg's and Edmonton's get_json fakes above were left in place (and real_get_json is Hamburg's): the real one again.
-make_tiles.get_json = lambda url, data=None, waits=make_tiles.WAITS: make_tiles.get(url, data, parse=json.loads, waits=waits)
-make_tiles.arcgis = real_arcgis   # Holon's fake above was left in place too
+patch(get_json=lambda url, data=None, waits=make_tiles.WAITS: make_tiles.get(url, data, parse=json.loads, waits=waits))
+patch(arcgis=real_arcgis)   # Holon's fake above was left in place too
 asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/helsinki.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 helsinki = next(c for c in PERMIT_CITIES if c["city"] == "Helsinki")
 got = permits(helsinki, (60.16, 24.93, 60.19, 24.99))
 assert [t.get("name") for t in got] == ["On The Rocks", "Chaos Bar", "Oluthuone Haavi", None] and all(t["kind"] == "TERRASSE" for t in got)
@@ -461,7 +462,7 @@ os.environ["STOCKHOLM_API_KEY"] = "s3cr3t-key"
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/stockholm.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 assert permit_city(Cell(29667, 9037), None) is stockholm
 got = make_tiles.stockholm(stockholm, (59.33, 18.06, 59.34, 18.08), today="2026-10-05")
 assert [t["kind"] for t in got] == ["TERRASSE"] * 3 and not any("name" in t for t in got)
@@ -478,7 +479,7 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/vienna.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 vienna = next(c for c in PERMIT_CITIES if c["city"] == "Vienna")
 got = permits(vienna, (48.207, 16.370, 48.210, 16.374))
 assert len(got) == 3 and all(t["kind"] == "TERRASSE" and "name" not in t for t in got)
@@ -488,7 +489,7 @@ assert "typeName=ogdwien:SCHANIGARTENOGD" in asked[0] and "bbox" not in asked[0]
 # Gothenburg: one ';' CSV with a BOM, read whole; a terrace where Serveringstyper lists Uteservering (alone or among
 # catering and tastings) and the public is served (alone or with closed companies); no outdoor serving, a closed
 # company and a row without a point dropped.
-make_tiles.get = lambda url, **k: open("fixtures/gothenburg.csv", "rb").read()
+patch(get=lambda url, **k: open("fixtures/gothenburg.csv", "rb").read())
 gothenburg = next(c for c in PERMIT_CITIES if c["city"] == "Gothenburg")
 got = permits(gothenburg, (57.57, 11.76, 57.80, 12.06))
 assert [t["name"] for t in got] == ["Werners Bistro", "DINÉ Burgers Drottninggatan", "Beerbliotek Brewery"]
@@ -501,7 +502,7 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/washington-dc.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 dc = next(c for c in PERMIT_CITIES if c["city"] == "Washington DC")
 got = permits(dc, (38.89, -77.03, 38.91, -77.00))
 assert [t["kind"] for t in got] == ["TERRASSE OUVERTE", "TERRASSE OUVERTE", "TERRASSE FERMEE", "TERRASSE OUVERTE"]
@@ -515,7 +516,7 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/boston.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 boston = next(c for c in PERMIT_CITIES if c["city"] == "Boston")
 got = permits(boston, (42.35, -71.08, 42.36, -71.05))
 assert [t["name"] for t in got] == ["Lily's Pizza", "75 Chestnut"] and all(t["kind"] == "TERRASSE" for t in got)
@@ -526,7 +527,7 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/seattle.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 seattle = next(c for c in PERMIT_CITIES if c["city"] == "Seattle")
 got = permits(seattle, (47.60, -122.36, 47.68, -122.31))
 assert [t.get("name") for t in got] == ["Mecca", None, None, None] and all(t["kind"] == "TERRASSE" for t in got)
@@ -541,7 +542,7 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/kensington-and-chelsea.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 rbkc = next(c for c in PERMIT_CITIES if c["city"] == "Kensington and Chelsea")
 got = permits(rbkc, (51.49, -0.20, 51.51, -0.19))
 assert [t["name"] for t in got] == ["Nouvelle Delicatessen", "The Abingdon", "Amorino"] and all(t["kind"] == "TERRASSE" for t in got)
@@ -552,21 +553,21 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/hong-kong.json") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 hk = next(c for c in PERMIT_CITIES if c["city"] == "Hong Kong")
 got = permits(hk, (22.380, 114.270, 22.384, 114.276))
 assert [t["name"] for t in got] == ["Schragels Delicatessen", "LA VERDE", "JASPAS BAR & GRILL", "CENA"] and all(t["kind"] == "TERRASSE" for t in got)
 assert got[0]["coordinate"] == {"latitude": 22.380985997573212, "longitude": 114.27342300252502}
 assert "(NSEARCH04_EN LIKE '%#A%') AND OBJECTID>-1" in asked[0] and "outFields=OBJECTID,NSEARCH03_EN" in asked[0]
-make_tiles.get = real_get
+patch(get=real_get)
 # Orlando: the whole-CSV reader with a projected pair (Florida East State Plane feet), only the cafés whose milestone
 # reads Active or Waiting for Renewal, "(formerly …)" cut from the name (four real rows, 2026-11-04).
-make_tiles.get = lambda url, **k: open("fixtures/orlando.csv", "rb").read()
+patch(get=lambda url, **k: open("fixtures/orlando.csv", "rb").read())
 orlando = next(c for c in PERMIT_CITIES if c["city"] == "Orlando")
 got = permits(orlando, (28.348, -81.5076, 28.6143, -81.1241))
 assert [t["name"] for t in got] == ["SLYFOX PUB", "The Cask", "Downtown Entertainment (EMBER)"] and all(t["kind"] == "TERRASSE" for t in got)
 assert abs(got[0]["coordinate"]["latitude"] - 28.54332) < 1e-4 and abs(got[0]["coordinate"]["longitude"] + 81.37887) < 1e-4
-make_tiles.get = real_get
+patch(get=real_get)
 assert "gpsx" in orlando["dataset"] and "contact" not in orlando["dataset"]   # never the contacts' columns
 # Houston: the geocoded snapshot, every patio named, kept only under a venue of today's name.
 houston = next(c for c in PERMIT_CITIES if c["city"] == "Houston")
@@ -579,10 +580,10 @@ square = {"type": "Polygon", "coordinates": [[[16.372, 48.208], [16.373, 48.208]
 parts = [{"properties": {"LAYER": "Gebäude", "O_KOTE": 151.7, "T_KOTE": 15.4}, "geometry": square},
          {"properties": {"LAYER": "Portal", "O_KOTE": 20.0, "T_KOTE": 15.4}, "geometry": square},
          {"properties": {"LAYER": "Gebäude", "O_KOTE": None, "T_KOTE": 15.4}, "geometry": square}]
-make_tiles.get_json, real_get_json = (lambda url, **k: {"features": parts}), make_tiles.get_json
+real_get_json = make_tiles.get_json; patch(get_json=lambda url, **k: {"features": parts})
 vienna_b = next(b for b in CITY_BUILDINGS if b["city"] == "Vienna")["fetch"]((48.20, 16.37, 48.21, 16.38))
 assert [b["height"] for b in vienna_b] == [136.3] and not vienna_b[0].get("guessed")
-make_tiles.get_json = real_get_json
+patch(get_json=real_get_json)
 assert make_tiles.difference({"TopHeight": 75.2, "BaseHeight": 4.1}, "TopHeight", "BaseHeight") == 75.2 - 4.1
 assert make_tiles.difference({"TopHeight": None, "BaseHeight": 4.1}, "TopHeight", "BaseHeight") is None
 # Brussels: Lambert 72 (EPSG:31370) both ways, against PROJ's BD72 → WGS84 (pyproj 3.7, 2026-11-04): within 1e-5°, ~1 m.
@@ -639,7 +640,7 @@ def fake_download(url, folder, max_days=6):
 fetched.clear()
 with tempfile.TemporaryDirectory() as d:
     os.chdir(d)
-    make_tiles.download = fake_download
+    patch(download=fake_download)
     try:
         got = toronto((43.644, -79.396, 43.646, -79.394))
         assert sorted(b["height"] for b in got) == [5.5, 17.5, 125.8] and not any("guessed" in b for b in got)
@@ -651,7 +652,7 @@ with tempfile.TemporaryDirectory() as d:
         assert fetched == [make_tiles.NRCAN_GTA, make_tiles.NRCAN_MONTREAL]
     finally:
         os.chdir(here)
-        make_tiles.download = real_download
+        patch(download=real_download)
         for db, *_ in make_tiles._geopackages.values(): db.close()
         make_tiles._geopackages.clear()
 # Bogotá: IDECA's Construcción (three real footprints at Zona T), CONNPISOS × 3 m, 0 floors the flagged guess; paged on OBJECTID.
@@ -659,13 +660,13 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(urllib.parse.unquote_plus(url))
     with open("fixtures/bogota.json") as f: return {"type": "FeatureCollection", "features": json.load(f)["features"]}
-make_tiles.get = fake_get
+patch(get=fake_get)
 got = next(b for b in CITY_BUILDINGS if b["city"] == "Bogotá")["fetch"]((4.666, -74.056, 4.668, -74.054))
 assert [(b["height"], b.get("guessed")) for b in got] == [(21.0, None), (3.0, None), (15.0, True)]
 assert got[0]["outline"][0] == {"latitude": 4.667134, "longitude": -74.055497}
 assert asked[0].startswith("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0/query?")
 assert "OBJECTID>-1" in asked[0] and "outFields=OBJECTID,CONNPISOS" in asked[0] and "geometry=-74.056,4.666,-74.054,4.668" in asked[0]
-make_tiles.get = real_get
+patch(get=real_get)
 # Each held to its boundary. Toronto: King West and York University are in, Mississauga sits in the box and is not, the
 # VMC stays Vaughan's (its row comes first). Montréal: Berri-UQAM and Westmount (a ville liée the file covers) are in,
 # Pont-Viau (Laval, in the file and the box) and Longueuil are not. Bogotá: Zona T.
@@ -682,13 +683,13 @@ asked.clear()
 def fake_get(url, data=None, parse=None, **k):
     asked.append(url)
     with open("fixtures/edinburgh.geojson") as f: return json.load(f)
-make_tiles.get = fake_get
+patch(get=fake_get)
 edinburgh = next(c for c in PERMIT_CITIES if c["city"] == "Edinburgh")
 got = permits(edinburgh, (55.945, -3.20, 55.952, -3.18))
 assert sorted(t["name"] for t in got) == ["1505 Cafe", "Alba Bistro", "Albanach"] and all(t["kind"] == "TERRASSE" for t in got)
 assert asked == ["https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/edinburgh.geojson"]
 assert [t["name"] for t in permits(edinburgh, (55.95, -3.22, 55.96, -3.21))] == ["Artisan Roast"] and len(asked) == 1
-make_tiles.get = real_get
+patch(get=real_get)
 assert feed(55.9520, -3.2000) == "Edinburgh" and feed(55.9750, -3.1700) == "Edinburgh" and feed(55.8940, -3.0700) is None
 with open("permits/edinburgh.geojson") as f: snapshot = json.load(f)
 assert len(snapshot["features"]) > 300 and all(f["properties"].get("name") for f in snapshot["features"])
@@ -702,13 +703,13 @@ for slug, rect, inside, other in (("waltham-forest", (51.580, -0.016, 51.585, -0
     def fake_get(url, data=None, parse=None, slug=slug, **k):
         asked.append(url)
         with open(f"fixtures/{slug}.geojson") as f: return json.load(f)
-    make_tiles.get = fake_get
+    patch(get=fake_get)
     c = next(c for c in PERMIT_CITIES if c["city"] == {"waltham-forest": "Waltham Forest", "redbridge": "Redbridge"}[slug])
     assert sorted(t["name"] for t in permits(c, rect)) == inside and all(t["kind"] == "TERRASSE" for t in permits(c, rect))
     assert len(permits(c, other)) == 1 and asked == [f"https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/{slug}.geojson"]
     with open(f"permits/{slug}.geojson") as f: snapshot = json.load(f)
     assert len(snapshot["features"]) > 40 and all(f["properties"].get("name") for f in snapshot["features"])
-make_tiles.get = real_get
+patch(get=real_get)
 assert feed(51.5825, -0.0135) == "Waltham Forest" and feed(51.5793, 0.0250) == "Redbridge"
 assert feed(51.5430, -0.0030) is None and feed(51.5450, -0.0550) is None
 print("ok (Waltham Forest, Redbridge)")
@@ -722,7 +723,7 @@ def fake_get(url, data=None, parse=None, headers=None, **k):
     asked.append((url, data, headers))
     if url.endswith("/publicregister"): return b'<meta name="csrf-token" content="T0k"/><a href="/sf/control/main;jsessionid=AB12.jvm1">'
     with open("fixtures/southwark.json", "rb") as f: return parse(f.read())
-make_tiles.get = fake_get
+patch(get=fake_get)
 c = next(c for c in PERMIT_CITIES if c["city"] == "Southwark")
 kept = southwark_all(c, datetime.date(2026, 11, 7))
 assert len(kept) == 7 and sum(1 for t in kept if 51.503 <= t["coordinate"]["latitude"] <= 51.506) == 6
@@ -730,7 +731,7 @@ assert all(t == {"kind": "TERRASSE", "coordinate": t["coordinate"]} for t in kep
 assert len(southwark_all(c, datetime.date(2027, 1, 1))) == 5 and southwark_all(c, datetime.date(2028, 1, 1)) == []
 assert asked[1] == ("https://licencesandservices.southwark.gov.uk/sf/control/searchPublicRegister;jsessionid=AB12.jvm1",
                     b"licenceType=Pavement&licenceStatus=licence&keyword=+&type=licence", {"X-CSRF-Token": "T0k"})
-make_tiles.get = real_get
+patch(get=real_get)
 # Borough and Bermondsey are Southwark's; Waterloo (Lambeth) sits in its box and Westminster's, in neither borough.
 assert feed(51.5055, -0.0910) == "Southwark" and feed(51.4980, -0.0640) == "Southwark" and feed(51.5031, -0.1132) is None
 print("ok (Southwark)")
@@ -748,14 +749,14 @@ for city, (slug, rect, least) in LONDON_POINTS.items():
     def fake_get(url, data=None, parse=None, slug=slug, **k):
         asked.append(url)
         with open(f"fixtures/{slug}.geojson") as f: return json.load(f)
-    make_tiles.get = fake_get
+    patch(get=fake_get)
     c = next(c for c in PERMIT_CITIES if c["city"] == city)
     inside = permits(c, rect)
     assert len(inside) == 6 and all(t == {"kind": "TERRASSE", "coordinate": t["coordinate"]} for t in inside), city
     assert asked == [f"https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/{slug}.geojson"]
     with open(f"permits/{slug}.geojson") as f: snapshot = json.load(f)
     assert len(snapshot["features"]) >= least and all(set(f["properties"]) == {"kind", "placed"} for f in snapshot["features"])
-make_tiles.get = real_get
+patch(get=real_get)
 assert feed(51.5070, -0.0590) == "Tower Hamlets" and feed(51.4020, -0.1950) == "Merton" and feed(51.4270, -0.3330) == "Richmond upon Thames"
 assert feed(51.5300, -0.0790) is None and feed(51.4100, -0.3000) is None
 # Harrow (2026-11-07, its NEC register read in Chrome; the fixture's rect is Pinner's High Street): Harrow town centre
@@ -780,7 +781,7 @@ read_tiles = []
 def fake_published_items(layer, key, bust=False):
     read_tiles.append((layer, key, bust))
     return venue_fixture.get(key, [])
-make_tiles.get, make_tiles.published_items, real_published_items = fake_get, fake_published_items, make_tiles.published_items
+real_published_items = make_tiles.published_items; patch(get=fake_get, published_items=fake_published_items)
 make_tiles._venue_tiles.clear()
 los_angeles = next(c for c in PERMIT_CITIES if c["city"] == "Los Angeles")
 got = unique(permits(los_angeles, (34.03, -118.29, 34.09, -118.21)))
@@ -791,10 +792,10 @@ assert read_tiles and all(layer == "venues" and bust for layer, _, bust in read_
 assert len(unique(make_tiles.fetched_permits(los_angeles, (34.03, -118.29, 34.09, -118.21)))) == 7   # 9 rows, 2 repeats, before the match
 # A venue tile the store did not give fails the feed rather than dropping its permits silently.
 make_tiles._venue_tiles.clear()
-make_tiles.published_items = lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503")
+patch(published_items=lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503"))
 try: surviving([{"kind": "TERRASSE", "name": "Tilda", "coordinate": {"latitude": 34.08, "longitude": -118.255}}], "Los Angeles"); raise AssertionError
 except make_tiles.SourceError as e: assert "Los Angeles: venues/" in str(e) and "HTTP 503" in str(e), e
-make_tiles.published_items = real_published_items
+patch(published_items=real_published_items)
 make_tiles._venue_tiles.clear()
 # Riga's permits name the company: the venue at the permit's spot lends its name (match="trading"). The pairs are the
 # feed's and OpenStreetMap's at the same doors (2026-11-11), the distances theirs, rounded.
@@ -812,9 +813,9 @@ assert trading_name(fox, [{"coordinate": door("", 1)["coordinate"]}, door("Jautr
 riga = next(c for c in PERMIT_CITIES if c["city"] == "Riga")
 assert riga["match"] == "trading" and riga["clean"] == "riga"
 make_tiles._venue_tiles.clear()
-make_tiles.published_items = lambda layer, key, bust=False: [door("Jautrā lapsa", 4)] if layer == "venues" else []
+patch(published_items=lambda layer, key, bust=False: [door("Jautrā lapsa", 4)] if layer == "venues" else [])
 assert [t["name"] for t in trading_names([fox], "Riga")] == ["Jautrā lapsa"]
-make_tiles.published_items = real_published_items
+patch(published_items=real_published_items)
 make_tiles._venue_tiles.clear()
 # The name rule is the app's (TerraceNames.swift): accents and punctuation set aside, one name in the other, the first
 # two words shared, or the shorter's core words in the longer — one short shared word is not a match.
@@ -866,7 +867,7 @@ def fake_download(url, folder, max_days=6, headers=None):
     return shutil.copy(fixtures[url], os.path.join(folder, url.rsplit("/", 1)[1]))
 with tempfile.TemporaryDirectory() as d:
     os.chdir(d)
-    make_tiles.get_json, make_tiles.download = fake_get_json, fake_download
+    patch(get_json=fake_get_json, download=fake_download)
     try:
         got = tokyo((35.668, 139.688, 35.6685, 139.6885))
         assert [(b["height"], len(b["outline"]), b["outline"][0]) for b in got] == [(66.2, 18, {"latitude": 35.668379, "longitude": 139.688166})]
@@ -882,7 +883,7 @@ with tempfile.TemporaryDirectory() as d:
         assert asked[23:] == [make_tiles.PLATEAU_INDEX.format("27100")] and fetched[2][1:] == (os.path.join("extracts", "plateau", "27100"), 365, "gzip")
     finally:
         os.chdir(here)
-        make_tiles.get_json, make_tiles.download = real_get_json, real_download
+        patch(get_json=real_get_json, download=real_download)
         make_tiles._plateau.clear(); make_tiles._plateau_index.clear()
 # Each box is its city's tiled area, the whole city since 2026-10-11 (Itabashi, outside the old core, is Tokyo's); past
 # the 23 wards (Mitaka) and east of Osaka's city line (Higashiōsaka) the row answers nothing and the cell falls to OSM.
@@ -925,7 +926,7 @@ rows = {b["city"]: b["fetch"] for b in CITY_BUILDINGS}
 heights = lambda got: sorted((b["height"], b.get("guessed")) for b in got)
 with tempfile.TemporaryDirectory() as d:
     os.chdir(d)
-    make_tiles.Ranged.request, make_tiles.get = fake_request, fake_get
+    make_tiles.Ranged.request = fake_request; patch(get=fake_get)
     try:
         got = rows["Milan"]((45.4844, 9.2006, 45.4853, 9.2018))
         assert heights(got) == [(10.8, None), (10.8, None), (12.6, None), (125.5, None), (127.8, None)]
@@ -946,7 +947,7 @@ with tempfile.TemporaryDirectory() as d:
         assert heights(rows["Buenos Aires"]((-34.5856, -58.3794, -34.5850, -58.3786))) == [(2.3, None), (14.2, None)] and len(ranges) == asked
     finally:
         os.chdir(here)
-        make_tiles.Ranged.request, make_tiles.get = real_request, real_get
+        make_tiles.Ranged.request = real_request; patch(get=real_get)
         make_tiles._shapefiles.clear()
 # A server answering a range with the whole file is refused, not read as the zip's tail.
 class Whole:
@@ -1085,7 +1086,7 @@ assert number_rows(tiles, camden[::2], [])[west.key] == [], "48 and 2213 alone: 
 import tempfile, make_tiles
 from make_tiles import do_streets
 saved = make_tiles.osm_streets, make_tiles.osm_addresses
-make_tiles.osm_streets, make_tiles.osm_addresses = (lambda rect: grenelle), (lambda rect: (points, []))
+patch(osm_streets=lambda rect: grenelle, osm_addresses=lambda rect: (points, []))
 with tempfile.TemporaryDirectory() as out:
     os.makedirs(os.path.join(out, "numbers")); open(os.path.join(out, "numbers", east.key + ".json"), "w").write("[]")   # an earlier run's
     failures = []
@@ -1095,7 +1096,7 @@ with tempfile.TemporaryDirectory() as out:
     assert read_json("streets", east.key + ".json") == street_tiles([east], grenelle)[east.key]
     assert read_json("numbers", west.key + ".json") == [["Rue de Grenelle", 105, 121]]
     assert not os.path.exists(os.path.join(out, "numbers", east.key + ".json"))
-make_tiles.osm_streets, make_tiles.osm_addresses = saved
+patch(osm_streets=saved[0], osm_addresses=saved[1])
 from storage import LAYER_SCALE
 assert LAYER_SCALE["numbers"] == LAYER_SCALE["streets"]
 # streets/ only for the areas flagged "streets": true; every other layer as asked.
@@ -1119,10 +1120,10 @@ twins = [{"name": "Le Marais", "kind": "suburb", "coordinate": {"latitude": 48.8
 assert distinct_places(twins) == [twins[0], twins[2], twins[3]]
 class FakeOSM:
     def places(self): return twins
-make_tiles._osm, real_osm = FakeOSM(), make_tiles._osm
+import builder.extract; real_osm = builder.extract._osm; patch(_osm=FakeOSM())
 assert [p["name"] for p in osm_places(Cell(1221, 59, MAIN))] == ["Le Marais", "Le Marais", "Belleville"]
 assert osm_places(Cell(1221, 58, MAIN)) == []
-make_tiles._osm = real_osm
+patch(_osm=real_osm)
 # places/ levels: each place with the admin_level of the boundary relation it is or stands for (2026-10-06).
 from make_tiles import place_key, place_levels, OSM
 assert place_key("Quartier de la Goutte-d'Or") == place_key("La Goutte d’Or") == "GOUTTE D OR"
@@ -1179,18 +1180,18 @@ assert [(p["name"], p["kind"], p["admin_level"]) for p in out] == \
 assert out[0]["coordinate"] == {"latitude": 48.858, "longitude": 2.268}   # the mean of the ring's 5 vertices, the closing one counted, as for a place's area
 # OSM.boundaries(): the relations osmium prints, their label and admin_centre nodes by role, their rings by relation id.
 real_osmium, real_features = make_tiles.osmium, make_tiles.features
-make_tiles.osmium = lambda *a: """<osm><relation id="9519"><member type="node" ref="1" role="admin_centre"/><member type="node" ref="2" role="label"/>
+patch(osmium=lambda *a: """<osm><relation id="9519"><member type="node" ref="1" role="admin_centre"/><member type="node" ref="2" role="label"/>
   <member type="way" ref="3" role="outer"/><member type="node" ref="4" role="subarea"/>
   <tag k="boundary" v="administrative"/><tag k="admin_level" v="9"/><tag k="name" v="Paris 17e Arrondissement"/></relation>
   <relation id="5"><tag k="boundary" v="administrative"/><tag k="admin_level" v="9"/></relation>
   <relation id="6"><tag k="boundary" v="administrative"/><tag k="admin_level" v="yes"/><tag k="name" v="X"/></relation>
-  <relation id="7"><tag k="boundary" v="political"/><tag k="admin_level" v="10"/><tag k="name" v="Ward"/></relation></osm>"""
-make_tiles.features = lambda pbf, kinds="point,polygon", ids=False: iter([{"properties": {"@type": "relation", "@id": 9519}, "geometry": ring(0, 0, 1, 1)},
-                                                                         {"properties": {"@type": "way", "@id": 9519}, "geometry": ring(5, 5, 6, 6)}])
+  <relation id="7"><tag k="boundary" v="political"/><tag k="admin_level" v="10"/><tag k="name" v="Ward"/></relation></osm>""")
+patch(features=lambda pbf, kinds="point,polygon", ids=False: iter([{"properties": {"@type": "relation", "@id": 9519}, "geometry": ring(0, 0, 1, 1)},
+                                                                         {"properties": {"@type": "way", "@id": 9519}, "geometry": ring(5, 5, 6, 6)}]))
 fake = OSM.__new__(OSM); fake.admin = "admin.pbf"
 assert fake.boundaries() == [{"id": "r9519", "name": "Paris 17e Arrondissement", "name_en": None, "admin_level": 9, "place": None,
                               "labels": {"n2"}, "centres": {"n1"}, "geometry": ring(0, 0, 1, 1)}], fake.boundaries()
-make_tiles.osmium, make_tiles.features = real_osmium, real_features
+patch(osmium=real_osmium, features=real_features)
 # The three layers follow the same flag.
 assert entry_layers({"city": "Rouen"}, ["venues", "streets-main", "places"]) == ["venues"]
 assert entry_layers({"city": "Paris", "streets": True}, ["streets-main", "places"]) == ["streets-main", "places"]
@@ -1286,10 +1287,10 @@ from make_tiles import Cell, blocks, build_order
 cells = [Cell(y, x) for y in range(10) for x in range(10)]
 ordered = blocks(cells, 5)
 assert build_order(cells, 5, ["buildings"]) == ordered
-make_tiles.LISTED = {f"tiles/buildings-v2/{c.key}.json" for c in cells} - {"tiles/buildings-v2/9,9.json"}   # the store holds no buildings/ since 2026-10-08
+patch(LISTED={f"tiles/buildings-v2/{c.key}.json" for c in cells} - {"tiles/buildings-v2/9,9.json"})   # the store holds no buildings/ since 2026-10-08
 assert build_order(cells, 5, ["buildings"]) == [ordered[-1]] + ordered[:-1]
 assert build_order(cells, 5, ["terraces-v2"]) == ordered   # no terraces-v2/ listed at all: every block, key order
-make_tiles.LISTED = None
+patch(LISTED=None)
 print("ok (build order)")
 
 # A run fails past 5 % of its cells failed (Genoa's 2,472 of 3,204 and Gijón's 1,536 of 1,536 on 2026-10-07); five in a
@@ -1382,19 +1383,19 @@ assert [make_tiles.iris_head(n) for n in ("Murigny Nord-Nord-Ouest", "Saint-Rém
         "Meythet Nord-Est", "Zone Portuaire Sud")] == ["Murigny", "Saint-Rémi", "Cernay", "Croix du Sud", "Meythet", "Zone Portuaire"]
 square = lambda x: {"type": "Polygon", "coordinates": [[[x, 43.7], [x + 0.01, 43.7], [x + 0.01, 43.71], [x, 43.7]]]}
 iris = ["Cimiez", "Cimiez-Valrose", "France-Negresco", "Saint-Roch-Ricolfi", "Saint-Roch-Jean XXIII", "Saint-Augustin"]
-make_tiles.get_json, real_get_json = lambda url: {"features": [{"properties": {"nom_iris": n}, "geometry": square(7.2 + i / 100)}
-                                                               for i, n in enumerate(iris)]}, make_tiles.get_json
+real_get_json = make_tiles.get_json; patch(get_json=lambda url: {"features": [{"properties": {"nom_iris": n}, "geometry": square(7.2 + i / 100)}
+                                                               for i, n in enumerate(iris)]})
 grouped = make_tiles.area_features(make_tiles.area_row("Nice", "Nice", make_tiles.iris_source("06088"), "quartier", "IRIS", dissolve=True), None)
-make_tiles.get_json = real_get_json
+patch(get_json=real_get_json)
 assert [f["name"] for f in grouped] == ["Cimiez", "France-Negresco", "Saint-Roch", "Saint-Augustin"], [f["name"] for f in grouped]
 assert abs(grouped[0]["geometry"].area - 2 * shapely.Polygon(square(7.2)["coordinates"][0]).area) < 1e-12   # two IRIS dissolved
 print("ok (boundaries, IRIS grouped into quartiers)")
 
 # Grenoble's CSV: each row's geo_shape is its GeoJSON geometry; a row without one is left out.
 shape = json.dumps(square(5.72)).replace('"', '""')
-make_tiles.get, real_get = lambda url: f'﻿sdec_libel,geo_shape\nMalherbe,"{shape}"\nVide,\n'.encode(), make_tiles.get
+real_get = make_tiles.get; patch(get=lambda url: f'﻿sdec_libel,geo_shape\nMalherbe,"{shape}"\nVide,\n'.encode())
 found = make_tiles.csv_geojson_source("https://example.org/u.csv")(None)
-make_tiles.get = real_get
+patch(get=real_get)
 assert [(p["sdec_libel"], g.geom_type) for p, g in found] == [("Malherbe", "Polygon")], found
 print("ok (boundaries, a CSV of GeoJSON geometries)")
 # A Shapefile without its .prj (Palermo's quartieri, Gauss-Boaga fuso Est) is read in the row's crs.
@@ -1692,19 +1693,19 @@ assert shade_keys([], 100) == set()
 class FakeOSM:
     venues = {}
     def near(self, table, rect): return [{"coordinate": {"latitude": 48.8601, "longitude": 2.3401}}]
-make_tiles._osm, real_published_items = FakeOSM(), make_tiles.published_items
+real_published_items = make_tiles.published_items; patch(_osm=FakeOSM())
 asked = []
 def fake_store(layer, key, bust=False):
     asked.append((layer, key))
     return [{"coordinate": {"latitude": 48.8, "longitude": 2.3}}]
-make_tiles.published_items = fake_store
+patch(published_items=fake_store)
 with tempfile.TemporaryDirectory() as out:
     a, b = Cell(24430, 1170), Cell(24430, 1171)
     write(path(out, "terraces-v2", a), [{"kind": "TERRASSE", "coordinate": {"latitude": 48.86, "longitude": 2.34}}])
     assert shade_points([a, b], out) == {(48.8601, 2.3401), (48.86, 2.34), (48.8, 2.3)} and asked == [("terraces-v2", "24430,1171")]
-    make_tiles.published_items = lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503")
+    patch(published_items=lambda layer, key, bust=False: make_tiles.SourceError("store: HTTP 503"))
     assert shade_points([a, b], out) is None   # a terrace tile not read: no cell is left without buildings
-make_tiles.published_items, make_tiles._osm = real_published_items, None
+patch(published_items=real_published_items, _osm=None)
 print("ok (shade)")
 
 # Small places keep every buildings tile (owner, 2026-10-15): a commune (admin_level 8) with fewer than 5 venues.
@@ -1725,7 +1726,7 @@ fake.areas = lambda rect: ([{"admin_level": 8, "geometry": village}, {"admin_lev
                             {"admin_level": 7, "geometry": county}, {"admin_level": 8, "geometry": edge},
                             {"admin_level": 8, "geometry": None}], [])
 fake.venues_in = lambda rect: [venue(48.735, 2.551 + i / 1000) for i in range(SMALL_PLACE_VENUES)]
-make_tiles._osm = fake
+patch(_osm=fake)
 cells = cells_in(48.69, 2.54, 48.73, 2.57)
 keys = small_place_keys(cells, (48.69, 2.54, 48.73, 2.57))
 assert keys == {c.key for c in cells if make_tiles.contains(village, c.lat, c.lon)} and keys, keys   # 4 venues: small; 5: not
@@ -1734,20 +1735,20 @@ assert small_place_keys(cells, (48.69, 2.54, 48.73, 2.57)) == keys | {c.key for 
 def broken(rect): raise make_tiles.SourceError("osmium: no space")
 fake.areas = broken
 assert small_place_keys(cells, (48.69, 2.54, 48.73, 2.57)) is None   # communes not read: the caller keeps every cell
-make_tiles._osm = None
+patch(_osm=None)
 print("ok (small places)")
 
 # read_venues keeps each venue's OSM element (n/w/r and id) for the app's "Suggest an edit".
 real_osmium, real_features = make_tiles.osmium, make_tiles.features
 seen = {}
-make_tiles.osmium = lambda *a: ""
-make_tiles.features = lambda pbf, kinds="point,polygon", ids=False: seen.setdefault("ids", ids) and [
+patch(osmium=lambda *a: "")
+patch(features=lambda pbf, kinds="point,polygon", ids=False: seen.setdefault("ids", ids) and [
     {"properties": {"amenity": "pub", "name": "The Lamb", "@type": "node", "@id": 123}, "geometry": {"type": "Point", "coordinates": [-0.12, 51.52]}},
-    {"properties": {"amenity": "cafe", "name": "Kiosk"}, "geometry": {"type": "Point", "coordinates": [-0.13, 51.53]}}]
+    {"properties": {"amenity": "cafe", "name": "Kiosk"}, "geometry": {"type": "Point", "coordinates": [-0.13, 51.53]}}])
 venues = make_tiles.read_venues("x.pbf", "kept.pbf")
 assert make_tiles.read_venues("x.pbf", "kept.pbf", ("fast_food",)) == []   # only the amenities asked
 assert seen["ids"] and (venues[0]["osm_type"], venues[0]["osm_id"]) == ("n", 123) and "osm_id" not in venues[1], venues
-make_tiles.osmium, make_tiles.features = real_osmium, real_features
+patch(osmium=real_osmium, features=real_features)
 print("ok (venue ids)")
 # venues/ tiles carry the MATCH_ONLY amenities too, for the app's matcher; terraces never see them.
 fake = OSM.__new__(OSM)
@@ -1755,11 +1756,11 @@ pub = {"name": "The Lamb", "coordinate": {"latitude": 51.521, "longitude": -0.12
 kebab = {"name": "Kebab Hut", "coordinate": {"latitude": 51.522, "longitude": -0.122}, "amenity": "fast_food", "outdoor_seating": True}
 fake.venues = {make_tiles.buckets(51.521, -0.121, 51.521, -0.121)[0]: [pub]}
 fake.matches = {make_tiles.buckets(51.522, -0.122, 51.522, -0.122)[0]: [kebab]}
-make_tiles._osm = fake
+patch(_osm=fake)
 cell = Cell(make_tiles.index(51.521, make_tiles.COARSE), make_tiles.index(-0.121, make_tiles.COARSE), make_tiles.COARSE)
 assert [v["name"] for v in make_tiles.osm_venues(cell)] == ["The Lamb", "Kebab Hut"]
 assert [t.get("name") for t in make_tiles.osm_terraces(cell.rect)] == ["The Lamb"]
-make_tiles._osm = None
+patch(_osm=None)
 print("ok (match-only venues)")
 
 # Yarra's 3DS meshes: one 10 m box, its foot at 30 m AHD and its flat roof at 38 m, read on an OSM outline 2 m inside it.
@@ -1778,15 +1779,15 @@ far = [{"latitude": p["latitude"] + 0.01, "longitude": p["longitude"]} for p in 
 real_download, real_osm_b, asked = make_tiles.download, make_tiles.osm_buildings, []
 with tempfile.TemporaryDirectory() as d:
     open(os.path.join(d, "box.3ds"), "wb").write(model)
-    make_tiles.download = lambda url, folder, max_days=6: asked.append(url) or os.path.join(d, "box.3ds")
-    make_tiles.osm_buildings = lambda rect, tagged=False: [{"outline": outline}, {"outline": far}]
+    patch(download=lambda url, folder, max_days=6: asked.append(url) or os.path.join(d, "box.3ds"))
+    patch(osm_buildings=lambda rect, tagged=False: [{"outline": outline}, {"outline": far}])
     try:
         row = next(b for b in CITY_BUILDINGS if b["city"] == "Yarra")
         got = row["fetch"]((0, 0, 1, 1))
         assert row["combine"] == "metres" and [b["height"] for b in got] == [8.0], got   # the far one has no roof
         assert len(asked) == len(make_tiles.YARRA_SUBURBS) and got[0]["outline"] == outline
     finally:
-        make_tiles.download, make_tiles.osm_buildings = real_download, real_osm_b
+        patch(download=real_download, osm_buildings=real_osm_b)
         make_tiles._yarra.clear()
 print("ok (Yarra meshes)")
 # 2026-11-14: L'Union and Quint-Fonsegrives, Toulouse Métropole communes beside Toulouse, each tiled whole by its own
@@ -1813,7 +1814,7 @@ def fake_connect(address, timeout, source):
     if address[0] in down: raise OSError(101, "Network is unreachable")
     return address[0]
 socket.getaddrinfo = lambda host, port, family, kind: answers[family]
-make_tiles._create_connection = fake_connect
+patch(_create_connection=fake_connect)
 try:
     down = {"2001:db8::1"}
     assert make_tiles.connect(("example.org", 443)) == "192.0.2.1" and tried == ["192.0.2.1"]
@@ -1825,21 +1826,32 @@ try:
     down, tried[:] = set(), []
     assert make_tiles.connect(("example.org", 443)) == "2001:db8::1"
 finally:
-    socket.getaddrinfo, make_tiles._create_connection = real
+    socket.getaddrinfo = real[0]; patch(_create_connection=real[1])
 assert socket.create_connection is make_tiles.connect
 print("ok (connect: IPv4 first, every address)")
 
+# A keyed feed's secret never reaches the log: Stockholm's permits and Auckland's boundaries name theirs.
+saved = {k: os.environ.get(k) for k in ("STOCKHOLM_API_KEY", "LINZ_API_KEY")}
+os.environ.update(STOCKHOLM_API_KEY="s3cret-sthlm", LINZ_API_KEY="s3cret-linz")
+try:
+    assert make_tiles.redact("https://x/s3cret-sthlm/a and key=s3cret-linz") == "https://x/***/a and key=***"
+finally:
+    for k, v in saved.items():
+        if v is None: os.environ.pop(k)
+        else: os.environ[k] = v
+print("ok (redact: every keyed row's secret)")
+
 # The run's index, fetched once by tiles.yml's plan job, is read from GEOFABRIK_INDEX: no request (2026-11-18).
 import json, os, tempfile, make_tiles
-real_get_json, make_tiles._regions = make_tiles.get_json, None
-make_tiles.get_json = lambda *a, **k: (_ for _ in ()).throw(AssertionError("fetched the index"))
+real_get_json = make_tiles.get_json; patch(_regions=None)
+patch(get_json=lambda *a, **k: (_ for _ in ()).throw(AssertionError("fetched the index")))
 try:
     with tempfile.TemporaryDirectory() as folder:
         os.environ["GEOFABRIK_INDEX"] = os.path.join(folder, "index-v1.json")
         with open(os.environ["GEOFABRIK_INDEX"], "w") as f: json.dump({"features": index}, f)
         assert make_tiles.geofabrik_pbf(1, 1) == "deep"
 finally:
-    make_tiles.get_json, make_tiles._regions = real_get_json, None
+    patch(get_json=real_get_json, _regions=None)
     del os.environ["GEOFABRIK_INDEX"]
 print("ok (geofabrik_pbf: the run's index file)")
 
@@ -1856,3 +1868,25 @@ assert not any(closed({"amenity": "cafe", "name": "The Brunchers", **t}) for t i
 from make_tiles import local_names
 assert local_names({"name": "Γη", "name:en": " Gi ", "name:fr": "Γη", "name:de": "", "name:el": "Γη"}) == {"name_en": "Gi"}
 assert local_names({"name": "Pizza Fan"}) == {}
+
+# Overture's places on an area's venues only where its cities.json entry says "overture": true (review T2, 2026-11-20):
+# a flag on the entry, as "streets" is, not a city name in the run.
+import tempfile
+class FakeArea:
+    box, venues = (48.85, 2.34, 48.86, 2.35), []
+asked = []
+saved = {k: getattr(make_tiles, k) for k in ("geofabrik_pbf", "download", "OSM", "overture_places", "overture_facts", "osm_venues")}
+patch(geofabrik_pbf=lambda lat, lon: "https://download.example/europe/x-latest.osm.pbf", download=lambda url, folder: "x.pbf",
+      OSM=lambda pbf, box: FakeArea(), overture_places=lambda box: asked.append(box) or [], overture_facts=lambda osm, places: {},
+      osm_venues=lambda cell: [])
+try:
+    with tempfile.TemporaryDirectory() as out:
+        for flagged in (True, False):
+            asked.clear()
+            make_tiles.run("Paris", (48.851, 2.341, 48.853, 2.343), out, 3, ["venues"], "extracts", city="Paris", overture=flagged)
+            assert asked == ([FakeArea.box] if flagged else []), (flagged, asked)
+finally:
+    patch(**saved)
+import json as _json
+assert {e["city"] for e in _json.load(open("cities.json")) if e.get("overture") is True} == {"Paris", "London"}
+print("ok (Overture: the entry's flag)")
