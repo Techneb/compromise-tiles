@@ -78,10 +78,10 @@ shapely ≥ 2.1, pyproj and pyshp (requirements.txt).
 Derived tiles that include OpenStreetMap data are ODbL: publish them under
 ODbL with the credit "© OpenStreetMap contributors".
 """
-import argparse, concurrent.futures, csv, datetime, gzip, io, json, math, os, re, ssl, sys, time, urllib.error, urllib.parse, urllib.request, zoneinfo
-from builder import extract
+import argparse, concurrent.futures, csv, datetime, io, json, math, os, re, ssl, sys, time, urllib.error, urllib.parse, urllib.request, zoneinfo
+from builder import extract, store
 from builder.cells import area, blocks, boundary, bounds, cells_in, clip, COARSE, contains, in_feed, in_france, index, M, MAIN, metres, padded, union
-from builder.net import download, get, get_json, keyed_host, log, redact, SECRET_ENVS, SourceError, TIMEOUT, UA
+from builder.net import download, get, get_json, keyed_host, log, redact, SECRET_ENVS, SourceError
 from builder.projections import florida_east_to_wgs84, mercator_to_wgs84, rd_new_to_wgs84, utm_to_wgs84
 from builder.shapes import compact_buildings, estimated, number, unique
 from builder.formats import _zip_members, xlsx_rows
@@ -94,11 +94,12 @@ from builder.overture import OVERTURE_CITIES, overture_facts, overture_places
 from builder.extract import OSM, osm_addresses, osm_main_streets, osm_places, osm_streets, osm_terraces, osm_venues
 from builder.apis import arcgis, arcgis_filter, in_bbox, opendatasoft, socrata, socrata_filter, wfs
 from builder.buildings_table import building_source, CITY_BUILDINGS, COMBINE, FETCH_BUILDINGS, next_source
+from builder.store import done, in_store, LAYERS, note_sources, path, published_items, published_sources, read, STORE_THREADS, STREET_LAYERS, write
 
 # The scripts and tests that import names from make_tiles still find them here while they move to builder/
 # (rebound state excepted: builder.store.STORE, builder.store.LISTED, builder.extract._osm).
-import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table
-for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table]:
+import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table, builder.store
+for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table, builder.store]:
     globals().update((k, v) for k, v in vars(_m).items() if not k.startswith("__") and k not in builder.REBOUND)
 
 TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the density gate is calibrated on
@@ -1555,49 +1556,11 @@ def do_boundaries(city, entries, cells, out, failures, published=None):
     published = published if published is not None else published_sources(out, noted)
     for c in noted: note_sources(out, c, published, boundaries=source[c.key])
 
-
-LAYERS = ("communes", "buildings", "terraces-v2", "venues", "streets", "streets-main", "places", "boundaries", "transit")
-STREET_LAYERS = ("streets", "streets-main", "places", "boundaries", "transit")   # built only where an entry says "streets": true
-# Days before a finished tile is cut again. Resuming skips a cell only while
-# its file is younger than this, so the weekly run does refresh permits
-# (they lapse) while a same-day re-run after a
-# failure still skips what is done. Buildings and streets change yearly, communes never.
-MAX_AGE_DAYS = {"communes": None, "buildings": 360, "buildings-v2": 360, "terraces-v2": 6, "venues": 6, "streets": 360, "streets-main": 360, "places": 360}
-# boundaries/ has no age: a city's set is one small fetch, asked again each run that builds the layer.
-
-def path(out, layer, cell): return os.path.join(out, layer, cell.key + ".json")
-
-def read(file):
-    try:
-        with open(file) as f: items = json.load(f)
-        return items if isinstance(items, list) else None
-    except (OSError, ValueError):
-        return None
-
-def done(out, layer, cell):
-    """A tile to keep: it parses, and is younger than its layer's MAX_AGE_DAYS."""
-    file, limit = path(out, layer, cell), MAX_AGE_DAYS[layer]
-    if read(file) is None: return False
-    return limit is None or time.time() - os.path.getmtime(file) < limit * 86_400
-
 UNSHADED = None  # --unshaded: the file the weekly run lists the cells no venue or terrace reaches and no small place holds in
-LISTED = None   # --listing: the store's keys, so the blocks it lacks are built first
-
-def in_store(cell, layers):
-    """Every tile this run writes for the cell is already in the store (False without --listing). A run cut
-    by the job's time limit (London, 2026-10-07: 37,562 of 51,466 cells in 290 min) then starts its rerun
-    with the cells it did not reach, instead of the same ones again."""
-    tiled = [{"buildings": "buildings-v2"}.get(l, l) for l in layers if l in ("buildings", "streets", "terraces-v2")]
-    return LISTED is not None and all(f"tiles/{l}/{cell.key}.json" in LISTED for l in tiled)
 
 def build_order(cells, block, layers):
     """The blocks, those with a tile missing from the store first, each part in key order."""
     return sorted(blocks(cells, block), key=lambda g: all(in_store(c, layers) for c in g))
-
-def write(file, items):
-    os.makedirs(os.path.dirname(file), exist_ok=True)
-    with open(file + ".tmp", "w") as f: json.dump(items, f, ensure_ascii=False, separators=(",", ":"))
-    os.replace(file + ".tmp", file)
 
 _cell_by_cell = set()  # sources whose blocks failed where single cells answered: blocks too big for a proxy
 
@@ -1732,58 +1695,6 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             if tiles: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))
             note_sources(out, c, published, buildings=name)
 
-STORE = None           # --store: the published tiles' base URL, read for the sources/ fields a run does not build
-PUBLIC_STORE = "https://tiles.alephb.uk/tiles/"   # where a venue match reads from when no --store is given
-STORE_THREADS = 16     # the store is a CDN: no spacing, a few requests in flight
-_bust = str(int(time.time()))   # one query string per run: the CDN serves the tile as published, not as cached
-
-def published_items(layer, key, bust=False):
-    """A published tile's items (a list; [] when there is none, 404), or a SourceError. `bust` asks past the CDN's cache."""
-    url = f"{STORE or PUBLIC_STORE}{layer}/{key}.json" + (f"?v={_bust}" if bust else "")
-    error = "?"
-    for attempt in range(3):
-        try:
-            request = urllib.request.Request(url, headers={"User-Agent": UA})  # the store refuses urllib's own
-            with urllib.request.urlopen(request, timeout=TIMEOUT) as response: body = response.read()
-            if body[:2] == b"\x1f\x8b": body = gzip.decompress(body)  # gzipped at rest, inflated by the CDN or not
-            items = json.loads(body)
-            return items if isinstance(items, list) else []
-        except urllib.error.HTTPError as e:
-            if e.code == 404: return []
-            error = f"HTTP {e.code}"
-        except Exception as e:  # noqa: BLE001 — resets, timeouts, a truncated body: asked again
-            error = f"{type(e).__name__}: {e}"[:200]
-        time.sleep(2 * (attempt + 1))
-    return SourceError(f"store: {error}")
-
-def published_source(cell):
-    """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
-    items = published_items("sources", cell.key)
-    if isinstance(items, SourceError): return items
-    return items[0] if items and isinstance(items[0], dict) else {}
-
-def published_sources(out, cells):
-    """{key: published entry or SourceError} for the cells with no sources/ tile in `out` yet
-    (a tile there already holds them); {} without a store."""
-    todo = [c for c in cells if STORE and read(path(out, "sources", c)) is None]
-    if not todo: return {}
-    with concurrent.futures.ThreadPoolExecutor(STORE_THREADS) as pool:
-        return dict(zip((c.key for c in todo), pool.map(published_source, todo)))
-
-def note_sources(out, cell, published=None, **fields):
-    """sources/<key>.json, one object in an array like every layer: which permit feed
-    (a PERMIT_CITIES city, or null) and which building source (a CITY_BUILDINGS city,
-    "IGN", "OSM", or "<city>+OSM" for a combine row's cell the city gave heights to) built the cell — what the app credits. Each field is written with
-    its own layer, over the tile already in `out`, else over the published one (`published`,
-    from published_sources), so a run building one layer keeps the other's field. A cell
-    whose published tile could not be read gets no tile: the upload leaves the published one."""
-    file = path(out, "sources", cell)
-    local = read(file)
-    base = (published or {}).get(cell.key, {}) if local is None else local[0]
-    if isinstance(base, SourceError):
-        log(f"    {cell.key}: sources/ not written, the published tile was not read ({base})"); return
-    write(file, [dict(base, **fields)])
-
 def permit_city(cell, communes):
     """The permit feed for a cell: by INSEE code when a commune answered, else by box (and boundary, when the row has one)."""
     if communes: return next((c for c in PERMIT_CITIES if c["insee"] == communes[0]["code"]), None)
@@ -1852,7 +1763,7 @@ def do_sources(cells, out, failures):
     """The `sources` layer: the published sources/ tiles that lack a building source get it, found as
     the buildings layer finds it (the city feed, IGN, then OSM), its tiles not written. A cell without
     a published tile was never built and is left alone; one whose tile already names its source too."""
-    if not STORE:
+    if not store.STORE:
         failures += [(c.key, "sources", "no --store to read the published tiles from") for c in cells]; return
     published = published_sources(out, cells)
     for c in cells:
@@ -1931,11 +1842,11 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     # The weekly run: a venue or terrace new since the yearly buildings run gets its cells' buildings now. The store's
     # listing (with buildings-v2/, tiles.yml) says which cells lack them; without one nothing is added.
     # ponytail: a new area's first weekly run builds all its cells' buildings here, inside the same 290 minutes.
-    if "terraces-v2" in layers and "buildings" not in layers and LISTED is not None:
+    if "terraces-v2" in layers and "buildings" not in layers and store.LISTED is not None:
         mine = [c for c in cells if c.key not in outside]
         keys = shaded_keys(mine, out, rect) if mine else None
         if keys is not None:
-            top = [c for c in mine if c.key in keys and f"tiles/buildings-v2/{c.key}.json" not in LISTED
+            top = [c for c in mine if c.key in keys and f"tiles/buildings-v2/{c.key}.json" not in store.LISTED
                    and not done(out, "buildings-v2", c)]
             log(f"{label}: buildings for {len(top)} cells a venue or terrace newly reaches or a small place holds")
             for group in blocks(top, block): do_buildings(group, out, failures)
@@ -1971,11 +1882,11 @@ def main():
     args = a.parse_args()
     unknown = [l for l in args.layers.split(",") if l not in LAYERS + ("sources",)]   # numbers/ is written beside streets/
     if unknown: a.error(f"unknown layer {', '.join(map(repr, unknown))}: give {', '.join(LAYERS)} or sources")
-    global STORE, LISTED, UNSHADED
-    STORE = args.store and args.store.rstrip("/") + "/"
+    global UNSHADED
+    store.STORE = args.store and args.store.rstrip("/") + "/"
     UNSHADED = args.unshaded
     if args.listing and os.path.exists(args.listing):
-        with open(args.listing) as f: LISTED = {line.split("\t")[0] for line in f}
+        with open(args.listing) as f: store.LISTED = {line.split("\t")[0] for line in f}
     if args.cities:
         with open(args.cities) as f: entries = json.load(f)
     elif args.city and args.lat is not None and args.lon is not None:
