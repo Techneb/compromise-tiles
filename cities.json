@@ -3660,6 +3660,7 @@
   },
   {
     "city": "Bucharest",
+    "streets": true,
     "district": "Bucharest (Old Town (Lipscani))",
     "box": [
       44.4236,
@@ -3670,6 +3671,7 @@
   },
   {
     "city": "Bucharest",
+    "streets": true,
     "district": "Bucharest (Pia\u021ba Roman\u0103)",
     "box": [
       44.44,
@@ -3750,6 +3752,7 @@
   },
   {
     "city": "Tirana",
+    "streets": true,
     "district": "Tirana (Blloku)",
     "box": [
       41.3208,
@@ -3760,6 +3763,7 @@
   },
   {
     "city": "Chisinau",
+    "streets": true,
     "district": "Chisinau (Centre (Stefan cel Mare))",
     "box": [
       47.0176,
@@ -4060,6 +4064,7 @@
   },
   {
     "city": "Pristina",
+    "streets": true,
     "district": "Pristina (Centre (Mother Teresa Boulevard))",
     "box": [
       42.6515,
@@ -4070,6 +4075,7 @@
   },
   {
     "city": "Sarajevo",
+    "streets": true,
     "district": "Sarajevo (Ba\u0161\u010dar\u0161ija)",
     "box": [
       43.8524,
@@ -4310,6 +4316,7 @@
   },
   {
     "city": "Skopje",
+    "streets": true,
     "district": "Skopje (Centre (Macedonia Square))",
     "box": [
       41.9901,
