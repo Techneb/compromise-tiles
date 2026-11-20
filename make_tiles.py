@@ -94,11 +94,12 @@ from builder.apis import arcgis, wfs
 from builder.buildings_table import building_source, CITY_BUILDINGS, COMBINE, FETCH_BUILDINGS, next_source
 from builder.store import done, in_store, LAYERS, note_sources, path, published_items, published_sources, read, STORE_THREADS, STREET_LAYERS, write
 from builder.permits import permit_city, permits
+from builder.communes import commune
 
 # The scripts and tests that import names from make_tiles still find them here while they move to builder/
 # (rebound state excepted: builder.store.STORE, builder.store.LISTED, builder.extract._osm).
-import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table, builder.store, builder.permit_table, builder.permits
-for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table, builder.store, builder.permit_table, builder.permits]:
+import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table, builder.store, builder.permit_table, builder.permits, builder.communes
+for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places, builder.venues, builder.overture, builder.extract, builder.apis, builder.buildings_citygml, builder.buildings_measured, builder.buildings_vector, builder.buildings_table, builder.store, builder.permit_table, builder.permits, builder.communes]:
     globals().update((k, v) for k, v in vars(_m).items() if not k.startswith("__") and k not in builder.REBOUND)
 
 TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the density gate is calibrated on
@@ -107,38 +108,6 @@ TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the 
 # a 400 m reach). Raise it if that reach grows.
 BUILDING_REACH = 200
 BUILDING_PAD = 250            # fetched around a block: some feeds select by a footprint's centre, not its outline
-
-
-
-_communes = []  # [(bounds, commune, contour)] of every département loaded so far
-_departements = set()
-
-def commune(lat, lon):
-    """INSEE communes from Etalab's contours, a département at a time: a point in a loaded contour
-    costs nothing, else the geo API names its commune and the département's contours are loaded.
-    IGN's apicarto (the same communes, Admin Express) when Etalab does not answer. [] is an answer:
-    no commune."""
-    for (s, w, n, e), found, contour in _communes:
-        if s <= lat <= n and w <= lon <= e and contains(contour, lat, lon): return [found]
-    q = urllib.parse.urlencode({"lat": lat, "lon": lon, "fields": "nom,code,codeDepartement", "format": "json"})
-    try:  # once: apicarto is the retry
-        answer = get_json("https://geo.api.gouv.fr/communes?" + q, waits=())
-    except SourceError as first:
-        try:
-            q = urllib.parse.urlencode({"lat": lat, "lon": lon})
-            root = get_json("https://apicarto.ign.fr/api/limites-administratives/commune?" + q)
-        except SourceError as second:
-            raise SourceError(f"{first}; {second}")
-        return [{"nom": f["properties"]["nom_com"], "code": f["properties"]["insee_com"]} for f in root.get("features", [])]
-    for c in answer:
-        if c.get("codeDepartement") and c["codeDepartement"] not in _departements:
-            _departements.add(c["codeDepartement"])
-            q = urllib.parse.urlencode({"fields": "nom,code,contour", "format": "geojson", "geometry": "contour"})
-            try: features = get_json(f"https://geo.api.gouv.fr/departements/{c['codeDepartement']}/communes?" + q)["features"]
-            except SourceError as e: log(f"    communes of {c['codeDepartement']}: {e}; point by point"); continue
-            _communes.extend((bounds(f["geometry"]), {"nom": f["properties"]["nom"], "code": f["properties"]["code"]}, f["geometry"])
-                             for f in features if f.get("geometry"))
-    return [{"nom": c["nom"], "code": c["code"]} for c in answer]
 
 
 
