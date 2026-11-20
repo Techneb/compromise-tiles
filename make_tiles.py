@@ -86,7 +86,7 @@ from builder.shapes import compact_buildings, estimated, unique
 from builder.streets import MAIN_UNIT, number_rows, street_tiles
 from builder.transit import transit_tiles
 from builder.osmium import buckets, geofabrik_pbf
-from builder.overture import OVERTURE_CITIES, overture_facts, overture_places
+from builder.overture import overture_facts, overture_places
 from builder.extract import OSM, osm_addresses, osm_main_streets, osm_places, osm_streets, osm_terraces, osm_venues
 from builder.buildings_table import building_source, CITY_BUILDINGS, COMBINE, FETCH_BUILDINGS, next_source
 from builder.store import done, in_store, LAYERS, note_sources, path, published_items, published_sources, read, STORE_THREADS, STREET_LAYERS, write
@@ -309,7 +309,7 @@ def do_sources(cells, out, failures):
     need = [c for c in cells if isinstance(published.get(c.key), dict) and published[c.key] and "buildings" not in published[c.key]]
     if need: do_buildings(need, out, failures, published, tiles=False)
 
-def run(label, rect, out, block, layers, extracts, departements=None, boundary=None, city=None, city_entries=()):
+def run(label, rect, out, block, layers, extracts, departements=None, boundary=None, city=None, city_entries=(), overture=False):
     started = time.monotonic()
     cells, coarse, wide = cells_in(*rect), cells_in(*rect, scale=COARSE), cells_in(*rect, scale=MAIN)
     if boundary:  # a box around a municipality keeps only the cells inside its boundary, and the venue cells over them
@@ -329,7 +329,7 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     except SourceError as e:
         log(f"{label}: OpenStreetMap unavailable ({e})")
         return len(cells), [(c.key, "all", str(e)) for c in cells]
-    if city in OVERTURE_CITIES and "venues" in layers:
+    if overture and "venues" in layers:   # the entry's "overture": true
         try:
             counts = overture_facts(extract._osm, overture_places(extract._osm.box))
             log(f"{label}: Overture " + ", ".join(f"{k} {sum(c.values()) if k == 'dropped' else dict(c)}" for k, c in sorted(counts.items())))
@@ -404,9 +404,9 @@ def entry_layers(entry, layers):
 
 def main():
     a = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    a.add_argument("--cities", help="a cities.json: [{city, district?, lat, lon, half_km}] or [{city, district?, box: [s, w, n, e], departements?, boundary?, streets?}]"
+    a.add_argument("--cities", help="a cities.json: [{city, district?, lat, lon, half_km}] or [{city, district?, box: [s, w, n, e], departements?, boundary?, streets?, overture?}]"
                    " (boundary: a GeoJSON Polygon or MultiPolygon file, relative to the cities.json, whose cells alone are built;"
-                   " streets: true for an area whose streets/ tiles are built, none otherwise)")
+                   " streets: true for an area whose streets/ tiles are built, none otherwise; overture: true for Overture Places on its venues)")
     a.add_argument("--city", help="a label: feeds are picked per cell, by commune or box"); a.add_argument("--lat", type=float); a.add_argument("--lon", type=float)
     a.add_argument("--half-km", type=float, default=0.5)
     a.add_argument("--block", type=int, default=3, help="cells per side asked of a source at once (default 3)")
@@ -446,7 +446,7 @@ def main():
         # boundaries/ is the city's, built from all its flagged entries' areas at the first.
         city_entries = [e for e in entries if e["city"] == entry["city"] and "boundaries" in entry_layers(e, ["boundaries"])]
         n, f = run(label, area(entry, args.half_km), args.out, args.block, layers, args.extracts,
-                   entry.get("departements"), entry["_boundary"], entry["city"], city_entries)
+                   entry.get("departements"), entry["_boundary"], entry["city"], city_entries, entry.get("overture") is True)
         total += n
         failures += [(label,) + x for x in f]
     failed = {(x[0], x[1]) for x in failures}

@@ -1868,3 +1868,25 @@ assert not any(closed({"amenity": "cafe", "name": "The Brunchers", **t}) for t i
 from make_tiles import local_names
 assert local_names({"name": "Γη", "name:en": " Gi ", "name:fr": "Γη", "name:de": "", "name:el": "Γη"}) == {"name_en": "Gi"}
 assert local_names({"name": "Pizza Fan"}) == {}
+
+# Overture's places on an area's venues only where its cities.json entry says "overture": true (review T2, 2026-11-20):
+# a flag on the entry, as "streets" is, not a city name in the run.
+import tempfile
+class FakeArea:
+    box, venues = (48.85, 2.34, 48.86, 2.35), []
+asked = []
+saved = {k: getattr(make_tiles, k) for k in ("geofabrik_pbf", "download", "OSM", "overture_places", "overture_facts", "osm_venues")}
+patch(geofabrik_pbf=lambda lat, lon: "https://download.example/europe/x-latest.osm.pbf", download=lambda url, folder: "x.pbf",
+      OSM=lambda pbf, box: FakeArea(), overture_places=lambda box: asked.append(box) or [], overture_facts=lambda osm, places: {},
+      osm_venues=lambda cell: [])
+try:
+    with tempfile.TemporaryDirectory() as out:
+        for flagged in (True, False):
+            asked.clear()
+            make_tiles.run("Paris", (48.851, 2.341, 48.853, 2.343), out, 3, ["venues"], "extracts", city="Paris", overture=flagged)
+            assert asked == ([FakeArea.box] if flagged else []), (flagged, asked)
+finally:
+    patch(**saved)
+import json as _json
+assert {e["city"] for e in _json.load(open("cities.json")) if e.get("overture") is True} == {"Paris", "London"}
+print("ok (Overture: the entry's flag)")
