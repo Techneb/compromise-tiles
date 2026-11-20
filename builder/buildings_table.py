@@ -1,7 +1,7 @@
 """CITY_BUILDINGS: one row per city height feed, and which feed a cell takes."""
 import re
 from builder.cells import boundary, in_feed, in_france
-from builder.shapes import combined, difference, footprints, number
+from builder.shapes import combined, difference, footprints, from_floors, number
 from builder.formats import geopackage, shapefile
 from builder.extract import osm_buildings
 from builder.apis import arcgis, in_bbox, intersects, opendatasoft, socrata, wfs
@@ -48,23 +48,23 @@ CITY_BUILDINGS = [
     # box, which covers Ramat Gan whole; each held to its municipal boundary (OSM, admin level 8).
     building_row("Ramat Gan", (32.035, 32.106), (34.799, 34.855), boundary=boundary("ramat-gan"), fetch=lambda r: footprints(arcgis(
         "https://services8.arcgis.com/MdnyDq2GlaTWezhQ/arcgis/rest/services/building_23_02_2025/FeatureServer/0", r,
-        ["NUM_FLOORS"]), lambda p: number(p.get("NUM_FLOORS")) * 3 if number(p.get("NUM_FLOORS")) else None)),
+        ["NUM_FLOORS"]), lambda p: from_floors(number(p.get("NUM_FLOORS"))))),
     building_row("Holon", (31.988, 32.039), (34.755, 34.815), boundary=boundary("holon"), fetch=lambda r: footprints(arcgis(
         "https://services2.arcgis.com/cjDo9oPmimdHxumn/arcgis/rest/services/Buildings_shp/FeatureServer/0", r,
-        ["NUM_FLOORS"], oid="FID"), lambda p: number(p.get("NUM_FLOORS")) * 3 if number(p.get("NUM_FLOORS")) else None)),
+        ["NUM_FLOORS"], oid="FID"), lambda p: from_floors(number(p.get("NUM_FLOORS"))))),
     building_row("Herzliya", (32.144, 32.203), (34.787, 34.865), boundary=boundary("herzliya"), fetch=lambda r: footprints(arcgis(
         "https://services3.arcgis.com/9qGhZGtb39XMVQyR/arcgis/rest/services/herzliya_reka_2023/FeatureServer/3", r,
-        ["Num_floors"]), lambda p: number(p.get("Num_floors")) * 3 if number(p.get("Num_floors")) else None)),
+        ["Num_floors"]), lambda p: from_floors(number(p.get("Num_floors"))))),
     # Netanya (2026-10-21): the municipality's קונטור מבנים layer (ArcGIS Online, no licence stated), NUM_FLOORS × 3 m
     # (13,810 of 14,000 with floors; ELEV is an elevator flag, not a height). Held to the municipal boundary (OSM).
     building_row("Netanya", (32.2549, 32.3606), (34.8247, 34.8961), boundary=boundary("netanya"), fetch=lambda r: footprints(arcgis(
         "https://services5.arcgis.com/ySpO9UsTrqoVbhLe/arcgis/rest/services/%D7%A7%D7%95%D7%A0%D7%98%D7%95%D7%A8_%D7%9E%D7%91%D7%A0%D7%99%D7%9D/FeatureServer/709",
-        r, ["NUM_FLOORS"], oid="OBJECTID_12"), lambda p: number(p.get("NUM_FLOORS")) * 3 if number(p.get("NUM_FLOORS")) else None)),
+        r, ["NUM_FLOORS"], oid="OBJECTID_12"), lambda p: from_floors(number(p.get("NUM_FLOORS"))))),
     # Metres, else floors × 3 m. Answers only from Israel (HTTP 571 elsewhere): from the cloud every
     # Tel Aviv cell fails and no tile is written — never an OSM tile in its place.
     building_row("Tel Aviv", (32.02, 32.16), (34.73, 34.86), lambda r: footprints(arcgis(
         "https://gisn.tel-aviv.gov.il/arcgis/rest/services/IView2/MapServer/513", r, ["gova_simplex_2019", "ms_komot"],
-        oid="oid_mivne"), lambda p: p.get("gova_simplex_2019") or (p["ms_komot"] * 3 if p.get("ms_komot") else None))),
+        oid="oid_mivne"), lambda p: p.get("gova_simplex_2019") or from_floors(p.get("ms_komot")))),
     # Jerusalem Municipality, bldg2020 (metres; "for reference and general use only"). West to 35.085 E with the
     # municipality's boundary (cities.json, 2026-10-11).
     building_row("Jerusalem", (31.70, 31.89), (35.085, 35.27), lambda r: footprints(arcgis(
@@ -105,7 +105,7 @@ CITY_BUILDINGS = [
         "data.cityofnewyork.us", "5zhs-2jue", "the_geom", "height_roof", lambda h: h * 0.3048 if h and h < 2000 else None)),
     # No height at all: floors × 3 m; 0 floors (a third of the Loop) falls to 15 m.
     building_row("Chicago", (41.64, 42.02), (-87.94, -87.52), socrata_buildings(
-        "data.cityofchicago.org", "syp8-uezg", "the_geom", "stories", lambda h: h * 3 if h and h > 0 else None)),
+        "data.cityofchicago.org", "syp8-uezg", "the_geom", "stories", from_floors)),
     building_row("San Francisco", (37.70, 37.83), (-122.52, -122.35), socrata_buildings(
         "data.sf.gov", "ynuv-fyni", "shape", "hgt_median_m", lambda h: h)),
     # Roof elevation minus the lowest ground point, metres (Open Government Licence – City of Calgary).
@@ -156,7 +156,7 @@ CITY_BUILDINGS = [
     # Columbus: FLOORS × 3 m, empty downtown, so combined with OSM's footprints.
     building_row("Columbus", (39.8086, 40.1573), (-83.2102, -82.7713), boundary=boundary("columbus-oh"), combine="floors", fetch=lambda r: footprints(arcgis(
         "https://maps2.columbus.gov/arcgis/rest/services/Schemas/RegionalLayers/MapServer/4", r,
-        ["FLOORS"], oid="OBJECTID"), lambda p: number(p.get("FLOORS")) * 3 if number(p.get("FLOORS")) else None, guess=False)),
+        ["FLOORS"], oid="OBJECTID"), lambda p: from_floors(number(p.get("FLOORS"))), guess=False)),
     building_row("Anaheim", (33.7889, 33.8791), (-118.0174, -117.6739), boundary=boundary("anaheim"), fetch=lambda r: footprints(arcgis(
         "https://gis.anaheim.net/map/rest/services/OpenData2/FeatureServer/47", r,
         ["BUILDINGHEIGHT"], oid="OBJECTID"), lambda p: number(p.get("BUILDINGHEIGHT")) * 0.3048 if number(p.get("BUILDINGHEIGHT")) else None)),
@@ -229,7 +229,7 @@ CITY_BUILDINGS = [
     building_row("Portland", (45.4325, 45.6529), (-122.8368, -122.472), boundary=boundary("portland"), fetch=lambda r: footprints(arcgis(
         "https://www.portlandmaps.com/od/rest/services/COP_OpenData_Property/MapServer/48", r, ["AVG_HEIGHT", "NUM_STORY"]),
         lambda p: number(p.get("AVG_HEIGHT")) * 0.3048 if (number(p.get("AVG_HEIGHT")) or 0) > 0
-        else (number(p.get("NUM_STORY")) * 3 if (number(p.get("NUM_STORY")) or 0) > 0 else None))),
+        else from_floors(number(p.get("NUM_STORY"))))),
     building_row("Bremen", (53.0111, 53.6102), (8.4815, 8.9909), boundary=boundary("bremen"),
                  fetch=citygml_archive("https://gdi2.geo.bremen.de/inspire/download/LoD/data/LOD2_CITYGML_HB.zip",
                                        "LoD2_32_{e}_{n}_2_HB.gml", 2)),
@@ -291,7 +291,7 @@ CITY_BUILDINGS = [
     # publisher), surfacenumberoffloors × 3 m (69 of 83 in the Old Town), held to the city's boundary.
     building_row("Riga", (56.8573, 57.0862), (23.9325, 24.3245), boundary=boundary("riga"), fetch=lambda r: footprints(arcgis(
         "https://georiga.lv/server/rest/services/VZD_kadastrs_opendata/MapServer/3", r, ["surfacenumberoffloors"], oid="gid"),
-        lambda p: (number(p.get("surfacenumberoffloors")) or 0) * 3 or None)),
+        lambda p: from_floors(number(p.get("surfacenumberoffloors"))))),
     # The City of Espoo's buildings (Espoon rakennukset, CC BY 4.0 through HRI): KERROSLUKU floors × 3 m, its own WFS.
     building_row("Espoo", (59.901, 60.364), (24.4992, 24.9424), boundary=boundary("espoo"), fetch=espoo),
     # Tallinn: Maa- ja Ruumiamet's Eesti 3D hoonete LoD1 (CC BY 4.0), the municipality's one CityGML file (733 MB,
@@ -322,7 +322,7 @@ CITY_BUILDINGS = [
     # One polygon per floor slab: the ground floor's, CantPisos × 3.5 m (each slab's ALTURA). The box is the layer's.
     building_row("San José", (9.9005, 9.9658), (-84.1499, -84.0472), lambda r: footprints(arcgis(
         "https://services5.arcgis.com/0ZvuJDanWVJc4vYr/arcgis/rest/services/SIG_SER_3D_Edificaciones/FeatureServer/0", r,
-        ["CantPisos"], where="PISO=1"), lambda p: number(p.get("CantPisos")) * 3.5 if number(p.get("CantPisos")) else None)),
+        ["CantPisos"], where="PISO=1"), lambda p: from_floors(number(p.get("CantPisos")), 3.5))),
     # Santa Clara County's 2020 lidar footprints (county-wide, no licence stated): Building_H is feet above
     # ground (houses 10–30, City Hall 285.6). The box is San Jose's cities.json area.
     building_row("San Jose", (37.1231, 37.4691), (-122.0463, -121.5858), lambda r: footprints(arcgis(
@@ -333,10 +333,12 @@ CITY_BUILDINGS = [
     building_row("Genoa", (44.371, 44.52), (8.6657, 9.0956), liguria),
     # Sofiaplan's "Сгради 18.12.2009" (the 2009 cadastre's buildings; licence not stated by the publisher, wired
     # 2026-10-02 on the owner's decision): sgr_text's leading number is floors (26МСБЖ, Park Hotel Moskva: 78 m),
-    # none is one floor. Towers built since 2009 are missing. The box is the layer's.
-    building_row("Sofia", (42.424, 42.857), (23.077, 23.639), lambda r: footprints(arcgis(
-        "https://gis.sofiaplan.bg/server/rest/services/oup_2009/oup_2009/FeatureServer/98", r, ["sgr_text"], oid="objectid"),
-        lambda p: int((re.match(r"\d+", p.get("sgr_text") or "") or ["1"])[0]) * 3.0)),
+    # none is one floor, a leading minus underground floors (-1МС: the Serdika underpasses), left out (2026-11-20).
+    # Towers built since 2009 are missing. The box is the layer's.
+    building_row("Sofia", (42.424, 42.857), (23.077, 23.639), lambda r: footprints([f for f in arcgis(
+        "https://gis.sofiaplan.bg/server/rest/services/oup_2009/oup_2009/FeatureServer/98", r, ["sgr_text"], oid="objectid")
+        if not re.match(r"-\d", (f.get("properties") or {}).get("sgr_text") or "")],
+        lambda p: from_floors(int((re.match(r"\d+", p.get("sgr_text") or "") or ["1"])[0])))),
     # Combined with OSM (owner, 2026-10-02): Bratislava's Pocet_obyvatelov_budovy holds residential buildings
     # only (Vyska, metres; licence not stated by the publisher), so the office towers come from OSM.
     # The box is the layer's extent.
@@ -411,7 +413,7 @@ CITY_BUILDINGS = [
     # extent, the Distrito Capital.
     building_row("Bogotá", (3.8214, 4.8324), (-74.3934, -73.9939), lambda r: footprints(arcgis(
         "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0", r, ["CONNPISOS"]),
-        lambda p: number(p.get("CONNPISOS")) * 3 if number(p.get("CONNPISOS")) else None)),
+        lambda p: from_floors(number(p.get("CONNPISOS"))))),
     # Wired 2026-10-05 (the heights survey of 2026-10-04). MLIT's Project PLATEAU 3D都市モデル, the 2025 editions (PLATEAU site
     # policy: PDL 1.0, CC BY-compatible, commercial use allowed; the credit names the model and says it was processed):
     # bldg:measuredHeight, metres (lidar 2021 in Tokyo, 2017 in Osaka), on the LoD2 ground surface, else the LoD0 footprint or

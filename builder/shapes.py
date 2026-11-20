@@ -1,6 +1,6 @@
 """Footprints and their heights: the shape every building feed returns, compacted for the tiles."""
 import collections, json, math, statistics
-from builder.cells import contains, FINE
+from builder.cells import contains, FINE, M
 
 def tag_number(tags, key):
     try: return float(str(tags[key]).replace(" m", "").strip())
@@ -10,11 +10,22 @@ def osm_tagged(tags):
     """Which tag gives a building its height: "height", "levels" (`building:levels`), or None (the 15 m guess)."""
     return "height" if tag_number(tags, "height") is not None else "levels" if tag_number(tags, "building:levels") is not None else None
 
+class Floors(float):
+    """A height read from a floor count (count × metres a floor), which keeps the count: building() writes it as "floors",
+    so the local estimate can tell a 3 m from one floor from a measured 3 m (estimated())."""
+    def __new__(cls, count, metres=3.0):
+        h = super().__new__(cls, count * metres)
+        h.count = count
+        return h
+
+def from_floors(count, metres=3.0):
+    """A floor count's height, or None when there is no count (0, blank, negative): the feeds' floors × 3 m rule."""
+    return Floors(count, metres) if count and count > 0 else None
+
 def osm_height(tags):
     """`height`, else `building:levels` × 3 m, else None (building() then writes the 15 m guess, flagged)."""
-    for key, scale in (("height", 1), ("building:levels", 3)):
-        if tag_number(tags, key) is not None: return tag_number(tags, key) * scale
-    return None
+    if tag_number(tags, "height") is not None: return tag_number(tags, "height")
+    return Floors(tag_number(tags, "building:levels")) if tag_number(tags, "building:levels") is not None else None
 
 
 
@@ -30,7 +41,7 @@ def building(ring, height=None):
     The flag is written only on guessed buildings, so a tile built before it reads as it did: a
     building without the key is measured, or published before 2026-10-04."""
     if height is None: return {"outline": ring, "height": DEFAULT_HEIGHT, "guessed": True}
-    return {"outline": ring, "height": round(float(height), 1)}
+    return {"outline": ring, "height": round(float(height), 1), **({"floors": height.count} if isinstance(height, Floors) else {})}
 
 # The local estimate (2026-11-19, the Athens audit): a guessed footprint takes the median height of the measured ones in
 # its tile (its cell and BUILDING_REACH around, ~600 m), else in the block it was fetched with (CI's 5 × 5 cells and
@@ -42,8 +53,28 @@ def measured_median(items):
     heights = [b["height"] for b in items if not b.get("guessed")]
     return statistics.median(heights) if len(heights) >= ESTIMATE_SAMPLES else None
 
+# A footprint of ONE_FLOOR_AREA m² or more read as one floor (OSM's building:levels=1, a city's floors × 3 m), in a tile
+# whose other measured footprints have a median of DENSE_MEDIAN m or more, counts as guessed: a block outline with no real
+# count (2026-11-20: Prague's RÚIAN import wrote levels=1 on 596 of its 608 such outlines; Sofia's codes without a number,
+# the Palace of Justice among them). A one-storey hall in a low area keeps its 3 m; one in a dense block reads as the block.
+ONE_FLOOR_AREA = 300   # m²
+DENSE_MEDIAN = 9       # m: three floors
+
+def ring_area(ring):
+    """A ring's area in m², flat around its first vertex (a footprint is small)."""
+    lat0, lon0 = ring[0]["latitude"], ring[0]["longitude"]
+    k = M * math.cos(math.radians(lat0))
+    pts = [((p["longitude"] - lon0) * k, (p["latitude"] - lat0) * M) for p in ring]
+    return abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]))) / 2
+
+def one_floor_outline(b):
+    return not b.get("guessed") and b.get("floors") == 1 and ring_area(b["outline"]) >= ONE_FLOOR_AREA
+
 def estimated(items, block):
     """A tile's items with each guessed height replaced by the local estimate, when there is one."""
+    outlines = [one_floor_outline(b) for b in items]
+    if any(outlines) and (measured_median([b for b, o in zip(items, outlines) if not o]) or 0) >= DENSE_MEDIAN:
+        items = [dict(b, guessed=True) if o else b for b, o in zip(items, outlines)]
     if not any(b.get("guessed") for b in items): return items
     guess = measured_median(items) or measured_median(block)
     if guess is None: return items
@@ -123,21 +154,22 @@ def combined(osm, city, metres=False):
                            sum(p["longitude"] for p in b["outline"]) / len(b["outline"]))
     def ring(b): return {"type": "Polygon", "coordinates": [[[p["longitude"], p["latitude"]] for p in b["outline"]]]}
     def key(b): return tuple((p["latitude"], p["longitude"]) for p in b["outline"])
-    same = {key(b): b["height"] for b in city}
+    same = {key(b): b for b in city}
     grid = {}
     for b in city:
         lats, lons = [p["latitude"] for p in b["outline"]], [p["longitude"] for p in b["outline"]]
         for y in range(math.floor(min(lats) * COMBINE_GRID), math.floor(max(lats) * COMBINE_GRID) + 1):
             for x in range(math.floor(min(lons) * COMBINE_GRID), math.floor(max(lons) * COMBINE_GRID) + 1):
-                grid.setdefault((y, x), []).append((ring(b), centre(b), b["height"]))
+                grid.setdefault((y, x), []).append((ring(b), centre(b), b))
     out = []
     for b in osm:
         lat, lon = centre(b)
         near = grid.get((math.floor(lat * COMBINE_GRID), math.floor(lon * COMBINE_GRID)), ())
         mine = ring(b)
-        height = same[key(b)] if key(b) in same else next((h for theirs, c, h in near if contains(theirs, lat, lon) and contains(mine, *c)), None)
+        theirs = same[key(b)] if key(b) in same else next((t for r, c, t in near if contains(r, lat, lon) and contains(mine, *c)), None)
         kept = b.get("tagged") == "height" or (b.get("tagged") == "levels" and not metres)
-        out.append(b if height is None or kept else dict({k: v for k, v in b.items() if k != "guessed"}, height=height, city=True))
+        out.append(b if theirs is None or kept else dict({k: v for k, v in b.items() if k not in ("guessed", "floors")}, height=theirs["height"], city=True,
+                                                        **({"floors": theirs["floors"]} if "floors" in theirs else {})))
     return out
 
 def unique(items):

@@ -3,7 +3,7 @@ import csv, json, math, os, re, struct, time, urllib.error, urllib.parse, urllib
 from builder.cells import _overlaps, in_box, index, metres, padded
 from builder.net import download, get, log, SourceError
 from builder.projections import lambert72_to_wgs84, utm_to_wgs84, wgs84_to_lambert72
-from builder.shapes import building, footprints, number, outer_rings, triangles_outline, vertex
+from builder.shapes import building, footprints, from_floors, number, outer_rings, triangles_outline, vertex
 from builder.formats import _atom_entries, zip_layer
 from builder.apis import intersects, socrata, wfs
 
@@ -18,7 +18,7 @@ def ign_buildings(rect):
         h = p.get("hauteur")
         if not isinstance(h, (int, float)):
             floors = p.get("nombre_d_etages")
-            h = floors * 3 if isinstance(floors, (int, float)) else None
+            h = from_floors(floors) if isinstance(floors, (int, float)) else None
         for ring in outer_rings(f.get("geometry")):
             out.append(building(ring, h))
     return out
@@ -110,7 +110,7 @@ def _load_catastro(href, crs, focus, title):
                         v = [float(x) for x in ring.text.split()]
                         pts = [utm_to_wgs84(v[i], v[i + 1], zone) for i in range(0, len(v) - 1, 2)]
                         if len(pts) < 3 or not any(focus[0] <= la <= focus[2] and focus[1] <= lo <= focus[3] for la, lo in pts): continue
-                        b = building([vertex(la, lo) for la, lo in pts], floors * 3 if floors and floors > 0 else None)
+                        b = building([vertex(la, lo) for la, lo in pts], from_floors(floors))
                         for k in {(index(la), index(lo)) for la, lo in pts}:  # every cell a part touches
                             _catastro["grid"].setdefault(k, []).append(b)
                         kept += 1
@@ -179,7 +179,7 @@ def oakland(rect):
     of them are houses, a placeholder, not a count."""
     return footprints([f for f in socrata("data.oaklandca.gov", "iqfp-6kz5", intersects("the_geom", rect), "nostory,shape_area,the_geom")
                        if not (number(f["properties"].get("nostory")) == 20 and (number(f["properties"].get("shape_area")) or 0) < 5000)],
-                      lambda p: (number(p.get("nostory")) or 0) * 3.0, guess=False)
+                      lambda p: from_floors(number(p.get("nostory"))), guess=False)
 
 NRCAN_GTA = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_ON_GTA_2023_gpkg.zip"
 NRCAN_MONTREAL = "https://ftp.maps.canada.ca/pub/nrcan_rncan/extraction/auto_building/gpkg/Autobuilding_QC_VILLE_MONTREAL_gpkg.zip"
