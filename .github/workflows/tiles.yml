@@ -72,28 +72,20 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Geofabrik's index, fetched once for the run's build jobs (2026-11-18: one fetch per job, ~357 a run, and Geofabrik
-      # began refusing part of GitHub's runners), and kept in the cache: today's, else the latest one (its regions rarely
-      # change), when Geofabrik refuses this runner. Lost, each build job fetches it as before.
-      - id: day
-        run: echo "day=$(date -u +%F)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # began refusing part of GitHub's runners). geofabrik() takes the store's copy from today, else asks Geofabrik, else
+      # (2026-11-20: this job refused, and every build job after it) an older copy; one fetched from Geofabrik is copied up.
+      # Lost, each build job fetches it the same way.
+      - name: Geofabrik index
         id: index
         continue-on-error: true
-        with:
-          path: index-v1.json
-          key: geofabrik-index-${{ steps.day.outputs.day }}
-          restore-keys: geofabrik-index-
-      - name: Geofabrik index
-        id: fetched
-        if: ${{ steps.index.outputs.cache-hit != 'true' }}
+        run: python3 -c 'import make_tiles as m; print("from=" + m.geofabrik(m.GEOFABRIK, ".", max_days=1)[1])' >> "$GITHUB_OUTPUT"
+      - name: Copy the index to the store
+        if: ${{ steps.index.outputs.from == 'geofabrik' }}
         continue-on-error: true
-        run: python3 -c 'import make_tiles as m; m.download(m.GEOFABRIK, ".", max_days=0)'
-      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        if: ${{ steps.fetched.outcome == 'success' }}
-        continue-on-error: true
-        with:
-          path: index-v1.json
-          key: geofabrik-index-${{ steps.day.outputs.day }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: aws s3 cp index-v1.json "s3://${{ secrets.R2_BUCKET }}/geofabrik/index-v1.json" --endpoint-url "$ENDPOINT" --content-type application/json
       - id: plan
         env:
           ONLY: ${{ inputs.only }}
@@ -115,21 +107,19 @@ jobs:
           for e in entries:
               if streets_only and e.get("streets") is not True: continue
               if (not only or e["city"] in only) and e["city"] not in names: names.append(e["city"])
-          # Each city's extract (extracts.json, for the build's cache), and the cities sharing one run back to back,
-          # so the extract is still in the cache (10 GB, least recently used out first) when the next of them builds.
+          # Each city's extract (extracts.json, for the build's download step), and the cities sharing one run back to back,
+          # so the first of them has copied it to the store when the next builds.
           if os.path.exists("index-v1.json"):
-              import collections, time, urllib.parse
               os.environ["GEOFABRIK_INDEX"] = "index-v1.json"
-              from make_tiles import area, geofabrik_pbf
-              pbf = {}
+              from make_tiles import area, geofabrik_pbf, store_key
+              pbf, group = {}, {}
               for e in entries:
                   s, w, n, e_ = area(e, 0.5)
                   pbf.setdefault(e["city"], geofabrik_pbf((s + n) / 2, (w + e_) / 2))
-              users, day, group = collections.Counter(pbf.values()), time.strftime("%Y-%m-%d", time.gmtime()), {}
               for c in names: group.setdefault(pbf[c], len(group))
               names.sort(key=lambda c: group[pbf[c]])
-              json.dump({c: {"url": pbf[c], "path": "extracts/" + pbf[c].rsplit("/", 1)[1], "shared": str(users[pbf[c]] > 1).lower(),
-                             "key": f"geofabrik-{day}-{urllib.parse.urlparse(pbf[c]).path.strip('/')}"} for c in names}, open("extracts.json", "w"))
+              json.dump({c: {"url": pbf[c], "path": "extracts/" + pbf[c].rsplit("/", 1)[1], "key": store_key(pbf[c])} for c in names},
+                        open("extracts.json", "w"))
           print("cities=" + json.dumps(names))
           print("cities_a=" + json.dumps(names[:255]))
           print("cities_b=" + json.dumps(names[255:]))
@@ -206,11 +196,12 @@ jobs:
         continue-on-error: true
         with:
           name: remote
-      # The run's Geofabrik index and each city's extract (plan above). The extract comes from the day's cache when a job
-      # of this run or an earlier one today fetched it; else it is fetched here and, when other cities in cities.json share
-      # it, saved at once, not at the job's end, for the next of them. Only shared extracts are cached: all 191 make ~50 GB,
-      # the shared 69 ~26 GB, against the repo's 10 GB (2026-11-18); the plan's order keeps each one's cities together.
-      # Any of these failing leaves the build step to fetch what it lacks, as before.
+      # The run's Geofabrik index and each city's extract (plan above), fetched by geofabrik(): the store's copy from today
+      # when a job of this run or an earlier one today fetched it, else Geofabrik, else, Geofabrik refusing this runner
+      # (2026-11-19/20: ~170 city jobs lost), an older copy. One fetched from Geofabrik is copied to the store at once, not
+      # at the job's end, for the next city sharing it (the plan's order keeps them together) and for a refused runner.
+      # The store replaces the actions cache here: 10 GB held the 69 shared extracts' ~26 GB badly, and none of the rest.
+      # Any of these failing leaves the build step to fetch what it lacks, the same way.
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         if: ${{ !cancelled() }}
         continue-on-error: true
@@ -223,34 +214,20 @@ jobs:
         env:
           CITY: ${{ matrix.city }}
         run: python3 -c 'import json,os; x=json.load(open("extracts.json")).get(os.environ["CITY"]) or {}; print("\n".join(f"{k}={v}" for k, v in x.items()))' >> "$GITHUB_OUTPUT"
-      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        id: cached
-        if: ${{ !cancelled() && steps.extract.outputs.key != '' }}
-        continue-on-error: true
-        with:
-          path: ${{ steps.extract.outputs.path }}
-          key: ${{ steps.extract.outputs.key }}
       - name: Download the extract
         id: download
-        if: ${{ !cancelled() && steps.extract.outputs.key != '' && steps.cached.outputs.cache-hit != 'true' }}
+        if: ${{ !cancelled() && steps.extract.outputs.url != '' }}
         continue-on-error: true
         env:
           URL: ${{ steps.extract.outputs.url }}
-        run: python3 -c 'import make_tiles as m, os; m.download(os.environ["URL"], "extracts")'
-      # A runner Geofabrik refuses asks the cache again once its retries are spent: a sibling job may have saved it since
-      # (Leeds, 2026-11-18: its first look came 13 s before Bradford saved West Yorkshire).
-      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        if: ${{ !cancelled() && steps.download.outcome == 'failure' }}
+        run: python3 -c 'import make_tiles as m, os; print("from=" + m.geofabrik(os.environ["URL"], "extracts")[1])' >> "$GITHUB_OUTPUT"
+      - name: Copy the extract to the store
+        if: ${{ !cancelled() && steps.download.outputs.from == 'geofabrik' }}
         continue-on-error: true
-        with:
-          path: ${{ steps.extract.outputs.path }}
-          key: ${{ steps.extract.outputs.key }}
-      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        if: ${{ !cancelled() && steps.extract.outputs.shared == 'true' && steps.download.outcome == 'success' && hashFiles(steps.extract.outputs.path) != '' }}
-        continue-on-error: true
-        with:
-          path: ${{ steps.extract.outputs.path }}
-          key: ${{ steps.extract.outputs.key }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: aws s3 cp "${{ steps.extract.outputs.path }}" "s3://${{ secrets.R2_BUCKET }}/${{ steps.extract.outputs.key }}" --endpoint-url "$ENDPOINT" --only-show-errors
       # --store: a sources/ tile keeps the published tile's field this run does not build (a terraces run
       # keeps "buildings", a buildings run "permits"), read from the store's public host (no credentials).
       # Capped below the job's limit so a long build (Spain's cadastre answers slowly) still

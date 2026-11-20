@@ -1880,6 +1880,51 @@ finally:
     del os.environ["GEOFABRIK_INDEX"]
 print("ok (geofabrik_pbf: the run's index file)")
 
+# A Geofabrik file comes from disk, else the store's copy from today, else Geofabrik, else (Geofabrik refusing this
+# runner, 2026-11-19/20: ~170 city jobs lost) an older copy in the store; the caller learns which, to copy a fresh one up.
+import time, builder.osmium as osmium
+URL = "https://download.geofabrik.de/asia/indonesia/java/java-latest.osm.pbf"
+assert osmium.store_key(URL) == "geofabrik/asia/indonesia/java/java-latest.osm.pbf"
+assert osmium.store_key(osmium.GEOFABRIK) == "geofabrik/index-v1.json"
+def fetched(age, refused, on_disk=False):
+    """(file's text, source, the URLs downloaded) with the store's copy `age` days old (None: no copy) and Geofabrik refusing or not."""
+    asked, real = [], (osmium.download, osmium.copy_age)
+    def download(url, folder, max_days=6):
+        asked.append(url)
+        if refused and url == URL: raise SourceError("download.geofabrik.de: Connection refused")
+        with open(os.path.join(folder, url.rsplit("/", 1)[1]), "w") as f: f.write(url)
+        return os.path.join(folder, url.rsplit("/", 1)[1])
+    osmium.download, osmium.copy_age = download, lambda url: age
+    try:
+        with tempfile.TemporaryDirectory() as folder:
+            if on_disk: open(os.path.join(folder, "java-latest.osm.pbf"), "w").close()
+            file, source = osmium.geofabrik(URL, folder)
+            return open(file).read(), source, asked
+    finally: osmium.download, osmium.copy_age = real
+COPY = osmium.STORE_COPY + osmium.store_key(URL)
+assert fetched(0.2, refused=False) == (COPY, "store", [COPY])         # another job fetched it today: Geofabrik not asked
+assert fetched(3, refused=False) == (URL, "geofabrik", [URL])         # an older copy: Geofabrik first
+assert fetched(None, refused=False) == (URL, "geofabrik", [URL])
+assert fetched(7, refused=True) == (COPY, "store", [URL, COPY])       # refused: last week's copy beats no tiles
+assert fetched(0, refused=False, on_disk=True) == ("", "disk", [])
+for age in (None, osmium.STALE_COPY_DAYS + 1):
+    try: fetched(age, refused=True); raise AssertionError(f"a copy {age} days old was taken")
+    except SourceError as e: assert "Connection refused" in str(e) and "store" in str(e), e
+# copy_age reads the copy's Last-Modified with a HEAD request; a copy the store lacks (404) is None.
+import email.utils, urllib.error
+class Head:
+    def __init__(self, request, timeout):
+        assert request.get_method() == "HEAD", request.get_method()
+        if "missing" in request.full_url: raise urllib.error.HTTPError(request.full_url, 404, "Not Found", {}, None)
+        self.headers = {"Last-Modified": email.utils.formatdate(time.time() - 2 * 86_400, usegmt=True)}
+    def __enter__(self): return self
+    def __exit__(self, *a): pass
+real_urlopen, urllib.request.urlopen = urllib.request.urlopen, Head
+try:
+    assert 1.99 < osmium.copy_age(COPY) < 2.01 and osmium.copy_age(COPY + "missing") is None
+finally: urllib.request.urlopen = real_urlopen
+print("ok (geofabrik: disk, today's copy, Geofabrik, an older copy)")
+
 # A closed venue is left out of venues/ (owner, 2026-11-19, the Athens audit): opening_hours off or closed, disused or
 # abandoned yes, or a lifecycle prefix (disused:, was:, abandoned:…) on its own amenity or its own name. A lifecycle
 # prefix on another amenity is the place's past, not a closure: The Brunchers, amenity=cafe beside disused:amenity=restaurant.
@@ -1900,8 +1945,8 @@ import tempfile
 class FakeArea:
     box, venues = (48.85, 2.34, 48.86, 2.35), []
 asked = []
-saved = {k: getattr(make_tiles, k) for k in ("geofabrik_pbf", "download", "OSM", "overture_places", "overture_facts", "osm_venues")}
-patch(geofabrik_pbf=lambda lat, lon: "https://download.example/europe/x-latest.osm.pbf", download=lambda url, folder: "x.pbf",
+saved = {k: getattr(make_tiles, k) for k in ("geofabrik_pbf", "geofabrik", "OSM", "overture_places", "overture_facts", "osm_venues")}
+patch(geofabrik_pbf=lambda lat, lon: "https://download.example/europe/x-latest.osm.pbf", geofabrik=lambda url, folder: ("x.pbf", "disk"),
       OSM=lambda pbf, box: FakeArea(), overture_places=lambda box: asked.append(box) or [], overture_facts=lambda osm, places: {},
       osm_venues=lambda cell: [])
 try:

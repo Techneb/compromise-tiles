@@ -98,12 +98,16 @@ def get(url, data=None, parse=None, waits=WAITS, context=None, headers=None):
 
 def get_json(url, data=None, waits=WAITS): return get(url, data, parse=json.loads, waits=waits)
 
+def kept(file, max_days):
+    """The file is on disk and younger than `max_days`."""
+    return os.path.exists(file) and time.time() - os.path.getmtime(file) < max_days * 86_400
+
 def download(url, folder, max_days=6, headers=None):
     """A whole file, kept in `folder` and fetched again once older than `max_days` (Geofabrik updates daily).
     The bytes are kept as served: with `headers` asking for gzip, a store that holds the file gzipped
     (PLATEAU's) sends it so, and the reader inflates it."""
     file = os.path.join(folder, url.rsplit("/", 1)[1])
-    if os.path.exists(file) and time.time() - os.path.getmtime(file) < max_days * 86_400: return file
+    if kept(file, max_days): return file
     os.makedirs(folder, exist_ok=True)
     log(f"  downloading {url}")
     # Retried: parallel build jobs pull extracts at the same moment and Geofabrik answers some of

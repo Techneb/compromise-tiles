@@ -81,11 +81,11 @@ ODbL with the credit "© OpenStreetMap contributors".
 import argparse, concurrent.futures, json, math, os, sys, time
 from builder import extract, store
 from builder.cells import area, blocks, bounds, cells_in, clip, COARSE, contains, in_france, index, M, MAIN, metres, padded, union
-from builder.net import download, log, SourceError
+from builder.net import log, SourceError
 from builder.shapes import compact_buildings, estimated, unique
 from builder.streets import MAIN_UNIT, number_rows, street_tiles
 from builder.transit import transit_tiles
-from builder.osmium import buckets, geofabrik_pbf
+from builder.osmium import buckets, geofabrik, geofabrik_pbf
 from builder.overture import overture_facts, overture_places
 from builder.extract import OSM, osm_addresses, osm_main_streets, osm_places, osm_streets, osm_terraces, osm_venues
 from builder.buildings_table import building_source, CITY_BUILDINGS, COMBINE, FETCH_BUILDINGS, next_source
@@ -324,7 +324,7 @@ def run(label, rect, out, block, layers, extracts, departements=None, boundary=N
     try:  # the box every OSM question can reach: venue cells whole, buildings and terraces past the edge
         pbf = geofabrik_pbf(lat, lon)
         reach = union(coarse), padded(rect, 600)
-        extract._osm = OSM(download(pbf, extracts), (min(r[0] for r in reach), min(r[1] for r in reach),
+        extract._osm = OSM(geofabrik(pbf, extracts)[0], (min(r[0] for r in reach), min(r[1] for r in reach),
                                              max(r[2] for r in reach), max(r[3] for r in reach)))
     except SourceError as e:
         log(f"{label}: OpenStreetMap unavailable ({e})")

@@ -1,12 +1,44 @@
 """Geofabrik's extracts and osmium-tool: which region holds an area, and its features."""
-import json, math, os, subprocess
+import email.utils, json, math, os, subprocess, time, urllib.parse, urllib.request
 from builder.cells import bounds, contains
-from builder.net import get_json, SourceError
+from builder.net import download, kept, log, SourceError, TIMEOUT, UA
 from builder.shapes import outer_rings
 
 GEOFABRIK = "https://download.geofabrik.de/index-v1.json"
 GRID = 100  # the in-memory index's buckets: 1/100°, ~1 km
 _regions = None
+# The store's copies of Geofabrik's files, at geofabrik/<its path> (store_key): tiles.yml copies up each one a job fetched
+# from Geofabrik. 2026-11-19/20: Geofabrik refused every connection from part of GitHub's runners (~170 city jobs lost,
+# the plan job's index among them); no public mirror serves Geofabrik's own files at its paths.
+STORE_COPY = "https://tiles.alephb.uk/"
+STALE_COPY_DAYS = 30   # the oldest copy taken when Geofabrik refuses: a week-old extract beats a city with no tiles
+
+def store_key(url): return "geofabrik/" + urllib.parse.urlsplit(url).path.lstrip("/")
+
+def copy_age(url):
+    """Days since the store's copy at `url` was written (HEAD, its Last-Modified); None when the store has none."""
+    try:
+        request = urllib.request.Request(url, method="HEAD", headers={"User-Agent": UA})
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+            return (time.time() - email.utils.parsedate_to_datetime(response.headers["Last-Modified"]).timestamp()) / 86_400
+    except Exception:  # noqa: BLE001 — no copy, or none we can date: not one to take
+        return None
+
+def geofabrik(url, folder, max_days=6):
+    """A Geofabrik file (the index or an extract) in `folder`, and where it came from: "disk", "store" or "geofabrik".
+    The store's copy from today first (Geofabrik asked once a day per file, not once per job), then Geofabrik (download()'s
+    backoff), then, Geofabrik refusing this runner, a copy up to STALE_COPY_DAYS old."""
+    file = os.path.join(folder, url.rsplit("/", 1)[1])
+    if kept(file, max_days): return file, "disk"
+    copy = STORE_COPY + store_key(url)
+    age = copy_age(copy)
+    if age is not None and age < 1: return download(copy, folder, max_days), "store"
+    try: return download(url, folder, max_days), "geofabrik"
+    except SourceError as refused:
+        age = copy_age(copy)   # asked again: a sibling job may have copied it up during the backoff (Leeds after Bradford, 2026-11-18)
+        if age is None or age > STALE_COPY_DAYS: raise SourceError(f"{refused}; the store has no copy from the last {STALE_COPY_DAYS} days") from refused
+        log(f"  {url.rsplit('/', 1)[1]}: Geofabrik refused, the store's copy from {age:.1f} days ago")
+        return download(copy, folder, max_days), "store"
 
 def geofabrik_pbf(lat, lon):
     global _regions
@@ -16,7 +48,8 @@ def geofabrik_pbf(lat, lon):
         path = os.environ.get("GEOFABRIK_INDEX")
         if path and os.path.exists(path):
             with open(path) as f: _regions = json.load(f)["features"]
-        else: _regions = get_json(GEOFABRIK)["features"]
+        else:
+            with open(geofabrik(GEOFABRIK, "extracts", max_days=1)[0]) as f: _regions = json.load(f)["features"]
     return smallest_region(_regions, lat, lon)["properties"]["urls"]["pbf"]
 
 def smallest_region(regions, lat, lon):

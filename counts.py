@@ -63,7 +63,7 @@ Also writes the same rows as CSV beside --write, sorted by going-out cells, most
 Needs Python 3 (standard library only) and osmium-tool on the PATH.
 """
 import argparse, csv, datetime, json, math, os, re, sys, time, urllib.parse
-from make_tiles import (AMENITIES, M, Cell, SourceError, bounds, contains, download, features, geofabrik_pbf, get_json, index,
+from make_tiles import (AMENITIES, M, Cell, SourceError, bounds, contains, features, geofabrik, geofabrik_pbf, get_json, index,
                         metres, osmium, outer_rings, padded)
 
 GOING_OUT = 10   # named venues in the disk for a going-out cell
@@ -385,7 +385,7 @@ def main():
     for url, members in groups.items():
         t = time.monotonic()
         try:
-            pbf = download(url, args.extracts)
+            pbf = geofabrik(url, args.extracts)[0]
             points, marks = venues(pbf), landmarks(pbf)
         except SourceError as x:
             failed += [f"{e['city']}: {x}" for e in members]
