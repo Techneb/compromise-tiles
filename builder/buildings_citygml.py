@@ -2,7 +2,7 @@
 import gzip, io, math, os, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET, zipfile
 from builder.net import download, get, get_json, SourceError
 from builder.projections import cs92_to_wgs84, GK25, lcc3301_to_wgs84, tm_to_wgs84, utm_to_wgs84, wgs84_to_tm, wgs84_to_utm
-from builder.shapes import building, number, triangles_outline, vertex
+from builder.shapes import building, from_floors, number, triangles_outline, vertex
 
 def hamburg(rect):
     """LGV Hamburg's LoD2 model (OGC API, CityJSON only, and only in a 3D CRS: ETRS89 / UTM 32N + height,
@@ -39,7 +39,7 @@ def gipuzkoa_buildings(raw):
         h = number(b.findtext("bu-base:heightAboveGround/bu-base:HeightAboveGround/bu-base:value", namespaces=GIPUZKOA_NS))
         if not h or h <= 0:
             floors = number(b.findtext("bu-base:numberOfFloorsAboveGround", namespaces=GIPUZKOA_NS))
-            h = floors * 3 if floors and floors > 0 else None
+            h = from_floors(floors)
         for ring in b.iterfind("bu-core2d:geometry2D//gml:exterior//gml:posList", GIPUZKOA_NS):
             v = [float(x) for x in ring.text.split()]
             if len(v) >= 6: out.append(building([vertex(v[i], v[i + 1]) for i in range(0, len(v) - 1, 2)], h))
@@ -69,7 +69,7 @@ def espoo_buildings(raw):
             v += [float(x) for p in ring.iterfind("gml:posList", ESPOO_NS) for x in p.text.split()]
             if len(v) >= 6:
                 out.append(building([vertex(*tm_to_wgs84(v[i], v[i + 1], *GK25)) for i in range(0, len(v) - 1, 2)],
-                                    floors * 3 if floors and floors > 0 else None))
+                                    from_floors(floors)))
     return out
 
 def espoo(rect, cap=2000, depth=0):

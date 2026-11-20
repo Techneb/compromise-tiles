@@ -240,7 +240,7 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             name = source
             if source in COMBINE:  # "<city>+OSM" where the city gave a height, else OSM's alone
                 name = f"{source}+OSM" if any(b.get("city") for b in items) else "OSM"
-                items = [{k: b[k] for k in ("outline", "height", "guessed") if k in b} for b in items]
+                items = [{k: b[k] for k in ("outline", "height", "guessed", "floors") if k in b} for b in items]
             items = estimated(items, answer)
             if tiles: write(path(out, "buildings", c), items)
             if tiles: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))

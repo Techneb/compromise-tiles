@@ -225,9 +225,10 @@ assert at(37.3377, -121.8855) == "San Jose" and at(44.4072, 8.9339) == "Genoa"
 # a massive building with no count, an underground one).
 patch(arcgis=lambda url, r, fields, where="1=1", oid="OBJECTID": [{"geometry": {"type": "Polygon", "coordinates": [[[0, 0],
     [0, 1], [1, 1], [0, 0]]]}, "properties": {"sgr_text": t}} for t in ("26МСБЖ", "5МСБЖ", "МС", "-1МС", None)])
-assert rule("Sofia") == [78.0, 15.0, 3.0, 3.0, 3.0]
+assert rule("Sofia") == [78.0, 15.0, 3.0, 3.0]   # -1МС, an underpass's one underground floor, is left out (2026-11-20)
 flagged = lambda city: [b.get("guessed") for b in next(b for b in CITY_BUILDINGS if b["city"] == city)["fetch"]((0, 0, 1, 1))]
-assert flagged("Sofia") == [None] * 5   # 5 floors is a measured 15 m; "none is one floor" is the row's rule, not the guess
+assert flagged("Sofia") == [None] * 4   # 5 floors is a measured 15 m; "none is one floor" is the row's rule, not the guess
+assert [b["floors"] for b in next(b for b in CITY_BUILDINGS if b["city"] == "Sofia")["fetch"]((0, 0, 1, 1))] == [26, 5, 1, 1]
 patch(arcgis=real_arcgis)
 assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "Bratislava" and at(48.3500, 17.1088) == "OSM"
 assert at(37.8053, -122.2724) == "Oakland"   # its cells are credited "Oakland+OSM" or "OSM": test_combine.py
@@ -261,6 +262,25 @@ with tempfile.TemporaryDirectory() as out:
     assert estimated(near + [building(ring)], near)[-1] == {"outline": ring, "height": 9.0, "guessed": True}
     assert estimated(near[1:] + [building(ring)], near[1:] + [building(far, 21)] * ESTIMATE_SAMPLES)[-1]["height"] == 21.0
     assert estimated(near[1:] + [building(ring)], near[1:])[-1] == building(ring)   # too few anywhere: the 15 m guess
+    # A footprint of ONE_FLOOR_AREA m² or more whose 3 m came from a floor count of 1 (OSM's building:levels=1, a city's
+    # floors × 3 m), in a tile whose other measured heights have a median of DENSE_MEDIAN m or more, is a block outline
+    # with no real count (Prague's RÚIAN import, Sofia's uncounted codes): it is guessed and takes the estimate (2026-11-20).
+    from make_tiles import from_floors, guessed_height, compact_building, ONE_FLOOR_AREA, DENSE_MEDIAN
+    side = 25 / 111_320   # 25 m × 16 m at the cell's latitude: ~390 m²
+    block_ring = [{"latitude": cell.lat + a, "longitude": cell.lon + o} for a, o in ((0, 0), (0, side), (side, side), (side, 0))]
+    assert ONE_FLOOR_AREA == 300 and DENSE_MEDIAN == 9
+    one = building(block_ring, osm_height({"building:levels": "1"}))
+    assert one == {"outline": block_ring, "height": 3.0, "floors": 1} and building(ring, from_floors(4))["floors"] == 4
+    assert from_floors(0) is None and from_floors(None) is None and from_floors(2, 3.5) == 7.0
+    dense = [building(ring, 12)] * ESTIMATE_SAMPLES
+    got = estimated(dense + [one], dense)[-1]
+    assert got["height"] == 12.0 and got["guessed"] and guessed_height(compact_building(got, cell.key)[0])
+    assert estimated(dense + [building(block_ring, 3)], dense)[-1] == building(block_ring, 3)          # a height tag stays
+    assert estimated(dense + [building(ring, from_floors(1))], dense)[-1]["height"] == 3.0            # too small
+    assert estimated(dense + [building(block_ring, from_floors(2))], dense)[-1]["height"] == 6.0      # two floors stay
+    low = [building(ring, 6)] * ESTIMATE_SAMPLES
+    assert estimated(low + [one], low)[-1] == one                                                     # a low area: a hall
+    assert estimated(dense[1:] + [one, one], dense)[-1] == one   # the median is the tile's alone, without them: too few
     spot = lambda i, lat=cell.lat: [{"latitude": lat + i * 1e-5, "longitude": cell.lon}] * 3   # distinct: gather() drops repeats
     make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [building(spot(i), 9) for i in range(ESTIMATE_SAMPLES)] + [building(ring)] \
         + [building(spot(i, cell.lat + 0.01), 30) for i in range(50)]
@@ -278,6 +298,11 @@ osm_guess, osm_far = building(sq(0, 0, 1, 1)), building(sq(5, 5, 6, 6))
 assert combined([osm_guess, osm_far], [building(sq(0, 0, 1, 1), 33)]) == \
     [{"outline": sq(0, 0, 1, 1), "height": 33.0, "city": True}, osm_far]
 assert combined([osm_guess], [building(sq(0, 0, 1, 1), 33)], metres=True)[0].get("guessed") is None
+# The floor count follows the height: OSM's levels=1 under a city's 4 floors × 3 m (a "floors" combine row) is 4 floors.
+from make_tiles import from_floors
+osm_one = dict(building(sq(0, 0, 1, 1), osm_height({"building:levels": "1"})), tagged="levels")
+assert combined([osm_one], [building(sq(0, 0, 1, 1), 33)], metres=True)[0] == {"outline": sq(0, 0, 1, 1), "height": 33.0, "tagged": "levels", "city": True}
+assert combined([osm_one], [building(sq(0, 0, 1, 1), from_floors(4))], metres=True)[0]["floors"] == 4
 
 # A building source is held to its municipal boundary: Fitzroy sits in Melbourne's box but not in
 # the City of Melbourne (it is Yarra's), Bitsaron (Tel Aviv) in Ramat Gan's box but not in Ramat Gan.

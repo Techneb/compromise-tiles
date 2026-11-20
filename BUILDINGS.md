@@ -14,7 +14,9 @@ keyed `int(lat*500),int(lon*500)`, gzipped at rest. The build also writes
 
 - `height`: metres in 0.5 m steps, an integer when whole (`22`, `22.5`),
   where a source measured or tagged it. Where none did, the height is a
-  guess, flagged `"guessed": true` in buildings/:
+  guess, flagged `"guessed": true` in buildings/. Since 2026-11-20 so is
+  a single floor on an outline of 300 m² or more in a tile whose other
+  heights have a median of 9 m or more:
   - a quarter step (`9.25`, `17.75`) since 2026-11-19: the local estimate,
     the median of the measured heights in the tile, or in the block the
     build fetched it with, once either holds 10 of them;
