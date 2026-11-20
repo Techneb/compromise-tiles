@@ -88,11 +88,12 @@ from builder.names import folded, local_names, MATCH_REACH, names_match, normali
 from builder.streets import associated_streets, house_numbers, interpolation, MAIN_STREETS, MAIN_TOLERANCE, MAIN_UNIT, NUMBER_PAD, number_rows, simplified, street_kind, STREET_KINDS, STREET_PAD, street_tiles, STREET_TOLERANCE
 from builder.transit import transit_lines, TRANSIT_MODES, transit_tiles
 from builder.osmium import buckets, features, geofabrik_pbf, mean_point, osmium
+from builder.places import distinct_places, english, place_key, PLACE_KINDS, place_levels
 
 # The scripts and tests that import names from make_tiles still find them here while they move to builder/
 # (rebound state excepted: builder.store.STORE, builder.store.LISTED, builder.extract._osm).
-import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium
-for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium]:
+import builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places
+for _m in [builder.cells, builder.net, builder.projections, builder.shapes, builder.formats, builder.names, builder.streets, builder.transit, builder.osmium, builder.places]:
     globals().update((k, v) for k, v in vars(_m).items() if not k.startswith("__") and k not in builder.REBOUND)
 
 TERRACE_RADIUS = 400          # metres around the cell's centre: the radius the density gate is calibrated on
@@ -588,80 +589,6 @@ def osm_main_streets(rect): return _osm.streets(rect, MAIN_STREETS, MAIN_TOLERAN
 
 def osm_addresses(rect): return _osm.addresses(rect)
 
-def english(place, name_en):
-    """The place with "name_en", OSM's name:en, when it has one that is not its "name"."""
-    name_en = str(name_en or "").strip()
-    if name_en and name_en != place["name"]: place["name_en"] = name_en
-    return place
-
-PLACE_TWIN = 1000  # metres: the same name this close is one place mapped twice (a node and its area)
-
-def distinct_places(places):
-    """Each place once: a name met again within PLACE_TWIN of a kept one is left out, so the first
-    wins (osmium exports nodes before areas: the mapped point over a polygon's mean vertex)."""
-    kept = []
-    for p in places:
-        at = (p["coordinate"]["latitude"], p["coordinate"]["longitude"])
-        if not any(k["name"] == p["name"] and metres(*at, k["coordinate"]["latitude"], k["coordinate"]["longitude"]) <= PLACE_TWIN
-                   for k in kept):
-            kept.append(p)
-    return kept
-
-# Boundary relations under a municipality that no place stands for are written as places of their own,
-# the kind their admin_level stands for when they carry no place tag: Paris's 20 arrondissements (9)
-# and 80 quartiers administratifs (10), mapped as boundaries far more often than as places.
-PLACE_ADMIN_KINDS = {9: "suburb", 10: "quarter"}
-PLACE_NAME_LEADS = {"QUARTIER", "DE", "DU", "DES", "D", "LA", "LE", "LES", "L"}
-
-def place_key(name):
-    """A name as places compare it: normalised_name() without the leading "Quartier" and articles, so
-    "Quartier de la Goutte-d'Or" and "La Goutte-d'Or" meet. A name of nothing but those words stays whole."""
-    words = normalised_name(name).split(" ")
-    i = 0
-    while i < len(words) - 1 and words[i] in PLACE_NAME_LEADS: i += 1
-    return " ".join(words[i:])
-
-def place_levels(places, boundaries):
-    """The places (each with "osm": its "n…", "w…" or "r…" id) with "admin_level" when the name comes from or
-    matches an administrative boundary (OSM.boundaries()): the place is the relation itself, or is the
-    relation's label node, or its admin_centre node under a name one holds the other ("17e Arrondissement",
-    "Paris 17e Arrondissement") at a level of PLACE_ADMIN_KINDS (a municipality's admin_centre is its seat:
-    London's suburb Hackney is not the borough), or lies inside it under the same place_key(). The deepest level wins. A
-    relation that is a place itself gives way to its label or admin_centre node when that is a place too
-    (the node is the name as mapped). Then each boundary of PLACE_ADMIN_KINDS no place matched, whole in the
-    extract, is added at its mean vertex. "osm" is not written."""
-    by_id, by_node, by_key = {b["id"]: b for b in boundaries}, {}, {}
-    for b in boundaries:
-        for n in b["labels"] | b["centres"]: by_node.setdefault(n, []).append(b)
-        by_key.setdefault(place_key(b["name"]), []).append(b)
-    def stands_for(p, b):
-        if p["osm"] in b["labels"]: return True
-        if p["osm"] not in b["centres"] or b["admin_level"] not in PLACE_ADMIN_KINDS: return False
-        a, z = normalised_name(p["name"]), normalised_name(b["name"])
-        return a in z or z in a
-    places_by_id = {p["osm"]: p for p in places}
-    out, used = [], set()
-    for p in places:
-        own = by_id.get(p["osm"])
-        if own and any(stands_for(places_by_id[n], own) for n in own["labels"] | own["centres"] if n in places_by_id):
-            used.add(own["id"]); continue
-        lat, lon = p["coordinate"]["latitude"], p["coordinate"]["longitude"]
-        found = {own["id"]: own} if own else {}
-        found.update((b["id"], b) for b in by_node.get(p["osm"], ()) if stands_for(p, b))
-        found.update((b["id"], b) for b in by_key.get(place_key(p["name"]), ()) if b["geometry"] and contains(b["geometry"], lat, lon))
-        entry = {k: v for k, v in p.items() if k != "osm"}
-        if found:
-            entry["admin_level"] = max(b["admin_level"] for b in found.values())
-            used.update(found)
-        out.append(entry)
-    for b in boundaries:
-        if b["id"] in used or b["admin_level"] not in PLACE_ADMIN_KINDS or not b["geometry"]: continue
-        at = mean_point(b["geometry"])
-        if not at: continue
-        kind = b["place"] if b["place"] in PLACE_KINDS else PLACE_ADMIN_KINDS[b["admin_level"]]
-        out.append(english({"name": b["name"], "kind": kind, "coordinate": vertex(*at), "admin_level": b["admin_level"]}, b.get("name_en")))
-    return out
-
 def osm_places(cell):
     """The named places of one ~4 km cell, the key's own truncation deciding the edge."""
     return [p for p in _osm.places()
@@ -923,8 +850,6 @@ def osm_venues(cell):
     """The named venues of one ~2 km cell, MATCH_ONLY ones included, the key's own truncation deciding the edge."""
     return [v for table in (_osm.venues, _osm.matches) for v in _osm.near(table, cell.rect) if v["name"]
             and f"{index(v['coordinate']['latitude'], COARSE)},{index(v['coordinate']['longitude'], COARSE)}" == cell.key]
-# places/: the names a neighbourhood goes by, from the widest to the narrowest.
-PLACE_KINDS = ("suburb", "quarter", "neighbourhood")
 
 def wfs(url, params, rect, cap=5000, depth=0):
     """A WFS 2.0 GetFeature over a box (latitude first, EPSG:4326 URN); a box that hits the cap is split in four."""
