@@ -45,16 +45,18 @@ assert permit_items([point], toronto) == [{"kind": "TERRASSE", "coordinate": {"l
 import make_tiles, urllib.parse
 from builder import patch
 from make_tiles import gipuzkoa_buildings, permits, PERMIT_CITIES
+# San Sebastián: the snapshot in permits/ (the city's host refuses GitHub's runners), one file read once per run.
 asked = []
 def fake_get(url, data=None, parse=None, **k):
-    asked.append(urllib.parse.unquote(url))
-    return {"features": [{"geometry": {"type": "Point", "coordinates": [-1.958171550804368, 43.312719267068616]},
-                          "properties": {"FID": 0, "IzenTe": "ADI TABERNA"}}]} if len(asked) == 1 else {"features": []}
+    asked.append(url)
+    return {"features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [-1.958171550804368, 43.312719267068616]},
+                          "properties": {"name": "ADI TABERNA"}}]}
 real_get = make_tiles.get; patch(get=fake_get)
 donostia = next(c for c in PERMIT_CITIES if c["city"] == "San Sebastián")
 assert permits(donostia, (43.31, -1.96, 43.32, -1.95)) == [
     {"kind": "TERRASSE", "coordinate": {"latitude": 43.312719267068616, "longitude": -1.958171550804368}, "name": "ADI TABERNA"}]
-assert "FID>-1" in asked[0] and "outFields=FID,IzenTe" in asked[0]
+assert asked == ["https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/san-sebastian.geojson"], asked
+assert "donostia.eus" not in str(donostia), "www.donostia.eus resolves to 0.0.0.0 on GitHub's runners"
 patch(get=real_get)
 # Gipuzkoa's INSPIRE GML (the feed's shape, trimmed): heightAboveGround, else floors × 3 m when it reads 0, else 15 m.
 def member(height, floors, ring):
