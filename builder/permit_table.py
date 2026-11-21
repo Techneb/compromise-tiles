@@ -136,10 +136,11 @@ PERMIT_CITIES = [
         (56.85, 57.09), (23.93, 24.33), shape="arcgis", oid="gid", clean="riga", match="trading"),
     # Opendatasoft (no licence stated): the latest permit's terrace drawing, at its centre point; the only
     # text is the drawing's file name (an address), so no name field — door rule only.
-    # ArcGIS MapServer (© Donostiako Udala - Ayuntamiento de Donostia / San Sebastián, no licence
-    # stated): every point a granted terrace, IzenTe the venue; the OID field is FID. The box is the layer's.
-    row("San Sebastián", "", "www.donostia.eus/geozerbitzuak/rest/services", "ext/URBANISMO/MapServer/34", "IzenTe", [],
-        (43.29, 43.33), (-2.02, -1.91), shape="arcgis", oid="FID"),
+    # ArcGIS MapServer ext/URBANISMO/MapServer/34 on www.donostia.eus (© Donostiako Udala - Ayuntamiento de Donostia /
+    # San Sebastián, no licence stated): every point a granted terrace, IzenTe the venue. A hand-refreshed snapshot in
+    # `permits/` since 2026-11-21: the city's host resolves to 0.0.0.0 on GitHub's runners (843 of 1711 cells lost).
+    row("San Sebastián", "", "raw.githubusercontent.com", "Techneb/compromise-tiles/master/permits/san-sebastian.geojson",
+        "name", [], (43.29, 43.33), (-2.02, -1.91), shape="geojson"),
     row("Eindhoven", "", "data.eindhoven.nl", "terrastekeningen", "", [], (51.39, 51.50), (5.38, 5.56)),
     # Municipality of Thessaloníki's shops of health interest (GeoServer; the licence a link to the Ministry
     # of the Interior's "Ανοιχτή Άδεια"): only those with a terrace permit number, the 2017–2019 register.
