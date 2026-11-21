@@ -1888,19 +1888,19 @@ assert osmium.store_key(URL) == "geofabrik/asia/indonesia/java/java-latest.osm.p
 assert osmium.store_key(osmium.GEOFABRIK) == "geofabrik/index-v1.json"
 def fetched(age, refused, on_disk=False):
     """(file's text, source, the URLs downloaded) with the store's copy `age` days old (None: no copy) and Geofabrik refusing or not."""
-    asked, real = [], (osmium.download, osmium.copy_age)
+    asked, real, real_previous = [], (osmium.download, osmium.copy_age), osmium.previous_extract
     def download(url, folder, max_days=6):
         asked.append(url)
         if refused and url == URL: raise SourceError("download.geofabrik.de: Connection refused")
         with open(os.path.join(folder, url.rsplit("/", 1)[1]), "w") as f: f.write(url)
         return os.path.join(folder, url.rsplit("/", 1)[1])
-    osmium.download, osmium.copy_age = download, lambda url: age
+    osmium.download, osmium.copy_age, osmium.previous_extract = download, lambda url: age, lambda url: None
     try:
         with tempfile.TemporaryDirectory() as folder:
             if on_disk: open(os.path.join(folder, "java-latest.osm.pbf"), "w").close()
             file, source = osmium.geofabrik(URL, folder)
             return open(file).read(), source, asked
-    finally: osmium.download, osmium.copy_age = real
+    finally: osmium.download, osmium.copy_age, osmium.previous_extract = *real, real_previous
 COPY = osmium.STORE_COPY + osmium.store_key(URL)
 assert fetched(0.2, refused=False) == (COPY, "store", [COPY])         # another job fetched it today: Geofabrik not asked
 assert fetched(3, refused=False) == (URL, "geofabrik", [URL])         # an older copy: Geofabrik first
@@ -1924,6 +1924,37 @@ try:
     assert 1.99 < osmium.copy_age(COPY) < 2.01 and osmium.copy_age(COPY + "missing") is None
 finally: urllib.request.urlopen = real_urlopen
 print("ok (geofabrik: disk, today's copy, Geofabrik, an older copy)")
+
+# Geofabrik's -latest redirects to a dated file; during its nightly update that file can 404 or hang for hours while the
+# day before's is served (2026-11-21: 16 cities lost). The day before's is taken, under the -latest name, before the store.
+PREVIOUS = URL.replace("-latest", "-261119")
+class Redirect:
+    def open(self, request, timeout):
+        assert request.get_method() == "HEAD" and request.full_url == URL, request.full_url
+        raise urllib.error.HTTPError(URL, 307, "Temporary Redirect", {"Location": URL.replace("-latest", "-261120")}, None)
+real_opener, osmium.NO_REDIRECT = osmium.NO_REDIRECT, Redirect()
+try:
+    assert osmium.previous_extract(URL) == PREVIOUS, osmium.previous_extract(URL)
+    assert osmium.previous_extract(osmium.GEOFABRIK) is None    # the index: no dated files
+finally: osmium.NO_REDIRECT = real_opener
+def fetched_previous(previous, age=None):
+    asked, real = [], (osmium.download, osmium.copy_age, osmium.previous_extract)
+    def download(url, folder, max_days=6):
+        asked.append(url)
+        if url == URL or (url == previous and "refused" in url): raise SourceError("HTTP Error 404: Not Found")
+        with open(os.path.join(folder, url.rsplit("/", 1)[1]), "w") as f: f.write(url)
+        return os.path.join(folder, url.rsplit("/", 1)[1])
+    osmium.download, osmium.copy_age, osmium.previous_extract = download, lambda url: age, lambda url: previous
+    try:
+        with tempfile.TemporaryDirectory() as folder:
+            file, source = osmium.geofabrik(URL, folder)
+            return os.path.basename(file), open(file).read(), source, asked
+    finally: osmium.download, osmium.copy_age, osmium.previous_extract = real
+assert fetched_previous(PREVIOUS) == ("java-latest.osm.pbf", PREVIOUS, "geofabrik", [URL, PREVIOUS])
+assert fetched_previous(None, age=3) == ("java-latest.osm.pbf", COPY, "store", [URL, COPY])   # refused: no redirect
+REFUSED = PREVIOUS + "?refused"
+assert fetched_previous(REFUSED, age=3) == ("java-latest.osm.pbf", COPY, "store", [URL, REFUSED, COPY])
+print("ok (geofabrik: the day before's file when today's is not served)")
 
 # A closed venue is left out of venues/ (owner, 2026-11-19, the Athens audit): opening_hours off or closed, disused or
 # abandoned yes, or a lifecycle prefix (disused:, was:, abandoned:…) on its own amenity or its own name. A lifecycle

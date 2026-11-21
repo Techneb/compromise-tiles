@@ -1,5 +1,5 @@
 """Geofabrik's extracts and osmium-tool: which region holds an area, and its features."""
-import email.utils, json, math, os, subprocess, time, urllib.parse, urllib.request
+import datetime, email.utils, json, math, os, re, subprocess, time, urllib.error, urllib.parse, urllib.request
 from builder.cells import bounds, contains
 from builder.net import download, kept, log, SourceError, TIMEOUT, UA
 from builder.shapes import outer_rings
@@ -24,6 +24,24 @@ def copy_age(url):
     except Exception:  # noqa: BLE001 — no copy, or none we can date: not one to take
         return None
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args): return None   # the redirect comes back as an HTTPError carrying its Location
+NO_REDIRECT = urllib.request.build_opener(_NoRedirect)
+
+def previous_extract(url):
+    """The dated file the day before the one Geofabrik's -latest redirects to (illinois-261120 → illinois-261119); None
+    for a file with no dated copies, or Geofabrik not answering. 2026-11-21: during Geofabrik's nightly update -latest
+    pointed for hours at a dated file not served yet (404, or a hang) while the day before's was (16 cities lost)."""
+    if not url.endswith("-latest.osm.pbf"): return None
+    try: NO_REDIRECT.open(urllib.request.Request(url, method="HEAD", headers={"User-Agent": UA}), timeout=TIMEOUT)
+    except urllib.error.HTTPError as redirect: location = redirect.headers.get("Location") or ""
+    except Exception: return None  # noqa: BLE001 — refused or down: the store's copy is next
+    else: return None
+    dated = re.search(r"-(\d{6})\.osm\.pbf$", location)
+    if not dated: return None
+    day = datetime.datetime.strptime(dated[1], "%y%m%d") - datetime.timedelta(days=1)
+    return location[:dated.start(1)] + day.strftime("%y%m%d") + ".osm.pbf"
+
 def geofabrik(url, folder, max_days=6):
     """A Geofabrik file (the index or an extract) in `folder`, and where it came from: "disk", "store" or "geofabrik".
     The store's copy from today first (Geofabrik asked once a day per file, not once per job), then Geofabrik (download()'s
@@ -35,6 +53,13 @@ def geofabrik(url, folder, max_days=6):
     if age is not None and age < 1: return download(copy, folder, max_days), "store"
     try: return download(url, folder, max_days), "geofabrik"
     except SourceError as refused:
+        previous = previous_extract(url)
+        if previous:
+            try:
+                os.replace(download(previous, folder, max_days), file)   # under the -latest name the build and the store expect
+                log(f"  {url.rsplit('/', 1)[1]}: not served yet, the day before's {previous.rsplit('/', 1)[1]}")
+                return file, "geofabrik"   # copied up: a day older than -latest, and a refused sibling's best
+            except SourceError: pass
         age = copy_age(copy)   # asked again: a sibling job may have copied it up during the backoff (Leeds after Bradford, 2026-11-18)
         if age is None or age > STALE_COPY_DAYS: raise SourceError(f"{refused}; the store has no copy from the last {STALE_COPY_DAYS} days") from refused
         log(f"  {url.rsplit('/', 1)[1]}: Geofabrik refused, the store's copy from {age:.1f} days ago")
