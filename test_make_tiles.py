@@ -1892,7 +1892,7 @@ def fetched(age, refused, on_disk=False):
     asked, real, real_previous = [], (osmium.download, osmium.copy_age), osmium.previous_extract
     def download(url, folder, max_days=6):
         asked.append(url)
-        if refused and url == URL: raise SourceError("download.geofabrik.de: Connection refused")
+        if refused and url != COPY: raise SourceError(f"{url}: Connection refused")   # Geofabrik and its mirror
         with open(os.path.join(folder, url.rsplit("/", 1)[1]), "w") as f: f.write(url)
         return os.path.join(folder, url.rsplit("/", 1)[1])
     osmium.download, osmium.copy_age, osmium.previous_extract = download, lambda url: age, lambda url: None
@@ -1903,10 +1903,11 @@ def fetched(age, refused, on_disk=False):
             return open(file).read(), source, asked
     finally: osmium.download, osmium.copy_age, osmium.previous_extract = *real, real_previous
 COPY = osmium.STORE_COPY + osmium.store_key(URL)
+MIRROR = "https://download.openstreetmap.fr/extracts/asia/indonesia/java-latest.osm.pbf"
 assert fetched(0.2, refused=False) == (COPY, "store", [COPY])         # another job fetched it today: Geofabrik not asked
 assert fetched(3, refused=False) == (URL, "geofabrik", [URL])         # an older copy: Geofabrik first
 assert fetched(None, refused=False) == (URL, "geofabrik", [URL])
-assert fetched(7, refused=True) == (COPY, "store", [URL, COPY])       # refused: last week's copy beats no tiles
+assert fetched(7, refused=True) == (COPY, "store", [URL, MIRROR, COPY])   # refused: last week's copy beats no tiles
 assert fetched(0, refused=False, on_disk=True) == ("", "disk", [])
 for age in (None, osmium.STALE_COPY_DAYS + 1):
     try: fetched(age, refused=True); raise AssertionError(f"a copy {age} days old was taken")
@@ -1942,7 +1943,7 @@ def fetched_previous(previous, age=None):
     asked, real = [], (osmium.download, osmium.copy_age, osmium.previous_extract)
     def download(url, folder, max_days=6):
         asked.append(url)
-        if url == URL or (url == previous and "refused" in url): raise SourceError("HTTP Error 404: Not Found")
+        if url in (URL, MIRROR) or (url == previous and "refused" in url): raise SourceError("HTTP Error 404: Not Found")
         with open(os.path.join(folder, url.rsplit("/", 1)[1]), "w") as f: f.write(url)
         return os.path.join(folder, url.rsplit("/", 1)[1])
     osmium.download, osmium.copy_age, osmium.previous_extract = download, lambda url: age, lambda url: previous
@@ -1952,10 +1953,51 @@ def fetched_previous(previous, age=None):
             return os.path.basename(file), open(file).read(), source, asked
     finally: osmium.download, osmium.copy_age, osmium.previous_extract = real
 assert fetched_previous(PREVIOUS) == ("java-latest.osm.pbf", PREVIOUS, "geofabrik", [URL, PREVIOUS])
-assert fetched_previous(None, age=3) == ("java-latest.osm.pbf", COPY, "store", [URL, COPY])   # refused: no redirect
+assert fetched_previous(None, age=3) == ("java-latest.osm.pbf", COPY, "store", [URL, MIRROR, COPY])   # refused: no redirect
 REFUSED = PREVIOUS + "?refused"
-assert fetched_previous(REFUSED, age=3) == ("java-latest.osm.pbf", COPY, "store", [URL, REFUSED, COPY])
+assert fetched_previous(REFUSED, age=3) == ("java-latest.osm.pbf", COPY, "store", [URL, REFUSED, MIRROR, COPY])
 print("ok (geofabrik: the day before's file when today's is not served)")
+
+# Geofabrik refusing a runner's connections (2026-11-21, 8 cities with no copy in the store yet): after the day before's,
+# openstreetmap.fr's copy of the same region, at Geofabrik's path without the region's own folder and with "_" for "-".
+assert osmium.mirror(URL) == MIRROR
+assert osmium.mirror("https://download.geofabrik.de/europe/united-kingdom/england/greater-london/greater-london-latest.osm.pbf") \
+    == "https://download.openstreetmap.fr/extracts/europe/united_kingdom/england/greater_london-latest.osm.pbf"
+assert osmium.mirror("https://download.geofabrik.de/europe/turkey/turkey-latest.osm.pbf") \
+    == "https://download.openstreetmap.fr/extracts/europe/turkey-latest.osm.pbf"
+assert osmium.mirror("https://download.geofabrik.de/north-america/canada/nova-scotia/nova-scotia-latest.osm.pbf") \
+    == "https://download.openstreetmap.fr/extracts/north-america/canada/nova_scotia-latest.osm.pbf"
+assert osmium.mirror(osmium.GEOFABRIK) is None   # the index: Geofabrik's own
+def fetched_mirror(served):
+    asked, real = [], (osmium.download, osmium.copy_age, osmium.previous_extract)
+    def download(url, folder, max_days=6):
+        asked.append(url)
+        if url not in served: raise SourceError(f"{url}: Connection refused")
+        with open(os.path.join(folder, url.rsplit("/", 1)[1]), "w") as f: f.write(url)
+        return os.path.join(folder, url.rsplit("/", 1)[1])
+    osmium.download, osmium.copy_age, osmium.previous_extract = download, lambda url: 3, lambda url: PREVIOUS
+    try:
+        with tempfile.TemporaryDirectory() as folder:
+            file, source = osmium.geofabrik(URL, folder)
+            return os.path.basename(file), open(file).read(), source, asked
+    finally: osmium.download, osmium.copy_age, osmium.previous_extract = real
+assert fetched_mirror({MIRROR, COPY}) == ("java-latest.osm.pbf", MIRROR, "mirror", [URL, PREVIOUS, MIRROR])
+assert fetched_mirror({COPY}) == ("java-latest.osm.pbf", COPY, "store", [URL, PREVIOUS, MIRROR, COPY])
+print("ok (geofabrik: the mirror before the store's older copy)")
+
+# A refused download is retried for about ten minutes, each wait jittered so parallel jobs do not ask again in step.
+import random, builder.net as net
+slept, real_urlopen, real_sleep = [], urllib.request.urlopen, net.time.sleep
+def refuse(request, timeout): raise ConnectionRefusedError(111, "Connection refused")
+urllib.request.urlopen, net.time.sleep = refuse, slept.append
+random.seed(1)
+try:
+    with tempfile.TemporaryDirectory() as folder:
+        try: net.download("https://download.geofabrik.de/x-latest.osm.pbf", folder); raise AssertionError("not refused")
+        except SourceError as e: assert "Connection refused" in str(e), e
+finally: urllib.request.urlopen, net.time.sleep = real_urlopen, real_sleep
+assert 8 * 60 < sum(slept) < 12 * 60 and len(set(slept)) == len(slept), slept
+print("ok (download: about ten minutes of jittered retries)")
 
 # A closed venue is left out of venues/ (owner, 2026-11-19, the Athens audit): opening_hours off or closed, disused or
 # abandoned yes, or a lifecycle prefix (disused:, was:, abandoned:…) on its own amenity or its own name. A lifecycle
