@@ -501,6 +501,14 @@
    "url": "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40?f=json"
   }
  },
+ "buildings/Cupertino": {
+  "key": "18661,-61017",
+  "picked": "2026-11-21",
+  "licence": {
+   "kind": "arcgis",
+   "url": "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40?f=json"
+  }
+ },
  "buildings/Genoa": {
   "key": "22215,4447",
   "picked": "2026-10-04",

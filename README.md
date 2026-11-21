@@ -341,7 +341,7 @@ none, this says so rather than guessing.
 - Belgrade: Beoland, Beograd 3D (licence not stated by the publisher).
 - San José: Municipalidad de San José, SIG_SER_3D_Edificaciones ("Definidos
   por la Municipalidad de San José").
-- San Jose: County of Santa Clara; Sanborn Map Co., Buildings Footprints 2D
+- San Jose, Cupertino: County of Santa Clara; Sanborn Map Co., Buildings Footprints 2D
   (licence not stated by the publisher).
 - Genoa: Regione Liguria, DB Geotopografico NC5 3D (CC BY 4.0).
 - Sofia: Sofiaplan, Сгради 18.12.2009 (licence not stated by the publisher).
@@ -407,6 +407,8 @@ none, this says so rather than guessing.
   CC BY 4.0.
 - Rome (Roma Capitale, the Vatican left out): ISTAT, Confini delle unità
   amministrative a fini statistici al 1° gennaio 2025, CC BY 4.0.
+- Cupertino: City of Cupertino, City Boundary (licence not stated by the
+  publisher).
 - Tel Aviv: Tel Aviv-Yafo Municipality open data, city boundary (free to
   share and adapt with credit).
 - Jerusalem: © OpenStreetMap contributors, ODbL (the municipality's

@@ -1883,6 +1883,18 @@
     "boundary": "boundaries/san-jose.geojson"
   },
   {
+    "city": "Cupertino",
+    "streets": true,
+    "district": "Cupertino (whole municipality)",
+    "box": [
+      37.2785,
+      -122.0924,
+      37.3405,
+      -121.9957
+    ],
+    "boundary": "boundaries/cupertino.geojson"
+  },
+  {
     "city": "Thessalon\u00edki",
     "streets": true,
     "district": "Thessalon\u00edki (municipality)",
