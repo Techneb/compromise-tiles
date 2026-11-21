@@ -12,6 +12,12 @@ from builder.buildings_vector import bag3d, beoland, BUENOS_AIRES_TEJIDO, catast
 def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
     return dict(city=name, lat=lat, lon=lon, fetch=fetch, osm_on_error=osm_on_error, boundary=boundary, combine=combine)
 
+# Santa Clara County's 2020 lidar footprints (county-wide, no licence stated): Building_H is feet above
+# ground (houses 10–30, San Jose City Hall 285.6).
+santa_clara = lambda r: footprints(arcgis(
+    "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40", r, ["Building_H"]),
+    lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)
+
 USA_STRUCTURES = "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/USA_Structures_View/FeatureServer/0"
 
 CITY_BUILDINGS = [
@@ -323,11 +329,11 @@ CITY_BUILDINGS = [
     building_row("San José", (9.9005, 9.9658), (-84.1499, -84.0472), lambda r: footprints(arcgis(
         "https://services5.arcgis.com/0ZvuJDanWVJc4vYr/arcgis/rest/services/SIG_SER_3D_Edificaciones/FeatureServer/0", r,
         ["CantPisos"], where="PISO=1"), lambda p: from_floors(number(p.get("CantPisos")), 3.5))),
-    # Santa Clara County's 2020 lidar footprints (county-wide, no licence stated): Building_H is feet above
-    # ground (houses 10–30, City Hall 285.6). The box is San Jose's cities.json area.
-    building_row("San Jose", (37.1231, 37.4691), (-122.0463, -121.5858), lambda r: footprints(arcgis(
-        "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40", r, ["Building_H"]),
-        lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)),
+    # Cupertino (2026-11-21): the county's lidar below, held to the City's boundary and listed before San Jose's box,
+    # which overlaps it. The City's own Building Footprints (2011 base, BLDG_HEIGHT feet, sheds and pools among them,
+    # no licence stated) were surveyed; the county's 2020 lidar has a height on every footprint.
+    building_row("Cupertino", (37.2785, 37.3405), (-122.0924, -121.9957), boundary=boundary("cupertino"), fetch=santa_clara),
+    building_row("San Jose", (37.1231, 37.4691), (-122.0463, -121.5858), santa_clara),
     # Regione Liguria's region-wide NC5 3D footprints (CC BY 4.0; Torre Piacentini 99.9 m); where NC5
     # has nothing (Pegli, Voltri) the cell falls to OSM. The box is Genoa's cities.json area.
     building_row("Genoa", (44.371, 44.52), (8.6657, 9.0956), liguria),

@@ -312,6 +312,7 @@
 {"city": "Bratislava", "country": "Slovakia", "lat": 48.1482, "lon": 17.1067},
 {"city": "Sofia", "country": "Bulgaria", "lat": 42.6975, "lon": 23.3241},
 {"city": "San Jose", "country": "United States", "lat": 37.3394, "lon": -121.895},
+{"city": "Cupertino", "country": "United States", "lat": 37.323, "lon": -122.0322},
 {"city": "Thessaloníki", "country": "Greece", "lat": 40.6407, "lon": 22.9349},
 {"city": "Nuremberg", "country": "Germany", "lat": 49.4542, "lon": 11.0775},
 {"city": "San Diego", "country": "United States", "lat": 32.7157, "lon": -117.1647},
