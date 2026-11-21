@@ -1,5 +1,5 @@
 """Every request: retries, per-host spacing, the User-Agent, the IPv4-first connection, the log."""
-import gzip, io, json, os, shutil, socket, sys, time, urllib.error, urllib.parse, urllib.request
+import gzip, io, json, os, random, shutil, socket, sys, time, urllib.error, urllib.parse, urllib.request
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -112,7 +112,8 @@ def download(url, folder, max_days=6, headers=None):
     log(f"  downloading {url}")
     # Retried: parallel build jobs pull extracts at the same moment and Geofabrik answers some of
     # them 504 or hangs (2026-09-27, three of three jobs, two lost); a minute later it serves them.
-    for attempt, wait in enumerate((60, 120, 240, None)):
+    # About ten minutes in all, each wait jittered so jobs refused together do not ask again together (2026-11-21).
+    for attempt, wait in enumerate((60, 120, 180, 240, None)):
         try:
             request = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response, open(file + ".tmp", "wb") as f:
@@ -124,7 +125,8 @@ def download(url, folder, max_days=6, headers=None):
             break
         except Exception as e:  # noqa: BLE001 — the area's OSM layers fail, not the run
             if wait is None: raise SourceError(f"{url}: {type(e).__name__}: {e}") from e
-            log(f"  {url.rsplit('/', 1)[1]}: {type(e).__name__}: {e}; retry in {wait} s")
+            wait *= random.uniform(0.75, 1.25)
+            log(f"  {url.rsplit('/', 1)[1]}: {type(e).__name__}: {e}; retry in {wait:.0f} s")
             time.sleep(wait)
     os.replace(file + ".tmp", file)
     return file

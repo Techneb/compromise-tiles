@@ -8,10 +8,23 @@ GEOFABRIK = "https://download.geofabrik.de/index-v1.json"
 GRID = 100  # the in-memory index's buckets: 1/100°, ~1 km
 _regions = None
 # The store's copies of Geofabrik's files, at geofabrik/<its path> (store_key): tiles.yml copies up each one a job fetched
-# from Geofabrik. 2026-11-19/20: Geofabrik refused every connection from part of GitHub's runners (~170 city jobs lost,
-# the plan job's index among them); no public mirror serves Geofabrik's own files at its paths.
+# from Geofabrik, its mirror or the day before's. 2026-11-19/20: Geofabrik refused every connection from part of GitHub's
+# runners (~170 city jobs lost, the plan job's index among them).
 STORE_COPY = "https://tiles.alephb.uk/"
 STALE_COPY_DAYS = 30   # the oldest copy taken when Geofabrik refuses: a week-old extract beats a city with no tiles
+
+# openstreetmap.fr's extracts: the same ODbL OSM data, cut by its own region polygons, renewed every 1 to 4 days, and
+# about half our cities by name (2026-11-21: 74 of 191 extracts, 171 of 358 cities; no US state, Berlin, Baltics, Balkans).
+MIRROR = "https://download.openstreetmap.fr/extracts/"
+
+def mirror(url):
+    """openstreetmap.fr's copy of a Geofabrik extract: its path without the region's own folder, "_" for "-" below the
+    continent (europe/netherlands/zuid-holland/zuid-holland-latest → europe/netherlands/zuid_holland-latest); None for the index."""
+    *folders, name = urllib.parse.urlsplit(url).path.strip("/").split("/")
+    if not name.endswith("-latest.osm.pbf"): return None
+    if folders and name == folders[-1] + "-latest.osm.pbf": folders.pop()
+    continent, *rest = folders + [name.removesuffix("-latest.osm.pbf")]   # its continents keep the "-" (north-america/)
+    return MIRROR + "/".join([continent] + [part.replace("-", "_") for part in rest]) + "-latest.osm.pbf"
 
 def store_key(url): return "geofabrik/" + urllib.parse.urlsplit(url).path.lstrip("/")
 
@@ -43,9 +56,10 @@ def previous_extract(url):
     return location[:dated.start(1)] + day.strftime("%y%m%d") + ".osm.pbf"
 
 def geofabrik(url, folder, max_days=6):
-    """A Geofabrik file (the index or an extract) in `folder`, and where it came from: "disk", "store" or "geofabrik".
-    The store's copy from today first (Geofabrik asked once a day per file, not once per job), then Geofabrik (download()'s
-    backoff), then, Geofabrik refusing this runner, a copy up to STALE_COPY_DAYS old."""
+    """A Geofabrik file (the index or an extract) in `folder`, and where it came from: "disk", "store", "geofabrik" or
+    "mirror" (the last two copied up by tiles.yml). The store's copy from today first (Geofabrik asked once a day per file,
+    not once per job), then Geofabrik (download()'s backoff), then, Geofabrik failing, the day before's file, the mirror's,
+    and a store copy up to STALE_COPY_DAYS old."""
     file = os.path.join(folder, url.rsplit("/", 1)[1])
     if kept(file, max_days): return file, "disk"
     copy = STORE_COPY + store_key(url)
@@ -59,6 +73,12 @@ def geofabrik(url, folder, max_days=6):
                 os.replace(download(previous, folder, max_days), file)   # under the -latest name the build and the store expect
                 log(f"  {url.rsplit('/', 1)[1]}: not served yet, the day before's {previous.rsplit('/', 1)[1]}")
                 return file, "geofabrik"   # copied up: a day older than -latest, and a refused sibling's best
+            except SourceError: pass
+        if mirror(url):
+            try:
+                os.replace(download(mirror(url), folder, max_days), file)
+                log(f"  {url.rsplit('/', 1)[1]}: Geofabrik refused, openstreetmap.fr's copy")
+                return file, "mirror"
             except SourceError: pass
         age = copy_age(copy)   # asked again: a sibling job may have copied it up during the backoff (Leeds after Bradford, 2026-11-18)
         if age is None or age > STALE_COPY_DAYS: raise SourceError(f"{refused}; the store has no copy from the last {STALE_COPY_DAYS} days") from refused
