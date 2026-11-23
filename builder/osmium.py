@@ -16,6 +16,11 @@ STALE_COPY_DAYS = 30   # the oldest copy taken when Geofabrik refuses: a week-ol
 # openstreetmap.fr's extracts: the same ODbL OSM data, cut by its own region polygons, renewed every 1 to 4 days, and
 # about half our cities by name (2026-11-21: 74 of 191 extracts, 171 of 358 cities; no US state, Berlin, Baltics, Balkans).
 MIRROR = "https://download.openstreetmap.fr/extracts/"
+# The regions openstreetmap.fr names in their own language (its europe/spain/ listing, 2026-11-23), by Geofabrik's path.
+MIRROR_NAMES = {"europe/spain/cataluna": "catalunya", "europe/spain/islas_baleares": "illes_balears",
+                "europe/spain/madrid": "comunidad_de_madrid", "europe/spain/murcia": "region_de_murcia",
+                "europe/spain/navarra": "comunidad_foral_de_navarra", "europe/spain/pais_vasco": "euskadi",
+                "europe/spain/valencia": "comunitat_valenciana"}
 
 def mirror(url):
     """openstreetmap.fr's copy of a Geofabrik extract: its path without the region's own folder, "_" for "-" below the
@@ -24,7 +29,9 @@ def mirror(url):
     if not name.endswith("-latest.osm.pbf"): return None
     if folders and name == folders[-1] + "-latest.osm.pbf": folders.pop()
     continent, *rest = folders + [name.removesuffix("-latest.osm.pbf")]   # its continents keep the "-" (north-america/)
-    return MIRROR + "/".join([continent] + [part.replace("-", "_") for part in rest]) + "-latest.osm.pbf"
+    parts = [continent] + [part.replace("-", "_") for part in rest]
+    parts[-1] = MIRROR_NAMES.get("/".join(parts), parts[-1])
+    return MIRROR + "/".join(parts) + "-latest.osm.pbf"
 
 def store_key(url): return "geofabrik/" + urllib.parse.urlsplit(url).path.lstrip("/")
 

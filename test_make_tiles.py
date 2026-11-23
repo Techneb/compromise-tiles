@@ -57,6 +57,11 @@ assert permits(donostia, (43.31, -1.96, 43.32, -1.95)) == [
     {"kind": "TERRASSE", "coordinate": {"latitude": 43.312719267068616, "longitude": -1.958171550804368}, "name": "ADI TABERNA"}]
 assert asked == ["https://raw.githubusercontent.com/Techneb/compromise-tiles/master/permits/san-sebastian.geojson"], asked
 assert "donostia.eus" not in str(donostia), "www.donostia.eus resolves to 0.0.0.0 on GitHub's runners"
+from builder.area_sources import AREA_SOURCES
+# Its auzoak too: the copy in areas/ (the closure's URL read, as shapely is not needed here).
+auzoak = next(a for a in AREA_SOURCES if a["city"] == "San Sebastián")["fetch"]
+assert "https://raw.githubusercontent.com/Techneb/compromise-tiles/master/areas/san-sebastian.geojson" in \
+    [c.cell_contents for c in auzoak.__closure__], auzoak.__closure__
 patch(get=real_get)
 # Gipuzkoa's INSPIRE GML (the feed's shape, trimmed): heightAboveGround, else floors × 3 m when it reads 0, else 15 m.
 def member(height, floors, ring):
@@ -1969,6 +1974,8 @@ assert osmium.mirror("https://download.geofabrik.de/europe/turkey/turkey-latest.
     == "https://download.openstreetmap.fr/extracts/europe/turkey-latest.osm.pbf"
 assert osmium.mirror("https://download.geofabrik.de/north-america/canada/nova-scotia/nova-scotia-latest.osm.pbf") \
     == "https://download.openstreetmap.fr/extracts/north-america/canada/nova_scotia-latest.osm.pbf"
+assert osmium.mirror("https://download.geofabrik.de/europe/spain/pais-vasco/pais-vasco-latest.osm.pbf") \
+    == osmium.MIRROR + "europe/spain/euskadi-latest.osm.pbf"   # openstreetmap.fr names it in Basque
 assert osmium.mirror(osmium.GEOFABRIK) is None   # the index: Geofabrik's own
 def fetched_mirror(served):
     asked, real = [], (osmium.download, osmium.copy_age, osmium.previous_extract)
