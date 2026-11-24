@@ -45,16 +45,19 @@ def on_grid(name, grids, e0, n0, size):
         raise SourceError(f"{name}: chunk {e0},{n0} came back on another grid ({[g[:4] for g in grids]})")
 
 def placed(name, grid, e0, n0, size):
-    """A grid cut short inside its chunk (a coastal tile, the sea's rows or columns left out) set where its corner says,
-    the rest no data; a whole one as it is."""
+    """A grid set on its chunk where its corner says, the rest no data: a coastal tile cut short (the sea's rows or
+    columns left out), or one reaching past the chunk (its overlap kept). A corner within 0.1 m of the metre is the
+    metre's; one further off is on another grid."""
     west, north, width, height, values = grid
     x0, y0 = west - e0, n0 + size - north
-    if (x0, y0, width, height) == (0, 0, size, size): return grid
-    if x0 != int(x0) or y0 != int(y0) or x0 < 0 or y0 < 0 or x0 + width > size or y0 + height > size:
+    if abs(x0 - round(x0)) > 0.1 or abs(y0 - round(y0)) > 0.1:
         raise SourceError(f"{name}: chunk {e0},{n0} came back on another grid ({grid[:4]})")
-    x0, y0 = int(x0), int(y0)
+    x0, y0 = round(x0), round(y0)
+    if (x0, y0, width, height) == (0, 0, size, size): return e0, n0 + size, size, size, values
     out = array.array("f", [float("-inf")]) * (size * size)
-    for r in range(height): out[(y0 + r) * size + x0:(y0 + r) * size + x0 + width] = values[r * width:(r + 1) * width]
+    a, b = max(0, x0), min(size, x0 + width)
+    for r in range(max(0, y0), min(size, y0 + height)):
+        if a < b: out[r * size + a:r * size + b] = values[(r - y0) * width + a - x0:(r - y0) * width + b - x0]
     return e0, n0 + size, size, size, out
 
 def surface_less_ground(surface, ground, nodata=-1e30):
