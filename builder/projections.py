@@ -66,10 +66,10 @@ def wgs84_to_lambert72(lat, lon):
 
 def wkt_projection(prj):
     """A .prj's coordinates: None for longitude/latitude, else its Transverse Mercator as tm_constants() gives it. The
-    datum must be within a metre of WGS84 (ETRS89, RDN2008, POSGAR, SIRGAS: realisations of the same frame, which drift
+    datum must be within a metre of WGS84 (ETRS89, RDN2008 or Rete Dinamica Nazionale 2008, POSGAR, SIRGAS: realisations of the same frame, which drift
     apart by under 1 m in 2026); any other (Monte Mario, ED50, a local datum) is refused rather than misplaced."""
     datum = re.search(r'DATUM\["([^"]+)"', prj)
-    if not datum or not re.search(r"WGS.?(19)?84|ETRS.?(19)?89|ETRF|RDN.?2008|POSGAR|SIRGAS", datum[1], re.I):
+    if not datum or not re.search(r"WGS.?(19)?84|ETRS.?(19)?89|ETRF|RDN.?2008|Rete.Dinamica.Nazionale.2008|POSGAR|SIRGAS", datum[1], re.I):
         raise SourceError(f"datum {datum[1] if datum else '?'}: not one within a metre of WGS84")
     if not prj.lstrip().startswith("PROJCS"): return None
     if not re.search(r'PROJECTION\["Transverse_Mercator"\]', prj, re.I): raise SourceError("a projection other than Transverse Mercator")

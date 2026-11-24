@@ -700,10 +700,12 @@ assert got[0]["outline"][0] == {"latitude": 4.667134, "longitude": -74.055497}
 assert asked[0].startswith("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/construccion/MapServer/0/query?")
 assert "OBJECTID>-1" in asked[0] and "outFields=OBJECTID,CONNPISOS" in asked[0] and "geometry=-74.056,4.666,-74.054,4.668" in asked[0]
 patch(get=real_get)
-# Each held to its boundary. Toronto: King West and York University are in, Mississauga sits in the box and is not, the
-# VMC stays Vaughan's (its row comes first). Montréal: Berri-UQAM and Westmount (a ville liée the file covers) are in,
+# Each held to its boundary. Toronto: King West and York University are in, Mississauga sits in the box and is not (it
+# is its own row's, Square One), the VMC stays Vaughan's (its row comes first); Brampton, in Mississauga's box, is OSM. Montréal: Berri-UQAM and Westmount (a ville liée the file covers) are in,
 # Pont-Viau (Laval, in the file and the box) and Longueuil are not. Bogotá: Zona T.
-assert at(43.6450, -79.3950) == "Toronto" and at(43.7735, -79.5019) == "Toronto" and at(43.5940, -79.6430) == "OSM"
+assert at(43.6450, -79.3950) == "Toronto" and at(43.7735, -79.5019) == "Toronto" and at(43.5940, -79.6430) == "Mississauga"
+assert at(43.7300, -79.7600) == "OSM" and at(43.5520, -79.5870) == "Mississauga"   # Brampton; Port Credit
+assert at(38.1200, 13.3571) == "Palermo" and at(38.0819, 13.2894) == "OSM"   # Teatro Massimo; Monreale
 assert at(43.7970, -79.5290) == "Vaughan"
 assert at(45.5150, -73.5650) == "Montréal" and at(45.4840, -73.5960) == "Montréal"
 assert at(45.5670, -73.6750) == "OSM" and at(45.5350, -73.5100) == "OSM"
@@ -944,7 +946,12 @@ except SourceError: pass
 # one volume with a hole, which is left out) and an underpass volume whose building has no ground volume in the fixture
 # (UN_VOL_AV stays); Buenos Aires' Tejido Urbano, two Retiro volumes, a sliver under 1 m², the Alvear Tower and the 830 m
 # outlier (the guess).
-served = {make_tiles.MILAN_DBT: "milan-dbt.zip", make_tiles.LAZIO_DBGT: "rome-dbgt.zip", make_tiles.BUENOS_AIRES_TEJIDO: "buenos-aires-tejido.zip"}
+# Palermo's Unità volumetriche, the Teatro Massimo's main volume, the Palazzo dei Normanni's tower and the 204.1 m outlier
+# (the guess). Mississauga's Tile 72: Absolute World's towers (one solid each, on podiums), a solid with a vertex at
+# z 0 (its base is BASEELEV), a gabled house (no flat roof: its outline at its ridge) and a Proposed one, left out.
+MISSISSAUGA_72 = f"https://www.arcgis.com/sharing/rest/content/items/{make_tiles.MISSISSAUGA_ITEMS[72]}/data"
+served = {make_tiles.MILAN_DBT: "milan-dbt.zip", make_tiles.LAZIO_DBGT: "rome-dbgt.zip", make_tiles.BUENOS_AIRES_TEJIDO: "buenos-aires-tejido.zip",
+          make_tiles.PALERMO_CTC: "palermo-ctc.zip", MISSISSAUGA_72: "mississauga-tile72.zip"}
 served = {url: open(f"fixtures/{name}", "rb").read() for url, name in served.items()}
 ranges, tokens = [], []
 def fake_request(self, start, end):
@@ -952,6 +959,10 @@ def fake_request(self, start, end):
     body = served[self.url]
     return body[start:end + 1], f"bytes {start}-{min(end, len(body) - 1)}/{len(body)}"
 def fake_get(url, data=None, parse=None, **k):
+    if url.startswith(make_tiles.MISSISSAUGA_INDEX):   # tile 72's box, the only tile
+        ring = [[-79.66, 43.58], [-79.60, 43.58], [-79.60, 43.61], [-79.66, 43.61], [-79.66, 43.58]]
+        return parse(json.dumps({"features": [{"properties": {"OBJECTID_1": 10, "TileNum": 72},
+                                               "geometry": {"type": "Polygon", "coordinates": [ring]}}]}).encode())
     tokens.append((url, data))
     return b"eyJ.eyJ.sig\n"
 real_request, real_get = make_tiles.Ranged.request, make_tiles.get
@@ -975,13 +986,23 @@ with tempfile.TemporaryDirectory() as d:
         assert rows["Buenos Aires"]((-34.584935, -58.378910, -34.584905, -58.378885)) == []   # a 5.5 m sliver of 0.1 m², left out
         assert heights(rows["Buenos Aires"]((-34.6560, -58.3958, -34.6553, -58.3950))) == [(15.0, True)]   # 830 m: the guess
         assert heights(rows["Buenos Aires"]((-34.6126, -58.3606, -34.6122, -58.3600))) == [(221.4, None)]
+        assert heights(rows["Palermo"]((38.1198, 13.3569, 38.1202, 13.3573))) == [(46.6, None)]   # Teatro Massimo
+        assert heights(rows["Palermo"]((38.1112, 13.3530, 38.1115, 13.3533))) == [(41.0, None)]   # Palazzo dei Normanni
+        assert heights(rows["Palermo"]((38.1503, 13.3702, 38.1506, 13.3706))) == [(15.0, True)]   # 204.1 m: the guess
+        # Absolute World: 60 Absolute Ave's two flat roofs, 4033 Hurontario St's tower and its podium's two levels.
+        assert heights(rows["Mississauga"]((43.5935, -79.6375, 43.5955, -79.6340))) == \
+            [(10.1, None), (14.1, None), (162.1, None), (169.3, None), (179.3, None)]
+        assert heights(rows["Mississauga"]((43.5836, -79.6190, 43.5839, -79.6186))) == [(15.2, None)]   # a z 0 vertex
+        assert heights(rows["Mississauga"]((43.5972, -79.6115, 43.5975, -79.6111))) == [(4.8, None)]    # gabled
+        assert rows["Mississauga"]((43.5857, -79.6201, 43.5861, -79.6197)) == []                        # Proposed
+        assert sorted(os.listdir("extracts/shapefile/mississauga")) == ["Tile72.dbf", "Tile72.prj", "Tile72.shp", "Tile72.shx"]
         asked = len(ranges)
         make_tiles._shapefiles.clear()   # a new run: the members kept on disk are read again, not fetched
         assert heights(rows["Buenos Aires"]((-34.5856, -58.3794, -34.5850, -58.3786))) == [(2.3, None), (14.2, None)] and len(ranges) == asked
     finally:
         os.chdir(here)
         make_tiles.Ranged.request = real_request; patch(get=real_get)
-        make_tiles._shapefiles.clear()
+        make_tiles._shapefiles.clear(); make_tiles._mississauga.clear()
 # A server answering a range with the whole file is refused, not read as the zip's tail.
 class Whole:
     status, headers = 200, {}

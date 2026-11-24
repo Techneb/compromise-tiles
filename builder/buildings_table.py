@@ -6,6 +6,7 @@ from builder.formats import geopackage, shapefile
 from builder.extract import osm_buildings
 from builder.apis import arcgis, in_bbox, intersects, opendatasoft, socrata, wfs
 from builder.buildings_citygml import citygml_archive, citygml_tiles, espoo, estonia_lod1_buildings, gipuzkoa, hamburg, lod1_archive, plateau
+from builder.buildings_vector import mississauga, PALERMO_CTC
 from builder.buildings_measured import lidar, seattle, virginia_beach, yarra
 from builder.buildings_vector import bag3d, beoland, BUENOS_AIRES_TEJIDO, catastro, DBT_FIELDS, dbt_height, ign_buildings, LAZIO_DBGT, lazio_token, liguria, MILAN_DBT, NRCAN_GTA, NRCAN_HALIFAX, NRCAN_HAMILTON, NRCAN_LAKE_ERIE, NRCAN_MONTREAL, NRCAN_QUEBEC, NRCAN_WINNIPEG, oakland, socrata_buildings, turin, urbis
 
@@ -410,6 +411,12 @@ CITY_BUILDINGS = [
     building_row("Leeds", (53.6989, 53.9459), (-1.8005, -1.2903), boundary=boundary("leeds"), combine="metres", fetch=lidar),
     building_row("Liverpool", (53.3268, 53.475), (-3.0088, -2.818), boundary=boundary("liverpool-ons"), combine="metres", fetch=lidar),
     building_row("Sheffield", (53.3045, 53.5032), (-1.8015, -1.3245), boundary=boundary("sheffield"), combine="metres", fetch=lidar),
+    # Wired 2026-11-24 (the heights survey of that day). Mississauga: the City's LoD2 3D Massing Model (30 tiles; City of
+    # Mississauga Terms of Use, any lawful purpose, the Terms' URL passed on), its Existing solids as LoD1 prisms
+    # (massing_prisms): Absolute World's towers read 179.3 and 162.1 m (published 176 and 158). NRCan's GTA file has
+    # no footprint in central Mississauga (Square One, Port Credit). The box is the city's tiled area (cities.json),
+    # held to the City (mississauga.geojson); before Toronto's box, which it overlaps.
+    building_row("Mississauga", (43.4789, 43.7371), (-79.8104, -79.5385), boundary=boundary("mississauga"), fetch=mississauga),
     # Wired 2026-10-05 (the heights survey of 2026-10-04). Toronto: Vaughan's GTA GeoPackage again (heightmax on all
     # 928,813 footprints; one download serves both rows), the box the City's boundary's and held to it (toronto.geojson,
     # the permit row's): York University is in, Mississauga, Markham and Pickering stay OSM. After Vaughan, whose box
@@ -439,6 +446,14 @@ CITY_BUILDINGS = [
     # Konohana-ku) and the old core's cells past the city line (Higashiōsaka, Moriguchi) have no file and fall to OSM.
     building_row("Tokyo", (35.5209, 35.8175), (139.5629, 139.9189), plateau([f"131{k:02d}" for k in range(1, 24)])),
     building_row("Osaka", (34.5861, 34.7689), (135.3434, 135.602), plateau(["27100"])),
+    # Wired 2026-11-24 (the heights survey of that day). Palermo: the Comune's Carta Tecnica Comunale, Unità volumetriche
+    # (CC BY 4.0; 2021; RDN2008 / UTM 33N), 100,432 volumes: ALTEZZA, metres from the volume's foot to its eaves (the
+    # Teatro Massimo's 46.6, the Palazzo dei Normanni's tower 41.0). Three volumes of under 100 m² read 93, 127.5 and
+    # 204.1 m, over the city's tallest (71.1): over 80 is the flagged guess. The box is the city's tiled area (cities.json),
+    # held to the Comune (palermo.geojson): the neighbouring comuni stay OSM.
+    building_row("Palermo", (38.0499, 38.2246), (13.2422, 13.4521), boundary=boundary("palermo"),
+                 fetch=shapefile(PALERMO_CTC, "VOLUMETRIE_7792", "palermo", ("ALTEZZA",),
+                                 lambda p, f: p["ALTEZZA"] if p["ALTEZZA"] and p["ALTEZZA"] <= 80 else None)),
     # Wired 2026-10-05 (the heights survey of 2026-10-04): three zipped Shapefiles (shapefile()), each box the city's
     # tiled area (cities.json), held to the municipality its file covers. Buenos Aires: Tejido Urbano (Subsecretaría de
     # Planeamiento, data to 2021, CC BY 2.5 AR; WGS84): altura, metres, on all 1,386,616 volumes; two read 280 and

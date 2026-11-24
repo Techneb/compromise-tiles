@@ -277,6 +277,11 @@ none, this says so rather than guessing.
 - Milan: Comune di Milano, Database Topografico (DBT) 2020, CC BY 4.0.
 - Rome: Regione Lazio, Database Geotopografico (DBGT) 2020, Roma. Fonte:
   Regione Lazio.
+- Palermo: Comune di Palermo, Carta Tecnica Comunale – Unità volumetriche,
+  CC BY 4.0.
+- Mississauga: City of Mississauga, 3D Massing Model (LOD2), used under the
+  City of Mississauga Terms of Use:
+  https://mississauga.maps.arcgis.com/sharing/rest/content/items/961c790805c14d8da258ec91bf4117e3/data
 - Düsseldorf, Essen, Dortmund, Wuppertal, Duisburg, Bochum, Bielefeld, Bonn, Cologne: Geobasis
   NRW, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
   Zero – Version 2.0).
