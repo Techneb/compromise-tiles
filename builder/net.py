@@ -1,5 +1,5 @@
 """Every request: retries, per-host spacing, the User-Agent, the IPv4-first connection, the log."""
-import gzip, io, json, os, random, shutil, socket, sys, time, urllib.error, urllib.parse, urllib.request
+import gzip, io, json, os, random, shutil, socket, ssl, sys, time, urllib.error, urllib.parse, urllib.request
 
 UA = "compromise-tiles/2.0 (+https://github.com/Techneb/compromise; sunny-terrace tile generator)"
 WAITS = (10, 30, 90)          # seconds before the 2nd, 3rd and 4th try
@@ -97,6 +97,14 @@ def get(url, data=None, parse=None, waits=WAITS, context=None, headers=None):
     raise SourceError(f"{host}: {error}")
 
 def get_json(url, data=None, waits=WAITS): return get(url, data, parse=json.loads, waits=waits)
+
+def with_intermediate(certificate_url):
+    """A TLS context for a server that sends its certificate without the intermediate: the intermediate added,
+    fetched from the URL the certificate names (its AIA link), so verification can complete. Nothing is trusted
+    that a browser following that link would not trust."""
+    context = ssl.create_default_context()
+    context.load_verify_locations(cadata=get(certificate_url))
+    return context
 
 def kept(file, max_days):
     """The file is on disk and younger than `max_days`."""

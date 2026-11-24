@@ -1,8 +1,8 @@
 """Building heights measured from elevation: lidar and other heights grids (London, Washington DC, Naples), USGS ground,
 Seattle, Virginia Beach, Yarra's meshes."""
-import array, math, os
+import array, json, math, os
 from builder.cells import padded
-from builder.net import download, get, get_json, SourceError
+from builder.net import download, get, SourceError, with_intermediate
 from builder.projections import bng, lcc, wgs84_to_tm, wgs84_to_utm
 from builder.shapes import building, number, outer_rings
 from builder.formats import esri_ascii, geotiff, mesh_faces
@@ -120,13 +120,15 @@ washington_dc = on_osm(dc_height)
 
 # The Città Metropolitana di Napoli's 2009 LiDAR (its SIT; no licence stated): a DSM and a DTM, 1 m Esri ASCII grids
 # in WGS84 / UTM 33N, 500 m tiles laid from 327 E, 244 N over Naples (the province's other two grids lie off the
-# city). Each layer's WFS tile index gives a tile's URL by its corner; the two layers number their tiles apart.
+# city). Each layer's WFS tile index gives a tile's URL by its corner; the two layers number their tiles apart. The
+# server sends its certificate without Sectigo's intermediate.
 NAPLES_INDEX = ("https://sit.cittametropolitana.na.it/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature"
                 "&typeNames=sit:quadro_unione_lidar_{}&propertyName=geom,url&outputFormat=application/json")
 NAPLES_TILE = 500
+NAPLES_INTERMEDIATE = "http://crt.sectigo.com/SectigoPublicServerAuthenticationCADVR36.crt"
 NAPLES_ORIGIN = (327, 244)
 NAPLES_KEPT = 256    # chunks held (0.5 MB each)
-_naples, _naples_index = {}, {}
+_naples, _naples_index = {}, {}   # _naples_index also holds the TLS context
 
 def tile_index(collection):
     """A tile index's URLs by each tile's south-west corner, rounded to the metre (the grids' own corners)."""
@@ -138,9 +140,11 @@ def tile_index(collection):
 
 def naples_tile(kind, e0, n0):
     """One tile of the DSM or the DTM, None where the survey has none."""
-    if kind not in _naples_index: _naples_index[kind] = tile_index(get_json(NAPLES_INDEX.format(kind)))
+    if "tls" not in _naples_index: _naples_index["tls"] = with_intermediate(NAPLES_INTERMEDIATE)
+    if kind not in _naples_index:
+        _naples_index[kind] = tile_index(get(NAPLES_INDEX.format(kind), parse=json.loads, context=_naples_index["tls"]))
     url = _naples_index[kind].get((e0, n0))
-    return url and get(url, parse=esri_ascii)
+    return url and get(url, parse=esri_ascii, context=_naples_index["tls"])
 
 def naples_chunk(e0, n0):
     def read():

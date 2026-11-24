@@ -1,7 +1,7 @@
 """Terrace permit feeds: fetching, cleaning names, matching them to OpenStreetMap's venues."""
-import csv, datetime, io, json, math, re, ssl, time, urllib.error, urllib.parse, urllib.request, zoneinfo
+import csv, datetime, io, json, math, re, time, urllib.error, urllib.parse, urllib.request, zoneinfo
 from builder.cells import COARSE, in_feed, index, metres, padded
-from builder.net import get, get_json, keyed_host, log, redact, SourceError
+from builder.net import get, get_json, keyed_host, log, redact, SourceError, with_intermediate
 from builder.projections import mercator_to_wgs84, rd_new_to_wgs84, utm_to_wgs84
 from builder.shapes import number
 from builder.names import folded, MATCH_REACH, names_match, normalised_name
@@ -188,17 +188,9 @@ def madrid_all(c):
     if not out: raise SourceError("Madrid: no terrace parsed")  # a changed header must not read as "no terraces"
     return out
 
-def fnmt_context():
-    """Seville's server sends its certificate without the intermediate: add FNMT's own
-    (fetched from the URL the certificate names) so verification can complete. Nothing is
-    trusted that a browser following the AIA link would not trust."""
-    context = ssl.create_default_context()
-    context.load_verify_locations(cadata=get("https://www.cert.fnmt.es/certs/ACCOMP.crt"))
-    return context
-
 def seville_all(c):
     """Seville GeoJSON: a frontage line at its mean vertex; a permit past its end date dropped."""
-    root = get(f"https://{c['host']}/{c['dataset']}", parse=json.loads, context=fnmt_context())
+    root = get(f"https://{c['host']}/{c['dataset']}", parse=json.loads, context=with_intermediate("https://www.cert.fnmt.es/certs/ACCOMP.crt"))  # Seville's server
     today = datetime.datetime.now(zoneinfo.ZoneInfo("Europe/Madrid")).date()
     out = []
     for f in root.get("features") or []:
