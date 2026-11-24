@@ -164,6 +164,12 @@ assert round(mt.naples_height(square_m(40.8384, 14.2525, 10)), 1) == 29.8
 assert mt.naples_height(square_m(40.8300, 14.2525, 10)) is None
 assert at(40.8384, 14.2525) == "Naples" and at(40.9000, 14.3500) == "OSM"   # Casalnuovo, inside the box
 assert next(b for b in mt.CITY_BUILDINGS if b["city"] == "Naples")["fetch"] is mt.naples
+# A coastal tile is cut short (the sea's rows and columns left out): it lands where its corner says, the rest no data.
+cut = lambda w, h, north: (436935.0, float(north), w, h, mt.array.array("f", [12.0] * (w * h)))
+assert list(mt.placed("t", cut(2, 1, 4521073), 436935, 4521072, 4)[4]) == [float("-inf")] * 4 * 3 + [12.0, 12.0, float("-inf"), float("-inf")]
+assert mt.placed("t", cut(4, 4, 4521076), 436935, 4521072, 4) == cut(4, 4, 4521076)
+try: mt.placed("t", cut(2, 2, 4521077), 436935, 4521072, 4); raise AssertionError("a tile past its chunk")
+except mt.SourceError: pass
 # The tile index: each tile's URL by its south-west corner on the metre grid (the WFS's corners are off by under 0.5 m).
 ring = [[436827.17, 4520744.46], [437327.17, 4520744.46], [437327.17, 4521244.46], [436827.17, 4521244.46], [436827.17, 4520744.46]]
 assert mt.tile_index({"features": [{"geometry": {"type": "MultiPolygon", "coordinates": [[ring]]}, "properties": {"url": "https://x/1.asc   "}}]}) \

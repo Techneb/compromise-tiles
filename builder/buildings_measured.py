@@ -44,6 +44,19 @@ def on_grid(name, grids, e0, n0, size):
     if any(g[:4] != (e0, n0 + size, size, size) for g in grids):
         raise SourceError(f"{name}: chunk {e0},{n0} came back on another grid ({[g[:4] for g in grids]})")
 
+def placed(name, grid, e0, n0, size):
+    """A grid cut short inside its chunk (a coastal tile, the sea's rows or columns left out) set where its corner says,
+    the rest no data; a whole one as it is."""
+    west, north, width, height, values = grid
+    x0, y0 = west - e0, n0 + size - north
+    if (x0, y0, width, height) == (0, 0, size, size): return grid
+    if x0 != int(x0) or y0 != int(y0) or x0 < 0 or y0 < 0 or x0 + width > size or y0 + height > size:
+        raise SourceError(f"{name}: chunk {e0},{n0} came back on another grid ({grid[:4]})")
+    x0, y0 = int(x0), int(y0)
+    out = array.array("f", [float("-inf")]) * (size * size)
+    for r in range(height): out[(y0 + r) * size + x0:(y0 + r) * size + x0 + width] = values[r * width:(r + 1) * width]
+    return e0, n0 + size, size, size, out
+
 def surface_less_ground(surface, ground, nodata=-1e30):
     return decimetres(None if a <= nodata or g <= nodata else a - g for a, g in zip(surface[4], ground[4]))
 
@@ -203,8 +216,7 @@ def naples_chunk(e0, n0):
     def read():
         surface, ground = naples_tile("dsm", e0, n0), naples_tile("dtm", e0, n0)
         if not surface or not ground: return array.array("h", [VOID]) * (NAPLES_TILE * NAPLES_TILE)
-        on_grid("Naples lidar", (surface, ground), e0, n0, NAPLES_TILE)
-        return surface_less_ground(surface, ground)
+        return surface_less_ground(*(placed("Naples lidar", g, e0, n0, NAPLES_TILE) for g in (surface, ground)))
     return kept(_naples, (e0, n0), read, NAPLES_KEPT)
 
 def naples_height(outline):
