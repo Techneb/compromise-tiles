@@ -7,7 +7,7 @@ from builder.extract import osm_buildings
 from builder.apis import arcgis, in_bbox, intersects, opendatasoft, socrata, wfs
 from builder.buildings_citygml import citygml_archive, citygml_tiles, espoo, estonia_lod1_buildings, gipuzkoa, hamburg, lod1_archive, plateau
 from builder.buildings_vector import mississauga, PALERMO_CTC
-from builder.buildings_measured import lidar, seattle, virginia_beach, yarra
+from builder.buildings_measured import lidar, naples, seattle, virginia_beach, washington_dc, yarra
 from builder.buildings_vector import bag3d, beoland, BUENOS_AIRES_TEJIDO, catastro, DBT_FIELDS, dbt_height, ign_buildings, LAZIO_DBGT, lazio_token, liguria, MILAN_DBT, NRCAN_GTA, NRCAN_HALIFAX, NRCAN_HAMILTON, NRCAN_LAKE_ERIE, NRCAN_MONTREAL, NRCAN_QUEBEC, NRCAN_WINNIPEG, oakland, socrata_buildings, turin, urbis
 
 def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
@@ -417,6 +417,13 @@ CITY_BUILDINGS = [
     # no footprint in central Mississauga (Square One, Port Credit). The box is the city's tiled area (cities.json),
     # held to the City (mississauga.geojson); before Toronto's box, which it overlaps.
     building_row("Mississauga", (43.4789, 43.7371), (-79.8104, -79.5385), boundary=boundary("mississauga"), fetch=mississauga),
+    # Wired 2026-11-24 (OVERTURE_HEIGHTS.md, the four cities' own portals): London's rule on two more heights grids.
+    # Washington DC: DC GIS's 2024 LiDAR nDSM (CC0 1.0), height above ground. Naples: the Città Metropolitana di
+    # Napoli's 2009 LiDAR, DSM minus DTM (no licence stated: credited to the publisher). Each combined with OSM's
+    # footprints and held to its municipal boundary (the tiled area's).
+    building_row("Washington DC", (38.7916, 38.996), (-77.1198, -76.9093), boundary=boundary("washington-dc"), combine="metres",
+                 fetch=washington_dc),
+    building_row("Naples", (40.7912, 40.9162), (14.1321, 14.3538), boundary=boundary("naples"), combine="metres", fetch=naples),
     # Wired 2026-10-05 (the heights survey of 2026-10-04). Toronto: Vaughan's GTA GeoPackage again (heightmax on all
     # 928,813 footprints; one download serves both rows), the box the City's boundary's and held to it (toronto.geojson,
     # the permit row's): York University is in, Mississauga, Markham and Pickering stay OSM. After Vaughan, whose box

@@ -1,10 +1,11 @@
-"""Building heights measured from elevation: lidar, USGS ground, Seattle, Virginia Beach, Yarra's meshes."""
+"""Building heights measured from elevation: lidar and other heights grids (London, Washington DC, Naples), USGS ground,
+Seattle, Virginia Beach, Yarra's meshes."""
 import array, math, os
 from builder.cells import padded
-from builder.net import download, get, SourceError
-from builder.projections import bng, wgs84_to_tm
+from builder.net import download, get, get_json, SourceError
+from builder.projections import bng, lcc, wgs84_to_tm, wgs84_to_utm
 from builder.shapes import building, number, outer_rings
-from builder.formats import geotiff, mesh_faces
+from builder.formats import esri_ascii, geotiff, mesh_faces
 from builder.extract import osm_buildings
 from builder.apis import arcgis
 
@@ -24,38 +25,59 @@ def lidar_tiff(kind, e0, n0, e1, n1):
     """One window of the DSM or the DTM, parsed inside the retry: a truncated or XML answer is asked again."""
     return get(LIDAR_WCS.format(*LIDAR[kind], e0, e1, n0, n1), parse=geotiff)
 
+def kept(cache, key, read, most):
+    """`read()`'s answer for `key`, held in `cache` (the most recent last), the oldest dropped past `most`."""
+    if key in cache:
+        cache[key] = cache.pop(key)
+        return cache[key]
+    cache[key] = value = read()
+    while len(cache) > most: del cache[next(iter(cache))]
+    return value
+
+def decimetres(heights):
+    """Heights above ground in metres (None where the source has none) as a chunk: array('h') of decimetres, VOID
+    where None or within 0.5 m of the ground (ground, or a void the source filled from it)."""
+    return array.array("h", (VOID if h is None or abs(h) < 0.5 else max(-32767, min(32767, round(h * 10))) for h in heights))
+
+def on_grid(name, grids, e0, n0, size):
+    """Every grid (geotiff()'s or esri_ascii()'s answer) on the chunk's own: no resampling, one pixel a metre."""
+    if any(g[:4] != (e0, n0 + size, size, size) for g in grids):
+        raise SourceError(f"{name}: chunk {e0},{n0} came back on another grid ({[g[:4] for g in grids]})")
+
+def surface_less_ground(surface, ground):
+    return decimetres(None if a < -1e30 or g < -1e30 else a - g for a, g in zip(surface[4], ground[4]))
+
 def lidar_chunk(e0, n0):
     """Heights above ground in one chunk, decimetres: DSM (first return) minus DTM. VOID where either has no data or
     the two are within 0.5 m: ground, or a void the composite filled from the DTM — dark glass returns nothing, and
     30 St Mary Axe reads under 0.5 m over most of its footprint (its 90th percentile 180.3 m with them left out)."""
-    if (e0, n0) in _lidar:
-        _lidar[(e0, n0)] = _lidar.pop((e0, n0))  # the most recent last
-        return _lidar[(e0, n0)]
-    surface, ground = (lidar_tiff(k, e0, n0, e0 + LIDAR_CHUNK, n0 + LIDAR_CHUNK) for k in ("dsm", "dtm"))
-    if surface[:4] != ground[:4] or surface[:4] != (e0, n0 + LIDAR_CHUNK, LIDAR_CHUNK, LIDAR_CHUNK):
-        raise SourceError(f"lidar: chunk {e0},{n0} came back on another grid ({surface[:4]}, {ground[:4]})")
-    heights = array.array("h", (VOID if a < -1e30 or g < -1e30 or abs(a - g) < 0.5 else max(-32767, min(32767, round((a - g) * 10)))
-                          for a, g in zip(surface[4], ground[4])))
-    _lidar[(e0, n0)] = heights
-    while len(_lidar) > LIDAR_KEPT: del _lidar[next(iter(_lidar))]
-    return heights
+    def read():
+        surface, ground = (lidar_tiff(k, e0, n0, e0 + LIDAR_CHUNK, n0 + LIDAR_CHUNK) for k in ("dsm", "dtm"))
+        on_grid("lidar", (surface, ground), e0, n0, LIDAR_CHUNK)
+        return surface_less_ground(surface, ground)
+    return kept(_lidar, (e0, n0), read, LIDAR_KEPT)
 
-def lidar_height(outline):
-    """The lidar's height for one footprint: the 90th percentile of the heights of the 1 m pixels whose centre it
-    holds (the maximum is a mast or a spire, the median half a pitched roof), ground and void pixels left out. None
-    under 4 pixels, or under 2 m: a building the survey saw as ground was built after it."""
-    ring = [bng(p["latitude"], p["longitude"]) for p in outline]
+def pixel_centres(ring):
+    """The 1 m pixels whose centre the ring (grid metres) holds, each as its south-west corner (east, north), row by row."""
     edges = list(zip(ring, ring[1:] + ring[:1]))
-    heights, at, chunk = [], None, None
     for north in range(math.floor(min(y for _, y in ring)), math.ceil(max(y for _, y in ring))):
         y = north + 0.5
         xs = sorted(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]) for a, b in edges if (a[1] > y) != (b[1] > y))
         for x0, x1 in zip(xs[::2], xs[1::2]):
-            for east in range(math.ceil(x0 - 0.5), math.floor(x1 - 0.5) + 1):
-                e0, n0 = east // LIDAR_CHUNK * LIDAR_CHUNK, north // LIDAR_CHUNK * LIDAR_CHUNK
-                if at != (e0, n0): at, chunk = (e0, n0), lidar_chunk(e0, n0)
-                h = chunk[(n0 + LIDAR_CHUNK - 1 - north) * LIDAR_CHUNK + east - e0]
-                if h != VOID: heights.append(h)
+            for east in range(math.ceil(x0 - 0.5), math.floor(x1 - 0.5) + 1): yield east, north
+
+def raster_height(outline, project, size, chunk, origin=(0, 0)):
+    """A heights grid's height for one footprint: the 90th percentile of the heights of the 1 m pixels whose centre it
+    holds (the maximum is a mast or a spire, the median half a pitched roof), ground and void pixels left out. None
+    under 4 pixels, or under 2 m: a building the survey saw as ground was built after it. `project` takes (lat, lon)
+    to the grid's metres, `chunk(e0, n0)` answers the size × size chunk whose south-west corner that is (row 0
+    north, decimetres, VOID), the chunks laid from `origin`."""
+    heights, at, pixels = [], None, None
+    for east, north in pixel_centres([project(p["latitude"], p["longitude"]) for p in outline]):
+        e0, n0 = origin[0] + (east - origin[0]) // size * size, origin[1] + (north - origin[1]) // size * size
+        if at != (e0, n0): at, pixels = (e0, n0), chunk(e0, n0)
+        h = pixels[(n0 + size - 1 - north) * size + east - e0]
+        if h != VOID: heights.append(h)
     if len(heights) < 4: return None
     heights.sort()
     rank = LIDAR_PERCENTILE * (len(heights) - 1)
@@ -63,9 +85,75 @@ def lidar_height(outline):
     h = (heights[lo] + (heights[min(lo + 1, len(heights) - 1)] - heights[lo]) * (rank - lo)) / 10
     return h if h >= 2 else None
 
-def lidar(rect):
-    """OpenStreetMap's footprints, each with the lidar's height where it reads one (a combine row's fetch)."""
-    return [building(b["outline"], h) for b in osm_buildings(rect, True) if (h := lidar_height(b["outline"])) is not None]
+def on_osm(height):
+    """A combine row's fetch: OpenStreetMap's footprints, each with `height(outline)` where it reads one."""
+    return lambda rect: [building(b["outline"], h) for b in osm_buildings(rect, True) if (h := height(b["outline"])) is not None]
+
+def lidar_height(outline): return raster_height(outline, bng, LIDAR_CHUNK, lidar_chunk)
+
+lidar = on_osm(lidar_height)
+
+# DC GIS's 2024 LiDAR Normalized Digital Surface Model (CC0): height above ground, 1 m float32, on its own grid,
+# Maryland State Plane metres (NAD83 (HARN), EPSG:2804), read whole-pixel through exportImage (nearest neighbour,
+# the box on the grid's metres: no resampling). The server's limit is 15,000 × 4,100 pixels a request. OSM's
+# footprints in DC came from DC GIS's own outlines, on the same datum: projected with no shift. Negative heights are
+# its no-data (water reads −5).
+DC_NDSM = ("https://imagery.dcgis.dc.gov/dcgis/rest/services/Lidar/nDSM_2024/ImageServer/exportImage?bbox={},{},{},{}"
+           "&bboxSR=2804&imageSR=2804&size={},{}&format=tiff&pixelType=F32&interpolation=RSP_NearestNeighbor&compression=None&f=image")
+MARYLAND = lcc(6_378_137.0, 1 / 298.257222101, 39.45, 38.3, 37 + 40 / 60, -77, 400_000, 0)
+DC_CHUNK = 2000      # metres a side: one request (16 MB uncompressed, ~20 s; LZW's pure-Python decoding costs what it saves)
+_dc = {}
+
+def dc_tiff(e0, n0, e1, n1):
+    return get(DC_NDSM.format(e0, n0, e1, n1, e1 - e0, n1 - n0), parse=geotiff)
+
+def dc_chunk(e0, n0):
+    def read():
+        tiff = dc_tiff(e0, n0, e0 + DC_CHUNK, n0 + DC_CHUNK)
+        on_grid("DC nDSM", (tiff,), e0, n0, DC_CHUNK)
+        return decimetres(v if v > 0 else None for v in tiff[4])
+    return kept(_dc, (e0, n0), read, LIDAR_KEPT)
+
+def dc_height(outline): return raster_height(outline, MARYLAND[0], DC_CHUNK, dc_chunk)
+
+washington_dc = on_osm(dc_height)
+
+# The Città Metropolitana di Napoli's 2009 LiDAR (its SIT; no licence stated): a DSM and a DTM, 1 m Esri ASCII grids
+# in WGS84 / UTM 33N, 500 m tiles laid from 327 E, 244 N over Naples (the province's other two grids lie off the
+# city). Each layer's WFS tile index gives a tile's URL by its corner; the two layers number their tiles apart.
+NAPLES_INDEX = ("https://sit.cittametropolitana.na.it/geoserver/ows?service=WFS&version=2.0.0&request=GetFeature"
+                "&typeNames=sit:quadro_unione_lidar_{}&propertyName=geom,url&outputFormat=application/json")
+NAPLES_TILE = 500
+NAPLES_ORIGIN = (327, 244)
+NAPLES_KEPT = 256    # chunks held (0.5 MB each)
+_naples, _naples_index = {}, {}
+
+def tile_index(collection):
+    """A tile index's URLs by each tile's south-west corner, rounded to the metre (the grids' own corners)."""
+    out = {}
+    for f in collection["features"]:
+        ring = f["geometry"]["coordinates"][0][0]
+        out[(round(min(x for x, _ in ring)), round(min(y for _, y in ring)))] = f["properties"]["url"].strip()
+    return out
+
+def naples_tile(kind, e0, n0):
+    """One tile of the DSM or the DTM, None where the survey has none."""
+    if kind not in _naples_index: _naples_index[kind] = tile_index(get_json(NAPLES_INDEX.format(kind)))
+    url = _naples_index[kind].get((e0, n0))
+    return url and get(url, parse=esri_ascii)
+
+def naples_chunk(e0, n0):
+    def read():
+        surface, ground = naples_tile("dsm", e0, n0), naples_tile("dtm", e0, n0)
+        if not surface or not ground: return array.array("h", [VOID]) * (NAPLES_TILE * NAPLES_TILE)
+        on_grid("Naples lidar", (surface, ground), e0, n0, NAPLES_TILE)
+        return surface_less_ground(surface, ground)
+    return kept(_naples, (e0, n0), read, NAPLES_KEPT)
+
+def naples_height(outline):
+    return raster_height(outline, lambda lat, lon: wgs84_to_utm(lat, lon, 33), NAPLES_TILE, naples_chunk, NAPLES_ORIGIN)
+
+naples = on_osm(naples_height)
 
 # Seattle's Building Outlines 2015 (roof outlines, BP99_APEX the roof apex's elevation in feet above NAVD88) and the
 # USGS 3DEP bare-earth elevation (public domain, NAVD88 metres), exported for a block as an uncompressed float32 GeoTIFF.
@@ -172,16 +260,11 @@ def yarra_height(outline):
                 draw_faces(mesh_faces(f.read()))
         _yarra["read"] = True
     ring = [wgs84_to_tm(p["latitude"], p["longitude"], 147, false_northing=10_000_000) for p in outline]
-    edges = list(zip(ring, ring[1:] + ring[:1]))
     heights = []
-    for north in range(math.floor(min(y for _, y in ring)), math.ceil(max(y for _, y in ring))):
-        y = north + 0.5
-        xs = sorted(a[0] + (y - a[1]) * (b[0] - a[0]) / (b[1] - a[1]) for a, b in edges if (a[1] > y) != (b[1] > y))
-        for x0, x1 in zip(xs[::2], xs[1::2]):
-            for east in range(math.ceil(x0 - 0.5), math.floor(x1 - 0.5) + 1):
-                roof = _yarra.get((east // YARRA_CHUNK, north // YARRA_CHUNK))
-                h = roof[0][north % YARRA_CHUNK * YARRA_CHUNK + east % YARRA_CHUNK] if roof else VOID
-                if h != VOID: heights.append(h)
+    for east, north in pixel_centres(ring):
+        roof = _yarra.get((east // YARRA_CHUNK, north // YARRA_CHUNK))
+        h = roof[0][north % YARRA_CHUNK * YARRA_CHUNK + east % YARRA_CHUNK] if roof else VOID
+        if h != VOID: heights.append(h)
     feet = [c[1][int(y % YARRA_CHUNK // 2) * (YARRA_CHUNK // 2) + int(x % YARRA_CHUNK // 2)]
             for x in range(math.floor(min(x for x, _ in ring) - 2), math.ceil(max(x for x, _ in ring) + 2) + 1, 2)
             for y in range(math.floor(min(y for _, y in ring) - 2), math.ceil(max(y for _, y in ring) + 2) + 1, 2)
@@ -191,6 +274,4 @@ def yarra_height(outline):
     h = (heights[int(LIDAR_PERCENTILE * (len(heights) - 1))] - min(feet)) / 10
     return h if h >= 2 else None
 
-def yarra(rect):
-    """OpenStreetMap's footprints, each with the meshes' height where they read one (a combine row's fetch)."""
-    return [building(b["outline"], h) for b in osm_buildings(rect, True) if (h := yarra_height(b["outline"])) is not None]
+yarra = on_osm(yarra_height)

@@ -1,4 +1,4 @@
-"""Binary and archive readers: GeoTIFF, WKB and GeoPackage, Shapefile, 3DS meshes, XLSX, Atom feeds."""
+"""Binary and archive readers: GeoTIFF, Esri ASCII grids, WKB and GeoPackage, Shapefile, 3DS meshes, XLSX, Atom feeds."""
 import array, io, math, os, re, shutil, sqlite3, struct, sys, time, xml.etree.ElementTree as ET, zlib
 from builder.cells import M
 from builder.net import download, get, log, RANGE_CHUNK, Ranged, SourceError
@@ -239,6 +239,17 @@ def geotiff(raw):
         for r in range(min(th, height - y0, len(values) // tw)):
             out[(y0 + r) * width + x0:(y0 + r) * width + x0 + w] = values[r * tw:r * tw + w]
     return west, north, width, height, out
+
+def esri_ascii(raw):
+    """An Esri ASCII grid (ncols, nrows, xllcorner, yllcorner, cellsize, nodata_value, then the rows from the north) as
+    geotiff() answers: (west, north, width, height, array('f')), no-data -inf."""
+    words = raw.split()
+    header = {words[k].decode().lower(): float(words[k + 1]) for k in range(0, 12, 2)}
+    if "xllcorner" not in header or "yllcorner" not in header: raise SourceError("ASCII grid not on cell corners")
+    width, height, nodata = int(header["ncols"]), int(header["nrows"]), header.get("nodata_value")
+    values = array.array("f", (float("-inf") if v == nodata else v for v in map(float, words[12:12 + width * height])))
+    if len(values) != width * height: raise SourceError("ASCII grid cut short")
+    return header["xllcorner"], header["yllcorner"] + height * header["cellsize"], width, height, values
 
 def mesh_faces(raw, a=0, b=None):
     """Every triangle of a 3DS file, as three (x, y, z) vertices: the main, editor, object and mesh chunks walked,
