@@ -145,23 +145,26 @@ def download(url, folder, max_days=6, headers=None):
 # block reads only the records whose box meets it.
 RANGE_CHUNK = 8 << 20   # bytes a ranged request asks for
 
+def get_range(url, start, end, headers=None):
+    """Bytes start to end (inclusive) of a remote file, and the answer's Content-Range; retried like download()."""
+    for wait in (*WAITS, None):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {}), "Range": f"bytes={start}-{end}"})
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+                if response.status != 206: raise SourceError(f"{url}: no range support (HTTP {response.status})")
+                return response.read(), response.headers.get("Content-Range", "")
+        except SourceError: raise
+        except Exception as e:  # noqa: BLE001 — resets, timeouts: worth another try
+            if wait is None: raise SourceError(f"{url}: {type(e).__name__}: {e}") from e
+            log(f"    {url.rsplit('/', 1)[1]}: {type(e).__name__}: {e}; retry in {wait} s")
+            time.sleep(wait)
+
 class Ranged(io.RawIOBase):
     """A remote file read by HTTP range, for zipfile: a seek is free, each read one request (retried like download())."""
     def __init__(self, url, headers):
         self.url, self.headers, self.at = url, headers, 0
         self.size = int(self.request(0, 0)[1].split("/")[1])
-    def request(self, start, end):
-        for wait in (*WAITS, None):
-            try:
-                request = urllib.request.Request(self.url, headers={"User-Agent": UA, **self.headers, "Range": f"bytes={start}-{end}"})
-                with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-                    if response.status != 206: raise SourceError(f"{self.url}: no range support (HTTP {response.status})")
-                    return response.read(), response.headers.get("Content-Range", "")
-            except SourceError: raise
-            except Exception as e:  # noqa: BLE001 — resets, timeouts: worth another try
-                if wait is None: raise SourceError(f"{self.url}: {type(e).__name__}: {e}") from e
-                log(f"    {self.url.rsplit('/', 1)[1]}: {type(e).__name__}: {e}; retry in {wait} s")
-                time.sleep(wait)
+    def request(self, start, end): return get_range(self.url, start, end, self.headers)
     def readable(self): return True
     def seekable(self): return True
     def tell(self): return self.at

@@ -271,6 +271,9 @@ none, this says so rather than guessing.
   Normalized Digital Surface Model (CC0 1.0); heights on OpenStreetMap's footprints.
 - Naples: Città Metropolitana di Napoli, SIT, LiDAR 2009 DSM and DTM (licence not
   stated by the publisher); heights on OpenStreetMap's footprints.
+- Edinburgh: Scottish Government, Scottish Remote Sensing Portal, LiDAR for Scotland
+  Phase V DSM and DTM. Contains public sector information licensed under the Open
+  Government Licence v3.0; heights on OpenStreetMap's footprints.
 - Tokyo, Osaka: 3D City Model (Project PLATEAU), Tokyo 23 wards and Osaka
   City, 2025 editions, Ministry of Land, Infrastructure, Transport and
   Tourism (MLIT), processed into footprints and heights. Public Data

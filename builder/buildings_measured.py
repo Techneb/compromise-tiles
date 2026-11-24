@@ -2,10 +2,10 @@
 Seattle, Virginia Beach, Yarra's meshes."""
 import array, json, math, os
 from builder.cells import padded
-from builder.net import download, get, SourceError, with_intermediate
+from builder.net import download, get, get_range, SourceError, with_intermediate
 from builder.projections import bng, lcc, wgs84_to_tm, wgs84_to_utm
 from builder.shapes import building, number, outer_rings
-from builder.formats import esri_ascii, geotiff, mesh_faces
+from builder.formats import esri_ascii, geotiff, mesh_faces, tiff_block, tiff_tags
 from builder.extract import osm_buildings
 from builder.apis import arcgis
 
@@ -44,8 +44,8 @@ def on_grid(name, grids, e0, n0, size):
     if any(g[:4] != (e0, n0 + size, size, size) for g in grids):
         raise SourceError(f"{name}: chunk {e0},{n0} came back on another grid ({[g[:4] for g in grids]})")
 
-def surface_less_ground(surface, ground):
-    return decimetres(None if a < -1e30 or g < -1e30 else a - g for a, g in zip(surface[4], ground[4]))
+def surface_less_ground(surface, ground, nodata=-1e30):
+    return decimetres(None if a <= nodata or g <= nodata else a - g for a, g in zip(surface[4], ground[4]))
 
 def lidar_chunk(e0, n0):
     """Heights above ground in one chunk, decimetres: DSM (first return) minus DTM. VOID where either has no data or
@@ -117,6 +117,59 @@ def dc_chunk(e0, n0):
 def dc_height(outline): return raster_height(outline, MARYLAND[0], DC_CHUNK, dc_chunk)
 
 washington_dc = on_osm(dc_height)
+
+# The Scottish Remote Sensing Portal's LiDAR for Scotland Phase V (2020–21, Open Government Licence v3): a DSM and a
+# DTM, 0.5 m, in 5 km GeoTIFFs on British National Grid (an OS 10 km square and its quarter, NT27SE), LZW in 256 px
+# tiles, on a public S3 bucket with no WCS: each chunk is read by HTTP range, one request a row of tiles. The grid
+# counts half metres, so a footprint's pixels are a quarter square metre each (the rule's 4 pixels are 1 m²).
+SRSP = "https://srsp-open-data.s3.eu-west-2.amazonaws.com/lidar/phase-5/{}/27700/gridded/{}_50CM_{}_PHASE5.tif"
+SRSP_FILE = 10_000   # half metres a file's side
+SRSP_CHUNK = 2000    # half metres a chunk's side (1 km, 8 MB): divides a file
+SRSP_HEAD = 65_535   # the bytes a file's tags lie in (6.6 KB for a 5 km file)
+_srsp, _srsp_tags = {}, {}
+
+def os_quarter(east, north):
+    """The Ordnance Survey 5 km square holding a BNG point, as Phase V names its files: NT27SE."""
+    e, n = int(east) // 100_000, int(north) // 100_000
+    letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
+    first, second = letters[(19 - n) // 5 * 5 + (e + 10) // 5], letters[(19 - n) * 5 % 25 + e % 5]
+    return (f"{first}{second}{int(east) % 100_000 // 10_000}{int(north) % 100_000 // 10_000}"
+            f"{'N' if north % 10_000 >= 5000 else 'S'}{'E' if east % 10_000 >= 5000 else 'W'}")
+
+def srsp_range(url, start, end): return get_range(url, start, end)[0]
+
+def srsp_grid(kind, e0, n0):
+    """One chunk of the DSM or the DTM (south-west corner e0, n0 in half metres), as geotiff() answers."""
+    fe, fn, c = e0 // SRSP_FILE * SRSP_FILE, n0 // SRSP_FILE * SRSP_FILE, SRSP_CHUNK
+    url = SRSP.format(kind, os_quarter(fe / 2, fn / 2), kind.upper())
+    if url not in _srsp_tags: _srsp_tags[url] = tiff_tags(srsp_range(url, 0, SRSP_HEAD))
+    order, tags = _srsp_tags[url]
+    tw, offsets, sizes = tags[322][0], tags[324], tags[325]
+    if (tags[256][0], tags[257][0], tags[33922][3] * 2, tags[33922][4] * 2, tags[33550][:2]) != (SRSP_FILE, SRSP_FILE, fe, fn + SRSP_FILE, (0.5, 0.5)):
+        raise SourceError(f"{url}: not a 5 km file at 0.5 m on its square")
+    across, x0, y0 = -(-SRSP_FILE // tw), e0 - fe, fn + SRSP_FILE - n0 - c   # the chunk's top-left pixel in the file
+    out = array.array("f", bytes(4 * c * c))
+    for ty in range(y0 // tw, (y0 + c - 1) // tw + 1):
+        first, last = ty * across + x0 // tw, ty * across + (x0 + c - 1) // tw
+        if any(offsets[k + 1] != offsets[k] + sizes[k] for k in range(first, last)): raise SourceError(f"{url}: tiles not in order")
+        span = srsp_range(url, offsets[first], offsets[last] + sizes[last] - 1)
+        for k in range(first, last + 1):
+            tx, values = k - ty * across, tiff_block(span[offsets[k] - offsets[first]:][:sizes[k]], order, tags)
+            a, b = max(x0, tx * tw), min(x0 + c, tx * tw + tw)
+            for r in range(max(y0, ty * tw), min(y0 + c, ty * tw + tw)):
+                out[(r - y0) * c + a - x0:(r - y0) * c + b - x0] = values[(r - ty * tw) * tw + a - tx * tw:(r - ty * tw) * tw + b - tx * tw]
+    return e0, n0 + c, c, c, out
+
+def srsp_chunk(e0, n0):
+    def read():
+        surface, ground = srsp_grid("dsm", e0, n0), srsp_grid("dtm", e0, n0)
+        return surface_less_ground(surface, ground, nodata=-9999)
+    return kept(_srsp, (e0, n0), read, LIDAR_KEPT)
+
+def scotland_height(outline):
+    return raster_height(outline, lambda lat, lon: tuple(2 * v for v in bng(lat, lon)), SRSP_CHUNK, srsp_chunk)
+
+scotland = on_osm(scotland_height)
 
 # The Città Metropolitana di Napoli's 2009 LiDAR (its SIT; no licence stated): a DSM and a DTM, 1 m Esri ASCII grids
 # in WGS84 / UTM 33N, 500 m tiles laid from 327 E, 244 N over Naples (the province's other two grids lie off the

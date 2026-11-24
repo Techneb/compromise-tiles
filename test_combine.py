@@ -168,4 +168,26 @@ assert next(b for b in mt.CITY_BUILDINGS if b["city"] == "Naples")["fetch"] is m
 ring = [[436827.17, 4520744.46], [437327.17, 4520744.46], [437327.17, 4521244.46], [436827.17, 4521244.46], [436827.17, 4520744.46]]
 assert mt.tile_index({"features": [{"geometry": {"type": "MultiPolygon", "coordinates": [[ring]]}, "properties": {"url": "https://x/1.asc   "}}]}) \
        == {(436827, 4520744): "https://x/1.asc"}
+# Edinburgh (2026-11-24): Scotland's LiDAR Phase V, DSM minus DTM at 0.5 m, read by HTTP range from 5 km LZW GeoTIFFs
+# (each fixture the file's first 16 KB, its tags, then the one 256 px tile a 125 half-metre chunk needs): the Scott
+# Monument's spire, 57.5 m at its top pixel (61 m built), reads 48.2 m at the 90th percentile of a 12 m square.
+def srsp_range(url, start, end):
+    kind = "dsm" if "/dsm/" in url else "dtm"
+    assert "NT27SE_50CM" in url, url
+    asked.append((kind, start, end))
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", f"edinburgh-NT27SE-{kind}.bin"), "rb") as f:
+        blob = f.read()
+    if start == 0: return blob[:end + 1]
+    assert start == mt.tiff_tags(blob[:16384])[1][324][8 * 40 + 4], start
+    return blob[16384:][:end - start + 1]
+patch(SRSP_CHUNK=125, SRSP_HEAD=16383, srsp_range=srsp_range)
+asked.clear()
+assert mt.scotland_height(square_m(55.95234, -3.19327, 6)) == 48.2
+assert len(asked) == 4 and mt.scotland_height(square_m(55.95234, -3.19327, 5)) and len(asked) == 4   # chunk and tags held
+assert mt.os_quarter(*mt.bng(55.9533, -3.1883)) == "NT27SE" and mt.os_quarter(533000, 181000) == "TQ38SW"
+assert at(55.9533, -3.1883) == "Edinburgh" and at(55.8790, -3.1500) == "OSM"   # Loanhead (Midlothian), inside the box
+assert next(b for b in mt.CITY_BUILDINGS if b["city"] == "Edinburgh")["fetch"] is mt.scotland
+# Edinburgh's centre within 0.3 m of OSTN15 (PROJ's grid, 2026-11-24).
+east, north = mt.bng(55.9533, -3.1883)
+assert abs(east - 325897.32) < 0.3 and abs(north - 674001.74) < 0.3
 print("ok")

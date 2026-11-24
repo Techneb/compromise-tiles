@@ -115,9 +115,10 @@ def from_tm(tm, east, north):
 
 # The Helmert transformation's mean offset from OSTN15 (east, north, metres) over each lidar city, by its centre; the
 # nearest applies. London at six points from Harefield to Rainham (2026-10-03); the five others on a grid of 6–9 points
-# inside each district against PROJ's OSTN15 grid (2026-10-04, each within 0.15 m of its mean across the district).
+# inside each district against PROJ's OSTN15 grid (2026-10-04, each within 0.15 m of its mean across the district);
+# Edinburgh on 8 points across the council area (2026-11-24, within 0.3 m).
 BNG_OFFSETS = {(51.49, -0.09): (1.7, 0.2), (52.49, -1.88): (0.4, 1.6), (51.47, -2.63): (-0.2, -0.2),
-               (53.82, -1.55): (-0.3, 1.8), (53.40, -2.91): (0.0, 1.8), (53.40, -1.56): (0.0, 1.9)}
+               (53.82, -1.55): (-0.3, 1.8), (53.40, -2.91): (0.0, 1.8), (53.40, -1.56): (0.0, 1.9), (55.95, -3.19): (-0.1, -0.6)}
 
 def bng(lat, lon):
     """WGS84 to British National Grid (OSGB36 Transverse Mercator) metres, through Ordnance Survey's 7-parameter

@@ -204,9 +204,9 @@ def shapefile(url, layer, folder, names, height, headers=None):
         return out
     return fetch
 
-def geotiff(raw):
-    """A one-band float32 GeoTIFF, tiled or in strips, uncompressed or DEFLATE, no predictor (what the WCS sends):
-    (west, north, width, height, array('f') row by row from the north)."""
+def tiff_tags(raw):
+    """A classic TIFF's byte order and its first image's tags (the numbers ones, their values in `raw`, which may be
+    the file's head only), checked as a one-band float32 image without predictor."""
     order = {b"II": "<", b"MM": ">"}.get(raw[:2])
     if not order or struct.unpack_from(order + "H", raw, 2)[0] != 42: raise SourceError("not a classic TIFF")
     at, = struct.unpack_from(order + "I", raw, 4)
@@ -217,12 +217,48 @@ def geotiff(raw):
         code, size = {1: ("B", 1), 3: ("H", 2), 4: ("I", 4), 12: ("d", 8)}.get(kind, (None, 0))
         if code is None: continue
         data = value if n * size <= 4 else raw[struct.unpack(order + "I", value)[0]:][:n * size]
+        if len(data) < n * size: raise SourceError(f"TIFF tag {tag} lies past the bytes read")
         tags[tag] = struct.unpack(order + code * n, data[:n * size])
-    width, height = tags[256][0], tags[257][0]
     if tags.get(258, (32,))[0] != 32 or tags.get(339, (1,))[0] != 3 or tags.get(317, (1,))[0] != 1 or tags.get(277, (1,))[0] != 1:
         raise SourceError("not a one-band float32 GeoTIFF without predictor")
+    if tags.get(259, (1,))[0] not in (1, 5, 8, 32946): raise SourceError(f"TIFF compression {tags[259][0]}")
+    return order, tags
+
+def tiff_block(block, order, tags):
+    """One strip's or tile's float32 values, decompressed."""
     compression = tags.get(259, (1,))[0]
-    if compression not in (1, 8, 32946): raise SourceError(f"TIFF compression {compression}")
+    if compression == 5: block = lzw(block)
+    elif compression != 1: block = zlib.decompress(block)
+    values = array.array("f", block[:len(block) // 4 * 4])
+    if order != ("<" if sys.byteorder == "little" else ">"): values.byteswap()
+    return values
+
+def lzw(raw):
+    """TIFF's LZW: codes of 9 to 12 bits, most significant bit first, each width one code early; 256 clears, 257 ends."""
+    out, table, previous = bytearray(), [bytes([k]) for k in range(256)] + [b"", b""], b""
+    bits, mask, buf, held = 9, 511, 0, 0
+    for byte in raw:
+        buf, held = (buf << 8 | byte) & 0xFFFFFF, held + 8
+        if held < bits: continue
+        held -= bits
+        code = buf >> held & mask
+        if code == 256:
+            del table[258:]
+            bits, mask, previous = 9, 511, b""
+            continue
+        if code == 257: break
+        entry = table[code] if code < len(table) else previous + previous[:1]
+        if previous: table.append(previous + entry[:1])
+        out += entry
+        previous = entry
+        if len(table) == mask and bits < 12: bits, mask = bits + 1, mask << 1 | 1
+    return bytes(out)
+
+def geotiff(raw):
+    """A one-band float32 GeoTIFF, tiled or in strips, uncompressed, DEFLATE or LZW, no predictor (what the WCS and
+    Esri's exportImage send): (west, north, width, height, array('f') row by row from the north)."""
+    order, tags = tiff_tags(raw)
+    width, height = tags[256][0], tags[257][0]
     if 34264 in tags: west, north = tags[34264][3], tags[34264][7]          # ModelTransformation
     else: west, north = tags[33922][3], tags[33922][4]                     # ModelTiepoint, pixel (0, 0)
     if 322 in tags: tw, th, offsets, sizes = tags[322][0], tags[323][0], tags[324], tags[325]
@@ -230,10 +266,7 @@ def geotiff(raw):
     across = -(-width // tw)
     out = array.array("f", bytes(4 * width * height))
     for k, (start, size) in enumerate(zip(offsets, sizes)):
-        block = raw[start:start + size]
-        if compression != 1: block = zlib.decompress(block)
-        values = array.array("f", block)
-        if order != ("<" if sys.byteorder == "little" else ">"): values.byteswap()
+        values = tiff_block(raw[start:start + size], order, tags)
         x0, y0 = (k % across) * tw, (k // across) * th
         w = min(tw, width - x0)
         for r in range(min(th, height - y0, len(values) // tw)):
