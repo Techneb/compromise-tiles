@@ -733,6 +733,19 @@
   "key": "24743,4233",
   "picked": "2026-10-21"
  },
+ "buildings/Stuttgart": {
+  "key": "24388,4589",
+  "picked": "2026-11-24"
+ },
+ "buildings/Copenhagen": {
+  "key": "27838,6284",
+  "picked": "2026-11-24",
+  "combine": true,
+  "licence": {
+   "kind": "wfs",
+   "url": "https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&request=GetCapabilities"
+  }
+ },
  "buildings/Bremen": {
   "key": "26537,4403",
   "picked": "2026-10-21"

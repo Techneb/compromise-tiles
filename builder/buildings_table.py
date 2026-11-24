@@ -245,6 +245,15 @@ CITY_BUILDINGS = [
         "https://geocloud.landesvermessung.sachsen.de/public.php/dav/files/AyJqXpJAZJXomCb/lod2_33{e}_{n}_2_sn_citygml.zip", 2, zone=33)),
     building_row("Mannheim", (49.4103, 49.5905), (8.4141, 8.59), boundary=boundary("mannheim"), fetch=citygml_tiles(
         "https://opengeodata.lgl-bw.de/data/lod2/LoD2_32_{e}_{n}_2_bw.zip", 2, odd_e=True)),
+    building_row("Stuttgart", (48.692, 48.8664), (9.0386, 9.3161), boundary=boundary("stuttgart"), fetch=citygml_tiles(
+        "https://opengeodata.lgl-bw.de/data/lod2/LoD2_32_{e}_{n}_2_bw.zip", 2, odd_e=True)),
+    # Copenhagen (2026-11-24): the city's own k101:bygning (the permits' WFS; no licence stated, credited as unstated),
+    # tagrendehoejde_estimat (eaves height, metres) on 96 % of the centre's buildings, else antaletager × 3 m. On OSM's
+    # footprints: the layer stops at the city limit, and Frederiksberg, inside the boundary, is not in it.
+    building_row("Copenhagen", (55.6129, 55.7327), (12.453, 12.7342), boundary=boundary("copenhagen"), combine="metres",
+                 fetch=lambda r: footprints(wfs("https://wfs-kbhkort.kk.dk/k101/ows", {"TYPENAMES": "k101:bygning",
+                 "OUTPUTFORMAT": "json", "SRSNAME": "EPSG:4326", "PROPERTYNAME": "wkb_geometry,tagrendehoejde_estimat,antaletager"}, r),
+                 lambda p: number(p.get("tagrendehoejde_estimat")) or from_floors(number(p.get("antaletager"))), guess=False)),
     # The overnight run's LoD2 rows (2026-10-21), each the whole city, held to its OSM boundary: NRW's statewide
     # model (as Düsseldorf's) for seven cities, LGLN's 1 km tiles for Hannover, Bavaria's (as Nuremberg's) for Augsburg.
     building_row("Essen", (51.3475, 51.5343), (6.8943, 7.1377), boundary=boundary("essen"), fetch=citygml_tiles(
