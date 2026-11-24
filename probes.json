@@ -585,6 +585,21 @@
   "picked": "2026-10-04",
   "combine": true
  },
+ "buildings/Washington DC": {
+  "key": "19450,-38515",
+  "picked": "2026-11-24",
+  "combine": true
+ },
+ "buildings/Naples": {
+  "key": "20419,7124",
+  "picked": "2026-11-24",
+  "combine": true
+ },
+ "buildings/Edinburgh": {
+  "key": "27976,-1596",
+  "picked": "2026-11-24",
+  "combine": true
+ },
  "buildings/Toronto": {
   "key": "21841,-39724",
   "picked": "2026-10-05"

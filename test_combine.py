@@ -4,7 +4,7 @@ fixtures/<city>.json: OpenStreetMap's buildings (osm_buildings(rect, tagged=True
 features, fetched 2026-10-02 in three small boxes each: Bratislava's Old Town Hall, the Manderla block,
 Nivy Tower; Oakland's City Hall, the Laconia Apartments, the Ordway Building. fixtures/london.json: OSM's buildings
 in one 64 m lidar chunk of a Walthamstow terrace, beside the WCS's answers for it and for 30 St Mary Axe."""
-import json, os, tempfile
+import json, math, os, tempfile
 import make_tiles as mt
 from builder import patch
 from make_tiles import cells_in, path, read
@@ -135,4 +135,69 @@ for lat, lon, e, n in ((52.4797, -1.9027, 406704.95, 286866.63), (51.4545, -2.58
                        (53.4084, -2.9916, 334179.37, 390632.47), (53.3811, -1.4701, 435346.13, 387267.63)):
     east, north = mt.bng(lat, lon)
     assert abs(east - e) < 0.4 and abs(north - n) < 0.4, (lat, lon, east - e, north - n)
+# Washington DC (2026-11-24): DC GIS's 2024 nDSM (height above ground, 1 m) on OSM's footprints, read on the
+# Maryland State Plane grid the ImageServer keeps, chunks cut to 64 m (two GeoTIFFs it sent): the Washington
+# Monument's 16.8 m base reads its shaft, the 90th percentile under the 169 m tip.
+def dc_tiff(e0, n0, e1, n1):
+    asked.append(("dc", e0, n0, e1, n1))
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", f"washington-dc-{e0}-{n0}.tif"), "rb") as f:
+        return mt.geotiff(f.read())
+def square_m(lat, lon, half):
+    """A square footprint `half` metres from its centre each way."""
+    da, do = half / 111_320, half / (111_320 * math.cos(math.radians(lat)))
+    return [mt.vertex(lat + a, lon + o) for a, o in ((-da, -do), (-da, do), (da, do), (da, -do))]
+patch(DC_CHUNK=64, dc_tiff=dc_tiff)
+asked.clear()
+assert round(mt.dc_height(square_m(38.88948, -77.03524, 8.4)), 1) == 162.0
+assert sorted(asked) == [("dc", 396928, 135680, 396992, 135744), ("dc", 396928, 135744, 396992, 135808)]
+assert at(38.8895, -77.0353) == "Washington DC" and at(38.8800, -77.1000) == "OSM"   # Arlington, inside the box
+row = next(b for b in mt.CITY_BUILDINGS if b["city"] == "Washington DC")
+assert row["fetch"] is mt.washington_dc and row["combine"] == "metres"
+# Naples (2026-11-24): the Città Metropolitana's 2009 lidar, DSM minus DTM from its 500 m Esri ASCII tiles (cut to 64 m
+# here, around the Maschio Angioino's courtyard and towers), found through the tile index; no tile there (the sea), no height.
+def naples_tile(kind, e0, n0):
+    if (e0, n0) != (436935, 4521076): return None
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", f"naples-{e0}-{n0}-{kind}.asc"), "rb") as f:
+        return mt.esri_ascii(f.read())
+patch(NAPLES_TILE=64, naples_tile=naples_tile)
+assert round(mt.naples_height(square_m(40.8384, 14.2525, 10)), 1) == 29.8
+assert mt.naples_height(square_m(40.8300, 14.2525, 10)) is None
+assert at(40.8384, 14.2525) == "Naples" and at(40.9000, 14.3500) == "OSM"   # Casalnuovo, inside the box
+assert next(b for b in mt.CITY_BUILDINGS if b["city"] == "Naples")["fetch"] is mt.naples
+# A coastal tile cut short (the sea's rows and columns left out) lands where its corner says, the rest no data.
+cut = lambda w, h, north: (436935.0, float(north), w, h, mt.array.array("f", [12.0] * (w * h)))
+assert list(mt.placed("t", cut(2, 1, 4521073), 436935, 4521072, 4)[4]) == [float("-inf")] * 4 * 3 + [12.0, 12.0, float("-inf"), float("-inf")]
+assert mt.placed("t", cut(4, 4, 4521076), 436935, 4521072, 4) == cut(4, 4, 4521076)
+# One reaching past its chunk (a 128 × 567 tile in the index's 500 m cell) gives the chunk its overlap; a corner within
+# 0.1 m of the metre (436827.059) is the metre's; one further off is another grid.
+assert list(mt.placed("t", cut(2, 2, 4521077), 436935, 4521072, 4)[4]) == [12.0, 12.0] + [float("-inf")] * 14
+assert mt.placed("t", (436935.06, 4521076.0, 4, 4, cut(4, 4, 0)[4]), 436935, 4521072, 4)[:4] == (436935, 4521076, 4, 4)
+try: mt.placed("t", (436935.5, 4521076.0, 4, 4, cut(4, 4, 0)[4]), 436935, 4521072, 4); raise AssertionError("half a pixel off")
+except mt.SourceError: pass
+# The tile index: each tile's URL by its south-west corner on the metre grid (the WFS's corners are off by under 0.5 m).
+ring = [[436827.17, 4520744.46], [437327.17, 4520744.46], [437327.17, 4521244.46], [436827.17, 4521244.46], [436827.17, 4520744.46]]
+assert mt.tile_index({"features": [{"geometry": {"type": "MultiPolygon", "coordinates": [[ring]]}, "properties": {"url": "https://x/1.asc   "}}]}) \
+       == {(436827, 4520744): "https://x/1.asc"}
+# Edinburgh (2026-11-24): Scotland's LiDAR Phase V, DSM minus DTM at 0.5 m, read by HTTP range from 5 km LZW GeoTIFFs
+# (each fixture the file's first 16 KB, its tags, then the one 256 px tile a 125 half-metre chunk needs): the Scott
+# Monument's spire, 57.5 m at its top pixel (61 m built), reads 48.2 m at the 90th percentile of a 12 m square.
+def srsp_range(url, start, end):
+    kind = "dsm" if "/dsm/" in url else "dtm"
+    assert "NT27SE_50CM" in url, url
+    asked.append((kind, start, end))
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", f"edinburgh-NT27SE-{kind}.bin"), "rb") as f:
+        blob = f.read()
+    if start == 0: return blob[:end + 1]
+    assert start == mt.tiff_tags(blob[:16384])[1][324][8 * 40 + 4], start
+    return blob[16384:][:end - start + 1]
+patch(SRSP_CHUNK=125, SRSP_HEAD=16383, srsp_range=srsp_range)
+asked.clear()
+assert mt.scotland_height(square_m(55.95234, -3.19327, 6)) == 48.2
+assert len(asked) == 4 and mt.scotland_height(square_m(55.95234, -3.19327, 5)) and len(asked) == 4   # chunk and tags held
+assert mt.os_quarter(*mt.bng(55.9533, -3.1883)) == "NT27SE" and mt.os_quarter(533000, 181000) == "TQ38SW"
+assert at(55.9533, -3.1883) == "Edinburgh" and at(55.8790, -3.1500) == "OSM"   # Loanhead (Midlothian), inside the box
+assert next(b for b in mt.CITY_BUILDINGS if b["city"] == "Edinburgh")["fetch"] is mt.scotland
+# Edinburgh's centre within 0.3 m of OSTN15 (PROJ's grid, 2026-11-24).
+east, north = mt.bng(55.9533, -3.1883)
+assert abs(east - 325897.32) < 0.3 and abs(north - 674001.74) < 0.3
 print("ok")
