@@ -284,8 +284,9 @@ none, this says so rather than guessing.
   www.geodaten.bayern.de, 3D-Gebäudemodelle LoD2 (CC BY 4.0).
 - Leipzig, Dresden: GeoSN, 3D-Gebäudemodell LoD2 (Datenlizenz Deutschland –
   Namensnennung – Version 2.0).
-- Mannheim: LGL Baden-Württemberg, 3D-Gebäudemodell LoD2 (Datenlizenz
+- Mannheim, Stuttgart: LGL Baden-Württemberg, 3D-Gebäudemodell LoD2 (Datenlizenz
   Deutschland – Namensnennung – Version 2.0).
+- Copenhagen: Københavns Kommune, bygninger (licence not stated by the publisher).
 - Bremen: Landesamt GeoInformation Bremen, 3D-Gebäudemodell LoD2 (CC BY 4.0).
 - Detroit: Southeast Michigan Council of Governments (SEMCOG), Buildings 2024
   (SEMCOG Copyright License Agreement). © SEMCOG.
