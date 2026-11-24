@@ -100,15 +100,13 @@ def zip_layer(url, layer, folder, headers=None):
             os.replace(file + ".tmp", file)
     return base
 
-class Shapefile:
-    """One polygon layer (.shp, .shx, .dbf, .prj; Polygon, PolygonZ or PolygonM, a Z or M ignored), read in place.
-    Opening it reads every record's box once (from the .shp at each .shx offset) into a grid of SHAPE_BUCKET cells."""
+class Dbf:
+    """A layer's attribute table (.dbf, its .cpg's encoding), read in place."""
     def __init__(self, base):
-        with open(base + ".prj", encoding="latin-1") as f: self.tm = wkt_projection(f.read())
         encoding = "latin-1"
         if os.path.exists(base + ".cpg"):
             with open(base + ".cpg", encoding="ascii") as f: encoding = {"utf-8": "utf-8", "utf8": "utf-8"}.get(f.read().strip().lower(), "latin-1")
-        self.encoding, self.shp, self.dbf = encoding, open(base + ".shp", "rb"), open(base + ".dbf", "rb")
+        self.encoding, self.dbf = encoding, open(base + ".dbf", "rb")
         head = self.dbf.read(32)
         self.count, self.header, self.length = struct.unpack_from("<IHH", head, 4)
         self.fields, at = {}, 1
@@ -117,6 +115,30 @@ class Shapefile:
             if f[0] == 0x0D: break
             self.fields[f[:11].split(b"\0")[0].decode("latin-1")] = (at, f[16], chr(f[11]))
             at += f[16]
+
+    def attributes(self, k, names):
+        """Record k's fields `names` from the .dbf: numbers as floats (blank: None), text stripped; None if deleted."""
+        self.dbf.seek(self.header + k * self.length)
+        raw = self.dbf.read(self.length)
+        if raw[:1] == b"*": return None
+        out = {}
+        for name in names:
+            at, size, kind = self.fields[name]
+            text = raw[at:at + size].decode(self.encoding, "replace").strip()
+            out[name] = (number(text) if text else None) if kind in "NF" else text
+        return out
+
+    def table(self, names):
+        """Every record's fields `names`, in order (a deleted one as None)."""
+        return [self.attributes(k, names) for k in range(self.count)]
+
+class Shapefile(Dbf):
+    """One polygon layer (.shp, .shx, .dbf, .prj; Polygon, PolygonZ or PolygonM, a Z or M ignored), read in place.
+    Opening it reads every record's box once (from the .shp at each .shx offset) into a grid of SHAPE_BUCKET cells."""
+    def __init__(self, base):
+        with open(base + ".prj", encoding="latin-1") as f: self.tm = wkt_projection(f.read())
+        super().__init__(base)
+        self.shp = open(base + ".shp", "rb")
         with open(base + ".shx", "rb") as f: shx = f.read()
         self.offsets = array.array("q", (2 * struct.unpack_from(">i", shx, 100 + 8 * k)[0] for k in range((len(shx) - 100) // 8)))
         self.size = 1 / 400 if self.tm is None else SHAPE_BUCKET
@@ -136,22 +158,6 @@ class Shapefile:
         if self.tm is None: return w, s, e, n
         points = [to_tm(self.tm, lat, lon) for lat in (s, (s + n) / 2, n) for lon in (w, (w + e) / 2, e)]
         return min(x for x, _ in points), min(y for _, y in points), max(x for x, _ in points), max(y for _, y in points)
-
-    def attributes(self, k, names):
-        """Record k's fields `names` from the .dbf: numbers as floats (blank: None), text stripped; None if deleted."""
-        self.dbf.seek(self.header + k * self.length)
-        raw = self.dbf.read(self.length)
-        if raw[:1] == b"*": return None
-        out = {}
-        for name in names:
-            at, size, kind = self.fields[name]
-            text = raw[at:at + size].decode(self.encoding, "replace").strip()
-            out[name] = (number(text) if text else None) if kind in "NF" else text
-        return out
-
-    def table(self, names):
-        """Every record's fields `names`, in order (a deleted one as None)."""
-        return [self.attributes(k, names) for k in range(self.count)]
 
     def rings(self, k):
         """Record k's outer rings (clockwise, the Shapefile's rule; holes left out) as [(latitude, longitude)]. A ring

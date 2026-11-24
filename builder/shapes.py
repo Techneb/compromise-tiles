@@ -184,8 +184,16 @@ def number(v):
     except (TypeError, ValueError): return None
 
 def triangles_outline(faces):
-    """The outer ring of a footprint drawn as triangles (Estonia's LoD1 bottom faces): the edges used once, chained,
-    the ring of largest area kept."""
+    """The outer ring of a footprint drawn as triangles (Estonia's LoD1 bottom faces): the ring of largest area."""
+    rings = triangle_rings(faces)
+    return max(rings, key=plan_area) if rings else None
+
+def plan_area(ring):
+    """Twice a closed ring's area, in its own (x, y) units."""
+    return abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(ring, ring[1:])))
+
+def triangle_rings(faces):
+    """Every closed ring of a surface drawn as faces: the edges used once, chained (an outline, a hole, a second piece)."""
     edges = collections.Counter()
     for face in faces:
         for p, q in zip(face, face[1:]):
@@ -206,8 +214,7 @@ def triangles_outline(faces):
                 if step is None: break
                 used.add(frozenset((cur, step))); prev, cur = cur, step
             if cur == start and len(ring) >= 3: rings.append(ring + [start])
-    area = lambda r: abs(sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(r, r[1:])))
-    return max(rings, key=area) if rings else None
+    return rings
 
 # The city height feeds, one row each. The first row holding the cell's centre (its box, and its
 # municipal boundary when the feed stops there) is asked first, then IGN (France), then

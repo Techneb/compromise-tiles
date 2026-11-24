@@ -946,5 +946,13 @@
  "permits/Harrow": {
   "key": "25790,-167",
   "picked": "2026-11-07"
+ },
+ "buildings/Palermo": {
+  "key": "19060,6678",
+  "picked": "2026-11-24"
+ },
+ "buildings/Mississauga": {
+  "key": "21797,-39817",
+  "picked": "2026-11-24"
  }
 }

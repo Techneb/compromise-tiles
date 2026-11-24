@@ -1,11 +1,11 @@
-"""Building feeds in vector formats: IGN, Turin, 3D BAG, Socrata, Catastro, Berlin, Liguria, Oakland, NRCan, DBT, UrbIS."""
+"""Building feeds in vector formats: IGN, Turin, 3D BAG, Socrata, Catastro, Berlin, Liguria, Oakland, NRCan, DBT, UrbIS, Mississauga."""
 import csv, json, math, os, re, struct, time, urllib.error, urllib.parse, urllib.request, xml.etree.ElementTree as ET
-from builder.cells import _overlaps, in_box, index, metres, padded
+from builder.cells import _overlaps, bounds, contains, in_box, index, metres, padded
 from builder.net import download, get, log, SourceError
-from builder.projections import lambert72_to_wgs84, utm_to_wgs84, wgs84_to_lambert72
-from builder.shapes import building, footprints, from_floors, number, outer_rings, triangles_outline, vertex
-from builder.formats import _atom_entries, zip_layer
-from builder.apis import intersects, socrata, wfs
+from builder.projections import lambert72_to_wgs84, mercator_to_wgs84, utm_to_wgs84, wgs84_to_lambert72
+from builder.shapes import building, footprints, from_floors, number, outer_rings, plan_area, triangle_rings, triangles_outline, vertex
+from builder.formats import _atom_entries, Dbf, zip_layer
+from builder.apis import arcgis, intersects, socrata, wfs
 
 def ign_buildings(rect):
     """IGN BD TOPO: hauteur, else floors × 3 m, else the flagged 15 m guess."""
@@ -76,11 +76,19 @@ def catastro(rect):
             if not _overlaps(mbox, focus) or href in _catastro["loaded"]: continue
             _catastro["loaded"].add(href)
             _load_catastro(href, crs, focus, title)
+    return from_grid(_catastro["grid"], rect)
+
+def to_grid(grid, b):
+    """A building into a run's grid, under every cell (index()) one of its vertices is in."""
+    for k in {(index(p["latitude"]), index(p["longitude"])) for p in b["outline"]}: grid.setdefault(k, []).append(b)
+
+def from_grid(grid, rect):
+    """The buildings of a grid with a vertex in the rect, each once."""
     s, w, n, e = rect
     out, seen = [], set()
     for ky in range(index(s) - 1, index(n) + 2):
         for kx in range(index(w) - 1, index(e) + 2):
-            for b in _catastro["grid"].get((ky, kx), ()):
+            for b in grid.get((ky, kx), ()):
                 if id(b) in seen: continue
                 seen.add(id(b))
                 if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"]): out.append(b)
@@ -110,9 +118,7 @@ def _load_catastro(href, crs, focus, title):
                         v = [float(x) for x in ring.text.split()]
                         pts = [utm_to_wgs84(v[i], v[i + 1], zone) for i in range(0, len(v) - 1, 2)]
                         if len(pts) < 3 or not any(focus[0] <= la <= focus[2] and focus[1] <= lo <= focus[3] for la, lo in pts): continue
-                        b = building([vertex(la, lo) for la, lo in pts], from_floors(floors))
-                        for k in {(index(la), index(lo)) for la, lo in pts}:  # every cell a part touches
-                            _catastro["grid"].setdefault(k, []).append(b)
+                        to_grid(_catastro["grid"], building([vertex(la, lo) for la, lo in pts], from_floors(floors)))
                         kept += 1
                 elem.clear()
     log(f"    catastro: {title}: {kept} parts inside the box in {time.monotonic() - started:.0f} s")
@@ -209,6 +215,7 @@ def dbt_height(p, f):
 
 MILAN_DBT = "https://gisportal.comune.milano.it/download/area_download/SIT/DBT2020/DBT_2020.zip"
 LAZIO_DBGT = "https://geoportale.regione.lazio.it/cartografia/api/raw/2020_DBGT_5K_SHP/Roma.zip"
+PALERMO_CTC = "https://opendata.comune.palermo.it/js/server/uploads/dataset/shp/_09062021064719.zip"
 BUENOS_AIRES_TEJIDO = "https://cdn.buenosaires.gob.ar/datosabiertos/datasets/secretaria-de-desarrollo-urbano/tejido-urbano/tejido.zip"
 
 def lazio_token():
@@ -222,24 +229,36 @@ def lazio_token():
 URBIS_FEED = "https://urbisdownload.datastore.brussels/atomfeed/e9ec2aa4-cffd-11ee-bccc-00090ffe0001-en.xml"
 _urbis = {}   # "feed" → {(km east, km north): the latest tile's URL}; a tile's URL → its buildings, parsed once a run
 
-def urbis_solids(raw):
-    """UrbIS-Buildings3D's BuildingSolids .shp (MultiPatch, one closed solid per record): the rings lying flat at the
-    solid's lowest z make its outline (triangles_outline), its z range its height. Every part is a ring (FirstRing, on
-    all 3,569 solids of tile 148170, 2026-10-03); a solid whose bottom is not flat (6 of them there) is left out."""
+def multipatch_faces(raw):
+    """A MultiPatch .shp, one entry per record: its parts as rings of (x, y, z), or None (not a MultiPatch). Every part
+    is read as a ring (FirstRing on all 3,569 solids of UrbIS tile 148170, 2026-10-03; Ring, OuterRing or InnerRing on
+    all 6,177 of Mississauga's Tile 72, 2026-11-24: no strip or fan)."""
     out, at = [], 100
     while at + 8 <= len(raw):
         size = 2 * struct.unpack_from(">i", raw, at + 4)[0]
         body, at = raw[at + 8:at + 8 + size], at + 8 + size
-        if len(body) < 44 or struct.unpack_from("<i", body)[0] != 31: continue
+        if len(body) < 44 or struct.unpack_from("<i", body)[0] != 31: out.append(None); continue
         parts, points = struct.unpack_from("<ii", body, 36)
         starts = struct.unpack_from(f"<{parts}i", body, 44) + (points,)
         o = 44 + 8 * parts
         xy = struct.unpack_from(f"<{2 * points}d", body, o)
-        low, high = struct.unpack_from("<2d", body, o + 16 * points)
         z = struct.unpack_from(f"<{points}d", body, o + 16 * points + 16)
-        ring = triangles_outline([[(xy[2 * i], xy[2 * i + 1]) for i in range(a, b)]
-                                  for a, b in zip(starts, starts[1:]) if all(z[i] - low < 0.01 for i in range(a, b))])
-        if ring: out.append(building([vertex(*lambert72_to_wgs84(x, y)) for x, y in ring], high - low if high > low else None))
+        out.append([[(xy[2 * i], xy[2 * i + 1], z[i]) for i in range(a, b)] for a, b in zip(starts, starts[1:])])
+    return out
+
+def flat_at(faces, z):
+    """The faces lying flat at elevation z (within 1 cm), in plan."""
+    return [[(x, y) for x, y, _ in f] for f in faces if all(abs(q - z) < 0.01 for _, _, q in f)]
+
+def urbis_solids(raw):
+    """UrbIS-Buildings3D's BuildingSolids .shp (Lambert 72, one closed solid per record): the rings lying flat at the
+    solid's lowest z make its outline (triangles_outline), its z range its height; a solid whose bottom is not flat
+    (6 of tile 148170's) is left out."""
+    out = []
+    for faces in filter(None, multipatch_faces(raw)):
+        z = [q for f in faces for _, _, q in f]
+        ring = triangles_outline(flat_at(faces, min(z)))
+        if ring: out.append(building([vertex(*lambert72_to_wgs84(x, y)) for x, y in ring], max(z) - min(z) if max(z) > min(z) else None))
     return out
 
 def urbis(rect):
@@ -263,3 +282,68 @@ def urbis(rect):
                     _urbis[url] = urbis_solids(f.read())
             out += [b for b in _urbis[url] if any(s <= p["latitude"] <= n and w <= p["longitude"] <= e for p in b["outline"])]
     return out
+
+# Mississauga: the City's LoD2 3D Massing Model, 30 tiles of MultiPatch solids (EPSG:3857, z metres above sea level), each
+# a public ArcGIS item (a zip with a DWG, an SKP, a File Geodatabase and the Shapefile TileNN/TileNN.*), indexed by
+# Massing_Tiles/FeatureServer/4. Modified 2026-02-02; the items' ids from the index's tinyurls, 2026-11-24.
+MISSISSAUGA_INDEX = "https://services6.arcgis.com/hM5ymMLbxIyWTjn2/arcgis/rest/services/Massing_Tiles/FeatureServer/4"
+MISSISSAUGA_ITEMS = {
+    11: "4db7cc63d5e54ab09936cc2f56c753ab", 12: "1546716965cc41b1b6855e68cf0ff4cf", 13: "7a1a5a69fa0b4707a3db5cae9255bc9b",
+    21: "a4cc494e1cd14f0a89b21a27d80d8414", 22: "f13aac12029c4f509adf832e7b742b10", 23: "a39c0fbf061541a992016dad39c2d6b0",
+    31: "023d948d6c4a4865b98162be6b6c4bc6", 32: "409e507e4c6749d6927724f73ab8d260", 33: "26d1c0d12c29403d90e080dc35c5efc9",
+    41: "909e2de4a40c4d57bd3e714eb4b9d2ff", 42: "1dff95bd126648e68ca466f25b308013", 43: "98bc0e42e9724e80b16493c91ea85e5a",
+    51: "fbdede11f835449e84a650c17e0cc1aa", 52: "a6dcdcdd178447118e0b6af618027e9e", 53: "bb5f8aeb1f4f4e15ba4a93578e66307b",
+    61: "73ff11c8574944759e4038db23038493", 62: "59f916aceb804acb91fd8ae5f9cfb426", 63: "f0c0773f8a9a4a37a0a732768da18100",
+    71: "bad0248ca5f34eb9919134b583ab1c27", 72: "310b8dfcc68d4447803726ff94e9f46c", 73: "af8d394f650b451abace124169f6ff3b",
+    81: "0868121bfb884937bbb802fadee02e69", 82: "767e10072da64e09bfd6942d536d8c6a", 83: "f48ac8b915df4fa1815e7330c849caa0",
+    91: "5f0df91387f740e9bb7a6be5ff557b09", 92: "21f4ca9183e54885a30b30492354a17b", 93: "8bd0d3c8f571405cbb10065614482002",
+    101: "429f3d6f6eb942718caedb3bbc755aed", 102: "8d26b47a342048d4b7a8b901fa82b439", 103: "33a4216dba9b41fcb5c879166513dd04"}
+_mississauga = {}   # "index" → [(box, tile)], "loaded" → tiles read this run, "grid" → their buildings by cell
+
+def massing_prisms(faces, base):
+    """One LoD2 solid as LoD1 prisms: each ring of its faces lying flat at a level above its base (a roof, a podium's
+    top, a setback) a building that high, a hole in a level (a tower rising through a podium roof) left out. BLDGHEIGHT
+    is not the height: on a tower over a podium it is the podium's (4033 Hurontario St: 10.1 m, its tower 162 m). The
+    base is BASEELEV, else the solid's lowest z (a few solids have a vertex at z 0). A solid with no flat level (a
+    pitched roof) is its bottom outline at its top."""
+    # ponytail: a sloped face above the highest flat level (a spire, a pitched top on a podium) adds no height.
+    z = [q for f in faces for _, _, q in f]
+    ground = base or min(z)
+    levels = {}
+    for f in faces:
+        if f and f[0][2] > ground + 0.5 and all(abs(q - f[0][2]) < 0.01 for _, _, q in f):
+            levels.setdefault(round(f[0][2], 2), []).append([(x, y) for x, y, _ in f])
+    out = []
+    for level, flat in levels.items():
+        rings = sorted(triangle_rings(flat), key=plan_area, reverse=True)
+        boxes = [(min(x for x, _ in r), min(y for _, y in r), max(x for x, _ in r), max(y for _, y in r)) for r in rings]
+        for i, r in enumerate(rings):
+            x, y = r[0]
+            if any(b[0] <= x <= b[2] and b[1] <= y <= b[3] and contains({"type": "Polygon", "coordinates": [o]}, y, x)
+                   for o, b in zip(rings[:i], boxes[:i])): continue   # a hole of a larger ring
+            out.append(building([vertex(*mercator_to_wgs84(x, y)) for x, y in r], level - ground))
+    if not out:
+        ring = triangles_outline(flat_at(faces, min(z)))
+        if ring: out.append(building([vertex(*mercator_to_wgs84(x, y)) for x, y in ring], max(z) - ground if max(z) > ground else None))
+    return out
+
+def mississauga(rect):
+    """The Existing solids of every tile the rect meets (the index read once a run; a tile's Shapefile fetched by range
+    once a year, zip_layer, and read once a run), as massing_prisms(). A solid without BLDGHEIGHT is left out: 3 of Tile
+    72's 6,104 Existing ones, among them Absolute World drawn a second time, floor by floor, 208.5 m high."""
+    if "index" not in _mississauga:
+        tiles = [(bounds(f["geometry"]), int(f["properties"]["TileNum"]))
+                 for f in arcgis(MISSISSAUGA_INDEX, (-90, -180, 90, 180), ["TileNum"], oid="OBJECTID_1")]
+        if not tiles: raise SourceError("Mississauga: no tile in the index")
+        _mississauga.update(index=tiles, loaded=set(), grid={})
+    for box, tile in _mississauga["index"]:
+        if tile in _mississauga["loaded"] or not _overlaps(box, rect): continue
+        if tile not in MISSISSAUGA_ITEMS: raise SourceError(f"Mississauga: tile {tile} has no item")
+        base = zip_layer(f"https://www.arcgis.com/sharing/rest/content/items/{MISSISSAUGA_ITEMS[tile]}/data", f"Tile{tile}", "mississauga")
+        rows = Dbf(base).table(["Status", "BASEELEV", "BLDGHEIGHT"])
+        with open(base + ".shp", "rb") as f: solids = multipatch_faces(f.read())
+        for row, faces in zip(rows, solids):
+            if faces and row and row["Status"] == "Existing" and row["BLDGHEIGHT"]:
+                for b in massing_prisms(faces, row["BASEELEV"]): to_grid(_mississauga["grid"], b)
+        _mississauga["loaded"].add(tile)
+    return from_grid(_mississauga["grid"], rect)
