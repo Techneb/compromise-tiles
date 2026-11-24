@@ -2041,5 +2041,5 @@ try:
 finally:
     patch(**saved)
 import json as _json
-assert {e["city"] for e in _json.load(open("cities.json")) if e.get("overture") is True} == {"Paris", "London"}
+assert {e["city"] for e in _json.load(open("cities.json")) if e.get("overture") is True} == {"Paris", "London", "Lyon", "Marseille"}
 print("ok (Overture: the entry's flag)")

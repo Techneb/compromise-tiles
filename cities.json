@@ -1993,6 +1993,7 @@
   {
     "city": "Lyon",
     "streets": true,
+    "overture": true,
     "district": "Lyon (whole commune)",
     "box": [
       45.7074,
@@ -2005,6 +2006,7 @@
   {
     "city": "Marseille",
     "streets": true,
+    "overture": true,
     "district": "Marseille (whole commune)",
     "box": [
       43.1696,

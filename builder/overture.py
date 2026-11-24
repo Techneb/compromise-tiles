@@ -3,8 +3,8 @@ import collections, re, urllib.error, urllib.parse, urllib.request
 from builder.cells import metres, padded
 from builder.names import MATCH_REACH, names_match, normalised_name
 
-# Overture Places on the venues of the areas whose cities.json entry says "overture": true, Paris's and London's (owner, 2026-11-18: "yes for Overture's data extraction. We start with
-# Paris and London"): its kind of bar, finer than OSM's amenity, as `style`; its brand's wikidata as `chain` where OSM
+# Overture Places on the venues of the areas whose cities.json entry says "overture": true (owner, 2026-11-18: "yes for Overture's data extraction. We start with
+# Paris and London"; 2026-11-24: the French cities next, then the big cities elsewhere): its kind of bar, finer than OSM's amenity, as `style`; its brand's wikidata as `chain` where OSM
 # names no brand; and a venue Overture holds permanently closed is left out. No Overture place becomes a venue. A place
 # speaks for the one venue within MATCH_REACH whose name matches (names_match); with a second such venue it says nothing,
 # and a venue two places disagree on (two kinds, closed and open) keeps OSM's alone. Overture: CDLA-Permissive 2.0; the
