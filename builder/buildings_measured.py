@@ -1,10 +1,10 @@
 """Building heights measured from elevation: lidar and other heights grids (London, Washington DC, Naples), USGS ground,
 Seattle, Virginia Beach, Yarra's meshes."""
-import array, json, math, os
-from builder.cells import padded
+import array, functools, json, math, os
+from builder.cells import contains, padded
 from builder.net import download, get, get_range, SourceError, with_intermediate
 from builder.projections import bng, lcc, wgs84_to_tm, wgs84_to_utm
-from builder.shapes import building, number, outer_rings
+from builder.shapes import building, from_floors, number, outer_rings
 from builder.formats import esri_ascii, geotiff, mesh_faces, tiff_block, tiff_tags
 from builder.extract import osm_buildings
 from builder.apis import arcgis
@@ -108,6 +108,32 @@ def on_osm(height):
 def lidar_height(outline): return raster_height(outline, bng, LIDAR_CHUNK, lidar_chunk)
 
 lidar = on_osm(lidar_height)
+
+def floors_inside(points):
+    """A combine row's height(outline) from (lat, lon, floors) points, one a building: the floors of a point inside the
+    outline, × 3 m (None for none, or 0 floors). Points kept in squares of 0.001°, about 100 m."""
+    grid = {}
+    for lat, lon, floors in points: grid.setdefault((math.floor(lat * 1000), math.floor(lon * 1000)), []).append((lat, lon, floors))
+    def height(outline):
+        lats, lons = [p["latitude"] for p in outline], [p["longitude"] for p in outline]
+        ring = {"type": "Polygon", "coordinates": [[[p["longitude"], p["latitude"]] for p in outline]]}
+        return next((from_floors(f) for y in range(math.floor(min(lats) * 1000), math.floor(max(lats) * 1000) + 1)
+                     for x in range(math.floor(min(lons) * 1000), math.floor(max(lons) * 1000) + 1)
+                     for lat, lon, f in grid.get((y, x), ()) if contains(ring, lat, lon)), None)
+    return height
+
+# Be'er Sheva's מבנים (buildings-br7, data.gov.il, the municipality's; licence "Other (Open)", credited as open with
+# attribution): 26,350 buildings as a centroid and `floors`, no outline (the GeoJSON download refuses non-browsers;
+# the datastore API answers, all of it in one request), on OSM's footprints.
+BEER_SHEVA_BR7 = ("https://data.gov.il/api/3/action/datastore_search?resource_id=676cfeb1-d257-4870-9d93-26c1aeced98b"
+                  "&limit=32000&fields=floors,lat,lon")
+
+@functools.cache
+def beer_sheva_height():
+    rows = get(BEER_SHEVA_BR7, parse=json.loads)["result"]["records"]
+    return floors_inside((number(r["lat"]), number(r["lon"]), number(r["floors"])) for r in rows if number(r["lat"]) and number(r["lon"]))
+
+beer_sheva = on_osm(lambda outline: beer_sheva_height()(outline))
 
 # DC GIS's 2024 LiDAR Normalized Digital Surface Model (CC0): height above ground, 1 m float32, on its own grid,
 # Maryland State Plane metres (NAD83 (HARN), EPSG:2804), read whole-pixel through exportImage (nearest neighbour,

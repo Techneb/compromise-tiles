@@ -219,6 +219,8 @@ none, this says so rather than guessing.
   use only", as stated by the publisher).
 - Ramat Gan: Ramat Gan Municipality, buildings layer (licence not stated
   by the publisher).
+- Be'er Sheva: Be'er Sheva Municipality, buildings (data.gov.il, licence
+  "Other (Open)" as stated by the publisher).
 - Holon: Holon Municipality, buildings layer (licence not stated by the
   publisher).
 - Herzliya: Herzliya Municipality, buildings layer (licence not stated by

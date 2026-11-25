@@ -7,7 +7,7 @@ from builder.extract import osm_buildings
 from builder.apis import arcgis, in_bbox, intersects, opendatasoft, socrata, wfs
 from builder.buildings_citygml import citygml_archive, citygml_tiles, espoo, estonia_lod1_buildings, gipuzkoa, hamburg, lod1_archive, plateau
 from builder.buildings_vector import mississauga, PALERMO_CTC
-from builder.buildings_measured import lidar, naples, scotland, seattle, virginia_beach, washington_dc, yarra
+from builder.buildings_measured import beer_sheva, lidar, naples, scotland, seattle, virginia_beach, washington_dc, yarra
 from builder.buildings_vector import bag3d, beoland, BUENOS_AIRES_TEJIDO, catastro, DBT_FIELDS, dbt_height, ign_buildings, LAZIO_DBGT, lazio_token, liguria, MILAN_DBT, NRCAN_GTA, NRCAN_HALIFAX, NRCAN_HAMILTON, NRCAN_LAKE_ERIE, NRCAN_MONTREAL, NRCAN_QUEBEC, NRCAN_WINNIPEG, oakland, socrata_buildings, turin, urbis
 
 def building_row(name, lat, lon, fetch, osm_on_error=False, boundary=None, combine=None):
@@ -59,6 +59,9 @@ CITY_BUILDINGS = [
     building_row("Ramat Gan", (32.035, 32.106), (34.799, 34.855), boundary=boundary("ramat-gan"), fetch=lambda r: footprints(arcgis(
         "https://services8.arcgis.com/MdnyDq2GlaTWezhQ/arcgis/rest/services/building_23_02_2025/FeatureServer/0", r,
         ["NUM_FLOORS"]), lambda p: from_floors(number(p.get("NUM_FLOORS"))))),
+    # Be'er Sheva: the municipality's floor counts on OSM's footprints (buildings_measured.beer_sheva).
+    building_row("Be'er Sheva", (31.1926, 31.3235), (34.7339, 34.8549), boundary=boundary("beer-sheva"), combine="floors",
+                 fetch=beer_sheva),
     building_row("Holon", (31.988, 32.039), (34.755, 34.815), boundary=boundary("holon"), fetch=lambda r: footprints(arcgis(
         "https://services2.arcgis.com/cjDo9oPmimdHxumn/arcgis/rest/services/Buildings_shp/FeatureServer/0", r,
         ["NUM_FLOORS"], oid="FID"), lambda p: from_floors(number(p.get("NUM_FLOORS"))))),
