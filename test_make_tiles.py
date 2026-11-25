@@ -250,9 +250,27 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "sources", cell)) == [{"permits": None}]
     make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [{"height": 9, "outline": [{"latitude": cell.lat, "longitude": cell.lon}] * 3}]
     do_buildings([cell], out, [])
-    assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
+    from make_tiles import BUILDINGS_BUILD, built_stamp
+    assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM", "built": built_stamp(cell)}]
     note_sources(out, cell, permits="Paris")
-    assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM"}]
+    assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM", "built": built_stamp(cell)}]
+    # A cell whose published sources/ says this build made its buildings is not asked again, so a run the cap cut
+    # resumes past it (London, 2026-11-25: two passes went through the same 17,800 of 51,466 cells); an older stamp,
+    # or none, is built again, and a sources-only pass (tiles=False) stamps nothing.
+    with tempfile.TemporaryDirectory() as fresh:
+        asked = []
+        make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: asked.append(r) or [{"height": 9, "outline": [{"latitude": cell.lat, "longitude": cell.lon}] * 3}]
+        do_buildings([cell], fresh, [], {cell.key: {"buildings": "OSM", "built": built_stamp(cell)}})
+        assert not asked and read(path(fresh, "buildings-v2", cell)) is None
+        do_buildings([cell], fresh, [], {cell.key: {"buildings": "OSM", "built": "2026-01-01"}})
+        assert asked
+        asked.clear()
+        do_buildings([cell], fresh + "/x", [], {cell.key: {"buildings": "Antwerp", "built": BUILDINGS_BUILD + " Antwerp"}})
+        assert asked   # the stamp of another source: a city row added or moved since
+        assert read(path(fresh, "sources", cell))[0]["built"] == built_stamp(cell) == BUILDINGS_BUILD + " OSM"
+    with tempfile.TemporaryDirectory() as fresh:
+        do_buildings([cell], fresh, [], {cell.key: {"permits": None}}, tiles=False)
+        assert read(path(fresh, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
     # The 15 m guess reaches the tile flagged, a measured height bare (2026-10-04); the key order is the tile's.
     from make_tiles import building, footprints, osm_height, DEFAULT_HEIGHT
     ring = [{"latitude": cell.lat, "longitude": cell.lon}] * 3

@@ -76,8 +76,8 @@ with tempfile.TemporaryDirectory() as out:
     assert mt.building_source(at_manderla) == "Bratislava" == mt.building_source(at_nivy)
     mt.do_buildings([at_manderla, at_nivy], out, failures := [])
     assert failures == []
-    assert read(path(out, "sources", at_manderla)) == [{"buildings": "Bratislava+OSM"}]
-    assert read(path(out, "sources", at_nivy)) == [{"buildings": "OSM"}]
+    assert read(path(out, "sources", at_manderla)) == [{"buildings": "Bratislava+OSM", "built": mt.built_stamp(at_manderla)}]
+    assert read(path(out, "sources", at_nivy)) == [{"buildings": "OSM", "built": mt.built_stamp(at_nivy)}]
     tile = read(path(out, "buildings", at_manderla))
     assert all(list(b) == ["outline", "height"] for b in tile) and 47.7 in [b["height"] for b in tile]
     # An OSM footprint of guessed height the city has no building for keeps its flag through the combine
