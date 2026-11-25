@@ -3035,12 +3035,12 @@
   },
   {
     "city": "Naucalpan de Ju\u00e1rez",
-    "district": "Naucalpan de Ju\u00e1rez (Centro de Naucalpan)",
+    "district": "Naucalpan de Ju\u00e1rez (Toreo)",
     "box": [
-      19.4717,
-      -99.246,
-      19.4857,
-      -99.2312
+      19.4474,
+      -99.2245,
+      19.4614,
+      -99.2097
     ]
   },
   {
@@ -4113,10 +4113,10 @@
     "streets": true,
     "district": "Zapopan (Andares)",
     "box": [
-      20.6663,
-      -103.4115,
-      20.6803,
-      -103.3965
+      20.7044,
+      -103.4205,
+      20.7184,
+      -103.4055
     ]
   },
   {
@@ -4814,12 +4814,12 @@
   },
   {
     "city": "Ciudad Nezahualcoyotl",
-    "district": "Ciudad Nezahualcoyotl (Centro)",
+    "district": "Ciudad Nezahualcoyotl (Avenida Carmelo P\u00e9rez)",
     "box": [
-      19.3936,
-      -99.0222,
-      19.4076,
-      -99.0074
+      19.3937,
+      -99.0044,
+      19.4077,
+      -98.9896
     ]
   },
   {
@@ -4870,10 +4870,10 @@
     "city": "Santiago de Quer\u00e9taro",
     "district": "Santiago de Quer\u00e9taro (Centro Hist\u00f3rico)",
     "box": [
-      20.5885,
-      -100.3816,
-      20.6025,
-      -100.3666
+      20.586,
+      -100.3971,
+      20.6,
+      -100.3821
     ]
   },
   {
@@ -5013,10 +5013,10 @@
     "streets": true,
     "district": "Logan City (Logan Central)",
     "box": [
-      -27.7904,
-      153.0506,
-      -27.7764,
-      153.0664
+      -27.6501,
+      153.1056,
+      -27.6361,
+      153.1214
     ]
   },
   {
@@ -5053,12 +5053,12 @@
   },
   {
     "city": "Tonal\u00e1",
-    "district": "Tonal\u00e1 (Centro de Tonal\u00e1)",
+    "district": "Tonal\u00e1 (Avenida R\u00edo Nilo)",
     "box": [
-      20.6097,
-      -103.2242,
-      20.6237,
-      -103.2092
+      20.6349,
+      -103.2851,
+      20.6489,
+      -103.2701
     ]
   },
   {
