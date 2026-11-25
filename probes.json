@@ -586,18 +586,18 @@
   "combine": true
  },
  "buildings/Washington DC": {
-  "key": "19450,-38515",
-  "picked": "2026-11-24",
+  "key": "19444,-38497",
+  "picked": "2026-11-25",
   "combine": true
  },
  "buildings/Naples": {
-  "key": "20419,7124",
-  "picked": "2026-11-24",
+  "key": "20419,7122",
+  "picked": "2026-11-25",
   "combine": true
  },
  "buildings/Edinburgh": {
-  "key": "27976,-1596",
-  "picked": "2026-11-24",
+  "key": "27971,-1638",
+  "picked": "2026-11-25",
   "combine": true
  },
  "buildings/Toronto": {
@@ -963,12 +963,12 @@
   "picked": "2026-11-07"
  },
  "buildings/Palermo": {
-  "key": "19060,6678",
-  "picked": "2026-11-24"
+  "key": "19056,6680",
+  "picked": "2026-11-25"
  },
  "buildings/Mississauga": {
-  "key": "21797,-39817",
-  "picked": "2026-11-24"
+  "key": "21771,-39862",
+  "picked": "2026-11-25"
  },
  "buildings/Be'er Sheva": {
   "key": "15630,17391",
