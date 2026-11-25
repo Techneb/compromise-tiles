@@ -242,7 +242,7 @@ assert at(42.6967, 23.3215) == "Sofia" and at(48.1437, 17.1088) == "Bratislava" 
 assert at(37.8053, -122.2724) == "Oakland"   # its cells are credited "Oakland+OSM" or "OSM": test_combine.py
 
 # sources/: each layer writes its own field and keeps the other's; a cell's building source is what answered.
-import tempfile, make_tiles
+import os, tempfile, make_tiles
 from make_tiles import note_sources, read, path, do_buildings
 with tempfile.TemporaryDirectory() as out:
     cell = cells_in(51.219, 4.402, 51.2192, 4.4022)[0]  # Antwerp: no city feed, not France
@@ -250,9 +250,33 @@ with tempfile.TemporaryDirectory() as out:
     assert read(path(out, "sources", cell)) == [{"permits": None}]
     make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: [{"height": 9, "outline": [{"latitude": cell.lat, "longitude": cell.lon}] * 3}]
     do_buildings([cell], out, [])
-    assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
+    from make_tiles import BUILDINGS_BUILD, built_stamp
+    assert read(path(out, "sources", cell)) == [{"permits": None, "buildings": "OSM", "built": built_stamp(cell)}]
     note_sources(out, cell, permits="Paris")
-    assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM"}]
+    assert read(path(out, "sources", cell)) == [{"permits": "Paris", "buildings": "OSM", "built": built_stamp(cell)}]
+    # A cell whose published sources/ says this build made its buildings is not asked again, so a run the cap cut
+    # resumes past it (London, 2026-11-25: two passes went through the same 17,800 of 51,466 cells); an older stamp,
+    # or none, is built again, and a sources-only pass (tiles=False) stamps nothing.
+    with tempfile.TemporaryDirectory() as fresh:
+        asked = []
+        make_tiles.FETCH_BUILDINGS["OSM"] = lambda r: asked.append(r) or [{"height": 9, "outline": [{"latitude": cell.lat, "longitude": cell.lon}] * 3}]
+        kept = {cell.key: {"buildings": "OSM", "permits": None, "built": built_stamp(cell)}}
+        do_buildings([cell], fresh, [], kept)
+        # Skipped: no file in out at all, sources/ included. The upload sends only out's files and --stale never lists
+        # sources/ (test_changed.py), so the published entry, its credit and its stamp stay as they are.
+        assert not asked and os.listdir(fresh) == []
+        note_sources(fresh, cell, kept, permits="Paris")   # the same run's terraces, written over the published entry
+        assert read(path(fresh, "sources", cell)) == [{"buildings": "OSM", "permits": "Paris", "built": built_stamp(cell)}]
+        os.remove(path(fresh, "sources", cell))
+        do_buildings([cell], fresh, [], {cell.key: {"buildings": "OSM", "built": "2026-01-01"}})
+        assert asked
+        asked.clear()
+        do_buildings([cell], fresh + "/x", [], {cell.key: {"buildings": "Antwerp", "built": BUILDINGS_BUILD + " Antwerp"}})
+        assert asked   # the stamp of another source: a city row added or moved since
+        assert read(path(fresh, "sources", cell))[0]["built"] == built_stamp(cell) == BUILDINGS_BUILD + " OSM"
+    with tempfile.TemporaryDirectory() as fresh:
+        do_buildings([cell], fresh, [], {cell.key: {"permits": None}}, tiles=False)
+        assert read(path(fresh, "sources", cell)) == [{"permits": None, "buildings": "OSM"}]
     # The 15 m guess reaches the tile flagged, a measured height bare (2026-10-04); the key order is the tile's.
     from make_tiles import building, footprints, osm_height, DEFAULT_HEIGHT
     ring = [{"latitude": cell.lat, "longitude": cell.lon}] * 3
@@ -1137,7 +1161,7 @@ camden = [(48.8691, 2.3272, "Rue de Grenelle", x) for x in (48, 62, 2213)]
 assert number_rows(tiles, camden, [])[west.key] == [["Rue de Grenelle", 48, 62]]
 assert number_rows(tiles, camden[::2], [])[west.key] == [], "48 and 2213 alone: one number left, no row"
 # do_streets: streets/ exactly as before (no range in it), numbers/ beside it, no numbers/ file for a cell with none.
-import tempfile, make_tiles
+import os, tempfile, make_tiles
 from make_tiles import do_streets
 saved = make_tiles.osm_streets, make_tiles.osm_addresses
 patch(osm_streets=lambda rect: grenelle, osm_addresses=lambda rect: (points, []))

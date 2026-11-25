@@ -218,9 +218,18 @@ def shaded_keys(cells, out, rect):
     small = small_place_keys(cells, rect) if points is not None else None
     return None if small is None else shade_keys(points) | small
 
+# The buildings rule's version, stamped as "built" in each cell's sources/ with the cell's building source when its
+# tiles are written. A cell whose published stamp is today's (the version, and the source it would be built from) is
+# skipped, so a run the cap cut resumes where it stopped; a new or moved city row is a new source, so built again.
+# Bump it when the buildings output changes (#196's one-floor guesses: 2026-11-20).
+BUILDINGS_BUILD = "2026-11-20"
+
+def built_stamp(cell): return f"{BUILDINGS_BUILD} {building_source(cell)}"
+
 def do_buildings(cells, out, failures, published=None, tiles=True):
     """The building tiles (with tiles=False, only each cell's source in sources/), by source."""
     published = published if published is not None else published_sources(out, cells)
+    if tiles: cells = [c for c in cells if not (isinstance(e := published.get(c.key), dict) and e.get("built") == built_stamp(c))]
     groups = {}
     for c in cells: groups.setdefault(building_source(c), []).append(c)
     while groups:
@@ -244,7 +253,7 @@ def do_buildings(cells, out, failures, published=None, tiles=True):
             items = estimated(items, answer)
             if tiles: write(path(out, "buildings", c), items)
             if tiles: write(path(out, "buildings-v2", c), compact_buildings(items, c.key))
-            note_sources(out, c, published, buildings=name)
+            note_sources(out, c, published, buildings=name, **({"built": built_stamp(c)} if tiles else {}))
 
 def do_terraces(cells, communes, out, failures):
     osm = gather(cells, osm_terraces, TERRACE_RADIUS, "OSM terraces")
