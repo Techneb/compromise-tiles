@@ -2064,3 +2064,11 @@ finally:
 import json as _json
 assert {e["city"] for e in _json.load(open("cities.json")) if e.get("overture") is True} == {"Paris", "London", "Lyon", "Marseille", "New York"}
 print("ok (Overture: the entry's flag)")
+# Be'er Sheva's buildings-br7 (data.gov.il): a point and a floor count per building, no outline. Each OSM footprint takes
+# the floors of a point inside it, × 3 m; one holding none, or a point with 0 floors, has none (OSM's own rule stays).
+from builder.buildings_measured import floors_inside
+square = lambda lat, lon, d=0.0002: [{"latitude": lat + a, "longitude": lon + b} for a, b in ((0, 0), (0, d), (d, d), (d, 0))]
+height = floors_inside([(31.2501, 34.7901, 4), (31.2601, 34.7901, 0), (31.2701, 34.80005, 2)])
+assert height(square(31.25, 34.79)) == 12 and height(square(31.26, 34.79)) is None and height(square(31.30, 34.79)) is None
+assert height(square(31.2700, 34.7998, 0.0003)) == 6   # a footprint across two grid squares finds the point in the second
+print("ok (Be'er Sheva: floors from the point inside each footprint)")

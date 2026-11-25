@@ -969,5 +969,10 @@
  "buildings/Mississauga": {
   "key": "21797,-39817",
   "picked": "2026-11-24"
+ },
+ "buildings/Be'er Sheva": {
+  "key": "15630,17391",
+  "picked": "2026-11-25",
+  "combine": true
  }
 }
