@@ -120,8 +120,13 @@ def licence(kind, url):
 
 # ---------------------------------------------------------------- the store
 
+BUST = f"?v={int(time.time())}"   # one query string per run: the store's tile as published, past the CDN's day-long cache
+
+
 def fetch_store(url):
-    """(body, status) from the store; the body None on an HTTP error (404: no tile)."""
+    """(body, status) from the store; the body None on an HTTP error (404: no tile). A tile is asked past the
+    CDN's cache: a sources/ entry rewritten that day still read the old source (Be'er Sheva, 2026-11-25)."""
+    if url.startswith(STORE): url += BUST
     for attempt in range(3):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:

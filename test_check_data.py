@@ -137,3 +137,19 @@ assert "1 mismatches" in text and "`1,1` (A / A): feed buildings 1 / tile 1; fee
 clean = summary(run, run["rows"], previous, probes, {}, None)
 assert "**Clean**" in text.replace(text, clean) and "flag" not in clean.split("\n")[2]
 print("ok")
+
+# published() reads past the CDN's day-long cache: a city's sources/ entry rewritten today still read "OSM" from the
+# plain URL, so pick found no crediting cell for Be'er Sheva, Naples or Edinburgh on 2026-11-25.
+import io, urllib.request
+asked, real = [], urllib.request.urlopen
+class Answer(io.BytesIO):
+    status = 200
+    def __enter__(self): return self
+    def __exit__(self, *a): pass
+urllib.request.urlopen = lambda request, timeout: asked.append(request.full_url) or Answer(b'[{"buildings":"X"}]' if "sources/" in request.full_url else b"[[12, 0, 0]]")
+try:
+    assert cd.published("buildings", "1,1")["source"] == "X"
+finally:
+    urllib.request.urlopen = real
+assert len(asked) == 2 and all("?v=" in u for u in asked), asked
+print("ok (published reads past the cache)")
