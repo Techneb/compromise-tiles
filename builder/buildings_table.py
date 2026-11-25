@@ -19,6 +19,9 @@ santa_clara = lambda r: footprints(arcgis(
     "https://maps.santaclaracounty.gov/server/rest/services/opendata/SCCGISHUB/MapServer/40", r, ["Building_H"]),
     lambda p: p["Building_H"] * 0.3048 if p.get("Building_H") else None)
 
+# Bavaria's LoD2, 2 km tiles (Nuremberg, Augsburg, Munich): download2, as download1 served the same files at ~5 KB/s on
+# 2026-11-25 (Augsburg stopped by the 290-minute cap), download2 at ~7 MB/s.
+BAVARIA_LOD2 = "https://download2.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml"
 USA_STRUCTURES = "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/USA_Structures_View/FeatureServer/0"
 
 CITY_BUILDINGS = [
@@ -148,7 +151,7 @@ CITY_BUILDINGS = [
     building_row("Düsseldorf", (51.1243, 51.3525), (6.6888, 6.94), citygml_tiles(
         "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
     building_row("Nuremberg", (49.3314, 49.5408), (10.9887, 11.2826), citygml_tiles(
-        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+        BAVARIA_LOD2, 2)),
     # Saxony's LoD2 (GeoSN; no licence on the download, credited Datenlizenz Deutschland – Namensnennung – 2.0, the
     # stricter reading): 2 km zipped tiles in UTM 33N, through the download app's public share. Baden-Württemberg's
     # (LGL, Datenlizenz Deutschland in each zip, read the same way): 2 km zips at odd eastings of 1 km GMLs.
@@ -274,13 +277,13 @@ CITY_BUILDINGS = [
     building_row("Hannover", (52.3048, 52.4544), (9.6044, 9.9186), boundary=boundary("hannover"), fetch=citygml_tiles(
         "https://lod2.opengeodata.lgln.niedersachsen.de/LoD2_32_{e}_{n}_1_ni.gml", 1)),
     building_row("Augsburg", (48.2581, 48.4587), (10.7633, 10.9594), boundary=boundary("augsburg"), fetch=citygml_tiles(
-        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+        BAVARIA_LOD2, 2)),
     # 2026-10-25: Cologne on NRW's model, Munich on Bavaria's, each the whole city held to its boundary (Cologne
     # Cathedral 161 m, the Frauenkirche's square 80 m at most).
     building_row("Cologne", (50.8304, 51.085), (6.7725, 7.1621), boundary=boundary("cologne"), fetch=citygml_tiles(
         "https://www.opengeodata.nrw.de/produkte/geobasis/3dg/lod2_gml/lod2_gml/LoD2_32_{e}_{n}_1_NW.gml", 1)),
     building_row("Munich", (48.0616, 48.2481), (11.3607, 11.723), boundary=boundary("munich"), fetch=citygml_tiles(
-        "https://download1.bayernwolke.de/a/lod2/citygml/{e}_{n}.gml", 2)),
+        BAVARIA_LOD2, 2)),
     # Brno's Výška budov (data.brno.cz, CC BY): vyska_komp, metres (228 of 236 at náměstí Svobody).
     building_row("Brno", (49.1098, 49.2944), (16.4279, 16.7279), boundary=boundary("brno"), fetch=lambda r: footprints(arcgis(
         "https://services6.arcgis.com/fUWVlHWZNxUvTUh8/arcgis/rest/services/V%C3%BD%C5%A1ka_budov/FeatureServer/0", r,
