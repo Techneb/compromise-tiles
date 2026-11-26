@@ -2096,3 +2096,12 @@ height = floors_inside([(31.2501, 34.7901, 4), (31.2601, 34.7901, 0), (31.2701, 
 assert height(square(31.25, 34.79)) == 12 and height(square(31.26, 34.79)) is None and height(square(31.30, 34.79)) is None
 assert height(square(31.2700, 34.7998, 0.0003)) == 6   # a footprint across two grid squares finds the point in the second
 print("ok (Be'er Sheva: floors from the point inside each footprint)")
+
+# A run reads sources/ past the CDN's cache: the build stamps the run before uploaded are seen, so its cells are
+# skipped (London, 2026-11-26: pass 2 read pass 1's cells as unstamped and rebuilt some 7,000 of them).
+from builder import store as _store
+_real, _asked = _store.published_items, []
+_store.published_items = lambda layer, key, bust=False: _asked.append((layer, bust)) or [{"built": "x"}]
+assert _store.published_source(Cell(1, 2)) == {"built": "x"} and _asked == [("sources", True)], _asked
+_store.published_items = _real
+print("ok (sources past the cache)")
