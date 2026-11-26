@@ -65,7 +65,7 @@ def published_items(layer, key, bust=False):
 
 def published_source(cell):
     """The published sources/ entry of a cell: a dict ({} when there is none, 404), or a SourceError."""
-    items = published_items("sources", cell.key)
+    items = published_items("sources", cell.key, bust=True)   # a stamp the run before uploaded, not the cached tile
     if isinstance(items, SourceError): return items
     return items[0] if items and isinstance(items[0], dict) else {}
 
